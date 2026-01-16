@@ -1,0 +1,25 @@
+{
+  "name": "nonblockinglife",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "> \"Stop blocking your life's main thread.\"",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "clasp:push": "npm run prepare-gas && clasp push && npm run restore-gas",
+    "clasp:pull": "clasp pull && npm run restore-gas",
+    "prepare-gas": "node prepare-gas.js prepare",
+    "restore-gas": "node prepare-gas.js restore"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/google-apps-script": "^2.0.8",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6"
+  }
+}

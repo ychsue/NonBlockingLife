@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-01-16] Grok的幫助下，可以使用 `export` 而不會上傳到GAS 與 Copilot 幫忙寫的GAS 程式
+
+可以做 Jest 測試
+
 ## [2026-01-15] 加入 Google Sheets 與簡易 GAS程式
 
 [將Gemini的輸出轉為Markdown](https://safemarkdown.com/)

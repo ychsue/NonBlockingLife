@@ -1,3 +1,8 @@
+# 忽略含有 secret 關鍵字的檔案
+*secret*
+.clasp.json
+appsscript.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -25,6 +30,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+node_modules/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

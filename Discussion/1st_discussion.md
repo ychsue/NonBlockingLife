@@ -191,8 +191,8 @@
     您加入 `Spent_Today` 是非常明智的，這在電腦科學中叫做 **「配額調度 (Quota Scheduling)」**。
 
     -   **名稱建議**：`Spent_Today` 很好。若想更專業一點可以叫 `Resource_Usage` 或     `Time_Slice_Used`。
-    -   **更好的運作邏輯（Time Boxing）**：   
-        -   在 `Task_Pool` 增加一個欄位 `Daily_Limit`（每日限額，單位：分鐘）。   
+    -   **更好的運作邏輯（Time Boxing）**：
+        -   在 `Task_Pool` 增加一個欄位 `Daily_Limit`（每日限額，單位：分鐘）。
         -   當 GAS 每小時檢查時，不只檢查單次超時，也檢查 `Spent_Today >= Daily_Limit`。
         -   **警告訊息**：`「偵測到 [專案A] 今日已執行 4 小時，已達設定上限。建議進行 Garbage Collection (處理碎事) 並切換至其他專案。」`
   
@@ -228,7 +228,7 @@
 
 =================================================================================
 
-## [2026-01-15] ychsue 我並不是在Gemini裡，請問我要怎麼看到您更新的手冊？其二，除了`Log` 與 `Dashboard`，我覺得其他五個都可以有您的 Task_ID，這樣，通通可以Log而不會打架了。
+## [2026-01-15] ychsue 我並不是在Gemini裡，請問我要怎麼看到您更新的手冊？其二，除了`Log` 與 `Dashboard`，我覺得其他五個都可以有您的 Task_ID，這樣，通通可以Log而不會打架了
 
 而透過Task_ID，就算Inbox 的條目最後變成 Project、Macro(Micro)Task 等，也不用再定義 Task_ID了。所以，原則上，除了Inbox會移動外，其餘的放置了就放置了，反正有 Done 來做軟刪除不是嗎？未來Archive Log 的問題，可能以後再說吧。 嗯，的確差不多可以進入 GAS 的部分玩看看了。😄謝謝您的幫忙。
 
@@ -368,3 +368,24 @@ Body 選 JSON，加入 action: START, taskName: 測試專案。
 ```
 
 這個框架已經把最難的「連通性」解決了。如果您在測試 iPhone 捷徑連接 GAS 時遇到 401 或 404 錯誤，隨時告訴我，這通常是部署權限的問題！加油，您的 NonBlockingLife 就要動起來了！
+
+=======================================================================
+
+## [2026-01-15] ychsue 您好厲害，能動耶！而且iPhone捷徑動得真漂亮，他在 Log & Dashboard 都有加東西上去，中文也正常
+
+不過，當我使用 Windows 11 powershell 的
+
+``` ps1
+$body = @{action="START"
+     taskName="測試專案"}|ConvertTo-Json
+curl -Uri "https://script.google.com/macros/s/KEY/exec" `
+     -Method POST `
+     -ContentType "application/json" `
+     -Body $body
+```
+
+雖然也能動，但是，中文字卻變成亂碼，請問這是怎麼回事呢？
+
+## Gemini 回答 3
+
+powershell 預設不是用 UTF8，所以要宣告 utf8 才行，或者，升級到 powershell 7 可能有解。
