@@ -485,3 +485,500 @@ NonBlockingLife
 ```
 
 下執行 `clasp push`，請問這樣可以嗎？還是說應該要在 `src` 目錄下執行？
+
+==============================================================================
+
+## [2026-01-16] ychsue 如果要Mock SpreadSheet，會用到的操作不就都要mock，定義一個SpreadSheet相關的操作，這工程會否很大？統一放在一個 .js 檔案裡面嗎？
+
+好，請先分離出 Utils.js 與 SheetsService.js，然後就得改 Logic.js 對吧？
+
+### Gemini Answer 05
+
+這是一個非常專業的重構步驟。透過將**「純邏輯（Logic）」**、**「資料存取（Service）」**與**「工具函數（Utils）」**分離，您的測試會變得極其簡單，因為您大部分的測試只需要針對不需 Mock 的 `Utils` 和 `Logic` 進行。
+
+以下是重構後的建議代碼結構：
+
+1. `src/gas/Utils.js` (純邏輯，最易測試)
+
+   這類函數不依賴任何 Google API，只處理數據計算。
+
+   ```javascript
+    // 計算兩個日期之間的分鐘差
+    export function calculateDuration(start, end) {
+      return Math.round((new Date(end) - new Date(start)) / 60000);
+    }
+
+    // 判斷是否超時
+    export function isOverdue(startTime, limitMinutes) {
+      const duration = calculateDuration(startTime, new Date());
+      return duration > limitMinutes;
+    }
+
+    // 產生短 ID
+    export function generateId() {
+      return "t" + new Date().getTime().toString(36);
+    }
+   ```
+
+   請謹慎使用程式碼。
+
+2.  `src/gas/SheetsService.js` (資料存取層)
+
+    這層專門封裝對 `SpreadsheetApp` 的操作，未來測試時只需 Mock 這個檔案。
+
+    ```javascript
+    import { NBL_CONFIG } from './Config';
+
+    export const SheetsService = {
+      // 取得 Dashboard 狀態
+      getDashboardState() {
+        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(NBL_CONFIG.SHEETS.DASH);
+        return sheet.getRange("A2:D2").getValues()[0]; // [ID, Name, StartAt, Status]
+      },
+
+      // 更新 Dashboard
+      updateDashboard(values) {
+        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(NBL_CONFIG.SHEETS.DASH);
+        sheet.getRange("A2:D2").setValues([values]);
+      },
+
+      // 寫入日誌
+      appendLog(row) {
+        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(NBL_CONFIG.SHEETS.LOG);
+        sheet.appendRow(row);
+      },
+
+      // 清空 Dashboard
+      clearDashboard() {
+        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(NBL_CONFIG.SHEETS.DASH);
+        sheet.getRange("A2:D2").clearContent();
+      }
+    };
+    ```
+
+    請謹慎使用程式碼。
+
+3. `src/gas/Logic.js` (業務流程層)
+
+    這層負責編排 (Orchestration)，調用 Utils 進行計算，調用 Service 進行存取。
+
+    ```javascript
+    import * as Utils from './Utils';
+    import { SheetsService } from './SheetsService';
+    import { NBL_CONFIG } from './Config';
+
+    export function handleStart(taskId, taskName) {
+      // 1. 透過 Service 檢查現況
+      const [currentId] = SheetsService.getDashboardState();
+
+      if (currentId) {
+        return { status: "warning", message: "已有任務正在執行" };
+      }
+
+      const now = new Date();
+      const id = taskId || Utils.generateId();
+
+      // 2. 執行更新
+      SheetsService.updateDashboard([id, taskName, now, NBL_CONFIG.STATUS.RUNNING]);
+      SheetsService.appendLog([now, id, taskName, "START", "MACRO", "RUNNING", ""]);
+
+      return { status: "success", taskId: id };
+    }
+
+    export function handleEnd() {
+      const [id, name, startAt] = SheetsService.getDashboardState();
+      if (!id) return { status: "error", message: "目前無執行中任務" };
+
+      const now = new Date();
+      const duration = Utils.calculateDuration(startAt, now);
+
+      // 執行結束邏輯
+      SheetsService.clearDashboard();
+      SheetsService.appendLog([now, id, name, "END", "MACRO", "IDLE", `Duration: ${duration}m`]);
+
+      return { status: "success", duration: duration };
+    }
+    ```
+
+    請謹慎使用程式碼。
+
+4. 針對 `Utils.js` 的單元測試 (不需任何 Mock)
+
+建立 `src/__tests__/utils.test.js`：
+
+``` javascript
+import * as Utils from '../gas/Utils';
+
+describe('Utils 測試', () => {
+  test('calculateDuration 應該正確計算分鐘差', () => {
+    const start = "2026-01-16T10:00:00";
+    const end = "2026-01-16T10:30:00";
+    expect(Utils.calculateDuration(start, end)).toBe(30);
+  });
+
+  test('generateId 應該回傳 t 開頭的字串', () => {
+    expect(Utils.generateId()).toMatch(/^t/);
+  });
+});
+```
+
+請謹慎使用程式碼。
+
+#### 重構後的好處
+
+1.  **測試分離**：您可以 100% 覆蓋 `Utils.js` 的測試，這保證了時間計算等核心邏輯不會出錯。
+2.  **Mock 範圍縮小**：當您要測試 `Logic.js` 時，您只需要 Mock `SheetsService` 這個物件，而不是整個 `SpreadsheetApp`。
+3.  **Clasp 友善**：在 `clasp push` 時，這些檔案會被上傳。
+
+**提示**：在 GAS 環境中，`export` 和 `import` 會失效。如果您直接 `clasp push`，建議使用一個簡單的轉換工具或在 `src/gas` 目錄下保持 GAS 原生格式（不帶 import/export），而在測試時使用 `rewire` 或透過工具處理。或是更簡單的做法：在本地開發時用 `.js` 副檔名，並在 push 前把 `export` 拿掉。
+
+您現在可以嘗試先寫 `Utils.js` 的測試，這是最快看到「Test First」成效的地方！
+
+=====================================================================
+
+## [2026-01-17] ychsue 因為有些工具是使用 `key:value` 的方式來存Excel，不過，既然用絕對位置，那麼，我就讓`Task_Pool`, `Micro_Tasks`, `Periodic_Config` 與 `Async_Await` 的前三個都設為 `Task_ID`, `Title` 與 `Status`，這樣，Log與更新他們的狀態時也比較簡單
+
+目前共有10個項目代辦，我們先來實作
+        [ ] Request (Action: START, TaskID: t123)
+        [ ] Request (Action: END, TaskID?)
+順便測試，您覺得如何？
+
+### Gemini Answer 06
+
+這是一個非常紮實的決定！統一前三欄為 **`Task_ID`, `Title`, `Status`** 是一個極佳的「資料庫正規化」設計，這讓您的 `SheetsService` 可以寫出更通用的函數（例如一個 `updateStatusById` 就能同時服務四張表），大大降低了開發複雜度。
+
+現在我們就以 **Test First (TDD)** 的方式，來實作最核心的 `START` 與 `END` 流程。
+
+1. 撰寫測試案例 (Test First)
+
+    請在 `__tests__/logic.test.js` 撰寫以下測試。這定義了我們預期的行為：
+
+    -   `START` 時：Dashboard 要寫入資料，Log 要紀錄。
+    -   `END` 時：要計算 Duration，更新狀態，並累加時間。
+
+    ``` javascript
+    import { jest } from '@jest/globals';
+    import { handleStart, handleEnd } from '../src/gas/Logic.js';
+    import { SheetsService } from '../src/gas/SheetsService.js';
+
+    // Mock SheetsService 的所有方法
+    jest.mock('../src/gas/SheetsService.js');
+
+    describe('NBL 核心流程測試 - START & END', () => {
+
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      test('START: 當 Dashboard 為空時應成功啟動', () => {
+        // 模擬 Dashboard 目前是空的 [ID, Title, StartAt, SystemStatus]
+        SheetsService.getDashboardState.mockReturnValue(["", "", "", "IDLE"]);
+
+        const result = handleStart("t123", "開發 NBL 測試");
+
+        expect(result.status).toBe("success");
+        expect(SheetsService.updateDashboard).toHaveBeenCalled();
+        expect(SheetsService.appendLog).toHaveBeenCalledWith(
+          expect.arrayContaining(["t123", "開發 NBL 測試", "START"])
+        );
+      });
+
+      test('END: 應計算 Duration 並更新 Pool', () => {
+        const startTime = new Date(Date.now() - 30 * 60000); // 30 分鐘前
+        // 模擬 Dashboard 正在跑 t123
+        SheetsService.getDashboardState.mockReturnValue(["t123", "開發 NBL 測試", startTime, "RUNNING"]);
+
+        const result = handleEnd();
+
+        expect(result.status).toBe("success");
+        expect(result.duration).toBe(30);
+        // 驗證是否清空 Dashboard 並更新狀態
+        expect(SheetsService.clearDashboard).toHaveBeenCalled();
+        expect(SheetsService.updateTaskInPool).toHaveBeenCalledWith("t123", "DONE", 30);
+      });
+    });
+    ```
+
+    請謹慎使用程式碼。
+
+2. 實作功能程式碼 (Logic.js)
+
+    為了讓測試通過，我們完善 `Logic.js`：
+
+    ```javascript
+    import * as Utils from './Utils.js';
+    import { SheetsService } from './SheetsService.js';
+    import { NBL_CONFIG } from './Config.js';
+
+    export function handleStart(taskId, taskName) {
+      const [currentId] = SheetsService.getDashboardState();
+      if (currentId) return { status: "warning", message: "已有任務在執行" };
+
+      const now = new Date();
+      const id = taskId || Utils.generateId();
+
+      SheetsService.updateDashboard([id, taskName, now, "RUNNING", 0]);
+      SheetsService.updateTaskInPool(id, "DOING"); // 更新 Pool 狀態
+      SheetsService.appendLog([now, id, taskName, "START", "MACRO", "RUNNING", ""]);
+
+      return { status: "success", taskId: id };
+    }
+
+    export function handleEnd() {
+      const [id, name, startAt] = SheetsService.getDashboardState();
+      if (!id) return { status: "error", message: "目前無執行任務" };
+
+      const now = new Date();
+      const duration = Utils.calculateDuration(startAt, now);
+
+      SheetsService.clearDashboard();
+      SheetsService.updateTaskInPool(id, "DONE", duration); // 核心：更新狀態與累加時間
+      SheetsService.appendLog([now, id, name, "END", "MACRO", "IDLE", `Duration: ${duration}m`]);
+
+      return { status: "success", duration: duration };
+    }
+    ```
+
+    請謹慎使用程式碼。
+
+3. 實作通用服務 (SheetsService.js)
+
+利用您統一前三欄的優勢，實作通用的 `updateTaskInPool`：
+
+```javascript
+export const SheetsService = {
+  // ... 其他方法 ...
+
+  // 統一更新邏輯：在 Task_Pool 中搜尋 ID 並更新 Status 與累積時間
+  updateTaskInPool(id, newStatus, addMins = 0) {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Task_Pool");
+    const data = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === id) {
+        // 更新 Status (第 3 欄)
+        sheet.getRange(i + 1, 3).setValue(newStatus);
+        // 如果有傳入分鐘，累加到 Spent_Today_Mins (第 5 欄)
+        if (addMins > 0) {
+          const currentSpent = data[i][4] || 0;
+          sheet.getRange(i + 1, 5).setValue(currentSpent + addMins);
+        }
+        break;
+      }
+    }
+  }
+};
+```
+
+請謹慎使用程式碼。
+
+#### 今日實作重點總結
+
+1.  **測試驅動**：我們先定義了 `END` 應該回傳 `duration: 30`，這強迫我們在邏輯中必須正確調用 `Utils.calculateDuration`。
+2.  **欄位一致性**：因為您把 `Task_ID`, `Title`, `Status` 放在前三位，未來如果要對 `Micro_Tasks` 做類似的 `updateStatus`，我們只需要把 `updateTaskInPool` 改成更通用的 `updateStatusInSheet(sheetName, id, status)` 即可。
+3.  **效能考量**：目前使用 `for` 迴圈掃描 ID，在資料量少時（< 1000條）速度極快。
+
+您可以先跑 `npm test` 看看這兩個核心功能是否通過測試。一旦通過，`clasp push` 上去，您的 iPhone 捷徑就能正確處理 **「任務開始、結束、時間統計」** 的完整閉環了！
+
+準備好測試這一段了嗎？
+
+================================================================================================================================
+
+## [2026-01-17] ychsue `jest.mock` 無法用在 ESM 之下
+
+採用**依賴注入 (Dependency Injection, DI)** 是非常明智的決定！這不僅解決了 ESM Mock 的難題，更讓您的代碼結構達到專業水準：**邏輯歸邏輯 (Logic)，實作歸實作 (Service)**。
+
+以下是重構後的程式碼與測試範例，這將作為您 **NonBlockingLife** 專案的穩定基石。
+
+1. 修改 Logic.js (實施注入)
+
+    我們在函數參數中加入一個 `service` 參數。在 GAS 實際執行時，它會自動使用預設的 `SheetsService`；而在測試時，我們可以輕易換成 Mock。
+
+    ```     javascript
+    import * as Utils from './Utils.js';
+    import { SheetsService as DefaultService } from './SheetsService.js';
+
+    export function handleStart(taskId, taskName, service = DefaultService) {
+      // 使用傳入的 service 操作資料
+      const [currentId] = service.getDashboardState();
+
+      if (currentId) {
+        return { status: "warning", message: "已有任務正在執行" };
+      }
+
+      const now = new Date();
+      const id = taskId || Utils.generateId();
+
+      service.updateDashboard([id, taskName, now, "RUNNING"]);
+      service.updateTaskStatus(id, "DOING");
+      service.appendLog([now, id, taskName, "START", "MACRO", "RUNNING", ""]);
+
+      return { status: "success", taskId: id };
+    }
+
+    export function handleEnd(service = DefaultService) {
+      const [id, name, startAt] = service.getDashboardState();
+
+      if (!id) return { status: "error", message: "目前無執行中任務" };
+
+      const now = new Date();
+      const duration = Utils.calculateDuration(startAt, now);
+
+      service.clearDashboard();
+      service.updateTaskStatus(id, "DONE", duration);
+      service.appendLog([now, id, name, "END", "MACRO", "IDLE", `Duration: ${duration}m`]);
+
+      return { status: "success", duration: duration };
+    }
+    ```
+
+    請謹慎使用程式碼。
+
+2. 撰寫測試案例 (極簡化)
+
+    現在您的測試檔案不再需要任何複雜的模組攔截，只需要定義一個簡單的物件即可。
+
+    **`__tests__/logic.test.js`：**
+
+    ``` javascript
+    import { jest } from '@jest/globals';
+    import { handleStart, handleEnd } from '../src/gas/Logic.js';
+
+    describe('NBL 核心邏輯 - 注入式測試', () => {
+
+      // 建立一個 Mock Service 物件
+      const createMockService = (overrides = {}) => ({
+        getDashboardState: jest.fn().mockReturnValue(["", "", "", "IDLE"]),
+        updateDashboard: jest.fn(),
+        updateTaskStatus: jest.fn(),
+        appendLog: jest.fn(),
+        clearDashboard: jest.fn(),
+        ...overrides
+      });
+
+      test('START: 應能正確啟動並調用 Service', () => {
+        const mockService = createMockService();
+
+        const result = handleStart("t123", "測試任務", mockService);
+
+        expect(result.status).toBe("success");
+        // 驗證是否有寫入 Dashboard
+        expect(mockService.updateDashboard).toHaveBeenCalledWith(
+            expect.arrayContaining(["t123", "測試任務"])
+        );
+      });
+
+      test('END: 應正確計算時長並累加時間', () => {
+        const thirtyMinsAgo = new Date(Date.now() - 30 * 60000);
+        const mockService = createMockService({
+          getDashboardState: jest.fn().mockReturnValue(["t123", "測試任務", thirtyMinsAgo, "RUNNING"])
+        });
+
+        const result = handleEnd(mockService);
+
+        expect(result.status).toBe("success");
+        expect(result.duration).toBe(30);
+        // 驗證是否呼叫了更新 Pool 的動作並傳入 30 分鐘
+        expect(mockService.updateTaskStatus).toHaveBeenCalledWith("t123", "DONE", 30);
+      });
+    });
+    ```
+
+    請謹慎使用程式碼。
+
+3. 2026 年開發建議：為什麼這樣更好？
+
+    1.  **效能**：測試執行速度極快，因為不需要啟動複雜的 Mock 機制。
+    2.  **安全性**：您的 `Logic.js` 變得「純淨」了，它不關心資料是存進 Google Sheets 還是存進資料庫，它只關心「流程」。
+    3.  **靈活性**：如果您未來想開發一個「離線模擬模式」，您只需要換一個 `OfflineService` 注入即可。
+
+接下來的進度：
+
+既然 `START` 與 `END` 的測試與重構都完成了，您可以：
+
+1.  執行 `npm run test` 確保綠燈。
+2.  執行 `clasp push` 將重構後的程式碼推送到雲端。
+3.  **下一步任務**：實作 **`handleInterrupt`**。邏輯與 `END` 類似，但狀態要改為 `PENDING`，且 `Log` 的 Action 要記為 `INTERRUPT`。
+
+您準備好針對 `INTERRUPT` 寫下第一個測試案例了嗎？
+
+==============================================================================================
+
+## [2026-01-17] ychsue 我有以下幾個問題
+
+1. `updateTaskStatus` 除了修改以外，應該根據 id 找出屬於哪個Sheet與他的title，回傳，這樣，`handleStart` 就有辦法正確設定Log的資訊，而輸入的第二個參數就會變成 Notes 使用。
+2. 您使用 `DefaultService` 放到 GAS 應該要指到 SheetsService。
+
+調好了，好棒啊！接下來就是iPhone 怎麼處理了。雖然可以正常送達，也收到資訊，能否根據回傳彈出不同視窗？
+
+### Gemini Answer 07
+
+太棒了！後端邏輯與數據結構穩定後，iPhone **捷徑 (Shortcuts)** 就成了系統的「動態儀表板」。
+
+要讓 iPhone 根據 GAS 的回傳內容彈出不同視窗，核心在於解析 JSON 並使用 **「如果 (If)」** 邏輯。以下是具體實作方法：
+
+1. GAS 回傳 JSON 格式建議
+
+    為了讓捷徑好判斷，您的 GAS 應統一回傳包含 `status` 與 `message` 的物件：
+
+    ```javascript
+    // GAS handleEnd 回傳範例
+    return ContentService.createTextOutput(JSON.stringify({
+      "status": "success",
+      "action": "END",
+      "message": "任務已結束！共計 30 分鐘。",
+      "recommend": "現在有 3 個微任務待處理，要清空嗎？",
+      "payload": { "taskCount": 3 }
+    })).setMimeType(ContentService.MimeType.JSON);
+    ```
+
+    請謹慎使用程式碼。
+
+2. iPhone 捷徑邏輯配置 (步驟解解)
+
+    請在您的捷徑中按以下順序加入動作：
+
+    1.  **取得 URL 內容 (Get Contents of URL)**
+        -   方法：`POST`，傳送您的 Task 資料。
+    2.  **設定變數 (Set Variable)**
+        -   將結果命名為 `ServerResponse`。
+    3.  **從輸入取得字典 (Get Dictionary from Input)**
+        -   輸入選擇 `ServerResponse`。
+    4.  **取得字典值 (Get Value for Key)**
+        -   金鑰 (Key) 輸入：`status`。
+    5.  **如果 (If)**
+        -   **如果** `status` **包含** `success`：
+            -   **取得字典值**：`message`。
+            -   **顯示通知** 或 **顯示警示**：`message`。
+            -   _(進階)_：**取得字典值**：`recommend`。如果 `recommend` 有值，彈出「確認視窗」詢問是否要查看微任務。
+        -   **否則** (即 status 是 warning 或 error)：
+            -   **取得字典值**：`message`。
+            -   **顯示警示**：⚠️ `message` (可以換成更醒目的圖標)。
+            -   **停止此捷徑**。
+        -   **結束如果**
+
+3. 實作「動態選單」的高級技巧
+
+    如果您執行的是 `QUERY_OPTIONS` (獲取候選任務)，您可以讓捷徑彈出一個讓您點選的列表：
+
+    1.  GAS 回傳：`{"status": "success", "options": [{"id": "t1", "title": "任務A"}, {"id": "t2", "title": "任務B"}]}`。
+    2.  捷徑操作：
+        -   **從 \[options\] 取得清單**。
+        -   **從清單中選擇 (Choose from List)**：提示字設為「請選擇要啟動的任務」。
+        -   **取得所選項目** 的 `id`。
+        -   **再次呼叫 URL**：這次傳送 `action: START` 與剛選好的 `taskId`。
+
+4. 使用「顯示結果 (Show Result)」vs 「顯示警示 (Show Alert)」
+
+    -   **顯示結果 (Show Result)**：只是一個小視窗，看完點一下就消失，適合 **`START` 成功** 的簡單回饋。
+    -   **顯示警示 (Show Alert)**：會中斷流程，有「確定/取消」按鈕，適合 **`END` 之後的微任務建議** 或 **`ERROR` 警告**。
+
+5. 2026 年的小撇步：利用「靈動島」
+
+如果您的 iPhone 支援靈動島，在「顯示通知」動作中勾選「聲音」，系統會更像是一個即時監控器（Monitor）。
+
+**下一步建議：**  
+
+您可以先在捷徑中加入一個簡單的 `If status = success` 邏輯，測試看看當您按下 `END` 時，手機是否能正確顯示 GAS 回傳的那句「任務已結束！共計 XX 分鐘」。這會讓您的系統瞬間有了「生命感」！
+
+=============================================================

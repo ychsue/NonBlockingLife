@@ -25,6 +25,19 @@ class DevMeta20260114MVP:
         notes="建立 Google Apps Script 的 doPost 端點，能夠接收來自 iOS 捷徑的任務狀態更新(JSON格式)。"
     )
     def gas_doPost(self):
+        """"
+        代辦事項：
+        [x] Request (Action: START, TaskID: t123) [Start Task](./Start.md)
+        [x] Request (Action: END, TaskID?) [End Task](./End.md)
+        [ ] Request (Action: INBOX_ADD, Content)
+        [ ] Request (Action: QUERY_DASHBOARD_STATUS)
+        [ ] Request (Action: INTERRUPT)
+        [ ] Request (Action: QUERY_OPTIONS)
+        [ ] Request (Action: ADD_TASK, Title, Category)
+        [ ] Request (Action: MOVE_TASK, TaskID, TargetSheet)
+        [ ] 每小時觸發 (Hourly Check)
+        [ ] Periodic & Async_Await Task Support
+        """
         pass
     
     @feature_unit(

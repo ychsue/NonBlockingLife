@@ -9,18 +9,18 @@ function doPost(e) {
         response = handleQueryOptions(); // TODO TODO TODO
         break;
       case "START":
-        response = handleStart(data.taskId, data.taskName);
+        response = handleStart(data.taskId, data.note);
         break;
       case "INTERRUPT":
         response = handleInterrupt(data.note || "User Manual Interrupt");
         break;
       case "END":
-        response = handleEnd(data.taskId);
+        response = handleEnd();
         break;
       case "ADD_INBOX":
         response = handleAddInbox(data.title); // TODO TODO TODO
         break;
-        // TODO TODO TODO 尚缺 `?��?一?�Task(得�?定哪?�TaskSheet)`, `?�出移�?一??Task?��?求`
+        // TODO TODO TODO 尚缺 `新增一個Task(得指定哪個TaskSheet)`, `提出移動一個 Task的要求`
       default:
         response = { status: "error", message: "Unknown action: " + action };
     }

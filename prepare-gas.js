@@ -21,10 +21,12 @@ const action = process.argv[2];
 const srcDir = path.join(__dirname, 'gas', 'src');
 
 if (action === 'prepare') {
-  processFiles(srcDir, /^export/gm, '#export');
+  processFiles(srcDir, /^export/gm, '\/\/export');
+  processFiles(srcDir, /^import/gm, '\/\/import');
   console.log('Prepared for GAS push');
 } else if (action === 'restore') {
-  processFiles(srcDir, /^#export/gm, 'export');
+  processFiles(srcDir, /^\/\/export/gm, 'export');
+  processFiles(srcDir, /^\/\/import/gm, 'import');
   console.log('Restored for local development');
 } else {
   console.log('Usage: node prepare-gas.js prepare|restore');
