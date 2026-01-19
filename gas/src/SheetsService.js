@@ -36,10 +36,10 @@ const SheetsService = {
   // 根據 ID 跨表搜尋 Task 資訊
   findTaskById(id) {
     const sheetsToSearch = [
-      "Task_Pool",
-      "Micro_Tasks",
-      "Periodic_Config",
-      "Async_Await",
+      NBL_CONFIG.SHEETS.POOL,
+      NBL_CONFIG.SHEETS.MICRO,
+      NBL_CONFIG.SHEETS.PERIODIC,
+      NBL_CONFIG.SHEETS.ASYNC,
     ];
     for (let name of sheetsToSearch) {
       const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
@@ -47,7 +47,7 @@ const SheetsService = {
       const data = sheet.getDataRange().getValues();
       for (let i = 1; i < data.length; i++) {
         if (data[i][0] === id) {
-          if (name === "Task_Pool") {
+          if (name === NBL_CONFIG.SHEETS.POOL) {
             return {
               id: id,
               title: data[i][1],
@@ -56,6 +56,15 @@ const SheetsService = {
               lastRunDate: data[i][7], // 假設第 8 欄是 Last_Run_Date
               spentToday: data[i][4], // 假設第 5 欄是 Spent_Today_Mins
               totalSpent: data[i][8], // 假設第 9 欄是 Total_Spent_Mins
+            };
+          } else if (name === NBL_CONFIG.SHEETS.PERIODIC) {
+            return {
+              id: id,
+              title: data[i][1],
+              source: name,
+              rowIndex: i + 1,
+              frequency: data[i][3], // 假設第 4 欄是 Frequency
+              lastRunDate: data[i][4], // 假設第 5 欄是 Last_Run_Date
             };
           } else {
             return {
@@ -116,6 +125,11 @@ const SheetsService = {
     console.log('Updated task status for ID:', id, 'to', newStatus, 'with added mins:', addMins);
     return taskInfo;
   },
+
+  addToInbox(row) {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Inbox");
+    sheet.appendRow(row);
+  }
 };
 
 export { SheetsService };

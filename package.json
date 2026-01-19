@@ -1,7 +1,7 @@
 {
   "name": "nonblockinglife",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "> \"Stop blocking your life's main thread.\"",
   "main": "index.js",
   "directories": {

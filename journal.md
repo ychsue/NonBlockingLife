@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-01-18] 準備加入 Inbox 的部分
+
 ## [2026-01-17] 先完成 Start 與 End 的部分
 
 ## [2026-01-16] Grok的幫助下，可以使用 `export` 而不會上傳到GAS 與 Copilot 幫忙寫的GAS 程式

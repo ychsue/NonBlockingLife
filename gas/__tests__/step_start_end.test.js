@@ -40,10 +40,10 @@ describe("NBL 核心邏輯 - 注入式測試", () => {
         .mockReturnValue([test_id, test_title, thirtyMinsAgo, "RUNNING"]),
     });
 
-    const result = handleEnd(mockService);
+    const result = handleEnd("",mockService);
 
     expect(result.status).toBe("success");
-    expect(result.duration).toBe(30);
+    expect(result.payload.duration).toBe(30);
     // 驗證是否呼叫了更新 Pool 的動作並傳入 30 分鐘
     expect(mockService.updateTaskStatus).toHaveBeenCalledWith(
       "t123",

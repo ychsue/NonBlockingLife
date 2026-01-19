@@ -6,7 +6,8 @@ const NBL_CONFIG = {
     POOL: "Task_Pool",
     MICRO: "Micro_Tasks",
     CACHE: "Selection_Cache",
-    // TODO TODO TODO 缺了Periodic_Config 和Async_Await Sheets 等等
+    PERIODIC: "Periodic_Config",
+    ASYNC: "Async_Await",
   },
   STATUS: {
     PENDING: "PENDING",

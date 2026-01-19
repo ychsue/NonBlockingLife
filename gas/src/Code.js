@@ -5,20 +5,20 @@ function doPost(e) {
     let response = {};
 
     switch (action) {
-      case "QUERY_OPTIONS":
-        response = handleQueryOptions(); // TODO TODO TODO
-        break;
       case "START":
         response = handleStart(data.taskId, data.note);
         break;
-      case "INTERRUPT":
-        response = handleInterrupt(data.note || "User Manual Interrupt");
-        break;
       case "END":
-        response = handleEnd();
+        response = handleEnd(data.note || "User Manual End");
         break;
       case "ADD_INBOX":
         response = handleAddInbox(data.title); // TODO TODO TODO
+        break;
+      case "QUERY_OPTIONS":
+        response = handleQueryOptions(); // TODO TODO TODO
+        break;
+      case "INTERRUPT":
+        response = handleInterrupt(data.note || "User Manual Interrupt");
         break;
         // TODO TODO TODO 尚缺 `新增一個Task(得指定哪個TaskSheet)`, `提出移動一個 Task的要求`
       default:

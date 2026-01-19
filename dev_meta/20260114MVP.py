@@ -29,7 +29,7 @@ class DevMeta20260114MVP:
         代辦事項：
         [x] Request (Action: START, TaskID: t123) [Start Task](./Start.md)
         [x] Request (Action: END, TaskID?) [End Task](./End.md)
-        [ ] Request (Action: INBOX_ADD, Content)
+        [ ] Request (Action: ADD_INBOX, Content)
         [ ] Request (Action: QUERY_DASHBOARD_STATUS)
         [ ] Request (Action: INTERRUPT)
         [ ] Request (Action: QUERY_OPTIONS)
