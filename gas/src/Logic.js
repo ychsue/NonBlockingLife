@@ -108,7 +108,7 @@ function handleEnd(info = "", service = SheetsService) {
  */
 function handleAddInbox(title, service = SheetsService) {
   const now = new Date();
-  const id = Utils.generateId();
+  const id = Utils.generateId("I");
 
   // 1. 存入 Inbox Sheet
   service.addToInbox([id, title, now]);
@@ -123,4 +123,37 @@ function handleAddInbox(title, service = SheetsService) {
   };
 }
 
-export { handleStart, handleEnd, handleAddInbox };
+/**
+ * 下達中斷指令
+ * @param {typeof SheetsService} service 提供服務的物件
+ * @returns {
+ *   status: "success" | "error" | "warning",
+ *   message: string,
+ *   isInterrupt?: boolean
+ * } 
+ */
+function handleInterrupt(service = SheetsService) {
+  const now = new Date();
+  const [oldId, oldNote, startAt] = service.getDashboardState();
+
+  // 1. 如果有舊任務，先強制結算
+  if (oldId) {
+    const duration = Utils.calculateDuration(startAt, now);
+    const taskInfo = service.updateTaskStatus(oldId, "PENDING", duration);
+    service.appendLog([now, oldId, taskInfo.title, "INTERRUPTED", taskInfo.source, "IDLE", `${oldNote}： 被突發事件中斷，執行 ${duration}m`]);
+  }
+
+  // 2. 啟動匿名中斷任務
+  const intId = "SYS_INT";
+  const intTitle = "[中斷] 處理突發狀況";
+  service.updateDashboard([intId, intTitle, now, "RUNNING"]);
+  service.appendLog([now, intId, intTitle, "START", "SYSTEM", "BUSY", "系統自動掛載中斷計時"]);
+
+  return { 
+    status: "success", 
+    message: "已切換至中斷計時模式，專心處理眼前事吧！",
+    isInterrupt: true 
+  };
+}
+
+export { handleStart, handleEnd, handleAddInbox, handleInterrupt };

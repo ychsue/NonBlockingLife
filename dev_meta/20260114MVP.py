@@ -29,14 +29,15 @@ class DevMeta20260114MVP:
         代辦事項：
         [x] Request (Action: START, TaskID: t123) [Start Task](./Start.md)
         [x] Request (Action: END, TaskID?) [End Task](./End.md)
-        [ ] Request (Action: ADD_INBOX, Content)
-        [ ] Request (Action: QUERY_DASHBOARD_STATUS)
+        [x] Request (Action: ADD_INBOX, Content) : Add to Inbox [2026-01-19]
         [ ] Request (Action: INTERRUPT)
+        [ ] Periodic & Async_Await Task Support
         [ ] Request (Action: QUERY_OPTIONS)
+        [ ] 加入身心狀態的紀錄功能
+        [ ] 每小時觸發 (Hourly Check)
+        [ ] Request (Action: QUERY_DASHBOARD_STATUS)
         [ ] Request (Action: ADD_TASK, Title, Category)
         [ ] Request (Action: MOVE_TASK, TaskID, TargetSheet)
-        [ ] 每小時觸發 (Hourly Check)
-        [ ] Periodic & Async_Await Task Support
         """
         pass
     

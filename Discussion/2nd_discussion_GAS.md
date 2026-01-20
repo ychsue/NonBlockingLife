@@ -982,3 +982,105 @@ export const SheetsService = {
 您可以先在捷徑中加入一個簡單的 `If status = success` 邏輯，測試看看當您按下 `END` 時，手機是否能正確顯示 GAS 回傳的那句「任務已結束！共計 XX 分鐘」。這會讓您的系統瞬間有了「生命感」！
 
 =============================================================
+
+## [2026-01-19] ychsue 加入 ADD_INBOX 的功能
+
+### Gemini Answer 08
+
+沒錯！既然您的 **START/END** 閉環與 iPhone 的 **JSON 解析**都已經通了，現在正是實作 **`ADD_INBOX`** 的最佳時機。
+
+在 **NonBlockingLife** 的設計中，`Inbox` 扮演的是 **「非阻塞輸入」** 的關鍵角色。當您在忙碌時突然想到一件事，您需要以最快速度將它丟進系統，而不打斷當前的專注。
+
+以下是實作建議：
+
+1. 撰寫測試案例 (Test First)
+
+    在 `__tests__/logic.test.js` 中新增一個測試。我們預期 `ADD_INBOX` 會產生 ID、存入 Inbox 表，並記錄 Log。
+
+    ```javascript
+    test('ADD_INBOX: 應能成功將靈感存入 Inbox 並回傳 ID', () => {
+      const mockService = {
+        appendLog: jest.fn(),
+        addToInbox: jest.fn().mockReturnValue("t_new_inbox_id")
+      };
+
+      const result = handleAddInbox("突然想到的絕妙點子", mockService);
+
+      expect(result.status).toBe("success");
+      expect(result.taskId).toBe("t_new_inbox_id");
+      expect(mockService.addToInbox).toHaveBeenCalledWith(expect.stringContaining("突然想到的絕妙點子"));
+      expect(mockService.appendLog).toHaveBeenCalledWith(
+        expect.arrayContaining(["ADD_INBOX", "突然想到的絕妙點子"])
+      );
+    });
+    ```
+
+    請謹慎使用程式碼。
+
+2. 實作 Logic.js
+
+    這段邏輯非常單純，確保它是非阻塞的（不需要檢查 Dashboard）。
+
+    ```javascript
+    export function handleAddInbox(title, service = SheetsService) {
+      const now = new Date();
+      const id = Utils.generateId();
+
+      // 1. 存入 Inbox Sheet
+      service.addToInbox([id, title, now]);
+
+      // 2. 紀錄 Log (Action 記為 ADD_INBOX)
+      service.appendLog([now, id, title, "ADD_INBOX", "INBOX", "IDLE", "來自快捷輸入"]);
+
+      return { 
+        status: "success", 
+        taskId: id, 
+        message: `已存入 Inbox: ${title}` 
+      };
+    }
+    ```
+
+    請謹慎使用程式碼。
+
+3. 實作 SheetsService.js
+
+    ```javascript
+    export const SheetsService = {
+      // ...
+      addToInbox(row) {
+        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Inbox");
+        sheet.appendRow(row);
+      }
+    };
+    ```
+
+    請謹慎使用程式碼。
+
+4. iPhone 捷徑的優化 (關鍵！)
+
+    為了達成真正的「非阻塞」，建議您為 `ADD_INBOX` 建立一個**獨立的捷徑**，並將其放在：
+
+    -   **控制中心按鈕**：2026 年 iOS 18/19 支援自定義控制中心。
+    -   **鎖定畫面按鈕**：不用解鎖手機就能輸入。
+    -   **背面輕點 (Back Tap)**：敲手機背面兩下立刻彈出輸入框。
+
+    **捷徑動作流：**
+
+    1.  **要求輸入 (Ask for Input)**：提示文字「有什麼新想法？」
+    2.  **取得 URL 內容**：POST `{"action": "ADD_INBOX", "title": "已提供的輸入"}`。
+    3.  **顯示通知**：✅ 已紀錄。
+
+5. 為什麼這很重要？
+
+    有了 `Inbox` 後，您的 **NonBlockingLife** 就完成了 **「事件捕捉」** 的功能。
+
+**接下來的進化方向：**  
+當您的 `Inbox` 累積了東西，我們之後可以實作一個 **`REVISE_INBOX` (整理回顧)** 動作。這個動作會列出 `Inbox` 裡的東西，問您要將它們：
+
+1.  轉換成 `Task_Pool` (專案任務)
+2.  轉換成 `Micro_Tasks` (兩分鐘碎事)
+3.  刪除 (無效靈感)
+
+這就是 GTD (Getting Things Done) 流程中的 **「釐清 (Clarify)」** 階段。
+
+您想先測試看看這個「一鍵存入 Inbox」的功能嗎？這對於緩解「怕忘記而無法專注」的焦慮非常有幫助！ \[1, 2, 4\]

@@ -1,10 +1,13 @@
 import { NBL_CONFIG } from "./Config";
 
 const SheetsService = {
-  // 取得 Dashboard 狀態
+  /**
+   *  取得 Dashboard 狀態
+   *  @returns [ID, Name, StartAt, Status]
+   */
   getDashboardState() {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      NBL_CONFIG.SHEETS.DASH
+      NBL_CONFIG.SHEETS.DASH,
     );
     return sheet.getRange("A2:D2").getValues()[0]; // [ID, Name, StartAt, Status]
   },
@@ -12,7 +15,7 @@ const SheetsService = {
   // 更新 Dashboard
   updateDashboard(values) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      NBL_CONFIG.SHEETS.DASH
+      NBL_CONFIG.SHEETS.DASH,
     );
     sheet.getRange("A2:D2").setValues([values]);
   },
@@ -20,7 +23,7 @@ const SheetsService = {
   // 寫入日誌
   appendLog(row) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      NBL_CONFIG.SHEETS.LOG
+      NBL_CONFIG.SHEETS.LOG,
     );
     sheet.appendRow(row);
   },
@@ -28,36 +31,56 @@ const SheetsService = {
   // 清空 Dashboard
   clearDashboard() {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      NBL_CONFIG.SHEETS.DASH
+      NBL_CONFIG.SHEETS.DASH,
     );
     sheet.getRange("A2:D2").clearContent();
   },
 
-  // 根據 ID 跨表搜尋 Task 資訊
+  /**
+   * 根據 ID 跨表搜尋 Task 資訊
+   * @param {string} id
+   * @returns { id: string, title: string, source: string, rowIndex: number, ... }
+   */
   findTaskById(id) {
     const sheetsToSearch = [
-      NBL_CONFIG.SHEETS.POOL,
+      // NBL_CONFIG.SHEETS.POOL, // 公定開頭為 T 的任務會先當作 Task_Pool 的任務處理
       NBL_CONFIG.SHEETS.MICRO,
       NBL_CONFIG.SHEETS.PERIODIC,
       NBL_CONFIG.SHEETS.ASYNC,
     ];
+    if (id === "SYS_INT") {
+      return {
+        id: "SYS_INT",
+        title: "System Interrupt Task",
+        source: "SYSTEM",
+      };
+    } else if (id.startsWith("T")) {
+      // 處理 Task_Pool
+      const name = NBL_CONFIG.SHEETS.POOL;
+      const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
+      if (!sheet) return null;
+      const data = sheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][0] === id) {
+          return {
+            id: id,
+            title: data[i][1],
+            source: name,
+            rowIndex: i + 1,
+            lastRunDate: data[i][7], // 假設第 8 欄是 Last_Run_Date
+            spentToday: data[i][4], // 假設第 5 欄是 Spent_Today_Mins
+            totalSpent: data[i][8], // 假設第 9 欄是 Total_Spent_Mins
+          };
+        }
+      }
+    }
     for (let name of sheetsToSearch) {
       const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
       if (!sheet) continue;
       const data = sheet.getDataRange().getValues();
       for (let i = 1; i < data.length; i++) {
         if (data[i][0] === id) {
-          if (name === NBL_CONFIG.SHEETS.POOL) {
-            return {
-              id: id,
-              title: data[i][1],
-              source: name,
-              rowIndex: i + 1,
-              lastRunDate: data[i][7], // 假設第 8 欄是 Last_Run_Date
-              spentToday: data[i][4], // 假設第 5 欄是 Spent_Today_Mins
-              totalSpent: data[i][8], // 假設第 9 欄是 Total_Spent_Mins
-            };
-          } else if (name === NBL_CONFIG.SHEETS.PERIODIC) {
+          if (name === NBL_CONFIG.SHEETS.PERIODIC) {
             return {
               id: id,
               title: data[i][1],
@@ -113,7 +136,7 @@ const SheetsService = {
     if (!taskInfo) return;
 
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      taskInfo.source
+      taskInfo.source,
     );
 
     if (addMins > 0 && taskInfo.source === "Task_Pool") {
@@ -122,14 +145,21 @@ const SheetsService = {
       // 更新 Status (假設都在第 3 欄)
       sheet.getRange(taskInfo.rowIndex, 3).setValue(newStatus);
     }
-    console.log('Updated task status for ID:', id, 'to', newStatus, 'with added mins:', addMins);
+    console.log(
+      "Updated task status for ID:",
+      id,
+      "to",
+      newStatus,
+      "with added mins:",
+      addMins,
+    );
     return taskInfo;
   },
 
   addToInbox(row) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Inbox");
     sheet.appendRow(row);
-  }
+  },
 };
 
 export { SheetsService };

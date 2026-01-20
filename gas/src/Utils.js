@@ -12,8 +12,8 @@ function isOverdue(startTime, limitMinutes) {
 }
 
 // 產生短 ID
-function generateId() {
-    return "t" + new Date().getTime().toString(36);
+function generateId(prefix="t") {
+    return prefix + new Date().getTime().toString(36);
 }
 
 const Utils = {

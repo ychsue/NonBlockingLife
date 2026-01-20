@@ -12,13 +12,13 @@ function doPost(e) {
         response = handleEnd(data.note || "User Manual End");
         break;
       case "ADD_INBOX":
-        response = handleAddInbox(data.title); // TODO TODO TODO
+        response = handleAddInbox(data.title); 
         break;
       case "QUERY_OPTIONS":
         response = handleQueryOptions(); // TODO TODO TODO
         break;
       case "INTERRUPT":
-        response = handleInterrupt(data.note || "User Manual Interrupt");
+        response = handleInterrupt(); // 等 End 的時候再補上
         break;
         // TODO TODO TODO 尚缺 `新增一個Task(得指定哪個TaskSheet)`, `提出移動一個 Task的要求`
       default:
