@@ -7,7 +7,7 @@ import { message } from "./Message.js";
  * 開始一個任務
  * @param {string} taskId
  * @param {string} note
- * @param {Object} service
+ * @param {typeof SheetsService} service
  * @returns {
  *  status: "success" | "error" | "warning",
  *  message: string,
@@ -56,7 +56,7 @@ function handleStart(taskId, note, service = SheetsService) {
 /**
  * 結束目前任務
  * @param {string} info 結束時的額外訊息
- * @param {object} service SheetsService
+ * @param {typeof SheetsService} service SheetsService
  * @returns {
  *  status: "success" | "error" | "warning",
  *  message: string,
@@ -71,9 +71,9 @@ function handleEnd(info = "", service = SheetsService) {
   const duration = Utils.calculateDuration(startAt, now);
 
   // 執行結束邏輯
-  service.clearDashboard();
   var taskinfo = service.updateTaskStatus(id, NBL_CONFIG.STATUS.DONE, duration); // 更新 Pool 狀態 // TODO TODO TODO
   console.log("taskinfo in handleEnd:", taskinfo);
+  service.clearDashboard();
   service.appendLog([
     now,
     id,

@@ -1,5 +1,10 @@
 import { NBL_CONFIG } from "./Config";
 
+const SYSTEM_IDs = ["SYS_INT"];
+
+/**
+ * Sheets 服務
+ */
 const SheetsService = {
   /**
    *  取得 Dashboard 狀態
@@ -133,7 +138,7 @@ const SheetsService = {
   // 之前的 updateTaskStatus 可以整合 rowIndex 提高效能
   updateTaskStatus(id, newStatus, addMins = 0) {
     const taskInfo = this.findTaskById(id);
-    if (!taskInfo) return;
+    if (!taskInfo || SYSTEM_IDs.includes(id)) return taskInfo;
 
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
       taskInfo.source,
@@ -162,4 +167,4 @@ const SheetsService = {
   },
 };
 
-export { SheetsService };
+export { SheetsService, SYSTEM_IDs };

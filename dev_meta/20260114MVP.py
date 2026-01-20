@@ -30,8 +30,8 @@ class DevMeta20260114MVP:
         [x] Request (Action: START, TaskID: t123) [Start Task](./Start.md)
         [x] Request (Action: END, TaskID?) [End Task](./End.md)
         [x] Request (Action: ADD_INBOX, Content) : Add to Inbox [2026-01-19]
-        [ ] Request (Action: INTERRUPT)
-        [ ] Periodic & Async_Await Task Support
+        [x] Request (Action: INTERRUPT)
+        [ ] Scheduled
         [ ] Request (Action: QUERY_OPTIONS)
         [ ] 加入身心狀態的紀錄功能
         [ ] 每小時觸發 (Hourly Check)
