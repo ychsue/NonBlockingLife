@@ -35,7 +35,7 @@ function handleStart(taskId, note, service = SheetsService) {
 
   // 2. 執行更新
   service.updateDashboard([id, note, now, NBL_CONFIG.STATUS.RUNNING]);
-  if (id === taskId) service.updateTaskStatus(id, NBL_CONFIG.STATUS.DOING); // 更新 Pool 狀態 // TODO TODO TODO
+  if (id === taskId) service.updateTaskStatusByTaskInfo(taskInfo, NBL_CONFIG.STATUS.DOING); // 更新 Pool 狀態 // TODO TODO TODO
   service.appendLog([
     now,
     id,

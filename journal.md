@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-01-21] 修正 Scheduled 的一些bug
+
+這部份透過在 GAS 上寫 [test.js](gas\src\test.js)，然後使用 `偵錯` 就可以找出哪裡寫錯。
+
 ## [2026-01-21] 改良 Scheduled 的 NextRun 的邏輯
 
 1. NextRun 由 `End` 的時候根據 `cron_expr` 或者 `callback`+`after_task`設定，

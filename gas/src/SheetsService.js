@@ -167,14 +167,17 @@ const SheetsService = {
     const sheet = this._getSafeSheet(taskInfo.source);
 
     if (addMins > 0 && taskInfo.source === NBL_CONFIG.SHEETS.POOL) {
-      this.updateTaskInPool(id, newStatus, addMins);
+      this.updateTaskInPool(taskInfo.id, newStatus, addMins);
     } else {
       // 更新 Status (假設都在第 3 欄)
       sheet.getRange(taskInfo.rowIndex, 3).setValue(newStatus);
+      const now = new Date();
+      const todayStr = Utilities.formatDate(now, "GMT+8", "yyyy-MM-dd");
+      sheet.getRange(taskInfo.rowIndex, 8).setValue(todayStr);
     }
     console.log(
       "Updated task status for ID:",
-      id,
+      taskInfo.id,
       "to",
       newStatus,
       "with added mins:",
