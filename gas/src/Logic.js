@@ -72,7 +72,7 @@ function handleEnd(info = "", service = SheetsService) {
 
   // 執行結束邏輯
   var taskinfo = service.updateTaskStatus(id, NBL_CONFIG.STATUS.DONE, duration); // 更新 Pool 狀態 // TODO TODO TODO
-  console.log("taskinfo in handleEnd:", taskinfo);
+  // console.log("taskinfo in handleEnd:", taskinfo);
   service.clearDashboard();
   service.appendLog([
     now,
@@ -84,22 +84,40 @@ function handleEnd(info = "", service = SheetsService) {
     `"Duration: ${duration}m", "${name}->${info ?? "END"}"`,
   ]);
 
+  // # For Scheduled Task: 要更新他自己的 NextRun
+  if (taskinfo.source === NBL_CONFIG.SHEETS.SCHEDULED && taskinfo.cron_expr) {
+    const nextRunDate = Utils.getNextOccurrence(taskinfo.cron_expr, now);
+    service.updateScheduledTaskNextRunByTaskInfo(taskinfo, nextRunDate);
+  }
+  // ## For Scheduled Task: 檢查是否有後續任務需要啟動
+  let nextTaskTime = new Date();
+  let delayMinutes = 0;
+  if (taskinfo.callback) {
+    const stDelay = taskinfo.after_task; // 預設沒有延遲，與 cron 表達式一樣
+    delayMinutes = stDelay ? Utils.parseToMinutes(stDelay) : 0;
+    nextTaskTime = new Date(now.getTime() + delayMinutes * 60000);
+
+    service.updateScheduledTaskNextRun(taskinfo.callback, nextTaskTime);
+  }
+
   return message({
     status: "success",
-    message: `任務已結束: ${id} - ${taskinfo.title}, 持續時間: ${duration} 分鐘`,
+    message: `任務已結束: ${id} - ${taskinfo.title}, 持續時間: ${duration} 分鐘 ${taskinfo.callback ? `，後續任務 ${taskinfo.callback} 已排程在 ${nextTaskTime.toLocaleTimeString("zh-TW")}` : ""}`,
     payload: {
       id: id,
       title: taskinfo.title,
       source: taskinfo.source,
       duration: duration,
+      callback: taskinfo.callback || null,
+      delayMinutes: delayMinutes,
     },
   });
 }
 
 /**
  * 新增靈感至 Inbox
- * @param {string} title 
- * @param {typeof SheetsService} service 
+ * @param {string} title
+ * @param {typeof SheetsService} service
  * @returns {
  *    status: "success" | "error" | "warning",
  *    message: string,
@@ -112,14 +130,22 @@ function handleAddInbox(title, service = SheetsService) {
 
   // 1. 存入 Inbox Sheet
   service.addToInbox([id, title, now]);
-  
-  // 2. 紀錄 Log (Action 記為 ADD_INBOX)
-  service.appendLog([now, id, title, "ADD_INBOX", "INBOX", "IDLE", "來自快捷輸入"]);
 
-  return { 
-    status: "success", 
-    taskId: id, 
-    message: `已存入 Inbox: ${title}` 
+  // 2. 紀錄 Log (Action 記為 ADD_INBOX)
+  service.appendLog([
+    now,
+    id,
+    title,
+    "ADD_INBOX",
+    "INBOX",
+    "IDLE",
+    "來自快捷輸入",
+  ]);
+
+  return {
+    status: "success",
+    taskId: id,
+    message: `已存入 Inbox: ${title}`,
   };
 }
 
@@ -130,7 +156,7 @@ function handleAddInbox(title, service = SheetsService) {
  *   status: "success" | "error" | "warning",
  *   message: string,
  *   isInterrupt?: boolean
- * } 
+ * }
  */
 function handleInterrupt(service = SheetsService) {
   const now = new Date();
@@ -140,19 +166,35 @@ function handleInterrupt(service = SheetsService) {
   if (oldId) {
     const duration = Utils.calculateDuration(startAt, now);
     const taskInfo = service.updateTaskStatus(oldId, "PENDING", duration);
-    service.appendLog([now, oldId, taskInfo.title, "INTERRUPTED", taskInfo.source, "IDLE", `${oldNote}： 被突發事件中斷，執行 ${duration}m`]);
+    service.appendLog([
+      now,
+      oldId,
+      taskInfo.title,
+      "INTERRUPTED",
+      taskInfo.source,
+      "IDLE",
+      `${oldNote}： 被突發事件中斷，執行 ${duration}m`,
+    ]);
   }
 
   // 2. 啟動匿名中斷任務
   const intId = "SYS_INT";
   const intTitle = "[中斷] 處理突發狀況";
   service.updateDashboard([intId, intTitle, now, "RUNNING"]);
-  service.appendLog([now, intId, intTitle, "START", "SYSTEM", "BUSY", "系統自動掛載中斷計時"]);
+  service.appendLog([
+    now,
+    intId,
+    intTitle,
+    "START",
+    "SYSTEM",
+    "BUSY",
+    "系統自動掛載中斷計時",
+  ]);
 
-  return { 
-    status: "success", 
+  return {
+    status: "success",
     message: "已切換至中斷計時模式，專心處理眼前事吧！",
-    isInterrupt: true 
+    isInterrupt: true,
   };
 }
 

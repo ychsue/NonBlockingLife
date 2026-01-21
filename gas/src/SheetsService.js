@@ -1,43 +1,46 @@
-import { NBL_CONFIG } from "./Config";
+import { getSheet, NBL_CONFIG } from "./Config";
 
 const SYSTEM_IDs = ["SYS_INT"];
 
-/**
- * Sheets 服務
- */
+// 使用一個內部的 cache 物件
+const _sheetCache = {};
+
 const SheetsService = {
+  /**
+   * 內部的獲取 Sheet 方法，具備快取功能
+   */
+  _getSafeSheet(name) {
+    if (!_sheetCache[name]) {
+      _sheetCache[name] =
+        getSheet(name);
+    }
+    return _sheetCache[name];
+  },
+
   /**
    *  取得 Dashboard 狀態
    *  @returns [ID, Name, StartAt, Status]
    */
   getDashboardState() {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      NBL_CONFIG.SHEETS.DASH,
-    );
+    const sheet = this._getSafeSheet(NBL_CONFIG.SHEETS.DASH);
     return sheet.getRange("A2:D2").getValues()[0]; // [ID, Name, StartAt, Status]
   },
 
   // 更新 Dashboard
   updateDashboard(values) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      NBL_CONFIG.SHEETS.DASH,
-    );
+    const sheet = this._getSafeSheet(NBL_CONFIG.SHEETS.DASH);
     sheet.getRange("A2:D2").setValues([values]);
   },
 
   // 寫入日誌
   appendLog(row) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      NBL_CONFIG.SHEETS.LOG,
-    );
+    const sheet = this._getSafeSheet(NBL_CONFIG.SHEETS.LOG);
     sheet.appendRow(row);
   },
 
   // 清空 Dashboard
   clearDashboard() {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      NBL_CONFIG.SHEETS.DASH,
-    );
+    const sheet = this._getSafeSheet(NBL_CONFIG.SHEETS.DASH);
     sheet.getRange("A2:D2").clearContent();
   },
 
@@ -49,9 +52,7 @@ const SheetsService = {
   findTaskById(id) {
     const sheetsToSearch = [
       // NBL_CONFIG.SHEETS.POOL, // 公定開頭為 T 的任務會先當作 Task_Pool 的任務處理
-      NBL_CONFIG.SHEETS.MICRO,
-      NBL_CONFIG.SHEETS.PERIODIC,
-      NBL_CONFIG.SHEETS.ASYNC,
+      // NBL_CONFIG.SHEETS.SCHEDULED,
     ];
     if (id === "SYS_INT") {
       return {
@@ -62,47 +63,51 @@ const SheetsService = {
     } else if (id.startsWith("T")) {
       // 處理 Task_Pool
       const name = NBL_CONFIG.SHEETS.POOL;
-      const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
+      const sheet = this._getSafeSheet(name);
       if (!sheet) return null;
-      const data = sheet.getDataRange().getValues();
-      for (let i = 1; i < data.length; i++) {
-        if (data[i][0] === id) {
-          return {
-            id: id,
-            title: data[i][1],
-            source: name,
-            rowIndex: i + 1,
-            lastRunDate: data[i][7], // 假設第 8 欄是 Last_Run_Date
-            spentToday: data[i][4], // 假設第 5 欄是 Spent_Today_Mins
-            totalSpent: data[i][8], // 假設第 9 欄是 Total_Spent_Mins
-          };
-        }
+      const data = sheet
+        .getDataRange()
+        .getValues()
+        .map((r, i) => ({ rowIndex: i + 1, data: r }));
+      const theRow = data.find((r) => r.data[0].trim() === id.trim());
+      if (theRow) {
+        return {
+          id: id,
+          title: theRow.data[1],
+          source: name,
+          rowIndex: theRow.rowIndex,
+          lastRunDate: theRow.data[7], // 假設第 8 欄是 Last_Run_Date
+          spentToday: theRow.data[4], // 假設第 5 欄是 Spent_Today_Mins
+          totalSpent: theRow.data[8], // 假設第 9 欄是 Total_Spent_Mins
+        };
+      } else {
+        return null;
       }
-    }
-    for (let name of sheetsToSearch) {
-      const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
-      if (!sheet) continue;
-      const data = sheet.getDataRange().getValues();
-      for (let i = 1; i < data.length; i++) {
-        if (data[i][0] === id) {
-          if (name === NBL_CONFIG.SHEETS.PERIODIC) {
-            return {
-              id: id,
-              title: data[i][1],
-              source: name,
-              rowIndex: i + 1,
-              frequency: data[i][3], // 假設第 4 欄是 Frequency
-              lastRunDate: data[i][4], // 假設第 5 欄是 Last_Run_Date
-            };
-          } else {
-            return {
-              id: id,
-              title: data[i][1],
-              source: name,
-              rowIndex: i + 1,
-            };
-          }
-        }
+    } else if (id.startsWith("S")) {
+      // 處理 Scheduled_Tasks
+      const name = NBL_CONFIG.SHEETS.SCHEDULED;
+      const sheet = this._getSafeSheet(name);
+      if (!sheet) return null;
+      const data = sheet
+        .getDataRange()
+        .getValues()
+        .map((r, i) => ({ rowIndex: i + 1, data: r }));
+      const theRow = data.find((r) => r.data[0].trim() === id.trim());
+      if (theRow) {
+        return {
+          id: id,
+          title: theRow.data[1],
+          source: name,
+          rowIndex: theRow.rowIndex,
+          cron_expr: theRow.data[3], // 假設第 4 欄是 cron expression
+          before_task: theRow.data[4], // 假設第 5 欄是 before_task
+          after_task: theRow.data[5], // 假設第 6 欄是 after_task
+          callback: theRow.data[6], // 假設第 7 欄是 callback task_id
+          lastRunDate: theRow.data[7], // 假設第 8 欄是 Last_Run_Date
+          note: theRow.data[8], // 假設第 9 欄是 Note
+        };
+      } else {
+        return null;
       }
     }
     return null;
@@ -128,11 +133,26 @@ const SheetsService = {
     totalSpent += addMins;
 
     // 寫回 Sheet
-    const sheet = getSheet("Task_Pool");
+    const sheet = getSheet(NBL_CONFIG.SHEETS.POOL);
     sheet.getRange(taskInfo.rowIndex, 3).setValue(newStatus); // Status
     sheet.getRange(taskInfo.rowIndex, 5).setValue(spentToday); // Spent_Today_Mins
     sheet.getRange(taskInfo.rowIndex, 8).setValue(todayStr); // Last_Run_Date
     sheet.getRange(taskInfo.rowIndex, 9).setValue(totalSpent); // Total_Spent_Mins
+  },
+
+  updateScheduledTaskNextRun(id, nextRunDate) {
+    const taskInfo = this.findTaskById(id);
+    if (!taskInfo) return;
+    return this.updateScheduledTaskNextRunByTaskInfo(taskInfo, nextRunDate);
+  },
+  
+  updateScheduledTaskNextRunByTaskInfo(taskInfo, nextRunDate) {
+    const sheet = getSheet(NBL_CONFIG.SHEETS.SCHEDULED);
+    sheet
+      .getRange(taskInfo.rowIndex, 10)
+      .setValue(
+        Utilities.formatDate(nextRunDate, "GMT+8", "yyyy-MM-dd HH:mm:ss"),
+      ); // 假設第 J 欄是 Next_Run 下一次執行時間
   },
 
   // 之前的 updateTaskStatus 可以整合 rowIndex 提高效能
@@ -140,11 +160,13 @@ const SheetsService = {
     const taskInfo = this.findTaskById(id);
     if (!taskInfo || SYSTEM_IDs.includes(id)) return taskInfo;
 
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-      taskInfo.source,
-    );
+    return this.updateTaskStatusByTaskInfo(taskInfo, newStatus, addMins);
+  },
 
-    if (addMins > 0 && taskInfo.source === "Task_Pool") {
+  updateTaskStatusByTaskInfo(taskInfo, newStatus, addMins = 0) {
+    const sheet = this._getSafeSheet(taskInfo.source);
+
+    if (addMins > 0 && taskInfo.source === NBL_CONFIG.SHEETS.POOL) {
       this.updateTaskInPool(id, newStatus, addMins);
     } else {
       // 更新 Status (假設都在第 3 欄)
@@ -162,7 +184,7 @@ const SheetsService = {
   },
 
   addToInbox(row) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Inbox");
+    const sheet = this._getSafeSheet(NBL_CONFIG.SHEETS.INBOX);
     sheet.appendRow(row);
   },
 };

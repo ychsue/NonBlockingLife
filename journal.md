@@ -1,5 +1,15 @@
 # Journal
 
+## [2026-01-21] 改良 Scheduled 的 NextRun 的邏輯
+
+1. NextRun 由 `End` 的時候根據 `cron_expr` 或者 `callback`+`after_task`設定，
+2. 直接下載 [croner.min.js](./gas/src/croner.min.js) 來使用，此專案為 [Croner](https://github.com/Hexagon/croner/tree/master)
+3. 修改 [Logic.js](./gas/src/Logic.js) 的 handleEnd 好讓他可以 handle NextRun
+4. [SheetsService.js](gas\src\SheetsService.js) 多了 `_sheetCache` ，這樣，就不會重複抓同一個 sheets 了
+5. [utils.js](./gas/src/Utils.js) 有
+   1. `parseToMinutes(takesTime)` 來將 `30m`, `1h`....變成分鐘數
+   2. `getNextOccurrence(cronExpr, baseDate = new Date())` 則會將 crontab 字串變成一個 NextRun
+
 ## [2026-01-20] 加入 Scheduled Task 的邏輯
 
 ## [2026-01-20] 加入 Interrupt 的邏輯，修正小錯誤

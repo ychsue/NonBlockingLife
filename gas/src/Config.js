@@ -4,10 +4,8 @@ const NBL_CONFIG = {
     DASH: "Dashboard",
     INBOX: "Inbox",
     POOL: "Task_Pool",
-    MICRO: "Micro_Tasks",
     CACHE: "Selection_Cache",
-    PERIODIC: "Periodic_Config",
-    ASYNC: "Async_Await",
+    SCHEDULED: "Scheduled",
   },
   STATUS: {
     PENDING: "PENDING",
