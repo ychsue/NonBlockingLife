@@ -31,7 +31,7 @@ class DevMeta20260114MVP:
         [x] Request (Action: END, TaskID?) [End Task](./End.md)
         [x] Request (Action: ADD_INBOX, Content) : Add to Inbox [2026-01-19]
         [x] Request (Action: INTERRUPT)
-        [ ] Scheduled 
+        [x] Scheduled : [2026-01-21] 自動排程任務的支援
         [ ] Request (Action: QUERY_OPTIONS)
             - [ ] 改寫 Status 的給定方式，好讓 QUERY_OPTIONS 可以回傳目前所有可用的 Status 選項
         [ ] 加入身心狀態的紀錄功能

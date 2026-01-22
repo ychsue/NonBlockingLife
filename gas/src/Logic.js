@@ -43,6 +43,7 @@ function handleStart(taskId, note, service = SheetsService) {
     "START",
     taskInfo.source,
     NBL_CONFIG.STATUS.RUNNING,
+    ,
     note,
   ]);
 
@@ -81,17 +82,21 @@ function handleEnd(info = "", service = SheetsService) {
     "END",
     taskinfo.source,
     NBL_CONFIG.STATUS.DONE,
-    `"Duration: ${duration}m", "${name}->${info ?? "END"}"`,
+    duration,
+    `"${name}->${info ?? "END"}"`,
   ]);
 
   // # For Scheduled Task: 要更新他自己的 NextRun
+  /** @type {Date | null} */
+  let nextRunDate = null;
   if (taskinfo.source === NBL_CONFIG.SHEETS.SCHEDULED && taskinfo.cron_expr) {
-    const nextRunDate = Utils.getNextOccurrence(taskinfo.cron_expr, now);
+    nextRunDate = Utils.getNextOccurrence(taskinfo.cron_expr, now);
     service.updateScheduledTaskNextRunByTaskInfo(taskinfo, nextRunDate);
   }
   // ## For Scheduled Task: 檢查是否有後續任務需要啟動
   let nextTaskTime = new Date();
-  let delayMinutes = 0;
+  /** @type {number | null} */
+  let delayMinutes = null;
   if (taskinfo.callback) {
     const stDelay = taskinfo.after_task; // 預設沒有延遲，與 cron 表達式一樣
     delayMinutes = stDelay ? Utils.parseToMinutes(stDelay) : 0;
@@ -109,6 +114,7 @@ function handleEnd(info = "", service = SheetsService) {
       source: taskinfo.source,
       duration: duration,
       callback: taskinfo.callback || null,
+      nextRunDate: nextRunDate ? nextRunDate.toISOString() : null,
       delayMinutes: delayMinutes,
     },
   });
@@ -139,6 +145,7 @@ function handleAddInbox(title, service = SheetsService) {
     "ADD_INBOX",
     "INBOX",
     "IDLE",
+    ,
     "來自快捷輸入",
   ]);
 
@@ -173,6 +180,7 @@ function handleInterrupt(service = SheetsService) {
       "INTERRUPTED",
       taskInfo.source,
       "IDLE",
+      duration,
       `${oldNote}： 被突發事件中斷，執行 ${duration}m`,
     ]);
   }
@@ -188,6 +196,7 @@ function handleInterrupt(service = SheetsService) {
     "START",
     "SYSTEM",
     "BUSY",
+    ,
     "系統自動掛載中斷計時",
   ]);
 

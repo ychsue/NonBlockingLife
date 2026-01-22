@@ -13,6 +13,7 @@ describe("NBL 核心邏輯 - 注入式測試", () => {
     updateDashboard: jest.fn(),
     updateTaskStatus: jest.fn().mockReturnValue({ id: test_id, title: test_title, source: "Task_Pool", rowIndex: 2 }),
     appendLog: jest.fn(),
+    updateTaskStatusByTaskInfo: jest.fn(),
     clearDashboard: jest.fn(),
     ...overrides,
   });
@@ -28,7 +29,7 @@ describe("NBL 核心邏輯 - 注入式測試", () => {
       expect.arrayContaining([test_id, test_title, expect.any(Date), "RUNNING"])
     );
     expect(mockService.appendLog).toHaveBeenCalledWith(
-      expect.arrayContaining([expect.any(Date), test_id, test_title, "START", "Task_Pool", "RUNNING", "測試任務"])
+      expect.arrayContaining([expect.any(Date), test_id, test_title, "START", "Task_Pool", "RUNNING",, "測試任務"])
     );
   });
 
