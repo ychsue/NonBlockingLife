@@ -1,5 +1,16 @@
 # Journal
 
+## [2026-01-23] 準備 Queue_Option 的前置作業，即 Selection_Cache 的填入
+
+1. [checkTimers.js](gas\src\checkTimers.js) 放到 GAS 的每15分鐘 trigger
+2. [Config.js](gas\src\Config.js) 統一 `TASK_STATUS`，這樣，才有辦法做決定順序用
+3. [Logic.js](gas\src\Logic.js) 修正 `handleEnd` 的 `TASK_STATUS` 的輸出。
+4. [SheetsService.js](gas\src\SheetsService.js) 填入 `Selection_Cache`
+5. [Utils.js](gas\src\Utils.js) 考慮了 score 的計算，而 `Task_Pool` 的部分，根據Google AI 的建議，給予
+   1. **基礎權重 (Priority)**：任務本身的重要性。
+   2. **配額加權 (Quota Factor)**：根據剩餘可用時間調整。
+   3. **飢餓加權 (Starvation/Recency)**：根據多久沒跑了來加分（避免某些任務被無限期擱置）。
+
 ## [2026-01-22] 在 iPhone 捷徑 上的 `結束Task` 加入自動加入行事曆與計時的功能
 
 也將 [iPhone 捷徑](ios\Shortcuts_Setup.md) 也加進來，下一個看看用 Jelly 或者還是直接在 iPhone 上寫吧。

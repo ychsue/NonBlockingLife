@@ -15,6 +15,7 @@ describe("NBL 核心邏輯 - 注入式測試", () => {
     appendLog: jest.fn(),
     updateTaskStatusByTaskInfo: jest.fn(),
     clearDashboard: jest.fn(),
+    updateSelectionCache: jest.fn(),
     ...overrides,
   });
 
@@ -26,10 +27,10 @@ describe("NBL 核心邏輯 - 注入式測試", () => {
     expect(result.status).toBe("success");
     // 驗證是否有寫入 Dashboard
     expect(mockService.updateDashboard).toHaveBeenCalledWith(
-      expect.arrayContaining([test_id, test_title, expect.any(Date), "RUNNING"])
+      expect.arrayContaining([test_id, test_title, expect.any(Date), "DOING"])
     );
     expect(mockService.appendLog).toHaveBeenCalledWith(
-      expect.arrayContaining([expect.any(Date), test_id, test_title, "START", "Task_Pool", "RUNNING",, "測試任務"])
+      expect.arrayContaining([expect.any(Date), test_id, test_title, "START", "Task_Pool", "DOING",, "測試任務"])
     );
   });
 
@@ -38,7 +39,7 @@ describe("NBL 核心邏輯 - 注入式測試", () => {
     const mockService = createMockService({
       getDashboardState: jest
         .fn()
-        .mockReturnValue([test_id, test_title, thirtyMinsAgo, "RUNNING"]),
+        .mockReturnValue([test_id, test_title, thirtyMinsAgo, "DOING"]),
     });
 
     const result = handleEnd("",mockService);
@@ -46,9 +47,9 @@ describe("NBL 核心邏輯 - 注入式測試", () => {
     expect(result.status).toBe("success");
     expect(result.payload.duration).toBe(30);
     // 驗證是否呼叫了更新 Pool 的動作並傳入 30 分鐘
-    expect(mockService.updateTaskStatus).toHaveBeenCalledWith(
-      "t123",
-      "DONE",
+    expect(mockService.updateTaskStatusByTaskInfo).toHaveBeenCalledWith(
+      {"id": "t123", "rowIndex": 2, "source": "Task_Pool", "title": "測試任務"},
+      "PENDING",
       30
     );
   });

@@ -3,12 +3,14 @@ import { handleStart, handleEnd } from "../src/Logic.js";
 
 test('S_Laundry 結束應自動排程 S_Hang_Clothes', () => {
   const mockService = {
-    getDashboardState: () => ["S_Laundry", "洗衣服", new Date(), "RUNNING"],
+    getDashboardState: () => ["S_Laundry", "洗衣服", new Date(), "DOING"],
     findTaskById: () => ({
       id: "S_Laundry",
       callback: "S_Hang_Clothes",
       after_task: "60m" // 1 小時後
     }),
+    updateSelectionCache: jest.fn(),
+    updateTaskStatusByTaskInfo: jest.fn(),
     updateScheduledTaskNextRun: jest.fn(),
     updateTaskStatus: jest.fn().mockReturnValue({ id: "S_Laundry", title: "洗衣服", source: "Scheduled", rowIndex: 2, callback: "S_Hang_Clothes", after_task: "60m" }),
     clearDashboard: jest.fn(),

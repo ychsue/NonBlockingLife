@@ -34,15 +34,15 @@ function handleStart(taskId, note, service = SheetsService) {
   const id = taskId || Utils.generateId();
 
   // 2. 執行更新
-  service.updateDashboard([id, note, now, NBL_CONFIG.STATUS.RUNNING]);
-  if (id === taskId) service.updateTaskStatusByTaskInfo(taskInfo, NBL_CONFIG.STATUS.DOING); // 更新 Pool 狀態 // TODO TODO TODO
+  service.updateDashboard([id, note, now, NBL_CONFIG.TASK_STATUS.DOING]);
+  if (id === taskId) service.updateTaskStatusByTaskInfo(taskInfo, NBL_CONFIG.TASK_STATUS.DOING); // 更新 Pool 狀態 // TODO TODO TODO
   service.appendLog([
     now,
     id,
     taskInfo.title,
     "START",
     taskInfo.source,
-    NBL_CONFIG.STATUS.RUNNING,
+    NBL_CONFIG.TASK_STATUS.DOING,
     ,
     note,
   ]);
@@ -68,11 +68,23 @@ function handleEnd(info = "", service = SheetsService) {
   const [id, name, startAt] = service.getDashboardState();
   if (!id) return message({ status: "error", message: "目前無執行中任務" });
 
+  const taskinfo = service.findTaskById(id);
+  if (!taskinfo)
+    return message({ status: "error", message: "找不到該任務 ID 的相關資訊" });
+
+  let nextStatus = NBL_CONFIG.TASK_STATUS.DONE; // 預設結束後為 DONE
+  if (taskinfo.source === NBL_CONFIG.SHEETS.SCHEDULED) {
+    nextStatus = NBL_CONFIG.TASK_STATUS.WAITING; // Scheduled 任務結束後改為 WAITING
+  } else if (taskinfo.source === NBL_CONFIG.SHEETS.POOL) {
+    nextStatus = NBL_CONFIG.TASK_STATUS.PENDING; // Pool 任務結束後改為 PENDING
+  }
+
+
   const now = new Date();
   const duration = Utils.calculateDuration(startAt, now);
 
   // 執行結束邏輯
-  var taskinfo = service.updateTaskStatus(id, NBL_CONFIG.STATUS.DONE, duration); // 更新 Pool 狀態 // TODO TODO TODO
+  service.updateTaskStatusByTaskInfo(taskinfo, nextStatus, duration); // 更新 Pool 狀態 // TODO TODO TODO
   // console.log("taskinfo in handleEnd:", taskinfo);
   service.clearDashboard();
   service.appendLog([
@@ -81,7 +93,7 @@ function handleEnd(info = "", service = SheetsService) {
     taskinfo.title,
     "END",
     taskinfo.source,
-    NBL_CONFIG.STATUS.DONE,
+    nextStatus,
     duration,
     `"${name}->${info ?? "END"}"`,
   ]);
@@ -91,7 +103,7 @@ function handleEnd(info = "", service = SheetsService) {
   let nextRunDate = null;
   if (taskinfo.source === NBL_CONFIG.SHEETS.SCHEDULED && taskinfo.cron_expr) {
     nextRunDate = Utils.getNextOccurrence(taskinfo.cron_expr, now);
-    service.updateScheduledTaskNextRunByTaskInfo(taskinfo, nextRunDate);
+    service.updateScheduledTaskNextRunByTaskInfo(taskinfo, nextRunDate, NBL_CONFIG.TASK_STATUS.WAITING);
   }
   // ## For Scheduled Task: 檢查是否有後續任務需要啟動
   let nextTaskTime = new Date();
@@ -102,8 +114,11 @@ function handleEnd(info = "", service = SheetsService) {
     delayMinutes = stDelay ? Utils.parseToMinutes(stDelay) : 0;
     nextTaskTime = new Date(now.getTime() + delayMinutes * 60000);
 
-    service.updateScheduledTaskNextRun(taskinfo.callback, nextTaskTime);
+    service.updateScheduledTaskNextRun(taskinfo.callback, nextTaskTime, NBL_CONFIG.TASK_STATUS.PENDING);
   }
+
+  // 最後更新快取，可能會花些時間
+  service.updateSelectionCache();
 
   return message({
     status: "success",
@@ -188,7 +203,7 @@ function handleInterrupt(service = SheetsService) {
   // 2. 啟動匿名中斷任務
   const intId = "SYS_INT";
   const intTitle = "[中斷] 處理突發狀況";
-  service.updateDashboard([intId, intTitle, now, "RUNNING"]);
+  service.updateDashboard([intId, intTitle, now, NBL_CONFIG.TASK_STATUS.DOING]);
   service.appendLog([
     now,
     intId,

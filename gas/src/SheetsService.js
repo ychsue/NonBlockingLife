@@ -1,4 +1,5 @@
 import { getSheet, NBL_CONFIG } from "./Config";
+import Utils from "./Utils";
 
 const SYSTEM_IDs = ["SYS_INT"];
 
@@ -8,11 +9,12 @@ const _sheetCache = {};
 const SheetsService = {
   /**
    * 內部的獲取 Sheet 方法，具備快取功能
+   * @param {string} name
+   * @returns {GoogleAppsScript.Spreadsheet.Sheet}
    */
   _getSafeSheet(name) {
     if (!_sheetCache[name]) {
-      _sheetCache[name] =
-        getSheet(name);
+      _sheetCache[name] = getSheet(name);
     }
     return _sheetCache[name];
   },
@@ -140,19 +142,26 @@ const SheetsService = {
     sheet.getRange(taskInfo.rowIndex, 9).setValue(totalSpent); // Total_Spent_Mins
   },
 
-  updateScheduledTaskNextRun(id, nextRunDate) {
+  updateScheduledTaskNextRun(id, nextRunDate, status = null) {
     const taskInfo = this.findTaskById(id);
     if (!taskInfo) return;
-    return this.updateScheduledTaskNextRunByTaskInfo(taskInfo, nextRunDate);
+    return this.updateScheduledTaskNextRunByTaskInfo(
+      taskInfo,
+      nextRunDate,
+      status,
+    );
   },
-  
-  updateScheduledTaskNextRunByTaskInfo(taskInfo, nextRunDate) {
+
+  updateScheduledTaskNextRunByTaskInfo(taskInfo, nextRunDate, status = null) {
     const sheet = getSheet(NBL_CONFIG.SHEETS.SCHEDULED);
     sheet
       .getRange(taskInfo.rowIndex, 10)
       .setValue(
         Utilities.formatDate(nextRunDate, "GMT+8", "yyyy-MM-dd HH:mm:ss"),
       ); // 假設第 J 欄是 Next_Run 下一次執行時間
+    if (status) {
+      sheet.getRange(taskInfo.rowIndex, 3).setValue(status); // 假設第 C 欄是 Status
+    }
   },
 
   // 之前的 updateTaskStatus 可以整合 rowIndex 提高效能
@@ -190,6 +199,63 @@ const SheetsService = {
     const sheet = this._getSafeSheet(NBL_CONFIG.SHEETS.INBOX);
     sheet.appendRow(row);
   },
+
+  getAllScheduledTasks() {
+    const sheet = this._getSafeSheet(NBL_CONFIG.SHEETS.SCHEDULED);
+    const data = sheet.getDataRange().getValues();
+    const tasks = data.slice(1).map((r, i) => ({
+      id: r[0],
+      title: r[1],
+      status: r[2],
+      cron_expr: r[3],
+      before_task: r[4],
+      after_task: r[5],
+      callback: r[6],
+      lastRunDate: r[7],
+      note: r[8],
+      nextRun: r[9], // 假設第 10 欄是 Next_Run
+      rowIndex: i + 2, // 因為 slice(1) 跳過了標題列
+      source: NBL_CONFIG.SHEETS.SCHEDULED,
+    }));
+    return tasks;
+  },
+
+  /**
+   * 更新 Selection_Cache 內容
+   */
+  updateSelectionCache() {
+    /** @type [{taskId:string, title:string, score:number, source:string}] */
+    let candidates = [];
+
+    candidates = Utils.calculateCandidates(
+      this._getSafeSheet(NBL_CONFIG.SHEETS.POOL).getDataRange().getValues().slice(1),
+      this._getSafeSheet(NBL_CONFIG.SHEETS.SCHEDULED).getDataRange().getValues().slice(1),
+      this._getSafeSheet(NBL_CONFIG.SHEETS.MICRO_TASKS).getDataRange().getValues().slice(1)
+    );
+    
+    // 寫入 Selection_Cache 表
+    const cacheSheet = getSheet(NBL_CONFIG.SHEETS.CACHE);
+    cacheSheet.clear();
+
+    // 寫入標題行
+    cacheSheet
+      .getRange(1, 1, 1, 4)
+      .setValues([["Task_ID", "Title", "Score", "Source"]]);
+
+    if (candidates.length > 0) {
+      // 關鍵：將物件陣列轉換為二維陣列 [ [id, title, score, src], [...] ]
+      const rowsToDrive = candidates.map((c) => [
+        c.taskId,
+        c.title,
+        c.score,
+        c.source,
+      ]);
+
+      // 限制前 20 筆
+      const finalData = rowsToDrive.slice(0, 20);
+      cacheSheet.getRange(2, 1, finalData.length, 4).setValues(finalData);
+    }
+  },
 };
 
-export { SheetsService, SYSTEM_IDs };
+export { SheetsService, SYSTEM_IDs};
