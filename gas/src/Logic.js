@@ -103,6 +103,16 @@ function handleEnd(info = "", service = SheetsService) {
   let nextRunDate = null;
   if (taskinfo.source === NBL_CONFIG.SHEETS.SCHEDULED && taskinfo.cron_expr) {
     nextRunDate = Utils.getNextOccurrence(taskinfo.cron_expr, now);
+    // 若nextRunDate 小於 oldNextRun => oldNextRun 為主 (避免時間倒退)
+    if (taskinfo.oldNextRun) {
+      const oldNextRunDate = new Date(taskinfo.oldNextRun);
+      if (nextRunDate < oldNextRunDate) {
+        nextRunDate = oldNextRunDate;
+      } else if (nextRunDate.getTime() === oldNextRunDate.getTime()) {
+        // 相等的話，得跳下一個可用的時間
+        nextRunDate = Utils.getNextOccurrence(taskinfo.cron_expr, new Date(oldNextRunDate.getTime() + 60000));
+      }
+    }
     service.updateScheduledTaskNextRunByTaskInfo(taskinfo, nextRunDate, NBL_CONFIG.TASK_STATUS.WAITING);
   }
   // ## For Scheduled Task: 檢查是否有後續任務需要啟動

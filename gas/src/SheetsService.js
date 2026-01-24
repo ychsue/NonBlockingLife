@@ -107,6 +107,7 @@ const SheetsService = {
           callback: theRow.data[6], // 假設第 7 欄是 callback task_id
           lastRunDate: theRow.data[7], // 假設第 8 欄是 Last_Run_Date
           note: theRow.data[8], // 假設第 9 欄是 Note
+          oldNextRun: theRow.data[9], // 假設第 10 欄是 Next_Run
         };
       } else {
         return null;

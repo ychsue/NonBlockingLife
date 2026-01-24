@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-01-24] 修改 handleEnd 好使他可以設定對的 NextRun (應該吧，再試用看看)
+
+1. [Logic.js](gas\src\Logic.js) 因為由 crontab string 所得的日期有可能小於等於原本的 NextRun，照理講，我們提前執行他，應該要把NextRun 設到oldNextRun的後面才對。
+
 ## [2026-01-24] 修正 Query_Option 使之運作正常
 
 1. [checkTimers.js](gas\src\checkTimers.js) 在GAS，放到時間驅動裡面呼叫， input arguments 似乎並非 `Null`，所以，只好以檢查是否有使用到的函數來辦理。
