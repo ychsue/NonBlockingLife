@@ -1,5 +1,7 @@
+import { handleStart, handleEnd, handleQueryOptions } from "./Logic.js";
+
 function testHandleStart() {
-  handleStart("Sc","This is a test");
+  handleStart("Sc", "This is a test");
 }
 
 function testHandleEnd() {
@@ -9,4 +11,9 @@ function testHandleEnd() {
 function testIsoString() {
   const now = new Date();
   Logger.log(now.toISOString());
+}
+
+function testHandleQueryOptions() {
+  const result = handleQueryOptions();
+  Logger.log(JSON.stringify(result, null, 2));
 }

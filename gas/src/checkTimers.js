@@ -7,7 +7,14 @@ import { NBL_CONFIG } from "./Config";
  * 設定為每 15 分鐘（或每分鐘）執行一次
  */
 function checkTimers(service_in = SheetsService) {
-  const service = service_in ?? SheetsService;
+  // 如果 service_in 的 getAllScheduledTasks 方法不存在，或者不是函數，則使用預設的 SheetsService
+  if (
+    !service_in ||
+    typeof service_in.getAllScheduledTasks !== "function"
+  ) {
+    service_in = SheetsService;
+  }
+  const service = service_in;
   const now = new Date();
 
   // 1. 獲取 Scheduled 表中所有任務

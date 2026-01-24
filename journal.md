@@ -1,6 +1,17 @@
 # Journal
 
-## [2026-01-23] 準備 Queue_Option 的前置作業，即 Selection_Cache 的填入
+## [2026-01-24] 修正 Query_Option 使之運作正常
+
+1. [checkTimers.js](gas\src\checkTimers.js) 在GAS，放到時間驅動裡面呼叫， input arguments 似乎並非 `Null`，所以，只好以檢查是否有使用到的函數來辦理。
+2. [Logic.js](gas\src\Logic.js) 提供 `handleQueryOptions` API，原理乃是由 `Selection_Cache` 抽取PENDING中的Task。
+3. [SheetsService.js](gas\src\SheetsService.js) 在 `updateSelectionCache` 裡，將有用的資訊放入 `Selection_Cache` 裡面。
+4. [Utils.js](gas\src\Utils.js) `calculateCandidates` 裡面多加入抽取出哪些 Task 當日所花時數要歸零，還有 Tasks 當日總花費時數
+5. iOS 學到的教訓：
+   1. 列表 (list) 吃 `string[]`，點選後，會傳回被點的 `string`，所以，得把 `options:{key:{....}}`，然後 `keys:[...]` 這兩個這樣子餵給 `iOS捷徑(Shortcuts)` 才行。
+   2. 可以多次設定相同變數，這在 `Query_Options` 被點 list 後，執行 `開始新的 Task` 很重要，因為我們希望無論獨立執行或被列表調用 `開始新的Task` ，都能夠設定 `taskId`
+   3. 傳出參數後，被執行的捷徑怎麼接收這參數呢？要使用 `設定變數`，然後它的來源要選 `捷徑輸入`，這樣就可以了。
+
+## [2026-01-23] 準備 Query_Option 的前置作業，即 Selection_Cache 的填入
 
 1. [checkTimers.js](gas\src\checkTimers.js) 放到 GAS 的每15分鐘 trigger
 2. [Config.js](gas\src\Config.js) 統一 `TASK_STATUS`，這樣，才有辦法做決定順序用

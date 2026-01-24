@@ -224,14 +224,20 @@ const SheetsService = {
    * 更新 Selection_Cache 內容
    */
   updateSelectionCache() {
-    /** @type [{taskId:string, title:string, score:number, source:string}] */
-    let candidates = [];
-
-    candidates = Utils.calculateCandidates(
+    
+    let {candidates, resetPoolTimeToZeroIndex, totalMinsPool} = Utils.calculateCandidates(
       this._getSafeSheet(NBL_CONFIG.SHEETS.POOL).getDataRange().getValues().slice(1),
       this._getSafeSheet(NBL_CONFIG.SHEETS.SCHEDULED).getDataRange().getValues().slice(1),
       this._getSafeSheet(NBL_CONFIG.SHEETS.MICRO_TASKS).getDataRange().getValues().slice(1)
     );
+
+    // 將今日已用時間歸零的任務更新回 Task_Pool 表
+    if (resetPoolTimeToZeroIndex.length > 0) {
+      const poolSheet = this._getSafeSheet(NBL_CONFIG.SHEETS.POOL);
+      resetPoolTimeToZeroIndex.forEach((rowIdx) => {
+        poolSheet.getRange(rowIdx, 5).setValue(0); // 假設 Spent_Today_Mins 在第 5 欄
+      });
+    }
     
     // 寫入 Selection_Cache 表
     const cacheSheet = getSheet(NBL_CONFIG.SHEETS.CACHE);
@@ -239,8 +245,11 @@ const SheetsService = {
 
     // 寫入標題行
     cacheSheet
-      .getRange(1, 1, 1, 4)
-      .setValues([["Task_ID", "Title", "Score", "Source"]]);
+      .getRange(1, 1, 1, 6)
+      .setValues([["Task_ID", "Title", "Score", "Source","","Total_Mins_in_Pool"]]);
+
+    // 寫入 Total_Mins_in_Pool
+    cacheSheet.getRange(2, 6).setValue(totalMinsPool);
 
     if (candidates.length > 0) {
       // 關鍵：將物件陣列轉換為二維陣列 [ [id, title, score, src], [...] ]

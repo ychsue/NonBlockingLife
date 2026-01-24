@@ -21,20 +21,20 @@ describe("calculateCandidates 排序邏輯測試", () => {
       ],
     ];
 
-    const result = Utils.calculateCandidates(
+    const {candidates} = Utils.calculateCandidates(
       mockPool,
       mockScheduled,
       mockMicro,
     );
 
-    expect(result[0].taskId).toBe("S01");
-    expect(result[0].score).toBe(500);
+    expect(candidates[0].taskId).toBe("S01");
+    expect(candidates[0].score).toBe(500);
   });
 
   test("應過濾掉狀態不是 PENDING 的任務", () => {
     const mockPool = [["T01", "已完成任務", "DONE", "", "", "", 5]];
-    const result = Utils.calculateCandidates(mockPool, [], []);
-    expect(result.length).toBe(0);
+    const {candidates} = Utils.calculateCandidates(mockPool, [], []);
+    expect(candidates.length).toBe(0);
   });
 });
 
@@ -57,7 +57,7 @@ describe("calculateCandidates: Task_Pool 智慧評分測試", () => {
       ],
     ];
 
-    const result = Utils.calculateCandidates(mockPool, [], []);
+    const {candidates} = Utils.calculateCandidates(mockPool, [], []);
 
     // 預期邏輯：
     // 1. 基礎分 100
@@ -65,8 +65,8 @@ describe("calculateCandidates: Task_Pool 智慧評分測試", () => {
     // 3. daysSince = 1 -> 飢餓分 +10
     // 4. remainingMins = 60 - 0 = 60 -> 不扣分
     // 最終得分應為 110
-    expect(result[0].score).toBe(110);
-    expect(result[0].taskId).toBe("T_RESET_TEST");
+    expect(candidates[0].score).toBe(110);
+    expect(candidates[0].taskId).toBe("T_RESET_TEST");
   });
 
   test("今日配額扣分測試：今天已執行過久應降分", () => {
@@ -84,7 +84,7 @@ describe("calculateCandidates: Task_Pool 智慧評分測試", () => {
       ],
     ];
 
-    const result = Utils.calculateCandidates(mockPool, [], []);
+    const {candidates} = Utils.calculateCandidates(mockPool, [], []);
 
     // 預期邏輯：
     // 1. 基礎分 100
@@ -92,7 +92,7 @@ describe("calculateCandidates: Task_Pool 智慧評分測試", () => {
     // 3. daysSince = 0 -> 飢餓分 +0
     // 4. remainingMins = 60 - 55 = 5 -> 觸發 < 15 分鐘扣分 (-20)
     // 最終得分應為 80
-    expect(result[0].score).toBe(80);
+    expect(candidates[0].score).toBe(80);
   });
 
   test("新任務與長期飢餓加成測試", () => {
@@ -103,12 +103,12 @@ describe("calculateCandidates: Task_Pool 智慧評分測試", () => {
       ["T_OLD", "老任務", "PENDING", "", 0, 60, 1, sevenDaysAgo.toISOString()], // 基礎 20 + 飢餓 70 = 90
     ];
 
-    const result = Utils.calculateCandidates(mockPool, [], []);
+    const {candidates} = Utils.calculateCandidates(mockPool, [], []);
 
     // 排序後：老任務 (90分) 應排在第一
-    expect(result[0].taskId).toBe("T_OLD");
-    expect(result[0].score).toBe(90);
-    expect(result[1].taskId).toBe("T_NEW");
-    expect(result[1].score).toBe(50);
+    expect(candidates[0].taskId).toBe("T_OLD");
+    expect(candidates[0].score).toBe(90);
+    expect(candidates[1].taskId).toBe("T_NEW");
+    expect(candidates[1].score).toBe(50);
   });
 });

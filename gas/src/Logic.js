@@ -1,6 +1,6 @@
 import Utils from "./Utils.js";
 import { SheetsService } from "./SheetsService.js";
-import { NBL_CONFIG } from "./Config";
+import { getSheet, NBL_CONFIG } from "./Config";
 import { message } from "./Message.js";
 
 /**
@@ -222,4 +222,43 @@ function handleInterrupt(service = SheetsService) {
   };
 }
 
-export { handleStart, handleEnd, handleAddInbox, handleInterrupt };
+function handleQueryOptions() {
+  const service = SheetsService;
+  
+  // 1. 取得 Dashboard 狀態 (用於捷徑端的邏輯分支)
+  const [currentId, currentTitle, startAt, status] = service.getDashboardState();
+  
+  // 2. 取得快取表的所有候選任務
+  const cacheSheet = getSheet(NBL_CONFIG.SHEETS.CACHE);
+  const data = cacheSheet.getDataRange().getValues().slice(1); // 跳過標題
+  
+  // 3. 格式化為捷徑好讀的清單，得分成keys=display*n & options:{display:{taskId, title, score, source}}*n
+  const shortcutDict = data.reduce((acc, r) => {
+    const taskId = r[0];
+    const title = r[1];
+    const score = r[2];
+    const source = r[3];
+    const due = score >= 500;
+    const display = `${due ? "🔥" : ""} ${Utils.getSourceEmoji(source)} ${title}`;
+    acc.displays.push(display);
+    acc.options[display] = { taskId, title, score, source, due };
+    return acc;
+  }, { displays: [], options: {} });
+
+  // 4. 計算目前任務已執行時間
+  let spentMins = data[0] ? parseInt(data[0][5]) || 0 : 0; // 從 Total_Mins_in_Pool 欄位讀取
+
+
+  return {
+    status: "success",
+    system_state: currentId ? "RUNNING" : "IDLE",
+    current_task: currentTitle || "無",
+    displays: shortcutDict.displays,
+    options: shortcutDict.options,
+    total_candidates: data.length,
+    spent_pool: `${Math.floor(spentMins/60)} 小時 ${spentMins%60} 分鐘`,
+    due_count: shortcutDict.displays.filter(d => d.startsWith("🔥")).length,
+  };
+}
+
+export { handleStart, handleEnd, handleAddInbox, handleInterrupt, handleQueryOptions };

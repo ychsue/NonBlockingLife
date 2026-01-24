@@ -79,13 +79,15 @@ function getNextOccurrence(cronExpr, baseDate = new Date()) {
  * @param {string[][]} pool
  * @param {string[][]} scheduled
  * @param {string[][]} microTasks
- * @returns [{taskId:string, title:string, score:number, source:string}]
+ * @returns {{candidates:[{taskId:string, title:string, score:number, source:string}], resetPoolTimeToZeroIndex:number[], totalMinsPool:number}}
  */
 function calculateCandidates(pool, scheduled, microTasks) {
   /** @type [{taskId:string, title:string, score:number, source:string}] */
   let candidates = [];
+  let resetPoolTimeToZeroRowIndex = [];
+  let totalMinsPool = 0;
   // Task_Pool
-  pool.forEach((r) => {
+  pool.forEach((r, index) => {
     const status = r[2]; // Status
     if (status === NBL_CONFIG.TASK_STATUS.PENDING) {
       const taskId = r[0];
@@ -108,10 +110,10 @@ function calculateCandidates(pool, scheduled, microTasks) {
           score += 30;
         } else {
           // 如果 lastDate 不是今天，而spentToday 已經有值，這表示前次沒有清空，得把它歸零
-          spentToday =
-            lastDate.toDateString() === new Date().toDateString()
-              ? spentToday
-              : 0;
+          if (lastDate.toDateString() !== new Date().toDateString() && spentToday > 0) {
+            resetPoolTimeToZeroRowIndex.push(index + 2); // +2 因為 sheet 是從 1 開始，且有 header row
+            spentToday = 0;
+          }
 
           const daysSince = Math.floor(
             (new Date() - lastDate) / (1000 * 60 * 60 * 24),
@@ -137,6 +139,8 @@ function calculateCandidates(pool, scheduled, microTasks) {
         source: NBL_CONFIG.SHEETS.POOL,
       });
     }
+    const mins = parseFloat(r[4]) || 0;
+    totalMinsPool += mins;
   });
   // Scheduled Tasks
   const now = new Date();
@@ -175,7 +179,14 @@ function calculateCandidates(pool, scheduled, microTasks) {
       });
     }
   });
-  return candidates.sort((a, b) => b.score - a.score);
+  return {candidates: candidates.sort((a, b) => b.score - a.score), resetPoolTimeToZeroIndex: resetPoolTimeToZeroRowIndex, totalMinsPool: totalMinsPool};
+}
+
+function getSourceEmoji(source) {
+  if (source === "Scheduled") return "🔔";
+  if (source === "Pool") return "🎯";
+  if (source === "Micro") return "⚡";
+  return "📝";
 }
 
 const Utils = {
@@ -185,6 +196,7 @@ const Utils = {
   parseToMinutes: parseToMinutes,
   getNextOccurrence: getNextOccurrence,
   calculateCandidates: calculateCandidates,
+  getSourceEmoji: getSourceEmoji,
 };
 
 export default Utils;
