@@ -32,3 +32,23 @@
         E -- 隨手記 --> G[API: ADD_INBOX]
         F --> H[結束: 顯示成功通知]
     ```
+
+### 而GAS 的部分則
+
+### Query Options Response (Optimized for iOS Shortcuts)
+
+為了優化 iOS 捷徑的解析速度，API 採用雙欄位設計：
+
+- `displays`: `string[]` -> 用於「從清單選擇」動作顯示。
+- `options`: `Object` -> 以顯示字串為 Key，方便捷徑快速獲取 TaskID。
+
+**Example:**
+
+```json
+{
+  "displays": ["🔔 晾衣服 (到期)", "🎯 寫 NBL 代碼"],
+  "options": {
+    "🔔 晾衣服 (到期)": { "taskId": "S123", "type": "Scheduled" },
+    "🎯 寫 NBL 代碼": { "taskId": "T456", "type": "Task" }
+  }
+}

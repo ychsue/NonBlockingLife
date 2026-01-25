@@ -1,5 +1,17 @@
 # Journal
 
+## [2026-01-25] 修正 Scheduled 裡面若沒有 cron_expr 在 END 時，要把 NextRun 給清掉，並且改為 WAITING
+
+[Logic.js](gas\src\Logic.js) 的 `handleEnd` 宣告此要求。
+
+[ ] TODO TODO TODO [加強提醒功能建議](./Discussion/6th_discussion.md#2026-01-25-ychsue-我目前是使用-start-時他會設定一個30分鐘的鬧鐘提醒我該起來了還是您有更好的建議)
+
+   - 值得做，現在先不要。
+
+## [2026-01-24] 修正 handleEnd gas 讀入日期字串可能會自動轉換為日期，導致比對錯誤的問題
+
+目前只在 [SheetsService.js](gas\src\SheetsService.js) 的 `updateTaskInPool` 有看到，可能還有。
+
 ## [2026-01-24] 修改 handleEnd 好使他可以設定對的 NextRun (應該吧，再試用看看)
 
 1. [Logic.js](gas\src\Logic.js) 因為由 crontab string 所得的日期有可能小於等於原本的 NextRun，照理講，我們提前執行他，應該要把NextRun 設到oldNextRun的後面才對。

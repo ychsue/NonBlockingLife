@@ -80,6 +80,7 @@ const SheetsService = {
           rowIndex: theRow.rowIndex,
           lastRunDate: theRow.data[7], // 假設第 8 欄是 Last_Run_Date
           spentToday: theRow.data[4], // 假設第 5 欄是 Spent_Today_Mins
+          dailyLimit: theRow.data[5], // 假設第 6 欄是 Daily_Limit_Mins
           totalSpent: theRow.data[8], // 假設第 9 欄是 Total_Spent_Mins
         };
       } else {
@@ -121,13 +122,13 @@ const SheetsService = {
     const taskInfo = this.findTaskById(id); // 取得當前行數據
     const now = new Date();
     const todayStr = Utilities.formatDate(now, "GMT+8", "yyyy-MM-dd");
-    const lastRunDate = taskInfo.lastRunDate; // 從 Sheet 讀到的最後執行日
+    const lastRunDate = new Date(taskInfo.lastRunDate); // 從 Sheet 讀到的最後執行日
 
     let spentToday = taskInfo.spentToday || 0;
     let totalSpent = taskInfo.totalSpent || 0;
 
     // 核心邏輯：如果換天了，重置今日統計
-    if (lastRunDate !== todayStr) {
+    if (isNaN(lastRunDate.getTime()) || todayStr !== Utilities.formatDate(lastRunDate, "GMT+8", "yyyy-MM-dd")) {
       spentToday = 0;
     }
 
@@ -158,7 +159,7 @@ const SheetsService = {
     sheet
       .getRange(taskInfo.rowIndex, 10)
       .setValue(
-        Utilities.formatDate(nextRunDate, "GMT+8", "yyyy-MM-dd HH:mm:ss"),
+        nextRunDate ? Utilities.formatDate(nextRunDate, "GMT+8", "yyyy-MM-dd HH:mm:ss") : null,
       ); // 假設第 J 欄是 Next_Run 下一次執行時間
     if (status) {
       sheet.getRange(taskInfo.rowIndex, 3).setValue(status); // 假設第 C 欄是 Status

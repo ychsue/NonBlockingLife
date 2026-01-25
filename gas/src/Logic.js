@@ -114,6 +114,9 @@ function handleEnd(info = "", service = SheetsService) {
       }
     }
     service.updateScheduledTaskNextRunByTaskInfo(taskinfo, nextRunDate, NBL_CONFIG.TASK_STATUS.WAITING);
+  } else if (taskinfo.source === NBL_CONFIG.SHEETS.SCHEDULED) {
+    // 沒有 cron_expr 的 Scheduled 任務，結束後要設為 WAITING，並清空 NextRun
+    service.updateScheduledTaskNextRunByTaskInfo(taskinfo, null, NBL_CONFIG.TASK_STATUS.WAITING);
   }
   // ## For Scheduled Task: 檢查是否有後續任務需要啟動
   let nextTaskTime = new Date();
@@ -249,7 +252,7 @@ function handleQueryOptions() {
     const score = r[2];
     const source = r[3];
     const due = score >= 500;
-    const display = `${due ? "🔥" : ""} ${Utils.getSourceEmoji(source)} ${title}`;
+    const display = `${score<0?"🎉":""} ${due ? "🔥" : ""} ${Utils.getSourceEmoji(source)} ${title}`;
     acc.displays.push(display);
     acc.options[display] = { taskId, title, score, source, due };
     return acc;
