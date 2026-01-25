@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-01-25] 準備上到 GitHub
+
 ## [2026-01-25] 修正 Scheduled 裡面若沒有 cron_expr 在 END 時，要把 NextRun 給清掉，並且改為 WAITING
 
 [Logic.js](gas\src\Logic.js) 的 `handleEnd` 宣告此要求。

@@ -252,7 +252,7 @@ function handleQueryOptions() {
     const score = r[2];
     const source = r[3];
     const due = score >= 500;
-    const display = `${score<0?"🎉":""} ${due ? "🔥" : ""} ${Utils.getSourceEmoji(source)} ${title}`;
+    const display = `${score<=0?"🎉":""} ${due ? "🔥" : ""} ${Utils.getSourceEmoji(source)} ${title}`;
     acc.displays.push(display);
     acc.options[display] = { taskId, title, score, source, due };
     return acc;
