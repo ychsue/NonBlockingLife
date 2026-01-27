@@ -134,7 +134,7 @@ function calculateCandidates(pool, scheduled, microTasks) {
 
       candidates.push({
         taskId,
-        title,
+        title: `${title} (剩餘配額: ${remainingMins}m)`,
         score: Math.max(0, score), // 確保分數不為負
         source: NBL_CONFIG.SHEETS.POOL,
       });

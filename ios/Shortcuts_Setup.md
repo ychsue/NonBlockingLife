@@ -4,11 +4,11 @@
 
 ## 開始新 Task
 
-[開始新 Task](https://www.icloud.com/shortcuts/5ba6af0fc1ed4d5aaf6d6c9954977782)
+[開始新 Task](https://www.icloud.com/shortcuts/439cbba876e44236a6fe877f3388254c)
 
 ## 遇到中斷
 
-[Interrupt](https://www.icloud.com/shortcuts/6fbd8f16f2bd4687aaf87d053690d321)
+[Interrupt](https://www.icloud.com/shortcuts/1595adaeb0d1447ca16135ab5d3de202)
 
 ## 結束一個任務
 

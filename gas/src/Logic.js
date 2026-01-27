@@ -64,9 +64,14 @@ function handleStart(taskId, note, service = SheetsService) {
  *  payload?: {id: string, title: string, source: string, duration: number}
  * }
  */
-function handleEnd(info = "", service = SheetsService) {
+function handleEnd(info = "", service = SheetsService, isInterrupt = false) {
   const [id, name, startAt] = service.getDashboardState();
-  if (!id) return message({ status: "error", message: "目前無執行中任務" });
+  if (!id) {
+    if (isInterrupt) {
+      return message({ status: "success", message: "目前無執行中任務，無須中斷一般任務" });
+    }
+    return message({ status: "error", message: "目前無執行中任務" });
+  }
 
   const taskinfo = service.findTaskById(id);
   if (!taskinfo)
@@ -87,15 +92,16 @@ function handleEnd(info = "", service = SheetsService) {
   service.updateTaskStatusByTaskInfo(taskinfo, nextStatus, duration); // 更新 Pool 狀態 // TODO TODO TODO
   // console.log("taskinfo in handleEnd:", taskinfo);
   service.clearDashboard();
+  const note = isInterrupt ? `任務被中斷，執行 ${duration}m` : `"${name}->${info ?? "END"}"`;
   service.appendLog([
     now,
     id,
     taskinfo.title,
-    "END",
+    isInterrupt ? "INTERRUPT" : "END",
     taskinfo.source,
     nextStatus,
     duration,
-    `"${name}->${info ?? "END"}"`,
+    note,
   ]);
 
   // # For Scheduled Task: 要更新他自己的 NextRun
@@ -199,18 +205,7 @@ function handleInterrupt(service = SheetsService) {
 
   // 1. 如果有舊任務，先強制結算
   if (oldId) {
-    const duration = Utils.calculateDuration(startAt, now);
-    const taskInfo = service.updateTaskStatus(oldId, "PENDING", duration);
-    service.appendLog([
-      now,
-      oldId,
-      taskInfo.title,
-      "INTERRUPTED",
-      taskInfo.source,
-      "IDLE",
-      duration,
-      `${oldNote}： 被突發事件中斷，執行 ${duration}m`,
-    ]);
+    handleEnd("被中斷以處理突發狀況", service, true);
   }
 
   // 2. 啟動匿名中斷任務

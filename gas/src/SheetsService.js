@@ -175,6 +175,8 @@ const SheetsService = {
   },
 
   updateTaskStatusByTaskInfo(taskInfo, newStatus, addMins = 0) {
+    if (SYSTEM_IDs.includes(taskInfo.id)) return taskInfo;
+    
     const sheet = this._getSafeSheet(taskInfo.source);
 
     if (addMins > 0 && taskInfo.source === NBL_CONFIG.SHEETS.POOL) {

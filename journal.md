@@ -1,5 +1,10 @@
 # Journal
 
+## [2026-01-27] 做些更新
+
+1. [Logic.js](gas\src\Logic.js) 的 handleInterrupt 改為直接呼叫 handleEnd 來設定
+2. [Utils.js](gas\src\Utils.js) 的 calculateCandidates 的 title 給他多告知 task 已經花的時間。
+
 ## [2026-01-25] 準備上到 GitHub
 
 ## [2026-01-25] 修正 Scheduled 裡面若沒有 cron_expr 在 END 時，要把 NextRun 給清掉，並且改為 WAITING

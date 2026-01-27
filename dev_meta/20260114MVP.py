@@ -18,7 +18,7 @@ class DevMeta20260114MVP:
     # Step 1: 
     @feature_unit(
         display_name="GAS doPost",
-        status="pending",
+        status="done",
         depends=[kickoff],
         belongs_to=["MVPstep1"],
         duration=timedelta(days=1),
@@ -32,10 +32,10 @@ class DevMeta20260114MVP:
         [x] Request (Action: ADD_INBOX, Content) : Add to Inbox [2026-01-19]
         [x] Request (Action: INTERRUPT)
         [x] Scheduled : [2026-01-21] 自動排程任務的支援
-        [ ] Request (Action: QUERY_OPTIONS)
-            - [ ] 改寫 Status 的給定方式，好讓 QUERY_OPTIONS 可以回傳目前所有可用的 Status 選項
+        [x] Request (Action: QUERY_OPTIONS) [2026-01-25]
+            - [x] 改寫 Status 的給定方式，好讓 QUERY_OPTIONS 可以回傳目前所有可用的 Status 選項
         [ ] 加入身心狀態的紀錄功能
-        [ ] 每小時觸發 (Hourly Check)
+        [x] 每小時觸發 (Hourly Check)  [2026-01-23]
         [ ] Request (Action: QUERY_DASHBOARD_STATUS)
         [ ] Request (Action: ADD_TASK, Title, Category)
         [ ] Request (Action: MOVE_TASK, TaskID, TargetSheet)
@@ -44,7 +44,7 @@ class DevMeta20260114MVP:
     
     @feature_unit(
         display_name="Google Sheets Integration",
-        status="pending",
+        status="done",
         depends=[kickoff],
         belongs_to=["MVPstep1"],
         duration=timedelta(days=1),
@@ -58,7 +58,7 @@ class DevMeta20260114MVP:
     
     @feature_unit(
         display_name="iOS Shortcut",
-        status="pending",
+        status="done",
         depends=[kickoff],
         belongs_to=["MVPstep1"],
         duration=timedelta(days=1),
