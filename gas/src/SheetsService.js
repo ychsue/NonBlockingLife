@@ -128,7 +128,10 @@ const SheetsService = {
     let totalSpent = taskInfo.totalSpent || 0;
 
     // 核心邏輯：如果換天了，重置今日統計
-    if (isNaN(lastRunDate.getTime()) || todayStr !== Utilities.formatDate(lastRunDate, "GMT+8", "yyyy-MM-dd")) {
+    if (
+      isNaN(lastRunDate.getTime()) ||
+      todayStr !== Utilities.formatDate(lastRunDate, "GMT+8", "yyyy-MM-dd")
+    ) {
       spentToday = 0;
     }
 
@@ -159,7 +162,9 @@ const SheetsService = {
     sheet
       .getRange(taskInfo.rowIndex, 10)
       .setValue(
-        nextRunDate ? Utilities.formatDate(nextRunDate, "GMT+8", "yyyy-MM-dd HH:mm:ss") : null,
+        nextRunDate
+          ? Utilities.formatDate(nextRunDate, "GMT+8", "yyyy-MM-dd HH:mm:ss")
+          : null,
       ); // 假設第 J 欄是 Next_Run 下一次執行時間
     if (status) {
       sheet.getRange(taskInfo.rowIndex, 3).setValue(status); // 假設第 C 欄是 Status
@@ -176,7 +181,7 @@ const SheetsService = {
 
   updateTaskStatusByTaskInfo(taskInfo, newStatus, addMins = 0) {
     if (SYSTEM_IDs.includes(taskInfo.id)) return taskInfo;
-    
+
     const sheet = this._getSafeSheet(taskInfo.source);
 
     if (addMins > 0 && taskInfo.source === NBL_CONFIG.SHEETS.POOL) {
@@ -228,12 +233,21 @@ const SheetsService = {
    * 更新 Selection_Cache 內容
    */
   updateSelectionCache() {
-    
-    let {candidates, resetPoolTimeToZeroIndex, totalMinsPool} = Utils.calculateCandidates(
-      this._getSafeSheet(NBL_CONFIG.SHEETS.POOL).getDataRange().getValues().slice(1),
-      this._getSafeSheet(NBL_CONFIG.SHEETS.SCHEDULED).getDataRange().getValues().slice(1),
-      this._getSafeSheet(NBL_CONFIG.SHEETS.MICRO_TASKS).getDataRange().getValues().slice(1)
-    );
+    let { candidates, resetPoolTimeToZeroIndex, totalMinsPool } =
+      Utils.calculateCandidates(
+        this._getSafeSheet(NBL_CONFIG.SHEETS.POOL)
+          .getDataRange()
+          .getValues()
+          .slice(1),
+        this._getSafeSheet(NBL_CONFIG.SHEETS.SCHEDULED)
+          .getDataRange()
+          .getValues()
+          .slice(1),
+        this._getSafeSheet(NBL_CONFIG.SHEETS.MICRO_TASKS)
+          .getDataRange()
+          .getValues()
+          .slice(1),
+      );
 
     // 將今日已用時間歸零的任務更新回 Task_Pool 表
     if (resetPoolTimeToZeroIndex.length > 0) {
@@ -242,7 +256,7 @@ const SheetsService = {
         poolSheet.getRange(rowIdx, 5).setValue(0); // 假設 Spent_Today_Mins 在第 5 欄
       });
     }
-    
+
     // 寫入 Selection_Cache 表
     const cacheSheet = getSheet(NBL_CONFIG.SHEETS.CACHE);
     cacheSheet.clear();
@@ -250,7 +264,9 @@ const SheetsService = {
     // 寫入標題行
     cacheSheet
       .getRange(1, 1, 1, 6)
-      .setValues([["Task_ID", "Title", "Score", "Source","","Total_Mins_in_Pool"]]);
+      .setValues([
+        ["Task_ID", "Title", "Score", "Source", "", "Total_Mins_in_Pool"],
+      ]);
 
     // 寫入 Total_Mins_in_Pool
     cacheSheet.getRange(2, 6).setValue(totalMinsPool);
@@ -269,6 +285,35 @@ const SheetsService = {
       cacheSheet.getRange(2, 1, finalData.length, 4).setValues(finalData);
     }
   },
+  addToScheduledTasks({
+    id,
+    title,
+    status,
+    before_task,
+    note,
+    nextRunDate,
+  }) {
+    const sheet = this._getSafeSheet(NBL_CONFIG.SHEETS.SCHEDULED);
+    const nowStr = Utilities.formatDate(
+      new Date(),
+      "GMT+8",
+      "yyyy-MM-dd HH:mm:ss",
+    );
+    sheet.appendRow([
+      /*A*/ id,
+      /*B*/ title,
+      /*C*/ status,
+      /*D*/,
+      /*E*/ before_task,
+      /*F*/,
+      /*G*/,
+      /*H*/,
+      /*I*/ note,
+      /*J*/ nextRunDate
+        ? Utilities.formatDate(nextRunDate, "GMT+8", "yyyy-MM-dd HH:mm:ss")
+        : null,
+    ]);
+  },
 };
 
-export { SheetsService, SYSTEM_IDs};
+export { SheetsService, SYSTEM_IDs };

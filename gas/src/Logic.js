@@ -264,9 +264,29 @@ function handleQueryOptions() {
     displays: shortcutDict.displays,
     options: shortcutDict.options,
     total_candidates: data.length,
-    spent_pool: `${Math.floor(spentMins/60)} 小時 ${spentMins%60} 分鐘`,
+    spent_pool: Utils.minutesToTimeString(spentMins),
     due_count: shortcutDict.displays.filter(d => d.startsWith("🔥")).length,
   };
 }
 
-export { handleStart, handleEnd, handleAddInbox, handleInterrupt, handleQueryOptions };
+/**
+ * 加入一行來自iOS的排程任務
+ * @param {string} title 
+ * @param {string|Date} nextRun 
+ * @param {string|number} remind_before_minutes 
+ * @param {string} note 
+ * @param {typeof SheetsService} service 
+ */
+function handleAddScheduledTask(title, nextRun, remind_before_minutes, note, service = SheetsService) {
+  const now = new Date();
+  const id = Utils.generateId("S");
+  console.log("handleAddScheduledTask:", {title, nextRun, remind_before_minutes, note});
+  const nextRunDate = new Date(nextRun);
+  console.log("Parsed nextRunDate:", nextRunDate);
+  const before_task = remind_before_minutes ?? '1d'; // 預設提前1天提醒
+
+  // 1. 存入 Scheduled Tasks Sheet
+  service.addToScheduledTasks({id, title, status: NBL_CONFIG.TASK_STATUS.WAITING, before_task, note, nextRunDate});
+}
+
+export { handleStart, handleEnd, handleAddInbox, handleInterrupt, handleQueryOptions, handleAddScheduledTask };

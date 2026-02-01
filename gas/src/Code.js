@@ -1,3 +1,11 @@
+import {handleAddInbox, handleAddScheduledTask, handleEnd, handleInterrupt, handleQueryOptions, handleStart} from './Logic.js';
+
+/**
+ * Web App 入口點
+ * @param {GoogleAppsScript.Events.DoPost} e
+ * @returns {GoogleAppsScript.Content.TextOutput}
+ */
+
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
@@ -19,6 +27,9 @@ function doPost(e) {
         break;
       case "INTERRUPT":
         response = handleInterrupt(); // 等 End 的時候再補上
+        break;
+      case "ADD_SCHEDULED_TASK":
+        response = handleAddScheduledTask(data.title, data.next_run, data.remind_before_minutes, data.note); 
         break;
         // TODO TODO TODO 尚缺 `新增一個Task(得指定哪個TaskSheet)`, `提出移動一個 Task的要求`
       default:

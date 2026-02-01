@@ -1,5 +1,11 @@
 # Journal
 
+## [2026-01-28] 加入可以加入 scheduled task 的API，若可以，順便把 iOS 的部分做出來
+
+1. [handleAddScheduledTask](gas\src\Logic.js)
+2. [addToScheduledTasks](gas/src/SheetsService.js)
+3. [Cron得使用legacyMode:false](gas\src\Utils.js)
+
 ## [2026-01-27] 做些更新
 
 1. [Logic.js](gas\src\Logic.js) 的 handleInterrupt 改為直接呼叫 handleEnd 來設定

@@ -67,7 +67,7 @@ function parseToMinutes(takesTime) {
  */
 function getNextOccurrence(cronExpr, baseDate = new Date()) {
   try {
-    const cron = new Cron(cronExpr);
+    const cron = new Cron(cronExpr, { legacyMode: false });
     return cron.nextRun(baseDate);
   } catch (e) {
     return null;
@@ -148,12 +148,13 @@ function calculateCandidates(pool, scheduled, microTasks) {
     const status = r[2]; // 假設第 3 欄是 Status
     if (status === NBL_CONFIG.TASK_STATUS.PENDING) {
       const taskId = r[0]; // 假設第 1 欄是 ID
-      const title = r[1]; // 假設第 2 欄是 Title
+      let title = r[1]; // 假設第 2 欄是 Title
       const nextRunStr = r[9]; // 假設第 10 欄是 Next_Run
       let score = 50; // Scheduled 任務基礎分數較低
       if (nextRunStr) {
         const nextRunDate = new Date(nextRunStr);
         const diffMins = (nextRunDate - now) / 60000;
+        title = `${title} : ${diffMins < 0 ? "過時" : "還有"}${minutesToTimeString(Math.abs(diffMins))}`;
         score = diffMins < 0 ? 500 : Math.max(50, 200 - diffMins); // 越接近執行時間分數越高
       }
       candidates.push({
@@ -182,6 +183,12 @@ function calculateCandidates(pool, scheduled, microTasks) {
   return {candidates: candidates.sort((a, b) => b.score - a.score), resetPoolTimeToZeroIndex: resetPoolTimeToZeroRowIndex, totalMinsPool: totalMinsPool};
 }
 
+function minutesToTimeString(totalMinutes) {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours} 小時 ${minutes} 分鐘`;
+}
+
 function getSourceEmoji(source) {
   if (source === "Scheduled") return "🔔";
   if (source === "Pool") return "🎯";
@@ -197,6 +204,7 @@ const Utils = {
   getNextOccurrence: getNextOccurrence,
   calculateCandidates: calculateCandidates,
   getSourceEmoji: getSourceEmoji,
+  minutesToTimeString: minutesToTimeString,
 };
 
 export default Utils;

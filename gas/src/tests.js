@@ -17,3 +17,13 @@ function testHandleQueryOptions() {
   const result = handleQueryOptions();
   Logger.log(JSON.stringify(result, null, 2));
 }
+
+function testAddScheduledTask() {
+  const result = handleAddScheduledTask(
+    "Test Scheduled Task",
+    new Date(Date.now() + 3600 * 1000).toISOString(),
+    15,
+    "This is a test scheduled task."
+  );
+  Logger.log(JSON.stringify(result, null, 2));
+}
