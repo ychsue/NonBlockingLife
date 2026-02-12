@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-02-12] 準備處理 Dexie
+
 ## [2026-02-12] 對 Micro_Tasks 加點修正
 
 [ ] 應該還有身心健康的log 與 Dashboard 才對，邏輯有一些些不同

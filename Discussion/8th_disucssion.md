@@ -18,11 +18,6 @@
 
 **優勢：**
 
-- PWA 本地 IndexedDB (Dexie.js) 的讀寫速度比 GAS → Google Sheets API 快 100-1000 倍
-- 可離線操作，網路恢復時自動同步
-- iOS 捷徑可直接 POST 到 PWA URL，無需經過 Google 授權的 GAS 複雜流程
-- Service Worker 支援背景同步，即使使用者關閉應用也能定期更新
-
 **同步策略建議：**
 
 ```javascript
@@ -458,3 +453,578 @@ React 18 + Vite
 ---
 
 **簡單說：TanStack Query 是為了解決「從多個遠端 API 獲取和快取數據」的問題。您的項目本地優先（Dexie.js）+ Service Worker 後台同步，已經解決了這個問題。加 TanStack Query 就像給自行車裝飛機引擎——有能力但多餘。用 Zustand 輕量級狀態管理就足夠了。**
+
+=====================================================
+
+---
+
+## [2026-02-12] ychsue 由 #file:8th_disucssion.md 看來，應該接近可以實作了，不過，三個點跟您討論一下
+
+1. 如果多 import export xlsx 等類型的檔案，對於本機使用者是否更安全？
+2. 一般同步怎麼做？用類似SQL的語法 add, update, delete 嗎？然後同步時先抓取sheets們，套用上這些修改後，再兩邊都更新嗎？
+3. 我們需要使用像是 Jenkins 來做到 software development/ DevOps pipeline 嗎？因為，應該沒辦法一次就到位吧？需要提供您MCP嗎？還是您有更好的想法？請在此檔接續回答即可，我們先做好 plan 的動作，謝謝。
+
+## [2026-02-12] 回答三點（可實作前的規劃）
+
+### 1) 多做 import/export xlsx 是否更安全？
+
+結論：**不會更安全，只是更可控的本機操作選項**。
+
+- 安全風險主要在「憑證與資料存放」而非檔案格式。
+- 匯入/匯出只是讓使用者有離線備份、搬家、手動修復資料的能力。
+- 若要提升安全性，建議做的是：
+  - Token 存在 IndexedDB 且加密（或只在記憶體中，重新登入再同步）。
+  - PWA 啟用 CSP、限制第三方 script。
+  - 匯出時提供「只匯出必要欄位」的選項，避免敏感欄位外洩。
+
+因此，**import/export 是「可用性與可恢復性」加分，不是安全性本身**。
+
+### 2) 一般同步怎麼做？
+
+結論：**用「變更紀錄（change log）」同步，不直接做 SQL add/update/delete。**
+
+建議流程（Local-First）：
+
+1. 本地每次變更都寫入 Dexie，並記錄一筆 change log
+   - 內容包含：操作類型（add/update/delete）、目標表、主鍵、欄位變更、時間戳、clientId
+2. 同步時：
+   - 先將本地 change log 打包批量送到 Google Sheets API
+   - 遠端成功後，標記該批 change log 為已同步
+3. 下載遠端更新時：
+   - 只拉「最後同步時間之後」的更新（增量）
+   - 依照時間戳或版本號做衝突處理
+
+這樣做的好處：
+
+- 本地永遠可用，不需要等遠端成功
+- 同步可重試（change log 還在）
+- 衝突判斷清楚，且可局部合併
+
+簡化的同步策略草稿：
+
+```text
+本地操作 → 寫入 Dexie + 記錄 change log
+定時同步 → 批量上傳 change log → 伺服回傳成功清單
+下載遠端 → 只拉增量 → 合併 + 衝突處理
+```
+
+若未來 Google Sheets 無法提供真正的增量 API，則用「最後同步時間 + 版本欄位」模擬。
+
+### 3) 需要 Jenkins / DevOps pipeline 嗎？
+
+結論：**不需要 Jenkins，先用最小化流程即可。**
+
+目前只有一人維護、且 PWA 是純前端，建議的最小流程：
+
+- GitHub Actions（或本機腳本）完成：
+  - lint / test / build
+  - 部署（例如 GitHub Pages 或任意靜態主機）
+- 版本策略：
+  - main = 穩定線
+  - dev = 開發線
+- release checklist：
+  - build 成功
+  - PWA 安裝、離線、同步三項基本檢查
+
+至於 MCP：目前不需要。這類問題主要是設計與文件，不是動態環境整合。
+
+如果您同意，我可以下一步把「同步 change log schema + Dexie schema + 基本同步流程」寫成實作 plan。
+
+==============================================================
+
+## [2026-02-12] ychsue 好的，請 `同步 change log schema + Dexie schema + 基本同步流程」寫成實作 plan`，我不大會使用 git 做流程維護，需要時，您可以告知我、教我嗎？謝謝您。😄
+
+## [2026-02-12] 實作 Plan：change log schema + Dexie schema + 基本同步流程
+
+### A) Change Log Schema (本地變更紀錄)
+
+目的：把所有本地操作變成可重放、可重試的事件。
+
+欄位建議：
+
+- `id` (string, pk): 唯一事件 ID
+- `clientId` (string): 裝置或瀏覽器實例 ID
+- `table` (string): 目標表名，例如 `tasks`
+- `recordId` (string): 目標資料主鍵
+- `op` (string): `add` | `update` | `delete`
+- `patch` (object): 更新欄位（只存差異）
+- `createdAt` (number): 本地時間戳
+- `syncedAt` (number|null): 同步成功時間
+- `retryCount` (number): 失敗重試次數
+- `status` (string): `pending` | `synced` | `failed`
+
+備註：
+
+- `patch` 對 `add` 可存完整欄位，`update` 存差異欄位，`delete` 存最小資訊。
+- `clientId` 用來判斷「這次更新是不是自己造成」。
+
+### B) Dexie Schema (本地資料庫)
+
+以現有 Sheets 為基礎，建議最少三層表：
+
+1) 主資料表（例：tasks, records, configs 等）
+2) 同步狀態表（sync_state）
+3) 變更紀錄表（change_log）
+
+範例 (概念版)：
+
+```js
+db.version(1).stores({
+  tasks: 'id, status, updatedAt, createdAt',
+  records: 'id, taskId, startedAt, endedAt, updatedAt',
+  configs: 'key',
+  change_log: 'id, table, recordId, op, status, createdAt',
+  sync_state: 'key'
+})
+```
+
+sync_state 建議存：
+
+- `lastSyncAt`
+- `lastRemoteCursor` (若未來可用)
+- `lastFullSyncAt` (保險用)
+
+### C) 基本同步流程 (Local-First)
+
+#### 1. 本地寫入流程
+
+1) 使用者操作 -> 寫入主資料表
+2) 立刻新增 change log -> 狀態 `pending`
+3) UI 直接更新，不等待遠端
+
+#### 2. 上傳流程 (Upload)
+
+1) 取出 `pending` 的 change log
+2) 依 `table` 分組，批量送到 Sheets API
+3) 成功 -> `status = synced`, `syncedAt = now`
+4) 失敗 -> `status = failed`, `retryCount++`
+
+#### 3. 下載流程 (Download)
+
+1) 以 `lastSyncAt` 或 `lastRemoteCursor` 取增量
+2) 若無增量 API -> 下載全量並比對版本欄位
+3) 合併進本地：
+   - 若本地有更新且較新 -> 保留本地，記錄衝突
+   - 若遠端較新 -> 覆蓋本地
+
+#### 4. 衝突處理策略 (最小版)
+
+- 以 `updatedAt` 比較為主
+- 若時間差 < 30 秒且欄位不同 -> 標記 `conflict`
+- conflict 顯示在 UI 待使用者決定
+
+### D) 最小里程碑 (MVP)
+
+1) Dexie schema 建立 + 基本 CRUD
+2) change log 記錄與重試機制
+3) 單向上傳 (local -> sheets)
+4) 單向下載 (sheets -> local)
+5) 最小衝突提示
+
+### E) Git 流程（您不熟也沒關係，我可以帶您做）
+
+不需要進階流程，先用最小流程即可：
+
+1) 新功能 -> 建議開一個分支
+2) 做完 -> 合併回 main
+3) 發版 -> 打 tag (可選)
+
+常用指令（到時我會一步一步帶您做）：
+
+```bash
+git checkout -b feature/sync
+git add .
+git commit -m "Add local change log"
+git checkout main
+git merge feature/sync
+```
+
+您只要告訴我「現在要做哪個階段」，我會告訴您最少需要的 git 步驟。
+
+---
+
+如果您同意，我下一步可以把「實際 Dexie schema 對應到現有 Sheets 欄位」整理成更具體的表格（逐表欄位對應）。
+
+=============================================================
+
+## [2026-02-12] ychsue 好，目前的表格在 [[sheets\2026NonBlockingLife.xlsx]], 請幫我把「實際 Dexie schema 對應到現有 Sheets 欄位」整理成更具體的表格（逐表欄位對應），謝謝
+
+請問，
+
+1. 您讀得了 xlsx 檔案內容嗎？需要我列給您它的資訊嗎？
+2. 可以先列出TODOs，然後前面放 `[ ]` 嗎？我在VSCode有裝 TODOs extenstion，它會讓我知道有哪些 TODOs。謝謝。
+
+## [2026-02-12] 回覆與下一步
+
+### 1) xlsx 內容讀取
+
+我目前無法直接讀取 xlsx 的內容，因此需要您提供表格資訊。我才能做出「逐表欄位對應」的 Dexie schema。
+
+請提供以下資訊（用最簡單文字列出即可）：
+
+- 工作表名稱清單（每一張 sheet 的名字）
+- 每張 sheet 的欄位名稱（第一列標題）
+- 若有主鍵或唯一欄位，請標註
+- 若有欄位是日期/時間或狀態 enum，請標註
+
+### 2) TODOs
+
+以下先列出 TODOs，並用 `[ ]` 格式：
+
+- [x] 提供 xlsx 內各 sheet 名稱與欄位清單
+- [x] 標註每張 sheet 的主鍵/唯一欄位（依說明整理）
+- [x] 標註日期/時間欄位與狀態欄位（以 epoch ms）
+- [x] 依據上述資訊整理 Dexie schema 對應表
+
+提供資訊後，我會把「逐表欄位對應」表格補上。
+
+==============================================================
+
+---
+
+## [2026-02-12] ychsue 該xlsx資訊如下
+
+``` json
+{
+  "Log": {
+    "Timestamp": 0,
+    "Task_ID": 1,
+    "Title": 2,
+    "Action": 3,
+    "Category": 4,
+    "State": 5,
+    "Duration": 6,
+    "Notes": 7
+  },
+  "Dashboard": {
+    "Task_ID": 0,
+    "Notes": 1,
+    "Start_At": 2,
+    "System_Status": 3,
+    "Total_Focus_Today": 4
+  },
+  "Inbox": {
+    "Task_ID": 0,
+    "Title": 1,
+    "Received_At": 2
+  },
+  "Task_Pool": {
+    "Task_ID": 0,
+    "Title": 1,
+    "Status": 2,
+    "Project": 3,
+    "Spent_Today_Mins": 4,
+    "Daily_Limit_Mins": 5,
+    "Priority": 6,
+    "Last_Run_Date": 7,
+    "Total_Spent_Mins": 8
+  },
+  "Scheduled": {
+    "Task_ID": 0,
+    "Title": 1,
+    "Status": 2,
+    "Cron_Expr": 3,
+    "Remind_Before": 4,
+    "Remind_After": 5,
+    "Callback": 6,
+    "Last_Run": 7,
+    "Note": 8,
+    "Next_Run": 9
+  },
+  "Selection_Cache": {
+    "Task_ID": 0,
+    "Title": 1,
+    "Score": 2,
+    "Source": 3,
+    "Total_Mins_in_Pool": 4
+  },
+  "Micro_Tasks": {
+    "Task_ID": 0,
+    "Title": 1,
+    "Status": 2,
+    "Last_Run_Date": 7
+  }
+}
+```
+
+您覺得完成的，就幫我在 `[ ]`，變成`[x]` 吧，還有，我需要先安裝我上面有寫 `TODO` 的 packages 嗎？
+
+## [2026-02-12] Dexie schema 對應表（逐表欄位）
+
+以下以欄位名稱推定型別與用途，若主鍵/日期欄位需調整，請告訴我。
+
+### Log -> `log`
+
+| Sheets 欄位 | Dexie 欄位 | 型別 | 說明 |
+| --- | --- | --- | --- |
+| Timestamp | timestamp | number | 建議用 epoch ms (`ychsue Answer 若google sheet 顯示的時候可以是時間字串，那就用 epoch ms`) |
+| Task_ID | taskId | string | 任務 ID |
+| Title | title | string | 任務標題 |
+| Action | action | string | START/END/ADD 等 |
+| Category | category | string | 分類 |
+| State | state | string | 狀態 |
+| Duration | duration | number | 分鐘或秒（請確認）(`ychsue Answer 使用分鐘`) |
+| Notes | notes | string | 備註 |
+
+建議主鍵：`id` (自行生成，例如 `log_${timestamp}_${taskId}`)
+建議索引：`timestamp`, `taskId`, `action`, `state` (`ychsue Answer 就依您`)
+
+### Dashboard -> `dashboard`
+
+| Sheets 欄位 | Dexie 欄位 | 型別 | 說明 |
+| --- | --- | --- | --- |
+| Task_ID | taskId | string | 當前任務 ID |
+| Notes | notes | string | 備註 |
+| Start_At | startAt | number | epoch ms |
+| System_Status | systemStatus | string | 系統狀態 |
+| Total_Focus_Today | totalFocusToday | number | 今日累積 |
+
+建議主鍵：`taskId`
+建議索引：`systemStatus`
+(`ychsue Answer 就依您`)
+
+### Inbox -> `inbox`
+
+| Sheets 欄位 | Dexie 欄位 | 型別 | 說明 |
+| --- | --- | --- | --- |
+| Task_ID | taskId | string | 任務 ID |
+| Title | title | string | 任務標題 |
+| Received_At | receivedAt | number | epoch ms |
+
+建議主鍵：`taskId`
+建議索引：`receivedAt`
+
+### Task_Pool -> `task_pool`
+
+| Sheets 欄位 | Dexie 欄位 | 型別 | 說明 |
+| --- | --- | --- | --- |
+| Task_ID | taskId | string | 任務 ID |
+| Title | title | string | 任務標題 |
+| Status | status | string | 狀態 |
+| Project | project | string | 專案 |
+| Spent_Today_Mins | spentTodayMins | number | 今日消耗 |
+| Daily_Limit_Mins | dailyLimitMins | number | 每日上限 |
+| Priority | priority | number | 優先序 |
+| Last_Run_Date | lastRunDate | number | epoch ms |
+| Total_Spent_Mins | totalSpentMins | number | 總消耗 |
+
+建議主鍵：`taskId`
+建議索引：`status`, `project`, `priority`, `lastRunDate`
+
+### Scheduled -> `scheduled`
+
+| Sheets 欄位 | Dexie 欄位 | 型別 | 說明 |
+| --- | --- | --- | --- |
+| Task_ID | taskId | string | 任務 ID |
+| Title | title | string | 任務標題 |
+| Status | status | string | 狀態 |
+| Cron_Expr | cronExpr | string | cron 表達式 |
+| Remind_Before | remindBefore | number | 提前提醒（分鐘） |
+| Remind_After | remindAfter | number | 延後提醒（分鐘） |
+| Callback | callback | string | 回呼指令 |
+| Last_Run | lastRun | number | epoch ms |
+| Note | note | string | 備註 |
+| Next_Run | nextRun | number | epoch ms |
+
+建議主鍵：`taskId`
+建議索引：`status`, `nextRun`
+
+### Selection_Cache -> `selection_cache`
+
+| Sheets 欄位 | Dexie 欄位 | 型別 | 說明 |
+| --- | --- | --- | --- |
+| Task_ID | taskId | string | 任務 ID |
+| Title | title | string | 任務標題 |
+| Score | score | number | 分數 |
+| Source | source | string | 來源 |
+| Total_Mins_in_Pool | totalMinsInPool | number | 總時數 |
+
+建議主鍵：`taskId`
+建議索引：`score`, `source`
+
+### Micro_Tasks -> `micro_tasks`
+
+| Sheets 欄位 | Dexie 欄位 | 型別 | 說明 |
+| --- | --- | --- | --- |
+| Task_ID | taskId | string | 任務 ID |
+| Title | title | string | 任務標題 |
+| Status | status | string | 狀態 |
+| Last_Run_Date | lastRunDate | number | epoch ms |
+
+建議主鍵：`taskId`
+建議索引：`status`, `lastRunDate`
+
+### Dexie stores 草稿
+
+說明：Dexie 的 `stores` 只是在定義「索引欄位」，不是把欄位拿掉。所有欄位仍會完整保存。
+
+```js
+db.version(1).stores({
+  log: 'id, timestamp, taskId, action, state, title',
+  dashboard: 'taskId, systemStatus',
+  inbox: 'taskId, receivedAt, title',
+  task_pool: 'taskId, status, project, priority, lastRunDate, title',
+  scheduled: 'taskId, status, nextRun, title',
+  selection_cache: 'taskId, score, source, title',
+  micro_tasks: 'taskId, status, lastRunDate, title',
+  change_log: 'id, table, recordId, op, status, createdAt',
+  sync_state: 'key'
+})
+```
+
+### 套件安裝建議
+
+目前只是規劃，不需要先安裝。
+等要開始實作時，才需要安裝下列基本套件：
+
+- `dexie`（本地 DB）
+- `xlsx`（若要提供 import/export xlsx 功能才需要）
+
+若您同意，我可以把 TODOs 內「主鍵/日期欄位」先依欄位名稱推定並標 `[x]`，或請您直接確認後我再勾。
+
+==================================================================
+
+---
+
+## [2026-02-12] ychsue 我有以下幾個回答與疑問
+
+1. `Log` 是 factor table，記錄所有事件。他利用 `Task_ID`來連到其他的 dimension tables，所以， `Task_ID`對她是 FK，所以，您定的 id 規則就依您
+2. `Dashboard` 是為了能知道目前在跑的是誰，所以，以我這裏的例子，一次只有一個或0個，Task_ID 也是FK
+3. `Selection_Cache` 是調度函式定期將建議給使用者的任務整理而擺放的，這樣，我iOS查詢時，查看此表即可
+4. 而 `Inbox` 則是 idea 紀錄，他的 `Task_ID` 在移到別的 task sheets 時頭一個字要改，
+   1. 內定潛規則： Task_Pool (`T`), Micro_Tasks(`t`), Scheduled(`S`)
+5. 而每個的 `Title` 都有意義，我不懂您的 `stores`卻都把他們拿掉，感覺上拿掉不只 Title，我不懂您為何這麼做？
+6. 時間若使用 epoch ms ，而 Google Sheets 有辦法顯示時間字串的話，那就使用 `epoch ms`
+
+## [2026-02-12] 回覆與調整（依您的補充）
+
+已依您的說明調整與確認：
+
+- `Log` 是 fact table，`Task_ID` 為 FK，因此 `log` 表保留 `taskId` 並用 `id` 作為事件主鍵（可用 `log_${timestamp}_${taskId}`）。
+- `Dashboard` 為單筆狀態（0 或 1），`taskId` 為 FK，並維持 `taskId` 作為主鍵。
+- `Selection_Cache` 是 iOS 查詢入口，保留 `taskId/title/score/source` 以利排序與展示。
+- `Inbox` 的 `Task_ID` 會在移到其他表時改首字（`T`/`t`/`S`），已視為既定規則。
+- `Title` 絕對會保留；先前 `stores` 只是索引欄位定義，並不是刪除欄位。
+- 時間欄位採 `epoch ms`，Sheets 端可顯示為時間字串。
+
+若您希望 `Title` 可被搜尋或排序更快，我已把 `title` 加入索引建議（可視效能需求再調整）。
+
+=================================================================
+
+## [2026-02-12] ychsue 回答
+
+1. 得是 Task_ID ，因為那是FK，我才能知道她對應到哪張表(根據第一個字)的哪一列
+2. 就用 `log_${timestamp}_${taskId}` 為 Log 的 id 吧。
+
+## [2026-02-12] 確認結果
+
+- `Dashboard` 主鍵確定為 `taskId`（因為 FK 需求）。
+- `Log` 事件主鍵採 `log_${timestamp}_${taskId}`。
+
+=================================================================
+
+---
+
+## [2026-02-12] ychsue 好的，那就麻煩您
+
+1. [x] Dexie schema 檔案草稿
+2. [x] change log 寫入/重試的 pseudo-code
+3. [x] 最小同步流程的任務清單
+
+## [2026-02-12] 交付內容
+
+### 1) Dexie schema 檔案草稿
+
+```js
+// db/schema.js
+import Dexie from 'dexie'
+
+export const db = new Dexie('NonBlockingLife')
+
+db.version(1).stores({
+  log: 'id, timestamp, taskId, action, state, title',
+  dashboard: 'taskId, systemStatus',
+  inbox: 'taskId, receivedAt, title',
+  task_pool: 'taskId, status, project, priority, lastRunDate, title',
+  scheduled: 'taskId, status, nextRun, title',
+  selection_cache: 'taskId, score, source, title',
+  micro_tasks: 'taskId, status, lastRunDate, title',
+  change_log: 'id, table, recordId, op, status, createdAt',
+  sync_state: 'key'
+})
+
+// Optional: normalize Task_ID prefix rules in one place
+export const TASK_PREFIX = {
+  task_pool: 'T',
+  micro_tasks: 't',
+  scheduled: 'S'
+}
+```
+
+### 2) change log 寫入/重試的 pseudo-code
+
+```text
+function applyChange(table, recordId, patch, op):
+  now = Date.now()
+  clientId = getClientId()
+  eventId = makeId()  // uuid or ulid
+
+  // 1) write data first
+  if op == 'add':
+    db[table].add({ ...patch, taskId: recordId, updatedAt: now })
+  if op == 'update':
+    db[table].update(recordId, { ...patch, updatedAt: now })
+  if op == 'delete':
+    db[table].delete(recordId)
+
+  // 2) append change log
+  db.change_log.add({
+    id: eventId,
+    clientId,
+    table,
+    recordId,
+    op,
+    patch,
+    createdAt: now,
+    status: 'pending',
+    retryCount: 0,
+    syncedAt: null
+  })
+
+function retrySync():
+  pending = db.change_log.where('status').equals('pending').toArray()
+  failed = db.change_log.where('status').equals('failed').toArray()
+  batch = pending + failed
+
+  if batch is empty: return
+
+  payload = groupByTable(batch)
+  result = sendToSheets(payload)
+
+  for each item in batch:
+    if result.success(item.id):
+      db.change_log.update(item.id, { status: 'synced', syncedAt: Date.now() })
+    else:
+      db.change_log.update(item.id, { status: 'failed', retryCount: item.retryCount + 1 })
+```
+
+### 3) 最小同步流程的任務清單
+
+- [ ] 建立 Dexie schema 與資料表（含 change_log, sync_state）
+- [ ] 建立 Task_ID 前綴規則（T/t/S）與轉換函式
+- [ ] 寫入本地 CRUD + 事件寫入 change_log
+- [ ] 建立 upload：依 table 分組，上傳 change_log
+- [ ] 建立 download：以 lastSyncAt 拉增量或全量
+- [ ] 合併策略：以 updatedAt 比較、標記衝突
+- [ ] 同步狀態 UI：syncing / error / offline
+- [ ] 基本測試：新增/更新/刪除/重試
+
+## [2026-02-12] Git 分支建議
+
+不一定要新分支，但建議開一個，方便回退：
+
+```bash
+git checkout -b feature/pwa-sync
+```
+
+若您不熟 git，我可以一步一步帶您做。
