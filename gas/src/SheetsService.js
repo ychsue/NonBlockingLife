@@ -113,6 +113,26 @@ const SheetsService = {
       } else {
         return null;
       }
+    } else if (id.startsWith("t")) {
+      // 處理 Micro_Tasks
+      const name = NBL_CONFIG.SHEETS.MICRO_TASKS;
+      const sheet = this._getSafeSheet(name);
+      if (!sheet) return null;
+      const data = sheet
+        .getDataRange()
+        .getValues()
+        .map((r, i) => ({ rowIndex: i + 1, data: r }));
+      const theRow = data.find((r) => r.data[0].trim() === id.trim());
+      if (theRow) {
+        return {
+          id: id,
+          title: theRow.data[1],
+          source: name,
+          rowIndex: theRow.rowIndex,
+        };
+      } else { 
+        return null; 
+      }
     }
     return null;
   },

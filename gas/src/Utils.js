@@ -110,7 +110,10 @@ function calculateCandidates(pool, scheduled, microTasks) {
           score += 30;
         } else {
           // 如果 lastDate 不是今天，而spentToday 已經有值，這表示前次沒有清空，得把它歸零
-          if (lastDate.toDateString() !== new Date().toDateString() && spentToday > 0) {
+          if (
+            lastDate.toDateString() !== new Date().toDateString() &&
+            spentToday > 0
+          ) {
             resetPoolTimeToZeroRowIndex.push(index + 2); // +2 因為 sheet 是從 1 開始，且有 header row
             spentToday = 0;
           }
@@ -180,19 +183,23 @@ function calculateCandidates(pool, scheduled, microTasks) {
       });
     }
   });
-  return {candidates: candidates.sort((a, b) => b.score - a.score), resetPoolTimeToZeroIndex: resetPoolTimeToZeroRowIndex, totalMinsPool: totalMinsPool};
+  return {
+    candidates: candidates.sort((a, b) => b.score - a.score),
+    resetPoolTimeToZeroIndex: resetPoolTimeToZeroRowIndex,
+    totalMinsPool: totalMinsPool,
+  };
 }
 
 function minutesToTimeString(totalMinutes) {
   const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return `${hours} 小時 ${minutes} 分鐘`;
+  const minutes = Math.floor(totalMinutes % 60);
+  return `${hours > 0 ? hours + " 小時 " : ""}` + `${minutes} 分鐘`;
 }
 
 function getSourceEmoji(source) {
   if (source === "Scheduled") return "🔔";
-  if (source === "Pool") return "🎯";
-  if (source === "Micro") return "⚡";
+  if (source === "Task_Pool") return "🎯";
+  if (source === "Micro_Tasks") return "⚡";
   return "📝";
 }
 

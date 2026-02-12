@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-02-12] 對 Micro_Tasks 加點修正
+
+[ ] 應該還有身心健康的log 與 Dashboard 才對，邏輯有一些些不同
+
 ## [2026-01-28] 加入可以加入 scheduled task 的API，若可以，順便把 iOS 的部分做出來
 
 1. [handleAddScheduledTask](gas\src\Logic.js)
