@@ -1028,3 +1028,28 @@ git checkout -b feature/pwa-sync
 ```
 
 若您不熟 git，我可以一步一步帶您做。
+
+================================================================
+
+---
+
+## [2026-02-12] ychsue，現在已經在 `feature/pwa-sync` 了，所以，您要開始創建檔案們了嗎？
+
+[ ] I wire these into a minimal db/index.js and add a simple usage example.
+[ ] I draft the sendBatch / fetchRemote adapter stubs for Google Sheets.
+[ ] I add basic tests for change log + sync flow.
+
+## [2026-02-12] ychsue 我想，我們以 Test First 的方式來設計如何？所以，我們現在要先寫他們的 unit tests，也就成為使用範例，對嗎？有辦法用強型別嗎？
+
+## [2026-02-12] 回覆：Test First + 強型別
+
+可以，用 Test First 來設計是很好的方式，unit tests 也會變成使用範例。
+
+強型別方案採用 TypeScript（測試檔用 .ts），並以 Jest + ts-jest 執行。
+
+TODOs：
+
+- [ ] 安裝 dev packages：`typescript`, `@types/jest`, `fake-indexeddb`
+- [x] 新增 `jest.config.cjs` 與 `tsconfig.json`
+- [x] 撰寫 `changeLog` 的 unit tests（含 add/update/delete）
+- [x] 撰寫 `sync` 的 unit tests（成功/失敗）

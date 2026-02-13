@@ -1,5 +1,11 @@
 # Journal
 
+## [2026-02-12] Dexie 已經進來，尚未確認
+
+1. 在 [sync.ts](pwa\src\db\sync.ts), [schema.ts](pwa\src\db\schema.ts) 與 [changeLog.ts](pwa\src\db\changeLog.ts)
+2. Dexie 要使用 `import { Dexie, type Table } from 'dexie'` 而非 `import Dexie, {type Table } from 'dexie'`
+3. 若某個檔案同時有 .ts 與 .js，他會記得 js 那個，就算刪除該.js檔案。所以，後來我就使用改檔名，等都改完後，就把VSCode關閉，再打開。再改回原來檔名，問題似乎就解決了。
+
 ## [2026-02-12] 準備處理 Dexie
 
 ## [2026-02-12] 對 Micro_Tasks 加點修正
