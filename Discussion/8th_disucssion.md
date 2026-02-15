@@ -166,7 +166,7 @@ PWA 繼續以本地版本運作（Offline-First）
 1. [ ] **同步衝突解決的詳細規則** - 需要定義優先級（本地/遠端/人工介入）
 2. [ ] **Google OAuth Token 的持久化和安全** - 涉及敏感數據，需加密存儲
 3. [ ] **iOS 捷徑的 API 設計** - 需要決定 POST 的數據格式是否改變
-4. [ ] **Dexie.js Schema 設計** - 需要從 Google Sheets 的 6 個表映射到本地結構
+4. [x] **Dexie.js Schema 設計** - 需要從 Google Sheets 的 6 個表映射到本地結構
 
 您想先深入討論其中哪個主題呢？
 
@@ -1010,8 +1010,8 @@ function retrySync():
 
 ### 3) 最小同步流程的任務清單
 
-- [ ] 建立 Dexie schema 與資料表（含 change_log, sync_state）
-- [ ] 建立 Task_ID 前綴規則（T/t/S）與轉換函式
+- [x] 建立 Dexie schema 與資料表（含 change_log, sync_state）
+- [x] 建立 Task_ID 前綴規則（T/t/S）與轉換函式
 - [ ] 寫入本地 CRUD + 事件寫入 change_log
 - [ ] 建立 upload：依 table 分組，上傳 change_log
 - [ ] 建立 download：以 lastSyncAt 拉增量或全量
@@ -1035,9 +1035,9 @@ git checkout -b feature/pwa-sync
 
 ## [2026-02-12] ychsue，現在已經在 `feature/pwa-sync` 了，所以，您要開始創建檔案們了嗎？
 
-[ ] I wire these into a minimal db/index.js and add a simple usage example.
-[ ] I draft the sendBatch / fetchRemote adapter stubs for Google Sheets.
-[ ] I add basic tests for change log + sync flow.
+[x] I wire these into a minimal db/index.js and add a simple usage example.
+[x] I draft the sendBatch / fetchRemote adapter stubs for Google Sheets.
+[x] I add basic tests for change log + sync flow.
 
 ## [2026-02-12] ychsue 我想，我們以 Test First 的方式來設計如何？所以，我們現在要先寫他們的 unit tests，也就成為使用範例，對嗎？有辦法用強型別嗎？
 
@@ -1047,9 +1047,20 @@ git checkout -b feature/pwa-sync
 
 強型別方案採用 TypeScript（測試檔用 .ts），並以 Jest + ts-jest 執行。
 
-TODOs：
-
-- [ ] 安裝 dev packages：`typescript`, `@types/jest`, `fake-indexeddb`
+- [x] 安裝 dev packages：`typescript`, `@types/jest`, `fake-indexeddb`
 - [x] 新增 `jest.config.cjs` 與 `tsconfig.json`
 - [x] 撰寫 `changeLog` 的 unit tests（含 add/update/delete）
 - [x] 撰寫 `sync` 的 unit tests（成功/失敗）
+
+=============================================================================
+
+## [2026-02-15] ychsue 請問下一步是要先做前端了嗎？
+
+## [2026-02-15] 回覆與下一步（依您確認）
+
+先補齊 sendBatch / fetchRemote 的 adapter stub，並把 db 匯出集中在 index，讓之後前端可以直接引用。
+
+- [x] 新增 sheets adapter stub（sendBatchStub / fetchRemoteStub）
+- [x] 新增 db/index.ts 匯出入口
+- [ ] 下一步：開始做最小前端畫面（table + sync status + 手動 sync 按鈕）
+- [ ] 把 sendBatch / fetchRemote 真的串到 Google Sheets API

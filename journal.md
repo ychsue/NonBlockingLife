@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-02-15] 先安上串到 Google Sheets API adapter 的函數，但尚未實作
+
+寫在 [sheetsAdapter.ts](pwa\src\db\sheetsAdapter.ts)
+
 ## [2026-02-12] Dexie 已經進來，尚未確認
 
 1. 在 [sync.ts](pwa\src\db\sync.ts), [schema.ts](pwa\src\db\schema.ts) 與 [changeLog.ts](pwa\src\db\changeLog.ts)

@@ -639,8 +639,8 @@ describe('Utils 測試', () => {
 ## [2026-01-17] ychsue 因為有些工具是使用 `key:value` 的方式來存Excel，不過，既然用絕對位置，那麼，我就讓`Task_Pool`, `Micro_Tasks`, `Periodic_Config` 與 `Async_Await` 的前三個都設為 `Task_ID`, `Title` 與 `Status`，這樣，Log與更新他們的狀態時也比較簡單
 
 目前共有10個項目代辦，我們先來實作
-        [ ] Request (Action: START, TaskID: t123)
-        [ ] Request (Action: END, TaskID?)
+        [x] Request (Action: START, TaskID: t123)
+        [x] Request (Action: END, TaskID?)
 順便測試，您覺得如何？
 
 ### Gemini Answer 06
