@@ -12,7 +12,8 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
+    "jsx": "react-jsx",
     "skipLibCheck": true
   },
-  "include": ["pwa/**/*.ts", "gas/**/*.js"]
+  "include": ["pwa/**/*.ts", "pwa/**/*.tsx", "gas/**/*.js"]
 }

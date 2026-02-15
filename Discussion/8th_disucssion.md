@@ -1064,3 +1064,78 @@ git checkout -b feature/pwa-sync
 - [x] 新增 db/index.ts 匯出入口
 - [ ] 下一步：開始做最小前端畫面（table + sync status + 手動 sync 按鈕）
 - [ ] 把 sendBatch / fetchRemote 真的串到 Google Sheets API
+
+================================================================================
+
+---
+
+## [2026-02-15] ychsue 請問是使用 Tanstack Table，然後可以編輯，然後更新 db 嗎？為了方便測試，是否需要有 reset db 的功能？
+
+## [2026-02-15] 回覆：表格編輯與 reset DB
+
+可以，建議用 TanStack Table 做可編輯表格，編輯後呼叫 `applyChange()` 寫入 Dexie。這樣 UI 會即時更新，change log 也能同步累積。
+
+關於 reset DB：
+
+- 建議需要，尤其在開發與測試階段。
+- 但只在 dev 模式顯示或保護（避免誤刪正式資料）。
+- 形式可以是：清空所有表 + 清空 change_log + 重設 sync_state。
+
+如果您同意，我下一步就會：
+
+- [ ] 先做最小可編輯表格（以 Inbox 為例）
+- [ ] 加入 dev-only 的 reset DB 功能
+
+================================================================================
+
+---
+
+## [2026-02-15] ychsue 所以，需要我安裝 React, Zustand, Tanstack Table, 需要 route 嗎？因為會有幾個 sheets 給使用者看與編輯，還是您有更好的建議？
+
+## [2026-02-15] 回覆：套件與路由建議
+
+建議先用最小可行組合，之後再加：
+
+- 必要：React + TanStack Table + Dexie
+- 狀態管理：先不裝 Zustand 也可以，用 React state 就能跑最小版
+- Router：先不需要。先用「tabs 切換」或單頁下拉的方式展示多個 sheet。
+
+理由：
+
+- 先做出可編輯 + 可寫入 DB 的最小流程，比一次裝齊所有工具更快驗證方向。
+- Router 只有在頁面很多或需要 URL 分享/記憶時才需要，後續再加也很容易。
+
+建議的起手式：
+
+1) 先做 Inbox 一張表（編輯後寫入 Dexie）
+2) 再加 Selection_Cache 表做 iOS 查詢入口
+3) 需要多頁時才引入 Router
+
+若您同意，我下一步就用最小依賴啟動前端，等功能跑起來再補 Zustand / Router。
+
+================================================================================
+
+---
+
+## [2026-02-15] ychsue 好，請開始。對了，這個網頁到時能使用 github pages 來提供給使用者嗎？
+
+## [2026-02-15] 回覆：GitHub Pages 可行性
+
+可以，GitHub Pages 很適合用來部署這種純前端 PWA。
+
+注意事項：
+
+- 需要設定 Vite 的 `base`（通常是 `/<repo-name>/`），否則資產路徑會錯。
+- GitHub Pages 是靜態託管，沒有後端；若未來需要 OAuth refresh token，仍需其他後端服務。
+- 若之後加入 Router（非 hash 模式），要加 404 fallback 或改用 HashRouter。
+
+目前我已先以最小前端起手式建立 React + TanStack Table，等您安裝依賴後即可跑起來。
+
+[ ] Tell me which sheet you want next (Selection_Cache or another), and I’ll add the next table.
+[ ] If you want, I can prep a GitHub Pages deployment workflow after the UI is stable.
+
+=================================================================================
+
+---
+
+## [2026-02-15] ychsue

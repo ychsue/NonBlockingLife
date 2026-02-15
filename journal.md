@@ -1,5 +1,10 @@
 # Journal
 
+## [2026-02-15] 已經完成第一個 inbox 編輯 (update/delete/new)
+
+1. Github Copilot 將他寫到 [App.tsx](pwa\src\App.tsx) 裡面，先實驗，已經通過
+2. 執行的話，得先 `cd pwa; npm run dev`
+
 ## [2026-02-15] 先安上串到 Google Sheets API adapter 的函數，但尚未實作
 
 寫在 [sheetsAdapter.ts](pwa\src\db\sheetsAdapter.ts)
