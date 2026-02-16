@@ -1,103 +1,45 @@
-import { useMemo, useState, useEffect } from "react";
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { applyChange, db } from "./db/index.js";
-import type { InboxItem } from "./db/schema.js";
-import Utils from "../../gas/src/Utils.js";
-import {
-  formatToDateTimeLocal,
-  parseFromDateTimeLocal,
-} from "./utils/timeUtils.js";
-
-type InboxRow = InboxItem;
-
-const columnHelper = createColumnHelper<InboxRow>();
-
-const DEV_CLIENT_ID = "dev-client";
-
-function createNewInboxRow(): InboxRow {
-  const taskId = Utils.generateId("I");
-  return {
-    taskId,
-    title: "",
-    receivedAt: Date.now(),
-  };
-}
+import { useState } from 'react'
+import { useUrlAction, SheetName } from './hooks/useUrlAction'
+import { TabNavigation } from './components/TabNavigation'
+import { Toast } from './components/Toast'
+import { SyncStatus } from './components/SyncStatus'
+import { InboxTable } from './components/tables/InboxTable'
+import { TaskPoolTable } from './components/tables/TaskPoolTable'
+import { ScheduledTable } from './components/tables/ScheduledTable'
+import { MicroTasksTable } from './components/tables/MicroTasksTable'
+import { db } from './db/index'
+import './styles.css'
 
 export default function App() {
-  const [rows, setRows] = useState<InboxRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [currentSheet, setCurrentSheet] = useState<SheetName>('inbox')
+  const [toast, setToast] = useState('')
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
 
-  useEffect(() => {
-    let active = true;
-    db.inbox
-      .toArray()
-      .then((data) => {
-        if (active) {
-          setRows(data);
-          setLoading(false);
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setRows([]);
-          setLoading(false);
-        }
-      });
+  // 監聽 iPhone Shortcut URL 參數
+  useUrlAction({
+    onNavigate: setCurrentSheet,
+    onSuccess: setToast,
+    clientId: 'iphone-webkit',
+  })
 
-    return () => {
-      active = false;
-    };
-  }, []);
+  const renderTable = () => {
+    switch (currentSheet) {
+      case 'inbox':
+        return <InboxTable />
+      case 'task_pool':
+        return <TaskPoolTable />
+      case 'scheduled':
+        return <ScheduledTable />
+      case 'micro_tasks':
+        return <MicroTasksTable />
+      default:
+        return <InboxTable />
+    }
+  }
 
-  const updateLocalRow = (taskId: string, patch: Partial<InboxRow>) => {
-    setRows((prev) =>
-      prev.map((row) => (row.taskId === taskId ? { ...row, ...patch } : row)),
-    );
-  };
-
-  const saveUpdate = async (taskId: string, patch: Partial<InboxRow>) => {
-    await applyChange({
-      table: "inbox",
-      recordId: taskId,
-      op: "update",
-      patch,
-      clientId: DEV_CLIENT_ID,
-    });
-  };
-
-  const addRow = async () => {
-    const newRow = createNewInboxRow();
-    setRows((prev) => [newRow, ...prev]);
-
-    await applyChange({
-      table: "inbox",
-      recordId: newRow.taskId,
-      op: "add",
-      patch: newRow as unknown as Record<string, unknown>,
-      clientId: DEV_CLIENT_ID,
-    });
-  };
-
-  const deleteRow = async (taskId: string) => {
-    setRows((prev) => prev.filter((row) => row.taskId !== taskId));
-
-    await applyChange({
-      table: "inbox",
-      recordId: taskId,
-      op: "delete",
-      patch: {} as Record<string, unknown>,
-      clientId: DEV_CLIENT_ID,
-    });
-  };
-
-  const resetDb = async () => {
+  const handleResetDB = async () => {
     await db.transaction(
-      "rw",
+      'rw',
       [
         db.log,
         db.dashboard,
@@ -120,146 +62,83 @@ export default function App() {
           db.micro_tasks.clear(),
           db.change_log.clear(),
           db.sync_state.clear(),
-        ]);
-      },
-    );
+        ])
+      }
+    )
 
-    setRows([]);
-  };
-
-  const columns = useMemo(
-    () => [
-      columnHelper.accessor("taskId", {
-        header: "Task ID",
-        cell: (info) => info.getValue(),
-      }),
-      columnHelper.accessor("title", {
-        header: "Title",
-        cell: (info) => {
-          const taskId = info.row.original.taskId;
-          const value = info.getValue() ?? "";
-
-          return (
-            <input
-              className="cell-input"
-              value={value}
-              onChange={(event) =>
-                updateLocalRow(taskId, { title: event.target.value })
-              }
-              onBlur={(event) =>
-                saveUpdate(taskId, { title: event.target.value })
-              }
-            />
-          );
-        },
-      }),
-      columnHelper.accessor("receivedAt", {
-        header: "Received At",
-        cell: (info) => {
-          const taskId = info.row.original.taskId;
-          const rawValue = info.getValue();
-          const value = formatToDateTimeLocal(rawValue);
-
-          return (
-            <input
-              className="cell-input"
-              type="datetime-local"
-              value={value}
-              onChange={(event) => {
-                const nextValue = parseFromDateTimeLocal(event.target.value);
-                updateLocalRow(taskId, { receivedAt: nextValue });
-              }}
-              onBlur={(event) => {
-                const nextValue = parseFromDateTimeLocal(event.target.value);
-                saveUpdate(taskId, { receivedAt: nextValue });
-              }}
-            />
-          );
-        },
-      }),
-      columnHelper.display({
-        id: "actions",
-        header: "Actions",
-        cell: (info) => (
-          <button
-            className="btn"
-            onClick={() => deleteRow(info.row.original.taskId)}
-          >
-            Delete
-          </button>
-        ),
-      }),
-    ],
-    [],
-  );
-
-  const table = useReactTable({
-    data: rows,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
+    setToast('✅ Database reset successfully')
+    setShowResetConfirm(false)
+  }
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <div>
-          <h1>Inbox (Editable)</h1>
-          <p className="muted">
-            Local-first edits, stored in Dexie with change logs.
-          </p>
-        </div>
-        <div className="actions">
-          <button className="btn primary" onClick={addRow}>
-            Add Row
-          </button>
-          {import.meta.env.DEV ? (
-            <button className="btn" onClick={resetDb}>
-              Reset DB
-            </button>
-          ) : null}
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Header */}
+      <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">📱 Non-Blocking Life</h1>
+            <p className="text-sm text-gray-600">Local-first Task Management</p>
+          </div>
+          <SyncStatus />
         </div>
       </header>
 
-      <section className="table-wrap">
-        {loading ? (
-          <div className="muted">Loading...</div>
-        ) : rows.length === 0 ? (
-          <div className="muted">No rows yet. Add one to get started.</div>
-        ) : (
-          <table className="table">
-            <thead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <tr key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </section>
+      {/* Tabs */}
+      <TabNavigation currentSheet={currentSheet} onSelectSheet={setCurrentSheet} />
+
+      {/* Main Content */}
+      <main className="flex-1 bg-gray-50">
+        {renderTable()}
+      </main>
+
+      {/* Footer with Dev Tools */}
+      {import.meta.env.DEV && (
+        <footer className="border-t border-gray-200 bg-white p-4 flex justify-end gap-2">
+          <button
+            onClick={() => setShowResetConfirm(true)}
+            className="px-3 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+          >
+            ⚠️ Reset DB (Dev)
+          </button>
+        </footer>
+      )}
+
+      {/* Reset Confirmation Dialog */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm">
+            <h3 className="text-lg font-bold text-red-600 mb-2">
+              ⚠️ Reset Database?
+            </h3>
+            <p className="text-gray-600 mb-4">
+              This will delete all data. This action cannot be undone.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="px-4 py-2 text-gray-600 border rounded hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleResetDB}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Confirm Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast}
+          duration={3000}
+          onClose={() => setToast('')}
+        />
+      )}
     </div>
-  );
+  )
 }

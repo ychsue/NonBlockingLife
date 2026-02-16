@@ -1083,8 +1083,8 @@ git checkout -b feature/pwa-sync
 
 如果您同意，我下一步就會：
 
-- [ ] 先做最小可編輯表格（以 Inbox 為例）
-- [ ] 加入 dev-only 的 reset DB 功能
+- [x] 先做最小可編輯表格（以 Inbox 為例）
+- [x] 加入 dev-only 的 reset DB 功能
 
 ================================================================================
 
@@ -1138,4 +1138,462 @@ git checkout -b feature/pwa-sync
 
 ---
 
-## [2026-02-15] ychsue
+## [2026-02-16] ychsue 建議，Selection_Cache放最後，還有，`totalMinsInPool` 這個F2欄位是計算當天執行過的 task_pool 的總花費時數，所以，他不是Item的欄位之一。這張表目的只有一個，當我詢問建議的任務與順序時，可以直接取出，而不需要在 doPost 當下馬上處理，這對 GAS 可能會有點慢，因此，才會存在此表
+
+然後，此Selection_Cache 條列之後，使用者是點擊條列，他就會在 log 加一個 log，在 dashboard 加一條告知誰正在跑，然後，該條目所對應的工作表
+(Task_Pool, Scheduled 與 Micro_Tasks中的一個)的 Status 就會變成 Doing。所以這張表地位比較特殊，還是先處理其他那三張吧。
+
+現在，顯然要將 `App.tsx` 提升到portal 的地位，然後，有辦法開啟這些表吧？還有，到時應該還要能由iPhone捷徑直接用參數(能用Post嗎？)新增 inbox 或 scheduled 的條目，順便跳到該頁面，所以，怎麼做呢？
+
+## [2026-02-16] 回覆
+
+``` js
+App.tsx (主容器)
+├─ TabNavigation (页籤切换)
+│  ├─ Inbox
+│  ├─ Task_Pool
+│  ├─ Scheduled
+│  ├─ Micro_Tasks
+│  └─ Selection_Cache (最後)
+├─ TableView (当前页籤的表格)
+├─ SyncStatus (右上角显示同步状态)
+└─ ResetDB (dev-only)
+```
+
+### 建議
+
+[ ] 升级 App.tsx 为 portal（含 global state 管理当前页籤）
+[ ] 新增 TabNavigation 组件（Task_Pool, Scheduled, Micro_Tasks）
+[ ] 新增 URL 参数解析 hook（useUrlAction）
+[ ] 实现 iPhone 捷徑的「新增 + 导航」流程
+[ ] Selection_Cache 留最后（因为它依赖前面的三张表）
+
+### 详細問題
+
+關於 iPhone 捷徑，有幾個細節需確認：
+
+1. POST vs URL Query：
+
+    - URL Query 更簡單、無需 CORS、支持分享
+    - POST 更安全、支持大量数据
+    - 建议用 Query（Shortcut 更直接）
+    - **Answer**: 因為原本是對接 GAS 的 doPost ，所以，才有此問
+
+2. 标题字符限制：
+
+    - URL 有長度限制（~2000 字符），你的 Title 通常多長？
+    - **Answer**: 因為 Inbox 到時可以使用iPhone分享來取得，不曉得，應該不會超過吧？
+
+3. 新增後的回饋：
+
+    - 需要回傳成功確認给 Shortcut 嗎？(可能需要小的成功畫面)
+    - **Answer**: 因為iPhone捷徑呼叫PWA，我怕他會不更新indexedDB，不曉得點了呼叫 PWA打開頁面會否就沒有這問題，若是如此，就無需回傳成功了吧？不過，有時有需要呼叫計時器或行事曆(能新增嗎？不行也沒關係)
+
+## [2026-02-16] 完整的 iPhone 捷徑集成方案
+
+根據您的回答，以下是詳細的技術方案：
+
+### 1️⃣ 決議：使用 URL Query + Route Hash 方式（推薦）
+
+**優於 POST 的理由：**
+
+- ✅ 無 CORS 問題（Shortcut 直接打開 URL）
+- ✅ 2000 字符足夠（Title 通常 <200 字）
+- ✅ 用戶點擊 Shortcut → PWA 打開 → 參數自動解析 → 寫入 Dexie → 導航到對應頁籤
+- ✅ 簡單無額外通訊
+- ❌ 原本習慣 doPost（但 PWA 模型完全不同，無需回傳確認）
+
+**URL 格式建議：**
+
+``` js
+// 新增到 Inbox
+https://yourdomain.com/pwa/?sheet=inbox&action=add&title=Buy%20milk
+
+// 新增到 Scheduled
+https://yourdomain.com/pwa/?sheet=scheduled&action=add&title=Morning%20Run&cronExpr=0%209%20*%20*%20*
+
+// 新增到 Task_Pool
+https://yourdomain.com/pwa/?sheet=task_pool&action=add&title=Project%20X&project=Work
+```
+
+### 2️⃣ IndexedDB 更新流程（解決您的擔憂）
+
+**現象：** 您擔心 Shortcut 呼叫 PWA 後，IndexedDB 不會更新
+
+**實際流程：**
+
+``` js
+iOS Shortcut 點擊
+    ↓
+PWA URL 打開（瀏覽器重新加載或恢復狀態）
+    ↓
+app.tsx 的 useEffect 監聽 URL 參數
+    ↓
+立即執行 applyChange(sheet, recordId, patch, 'add')
+    ↓
+寫入 Dexie + 記錄 change_log
+    ↓
+狀態更新 → React 重新渲染 → 自動導航到該頁籤
+    ↓
+✅ 數據已在本地，無需等待遠端確認
+```
+
+**關鍵點：** 不需要回傳確認給 Shortcut，因為：
+
+- Dexie.js 是同步寫入（IndexedDB 立即持久化）
+- 用戶在同一裝置上，離線也能看到
+- Service Worker 會在背景自動與 Google Sheets 同步
+
+### 3️⃣ 計時器與行事曆集成（可選）
+
+**現狀：** iOS Shortcut 可呼叫原生 Calendar / Clock 功能
+
+**建議方案：**
+
+``` js
+選項 A：PWA → Shortcut → iOS Calendar（推薦）
+  - PWA 將選定的 Task 資訊回傳給 Shortcut
+  - Shortcut 呼叫 iOS Calendar/Reminders API 新增事件
+  - 例：點擊「Morning Run」→ PWA 回傳時間 → Shortcut 建立提醒
+
+選項 B：PWA 內置計時器（次佳）
+  - PWA 使用 Web Notification API 提醒
+  - 或使用 Service Worker 的 Tag Notification
+
+選項 C：不支持（最簡單）
+  - 暫時忽略，聚焦核心功能
+  - 未來若有需要再加
+```
+
+**我的建議：** 先實作選項 B（Web Notification），無需與 iOS 通訊。未來若須要與行事曆同步，再用選項 A。
+
+### 4️⃣ 完整的 useUrlAction Hook 設計
+
+```typescript
+// hooks/useUrlAction.ts
+
+import { useEffect } from 'react'
+import { applyChange } from '../db/index'
+
+interface UrlAction {
+  sheet: 'inbox' | 'scheduled' | 'task_pool' | 'micro_tasks'
+  action: 'add' | 'edit'
+  [key: string]: string
+}
+
+export function useUrlAction(
+  onNavigate: (sheet: string) => void,
+  onSuccess?: (message: string) => void
+) {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const sheet = params.get('sheet')
+    const action = params.get('action')
+
+    if (!sheet || !action) return
+
+    // 提取所有參數為 record patch
+    const patch: Record<string, string> = {}
+    params.forEach((value, key) => {
+      if (key !== 'sheet' && key !== 'action') {
+        patch[key] = value
+      }
+    })
+
+    // 生成 recordId（依表而異）
+    const recordId = generateRecordId(sheet, patch)
+
+    // 寫入 Dexie
+    applyChange(sheet, recordId, patch, 'add')
+      .then(() => {
+        // 導航到該頁籤
+        onNavigate(sheet)
+        // 顯示成功提示
+        onSuccess?.(`✅ 已新增到 ${sheet}`)
+        // 清除 URL（可選，避免重複新增）
+        window.history.replaceState({}, document.title, window.location.pathname)
+      })
+      .catch((err) => {
+        console.error('Failed to add:', err)
+        onSuccess?.(`❌ 新增失敗：${err.message}`)
+      })
+  }, [onNavigate, onSuccess])
+}
+
+// 根據表類型生成 recordId
+function generateRecordId(sheet: string, patch: Record<string, string>): string {
+  const Utils = require('../../gas/src/Utils') // 重用 GAS 的 ID 生成器
+  
+  if (sheet === 'inbox') {
+    return Utils.generateId('I')
+  } else if (sheet === 'task_pool') {
+    return Utils.generateId('T')
+  } else if (sheet === 'micro_tasks') {
+    return Utils.generateId('t')
+  } else if (sheet === 'scheduled') {
+    return Utils.generateId('S')
+  }
+  
+  return Utils.generateId('X')
+}
+```
+
+### 5️⃣ App.tsx Portal 實現（含 Tab + URL 參數處理）
+
+```typescript
+// App.tsx
+
+import { useState, useCallback } from 'react'
+import { useUrlAction } from './hooks/useUrlAction'
+import TabNavigation from './components/TabNavigation'
+import InboxTable from './components/tables/InboxTable'
+import TaskPoolTable from './components/tables/TaskPoolTable'
+import ScheduledTable from './components/tables/ScheduledTable'
+import MicroTasksTable from './components/tables/MicroTasksTable'
+import SyncStatus from './components/SyncStatus'
+import Toast from './components/Toast'
+
+export default function App() {
+  const [currentSheet, setCurrentSheet] = useState<string>('inbox')
+  const [toast, setToast] = useState<string>('')
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+
+  // 監聽 iPhone Shortcut 參數
+  useUrlAction(setCurrentSheet, setToast)
+
+  const renderTable = () => {
+    switch (currentSheet) {
+      case 'inbox':
+        return <InboxTable />
+      case 'task_pool':
+        return <TaskPoolTable />
+      case 'scheduled':
+        return <ScheduledTable />
+      case 'micro_tasks':
+        return <MicroTasksTable />
+      default:
+        return <InboxTable />
+    }
+  }
+
+  return (
+    <div className="app-container">
+      {/* 標題欄 */}
+      <header className="app-header">
+        <h1>📱 Non-Blocking Life</h1>
+        <SyncStatus />
+      </header>
+
+      {/* 頁籤導航 */}
+      <TabNavigation 
+        currentSheet={currentSheet} 
+        onSelectSheet={setCurrentSheet}
+      />
+
+      {/* 表格內容 */}
+      <main className="app-main">
+        {renderTable()}
+      </main>
+
+      {/* Dev-only Reset DB */}
+      {import.meta.env.DEV && (
+        <footer className="app-footer">
+          <button onClick={() => setShowResetConfirm(true)}>
+            ⚠️ Reset DB (Dev)
+          </button>
+          {showResetConfirm && (
+            <ResetDBConfirm
+              onConfirm={handleResetDB}
+              onCancel={() => setShowResetConfirm(false)}
+            />
+          )}
+        </footer>
+      )}
+
+      {/* Toast 通知 */}
+      {toast && <Toast message={toast} onClose={() => setToast('')} />}
+    </div>
+  )
+}
+```
+
+### 6️⃣ iOS Shortcut 的 URL 構建範例
+
+**Shortcut 偽代碼：**
+
+```js
+Shortcut: Add to NonBlockingLife
+
+1. Ask for "Task Title"
+2. Ask for optional "Project" (for task_pool)
+3. Construct URL:
+   base_url = "https://yourdomain.com/pwa/"
+   params = "sheet=inbox&action=add&title=<title>"
+   Open URL: base_url + "?" + params
+4. Show notification "Added to NonBlockingLife"
+```
+
+**真實 Shortcut 語法（待驗證）：**
+
+```js
+Text: https://yourdomain.com/pwa/
+Set Variable "baseURL" to above
+Ask for "Task Title"
+Set Variable "title" to response
+URL Encode "title" → "encodedTitle"
+Open URL: baseURL + "?sheet=inbox&action=add&title=" + encodedTitle
+
+→ PWA 接收 → 寫入 Dexie → 自動導航 ✅
+```
+
+### 7️⃣ 技術決議總結
+
+| 決議項 | 結論 | 理由 |
+| ------ | ------ | ------ |
+| POST vs Query | ✅ URL Query | 簡單、無 CORS、Shortcut 原生支持 |
+| 標題限制 | ✅ 2000 字足夠 | 用戶輸入通常 <200 字 |
+| 回傳確認 | ❌ 無需回傳 | Dexie 同步寫入，PWA 導航自動完成 |
+| 計時器/行事曆 | 🟡 可選未來擴展 | 先關注核心功能，後續可加 Web Notification |
+
+### 8️⃣ 實存待辦
+
+- [ ] 實現 useUrlAction Hook（包含 generateRecordId）
+- [ ] 升級 App.tsx 為 Tab Portal 架構
+- [ ] 新增 TabNavigation 組件
+- [ ] RxJavaScript/TypeScript 表格組件（Inbox, Task_Pool, Scheduled, Micro_Tasks）
+- [ ] 實現 Toast 通知組件
+- [ ] 實現 SyncStatus 組件（右上角顯示同步狀態）
+- [ ] Dev-only Reset DB 功能
+- [ ] 測試 iPhone Shortcut 參數傳遞流程
+- [ ] GitHub Pages 部署的 base URL 配置（影響 URL 構建）
+
+---
+
+**下一步建議：**
+
+1. [ ] 確認 GitHub Pages 的最終 base URL（例：`/NonBlockingLife/` 或根域名）
+2. [ ] 開始實現 Tab Portal 與 useUrlAction Hook
+3. [ ] 優先完成 Inbox 與 Scheduled 表格（iPhone 主要操作這兩個）
+4. [ ] 測試 iOS Shortcut 與 PWA 的集成流程
+
+===============================================================================
+
+## [2026-02-16] ychsue 會是 `http://ychsue.github.io/NonBlockingLife`，麻煩您依序進行了。謝謝
+
+## [2026-02-16] 回覆前端Portal
+
+### 下一步建議（擇一）
+
+[ ] 我幫您做 iOS Shortcut 的實際測試流程說明與範例
+[ ] 我加上 Selection_Cache 的行為（點選後寫 log、dashboard、並更新 Status）
+[ ] 我把 Scheduled/Task Pool 的欄位補齊（目前先保留核心欄位）
+
+====================================================================================
+
+---
+
+## [2026-02-16] ychsue 尚未完成放到 Github page 的動作，請問怎麼做呢？
+
+## [2026-02-16] GitHub Pages 部署流程（PWA）
+
+以下步驟完成後，就可以用 iOS Shortcut 連到 PWA 做測試。
+
+### 方案 A：GitHub Actions 自動部署（推薦）
+
+#### 1) GitHub Pages 設定
+
+- 在 GitHub 專案頁面 → Settings → Pages
+- Source 選擇: **GitHub Actions**
+
+#### 2) 新增 Workflow（放到 .github/workflows/deploy-pwa.yml）
+
+```yaml
+name: Deploy PWA to GitHub Pages
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        working-directory: pwa
+        run: npm ci
+
+      - name: Build
+        working-directory: pwa
+        run: npm run build
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pwa/dist
+
+      - name: Deploy
+        uses: actions/deploy-pages@v4
+```
+
+#### 3) 推送到 GitHub
+
+- `git add .`
+- `git commit -m "Add Pages deploy"`
+- `git push`
+
+完成後網址就是：
+
+```bash
+http://ychsue.github.io/NonBlockingLife
+```
+
+### 方案 B：手動部署（不推薦，僅開發快速測試）
+
+#### 1) 在本機 build
+
+```bash
+cd pwa
+npm install
+npm run build
+```
+
+#### 2) 將 pwa/dist 上傳到 gh-pages 分支
+
+```bash
+git subtree push --prefix pwa/dist origin gh-pages
+```
+
+#### 3) GitHub Pages 設定
+
+- Settings → Pages
+- Source 選擇: **Deploy from a branch**
+- Branch 選擇: **gh-pages** / **root**
+
+### 檢查清單
+
+- [x] Vite base 設為 `/NonBlockingLife/`
+- [ ] GitHub Pages 設定為 Actions 或 gh-pages
+- [ ] 部署完成後可用 `http://ychsue.github.io/NonBlockingLife`
+- [ ] iOS Shortcut 測試 URL 指向該網址
+
+如果需要，我可以補一份 iOS Shortcut 的實際測試流程（含範例 URL）。
