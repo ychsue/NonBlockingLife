@@ -1592,8 +1592,141 @@ git subtree push --prefix pwa/dist origin gh-pages
 ### 檢查清單
 
 - [x] Vite base 設為 `/NonBlockingLife/`
-- [ ] GitHub Pages 設定為 Actions 或 gh-pages
-- [ ] 部署完成後可用 `http://ychsue.github.io/NonBlockingLife`
+- [x] GitHub Pages 設定為 Actions 或 gh-pages
+- [x] 部署完成後可用 `http://ychsue.github.io/NonBlockingLife`
 - [ ] iOS Shortcut 測試 URL 指向該網址
 
 如果需要，我可以補一份 iOS Shortcut 的實際測試流程（含範例 URL）。
+
+===============================================================
+
+---
+
+## [2026-02-16] ychsue 能在Github看到了。請問那麼我現在在 iPhone Shortcut 要怎麼測呢？
+
+## [2026-02-16] iPhone Shortcut 測試流程（PWA URL Query）
+
+以下用最簡單的方式測：新增到 Inbox，並自動跳到 Inbox 頁籤。
+
+### A) 準備一個「新增 Inbox」的 Shortcut
+
+1. 打開 iPhone 的「捷徑」App → 新建捷徑
+2. 加入動作：**詢問輸入**
+    - 問題：`Task Title`
+3. 加入動作：**URL 編碼**
+    - 輸入：剛才的 `Task Title`
+4. 加入動作：**開啟 URL**
+    - URL：
+
+```js
+http://ychsue.github.io/NonBlockingLife/?sheet=inbox&action=add&title=<ENCODED_TITLE>
+```
+
+把 `<ENCODED_TITLE>` 換成上一步 URL 編碼的結果。
+
+### B) 直接測試（不寫 Shortcut 也行）
+
+在 iPhone Safari 開這個 URL：
+
+```js
+http://ychsue.github.io/NonBlockingLife/?sheet=inbox&action=add&title=Test%20Inbox
+```
+
+如果成功：
+
+- PWA 會自動打開
+- 自動切到 Inbox 頁籤
+- 看到新的一筆 Title = `Test Inbox`
+
+### C) 測試 Scheduled 新增
+
+```js
+http://ychsue.github.io/NonBlockingLife/?sheet=scheduled&action=add&title=Morning%20Run&cronExpr=0%209%20*%20*%20*
+```
+
+### D) 常見問題排查
+
+- **沒新增？** 請確認 URL 正確、沒有多餘空格，且 iPhone 有網路。
+- **有開頁但沒切頁？** 檢查 `sheet=` 是否拼對（inbox / scheduled / task_pool / micro_tasks）。
+- **重複新增？** 會把 URL 重新整理時再次新增，正常；可在 Shortcuts 內避免重複開啟。
+
+### E) Shortcut 建議格式（快速複製）
+
+```js
+Ask for Input: Task Title
+URL Encode: Task Title
+Open URL: http://ychsue.github.io/NonBlockingLife/?sheet=inbox&action=add&title=<ENCODED>
+```
+
+如果您要，我可以再補「新增到 Scheduled / Task Pool」的 Shortcut 範本。
+
+====================================================================
+
+## [2026-02-16] ychsue 非常好，只是新增時會開一個新的頁面，然後，該頁面雖然說已經新增，但是，卻沒有立即顯示，Safari按 refresh，雖然有出現，日期顯示是空白的，得點該日期再跳出才更改，請問這是怎麼回事呢？iPhone 能安裝這個 PWA 嗎？
+
+## [2026-02-16] 回覆：iOS Shortcut 顯示延遲與日期空白的原因
+
+### A) 為什麼會開新頁面？
+
+這是 iOS Shortcut 的預設行為：
+
+- **開啟 URL** 會在 Safari 新分頁打開
+- 若要避免多分頁，可以在 Shortcut 使用「在 Safari 顯示」或「使用同一頁」的行為，但限制較多
+
+### B) 新增後沒有立即顯示的原因
+
+目前的 Inbox 表格在載入時只做一次 `db.inbox.toArray()`。
+當 Shortcut 打開 URL 觸發新增時，表格沒有重新載入。
+
+**解法（之後會改）：**
+
+- 加上 `db.inbox.hook('creating')` 或 `db.on('changes')` 監聽資料變化
+- 或在 `useUrlAction` 成功後，觸發 `db.inbox.toArray()` 再載入
+
+這樣就能做到「新增後立即出現」。
+
+### C) 日期顯示空白的原因
+
+Shortcut 只傳 `title`，沒有傳 `receivedAt`。
+所以 `receivedAt` 是 `undefined`，UI 會顯示空白。
+
+**解法（二選一）：**
+
+1) 在 Shortcut URL 補 `receivedAt`：
+
+    ```js
+    http://ychsue.github.io/NonBlockingLife/?sheet=inbox&action=add&title=Test%20Inbox&receivedAt=1700000000000
+    ```
+
+2) 在 `useUrlAction` 內補預設值（推薦）：
+
+```ts
+if (sheet === 'inbox' && patch.receivedAt == null) {
+  patch.receivedAt = Date.now()
+}
+```
+
+這樣新增後日期就會直接顯示。
+
+### D) iPhone 能安裝 PWA 嗎？
+
+**可以。** iOS 支援 PWA 安裝，但流程是手動：
+
+1) 在 Safari 打開：
+
+    ```js
+    http://ychsue.github.io/NonBlockingLife
+    ```
+
+2) 點「分享」→ 選「加入主畫面」
+3) 安裝後會像 App 一樣出現在桌面
+
+**注意：**
+
+- iOS 的 PWA 仍有一些限制（背景同步、推播通知限制）
+- 但 Dexie / IndexedDB 可正常使用
+
+### E) 是否需要先安裝 PWA 再測 Shortcut？
+
+不需要，但**安裝後會更穩定**。
+建議：先安裝，再用 Shortcut 測試，體驗會更接近正式使用。

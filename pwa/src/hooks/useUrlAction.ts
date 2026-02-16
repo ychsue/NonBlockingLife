@@ -62,6 +62,11 @@ export function useUrlAction(options: UseUrlActionOptions) {
       }
     })
 
+    // 補預設值，避免欄位顯示空白
+    if (sheet === 'inbox' && patch.receivedAt == null) {
+      patch.receivedAt = Date.now()
+    }
+
     // 生成 recordId
     const recordId = generateRecordId(sheet, patch)
 
