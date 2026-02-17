@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { registerSW } from 'virtual:pwa-register'
 import App from './App'
 import './styles.css'
 
@@ -14,3 +15,5 @@ ReactDOM.createRoot(root).render(
     <App />
   </React.StrictMode>
 )
+
+registerSW({ immediate: true })

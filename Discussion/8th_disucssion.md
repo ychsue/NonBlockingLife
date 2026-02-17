@@ -1730,3 +1730,13 @@ if (sheet === 'inbox' && patch.receivedAt == null) {
 
 不需要，但**安裝後會更穩定**。
 建議：先安裝，再用 Shortcut 測試，體驗會更接近正式使用。
+
+==========================================================================
+
+## [2026-02-17] ychsue 好的，請幫忙將Task Pool / Scheduled / Micro Tasks 也加上同樣的即時刷新。 不過，還有個問題，那就是這個專案還不是真的PWA，因此，每次按iphone shortcut 都會開新的頁面，可否順便加上？ favicon 您覺得長甚麼樣好呢？就依您吧
+
+## [2026-02-17] 更新紀錄（即時刷新 + PWA + favicon）
+
+- Task Pool / Scheduled / Micro Tasks 已加上 Dexie 變更監聽，即時刷新。
+- PWA 基本配置已補齊：`vite-plugin-pwa`、manifest、service worker 註冊。
+- 新增 favicon 與圖示（NBL 深色底 + 橘色點）。

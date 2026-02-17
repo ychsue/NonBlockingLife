@@ -32,26 +32,42 @@ export function ScheduledTable() {
   const [rows, setRows] = useState<ScheduledItem[]>([])
   const [loading, setLoading] = useState(true)
 
+  const loadRows = async (activeRef: { current: boolean }) => {
+    setLoading(true)
+    try {
+      const data = await db.scheduled.toArray()
+      if (activeRef.current) {
+        setRows(data)
+      }
+    } catch (err) {
+      console.error('Failed to load scheduled:', err)
+      if (activeRef.current) {
+        setRows([])
+      }
+    } finally {
+      if (activeRef.current) {
+        setLoading(false)
+      }
+    }
+  }
+
   useEffect(() => {
-    let active = true
-    db.scheduled
-      .toArray()
-      .then((data) => {
-        if (active) {
-          setRows(data)
-          setLoading(false)
-        }
-      })
-      .catch((err) => {
-        console.error('Failed to load scheduled:', err)
-        if (active) {
-          setRows([])
-          setLoading(false)
-        }
-      })
+    const activeRef = { current: true }
+    loadRows(activeRef)
+
+    const onChange = () => {
+      loadRows(activeRef)
+    }
+
+    db.scheduled.hook('creating', onChange)
+    db.scheduled.hook('updating', onChange)
+    db.scheduled.hook('deleting', onChange)
 
     return () => {
-      active = false
+      activeRef.current = false
+      db.scheduled.hook('creating').unsubscribe(onChange)
+      db.scheduled.hook('updating').unsubscribe(onChange)
+      db.scheduled.hook('deleting').unsubscribe(onChange)
     }
   }, [])
 

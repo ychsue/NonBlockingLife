@@ -35,26 +35,42 @@ export function TaskPoolTable() {
   const [rows, setRows] = useState<TaskPoolItem[]>([])
   const [loading, setLoading] = useState(true)
 
+  const loadRows = async (activeRef: { current: boolean }) => {
+    setLoading(true)
+    try {
+      const data = await db.task_pool.toArray()
+      if (activeRef.current) {
+        setRows(data)
+      }
+    } catch (err) {
+      console.error('Failed to load task pool:', err)
+      if (activeRef.current) {
+        setRows([])
+      }
+    } finally {
+      if (activeRef.current) {
+        setLoading(false)
+      }
+    }
+  }
+
   useEffect(() => {
-    let active = true
-    db.task_pool
-      .toArray()
-      .then((data) => {
-        if (active) {
-          setRows(data)
-          setLoading(false)
-        }
-      })
-      .catch((err) => {
-        console.error('Failed to load task pool:', err)
-        if (active) {
-          setRows([])
-          setLoading(false)
-        }
-      })
+    const activeRef = { current: true }
+    loadRows(activeRef)
+
+    const onChange = () => {
+      loadRows(activeRef)
+    }
+
+    db.task_pool.hook('creating', onChange)
+    db.task_pool.hook('updating', onChange)
+    db.task_pool.hook('deleting', onChange)
 
     return () => {
-      active = false
+      activeRef.current = false
+      db.task_pool.hook('creating').unsubscribe(onChange)
+      db.task_pool.hook('updating').unsubscribe(onChange)
+      db.task_pool.hook('deleting').unsubscribe(onChange)
     }
   }, [])
 

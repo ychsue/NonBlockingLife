@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-02-16] 提交到 Github 看看，這PWA能否運作
+
 ## [2026-02-16] 能用 iPhone add inbox 了
 
 ## [2026-02-16] 準備上 Github Page 請看 [discussion](Discussion\8th_disucssion.md#方案-agithub-actions-自動部署推薦)
