@@ -35,42 +35,29 @@ export function TaskPoolTable() {
   const [rows, setRows] = useState<TaskPoolItem[]>([])
   const [loading, setLoading] = useState(true)
 
-  const loadRows = async (activeRef: { current: boolean }) => {
-    setLoading(true)
-    try {
-      const data = await db.task_pool.toArray()
-      if (activeRef.current) {
-        setRows(data)
-      }
-    } catch (err) {
-      console.error('Failed to load task pool:', err)
-      if (activeRef.current) {
-        setRows([])
-      }
-    } finally {
-      if (activeRef.current) {
-        setLoading(false)
-      }
-    }
-  }
-
+  // 初始載入（不自動更新）
   useEffect(() => {
-    const activeRef = { current: true }
-    loadRows(activeRef)
-
-    const onChange = () => {
-      loadRows(activeRef)
-    }
-
-    db.task_pool.hook('creating', onChange)
-    db.task_pool.hook('updating', onChange)
-    db.task_pool.hook('deleting', onChange)
+    let active = true
+    db.task_pool
+      .toArray()
+      .then((data) => {
+        if (active) {
+          // taskId 降序排列（新的在前面）
+          const sorted = data.sort((a, b) => b.taskId.localeCompare(a.taskId))
+          setRows(sorted)
+          setLoading(false)
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load task pool:', err)
+        if (active) {
+          setRows([])
+          setLoading(false)
+        }
+      })
 
     return () => {
-      activeRef.current = false
-      db.task_pool.hook('creating').unsubscribe(onChange)
-      db.task_pool.hook('updating').unsubscribe(onChange)
-      db.task_pool.hook('deleting').unsubscribe(onChange)
+      active = false
     }
   }, [])
 
@@ -188,6 +175,95 @@ export function TaskPoolTable() {
               onBlur={(event) =>
                 saveUpdate(taskId, { project: event.target.value })
               }
+            />
+          )
+        },
+      }),
+      columnHelper.accessor('priority', {
+        header: 'Priority',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const value = info.getValue() ?? 0
+
+          return (
+            <input
+              className="w-20 px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              type="number"
+              value={value}
+              onChange={(event) =>
+                updateLocalRow(taskId, { priority: parseInt(event.target.value) || 0 })
+              }
+              onBlur={(event) =>
+                saveUpdate(taskId, { priority: parseInt(event.target.value) || 0 })
+              }
+            />
+          )
+        },
+      }),
+      columnHelper.accessor('dailyLimitMins', {
+        header: 'Daily Limit',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const value = info.getValue() ?? 0
+
+          return (
+            <input
+              className="w-20 px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              type="number"
+              value={value}
+              placeholder="mins"
+              onChange={(event) =>
+                updateLocalRow(taskId, { dailyLimitMins: parseInt(event.target.value) || 0 })
+              }
+              onBlur={(event) =>
+                saveUpdate(taskId, { dailyLimitMins: parseInt(event.target.value) || 0 })
+              }
+            />
+          )
+        },
+      }),
+      columnHelper.accessor('spentTodayMins', {
+        header: 'Spent Today',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const value = info.getValue() ?? 0
+
+          return (
+            <input
+              className="w-20 px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              type="number"
+              value={value}
+              placeholder="mins"
+              onChange={(event) =>
+                updateLocalRow(taskId, { spentTodayMins: parseInt(event.target.value) || 0 })
+              }
+              onBlur={(event) =>
+                saveUpdate(taskId, { spentTodayMins: parseInt(event.target.value) || 0 })
+              }
+            />
+          )
+        },
+      }),
+      columnHelper.accessor('lastRunDate', {
+        header: 'Last Run',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const rawValue = info.getValue()
+          const value = formatToDateTimeLocal(rawValue)
+
+          return (
+            <input
+              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-xs"
+              type="datetime-local"
+              value={value}
+              onChange={(event) => {
+                const nextValue = parseFromDateTimeLocal(event.target.value)
+                updateLocalRow(taskId, { lastRunDate: nextValue })
+              }}
+              onBlur={(event) => {
+                const nextValue = parseFromDateTimeLocal(event.target.value)
+                saveUpdate(taskId, { lastRunDate: nextValue })
+              }}
             />
           )
         },

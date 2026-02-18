@@ -8,6 +8,10 @@ import {
 import { applyChange, db } from '../../db/index'
 import type { ScheduledItem } from '../../db/schema'
 import Utils from '../../../../gas/src/Utils'
+import {
+  formatToDateTimeLocal,
+  parseFromDateTimeLocal,
+} from '../../utils/timeUtils'
 
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<ScheduledItem>()
@@ -17,10 +21,10 @@ function createNewScheduledRow(): ScheduledItem {
   return {
     taskId,
     title: '',
-    status: 'Active',
+    status: 'WAITING',
     cronExpr: '0 9 * * *',
-    remindBefore: 5,
-    remindAfter: 0,
+    remindBefore: '',
+    remindAfter: '',
     callback: '',
     lastRun: undefined,
     note: '',
@@ -32,42 +36,29 @@ export function ScheduledTable() {
   const [rows, setRows] = useState<ScheduledItem[]>([])
   const [loading, setLoading] = useState(true)
 
-  const loadRows = async (activeRef: { current: boolean }) => {
-    setLoading(true)
-    try {
-      const data = await db.scheduled.toArray()
-      if (activeRef.current) {
-        setRows(data)
-      }
-    } catch (err) {
-      console.error('Failed to load scheduled:', err)
-      if (activeRef.current) {
-        setRows([])
-      }
-    } finally {
-      if (activeRef.current) {
-        setLoading(false)
-      }
-    }
-  }
-
+  // 初始載入（不自動更新）
   useEffect(() => {
-    const activeRef = { current: true }
-    loadRows(activeRef)
-
-    const onChange = () => {
-      loadRows(activeRef)
-    }
-
-    db.scheduled.hook('creating', onChange)
-    db.scheduled.hook('updating', onChange)
-    db.scheduled.hook('deleting', onChange)
+    let active = true
+    db.scheduled
+      .toArray()
+      .then((data) => {
+        if (active) {
+          // taskId 降序排列（新的在前面）
+          const sorted = data.sort((a, b) => b.taskId.localeCompare(a.taskId))
+          setRows(sorted)
+          setLoading(false)
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load scheduled:', err)
+        if (active) {
+          setRows([])
+          setLoading(false)
+        }
+      })
 
     return () => {
-      activeRef.current = false
-      db.scheduled.hook('creating').unsubscribe(onChange)
-      db.scheduled.hook('updating').unsubscribe(onChange)
-      db.scheduled.hook('deleting').unsubscribe(onChange)
+      active = false
     }
   }, [])
 
@@ -165,14 +156,137 @@ export function ScheduledTable() {
                 saveUpdate(taskId, { status: event.target.value })
               }
             >
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
+              <option value="WAITING">WAITING</option>
+              <option value="PENDING">PENDING</option>
+              <option value="DONE">DONE</option>
             </select>
           )
         },
       }),
       columnHelper.accessor('cronExpr', {
-        header: 'Cron Expr',
+        header: 'Cron (分 時 日 月 週)',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const fullValue = info.getValue() ?? ''
+          const parts = fullValue.split(' ')
+          const [minute = '', hour = '', day = '', month = '', weekday = ''] = parts
+
+          const updateCronPart = (index: number, newValue: string) => {
+            const updated = [...parts]
+            while (updated.length < 5) updated.push('*')
+            updated[index] = newValue
+            const cronExpr = updated.join(' ')
+            updateLocalRow(taskId, { cronExpr })
+          }
+
+          const saveCronPart = (index: number, newValue: string) => {
+            const updated = [...parts]
+            while (updated.length < 5) updated.push('*')
+            updated[index] = newValue
+            const cronExpr = updated.join(' ')
+            saveUpdate(taskId, { cronExpr })
+          }
+
+          const inputWidth = (value: string) => {
+            const length = Math.max(3, value.length)
+            return `${length + 1}ch`
+          }
+
+          return (
+            <div className="flex flex-wrap gap-1" style={{ minWidth: '10rem' }}>
+              <input
+                className="px-1 py-1 border rounded focus:outline-none focus:border-blue-500 font-mono text-xs"
+                style={{ minWidth: '1rem', width: inputWidth(minute) }}
+                value={minute}
+                placeholder="0"
+                title="分鐘"
+                onChange={(e) => updateCronPart(0, e.target.value)}
+                onBlur={(e) => saveCronPart(0, e.target.value)}
+              />
+              <input
+                className="px-1 py-1 border rounded focus:outline-none focus:border-blue-500 font-mono text-xs"
+                style={{ minWidth: '1rem', width: inputWidth(hour) }}
+                value={hour}
+                placeholder="9"
+                title="小時"
+                onChange={(e) => updateCronPart(1, e.target.value)}
+                onBlur={(e) => saveCronPart(1, e.target.value)}
+              />
+              <input
+                className="px-1 py-1 border rounded focus:outline-none focus:border-blue-500 font-mono text-xs"
+                style={{ minWidth: '1rem', width: inputWidth(day) }}
+                value={day}
+                placeholder="*"
+                title="日"
+                onChange={(e) => updateCronPart(2, e.target.value)}
+                onBlur={(e) => saveCronPart(2, e.target.value)}
+              />
+              <input
+                className="px-1 py-1 border rounded focus:outline-none focus:border-blue-500 font-mono text-xs"
+                style={{ minWidth: '1rem', width: inputWidth(month) }}
+                value={month}
+                placeholder="*"
+                title="月"
+                onChange={(e) => updateCronPart(3, e.target.value)}
+                onBlur={(e) => saveCronPart(3, e.target.value)}
+              />
+              <input
+                className="px-1 py-1 border rounded focus:outline-none focus:border-blue-500 font-mono text-xs"
+                style={{ minWidth: '1rem', width: inputWidth(weekday) }}
+                value={weekday}
+                placeholder="*"
+                title="週"
+                onChange={(e) => updateCronPart(4, e.target.value)}
+                onBlur={(e) => saveCronPart(4, e.target.value)}
+              />
+            </div>
+          )
+        },
+      }),
+      columnHelper.accessor('remindBefore', {
+        header: 'Remind Before',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const value = info.getValue() ?? ''
+
+          return (
+            <input
+              className="w-20 px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              value={value}
+              placeholder="1h"
+              onChange={(event) =>
+                updateLocalRow(taskId, { remindBefore: event.target.value })
+              }
+              onBlur={(event) =>
+                saveUpdate(taskId, { remindBefore: event.target.value })
+              }
+            />
+          )
+        },
+      }),
+      columnHelper.accessor('remindAfter', {
+        header: 'Remind After',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const value = info.getValue() ?? ''
+
+          return (
+            <input
+              className="w-20 px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              value={value}
+              placeholder="90m"
+              onChange={(event) =>
+                updateLocalRow(taskId, { remindAfter: event.target.value })
+              }
+              onBlur={(event) =>
+                saveUpdate(taskId, { remindAfter: event.target.value })
+              }
+            />
+          )
+        },
+      }),
+      columnHelper.accessor('callback', {
+        header: 'Callback',
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -181,13 +295,57 @@ export function ScheduledTable() {
             <input
               className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 font-mono text-xs"
               value={value}
-              placeholder="0 9 * * *"
+              placeholder="action"
               onChange={(event) =>
-                updateLocalRow(taskId, { cronExpr: event.target.value })
+                updateLocalRow(taskId, { callback: event.target.value })
               }
               onBlur={(event) =>
-                saveUpdate(taskId, { cronExpr: event.target.value })
+                saveUpdate(taskId, { callback: event.target.value })
               }
+            />
+          )
+        },
+      }),
+      columnHelper.accessor('note', {
+        header: 'Note',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const value = info.getValue() ?? ''
+
+          return (
+            <input
+              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              value={value}
+              onChange={(event) =>
+                updateLocalRow(taskId, { note: event.target.value })
+              }
+              onBlur={(event) =>
+                saveUpdate(taskId, { note: event.target.value })
+              }
+            />
+          )
+        },
+      }),
+      columnHelper.accessor('nextRun', {
+        header: 'Next Run',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const rawValue = info.getValue()
+          const value = formatToDateTimeLocal(rawValue)
+
+          return (
+            <input
+              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-xs"
+              type="datetime-local"
+              value={value}
+              onChange={(event) => {
+                const nextValue = parseFromDateTimeLocal(event.target.value)
+                updateLocalRow(taskId, { nextRun: nextValue })
+              }}
+              onBlur={(event) => {
+                const nextValue = parseFromDateTimeLocal(event.target.value)
+                saveUpdate(taskId, { nextRun: nextValue })
+              }}
             />
           )
         },

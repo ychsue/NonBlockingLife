@@ -29,43 +29,29 @@ export function InboxTable() {
   const [rows, setRows] = useState<InboxItem[]>([])
   const [loading, setLoading] = useState(true)
 
-  const loadRows = async (activeRef: { current: boolean }) => {
-    setLoading(true)
-    try {
-      const data = await db.inbox.toArray()
-      if (activeRef.current) {
-        setRows(data)
-      }
-    } catch (err) {
-      console.error('Failed to load inbox:', err)
-      if (activeRef.current) {
-        setRows([])
-      }
-    } finally {
-      if (activeRef.current) {
-        setLoading(false)
-      }
-    }
-  }
-
-  // 載入資料 + 監聽變更
+  // 初始載入（不自動更新）
   useEffect(() => {
-    const activeRef = { current: true }
-    loadRows(activeRef)
-
-    const onChange = () => {
-      loadRows(activeRef)
-    }
-
-    db.inbox.hook('creating', onChange)
-    db.inbox.hook('updating', onChange)
-    db.inbox.hook('deleting', onChange)
+    let active = true
+    db.inbox
+      .toArray()
+      .then((data) => {
+        if (active) {
+          // taskId 降序排列（新的在前面）
+          const sorted = data.sort((a, b) => b.taskId.localeCompare(a.taskId))
+          setRows(sorted)
+          setLoading(false)
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load inbox:', err)
+        if (active) {
+          setRows([])
+          setLoading(false)
+        }
+      })
 
     return () => {
-      activeRef.current = false
-      db.inbox.hook('creating').unsubscribe(onChange)
-      db.inbox.hook('updating').unsubscribe(onChange)
-      db.inbox.hook('deleting').unsubscribe(onChange)
+      active = false
     }
   }, [])
 

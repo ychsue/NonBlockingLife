@@ -1162,9 +1162,9 @@ App.tsx (主容器)
 
 ### 建議
 
-[ ] 升级 App.tsx 为 portal（含 global state 管理当前页籤）
-[ ] 新增 TabNavigation 组件（Task_Pool, Scheduled, Micro_Tasks）
-[ ] 新增 URL 参数解析 hook（useUrlAction）
+[x] 升级 App.tsx 为 portal（含 global state 管理当前页籤）
+[x] 新增 TabNavigation 组件（Task_Pool, Scheduled, Micro_Tasks）
+[x] 新增 URL 参数解析 hook（useUrlAction）
 [ ] 实现 iPhone 捷徑的「新增 + 导航」流程
 [ ] Selection_Cache 留最后（因为它依赖前面的三张表）
 
@@ -1457,22 +1457,22 @@ Open URL: baseURL + "?sheet=inbox&action=add&title=" + encodedTitle
 
 ### 8️⃣ 實存待辦
 
-- [ ] 實現 useUrlAction Hook（包含 generateRecordId）
-- [ ] 升級 App.tsx 為 Tab Portal 架構
-- [ ] 新增 TabNavigation 組件
-- [ ] RxJavaScript/TypeScript 表格組件（Inbox, Task_Pool, Scheduled, Micro_Tasks）
+- [x] 實現 useUrlAction Hook（包含 generateRecordId）
+- [x] 升級 App.tsx 為 Tab Portal 架構
+- [x] 新增 TabNavigation 組件
+- [x] RxJavaScript/TypeScript 表格組件（Inbox, Task_Pool, Scheduled, Micro_Tasks）
 - [ ] 實現 Toast 通知組件
 - [ ] 實現 SyncStatus 組件（右上角顯示同步狀態）
-- [ ] Dev-only Reset DB 功能
-- [ ] 測試 iPhone Shortcut 參數傳遞流程
-- [ ] GitHub Pages 部署的 base URL 配置（影響 URL 構建）
+- [x] Dev-only Reset DB 功能
+- [x] 測試 iPhone Shortcut 參數傳遞流程
+- [x] GitHub Pages 部署的 base URL 配置（影響 URL 構建）
 
 ---
 
 **下一步建議：**
 
-1. [ ] 確認 GitHub Pages 的最終 base URL（例：`/NonBlockingLife/` 或根域名）
-2. [ ] 開始實現 Tab Portal 與 useUrlAction Hook
+1. [x] 確認 GitHub Pages 的最終 base URL（例：`/NonBlockingLife/` 或根域名）
+2. [x] 開始實現 Tab Portal 與 useUrlAction Hook
 3. [ ] 優先完成 Inbox 與 Scheduled 表格（iPhone 主要操作這兩個）
 4. [ ] 測試 iOS Shortcut 與 PWA 的集成流程
 
@@ -1740,3 +1740,159 @@ if (sheet === 'inbox' && patch.receivedAt == null) {
 - Task Pool / Scheduled / Micro Tasks 已加上 Dexie 變更監聽，即時刷新。
 - PWA 基本配置已補齊：`vite-plugin-pwa`、manifest、service worker 註冊。
 - 新增 favicon 與圖示（NBL 深色底 + 橘色點）。
+
+=========================================================
+
+---
+
+## [2026-02-18] ychsue 表格欄位補齊與 Bug 修復
+
+### 問題：Add/Delete 雙重更新 Bug
+
+**現象：**
+
+- Add 第一次要按兩次才會真的開始新增
+- Delete 第一次按則會先新增一筆後再刪除
+
+**原因：**
+在加入 Dexie hooks 即時刷新後，`addRow()` 和 `deleteRow()` 中的立即 state 更新（`setRows`）與 hook 觸發的 `loadRows()` 產生了競態條件（race condition），導致雙重更新。
+
+**解決方案：**
+移除 `addRow()` 和 `deleteRow()` 中的立即 state 更新，只依賴 Dexie 寫入後 hooks 自動觸發的重新載入。這樣可以：
+
+- 保持單一資料流，避免競態條件
+- 保留即時刷新功能（URL Query 新增也能立即顯示）
+- 確保 Add/Delete 操作正確執行
+
+**修改檔案：**
+
+- InboxTable.tsx
+- TaskPoolTable.tsx
+- ScheduledTable.tsx
+- MicroTasksTable.tsx
+
+### Task Pool / Scheduled 欄位補齊
+
+**Task Pool 新增欄位：**
+
+- Priority (優先序) - 數字輸入
+- Daily Limit Mins (每日上限分鐘) - 數字輸入
+- Spent Today Mins (今日已用分鐘) - 數字輸入
+- Last Run Date (最後執行日期) - datetime-local 輸入
+
+**Scheduled 新增欄位：**
+
+- Remind Before (提前提醒分鐘) - 數字輸入
+- Callback (回呼指令) - 文字輸入（monospace）
+- Note (備註) - 文字輸入
+- Next Run (下次執行時間) - datetime-local 輸入
+
+**保留欄位（暫不顯示）：**
+
+- Task Pool: totalSpentMins (總花費時數)
+- Scheduled: remindAfter, lastRun
+
+這些欄位已完整對應到 Google Sheets 的 schema，可編輯並即時同步到 Dexie。
+
+### 修復抖動與排序問題
+
+**抖動問題：**
+
+- 原因：自動刷新機制（Dexie hooks + setTimeout debounce）與立即 state 更新衝突
+- 解決：移除所有表格的自動刷新機制，只在初始載入一次
+- 結果：Add/Delete 操作流暢，無抖動
+
+**排序不一致問題：**
+
+- 原因：Add 時使用 `setRows([newRow, ...prev])`（stack 方式），但 DB 載入無排序
+- 解決：所有表格初始載入時按 `taskId` 降序排列
+- 語法：`data.sort((a, b) => b.taskId.localeCompare(a.taskId))`
+- 結果：新增與重新整理後順序一致（新的在前面）
+
+**副作用提醒：**
+
+- 移除自動刷新後，iPhone Shortcut 新增的項目需手動刷新頁面才能顯示
+- 可在未來需要時，於 `useUrlAction` 成功後觸發特定表格重新載入
+
+=========================================================
+
+---
+
+## [2026-02-18] Scheduled 欄位格式調整
+
+### 問題：欄位格式與實際 CSV 不符
+
+根據實際使用的 CSV 檔案，進行以下調整：
+
+**1. Status 欄位值修正：**
+
+- 原：Active, Inactive
+- 改為：WAITING, PENDING, DONE
+- 對應實際 CSV 中的狀態值
+
+**2. Remind Before/After 格式調整：**
+
+- 原：數字（分鐘）
+- 改為：文字輸入，支援時間單位字串
+- 支援格式：`1h` (1小時), `2h` (2小時), `90m` (90分鐘), `1d` (1天)
+- Schema 型別改為：`string | number`（向後兼容）
+- 新增 remindAfter 欄位顯示
+
+**3. Cron Expression 五格輸入：**
+
+- 原：單一文字輸入框
+- 改為：5 個獨立輸入框（分、時、日、月、週）
+- 使用 `flex-wrap` 排版，每格寬度 `w-16`
+- 支援逗號分隔的多值（如 `10,14,18` 表示三個時段）
+- 每格有 `title` 提示（分鐘、小時、日、月、週）
+- 自動填充缺少的欄位為 `*`
+
+**修改檔案：**
+
+- pwa/src/db/schema.ts - 修改 ScheduledItem 型別定義
+- pwa/src/components/tables/ScheduledTable.tsx - 修改欄位顯示與預設值
+
+=========================================================
+
+---
+
+## [2026-02-17] ychsue iPhone Shortcut 無法使用PWA來打開網頁
+
+### 回覆
+
+我看到了你的 Shortcuts 配置。問題在於 iOS 的限制——當從 Shortcuts 啟動 URL 時，iOS 預設使用 Safari。
+
+有幾個可能的解決方案：
+
+#### 方案 1：最簡單 - 在 Shortcuts 中修改打開方式
+
+在 Shortcuts 的「打開 URL」動作中：
+
+試試改用「在後台打開」或其他選項
+但這在 iOS 上的效果有限
+
+#### 方案 2：啟用 App Clip Banner
+
+在 manifest 中添加 prefer_related_applications，引導用户點選「用 App 打開」：
+
+#### 方案 3：修改 Shortcuts 策略 - 不直接打開 URL
+
+改為讓 Shortcuts 執行以下流程：
+
+複製 URL 到剪貼板
+帶出提示：「已複製，請在 NonBlockingLife PWA 中貼上」
+或者用 Universal Link
+
+#### [ ] TODO 方案 4（推薦）：讓 Shortcuts 調用 PWA 中的 JavaScript
+
+使用 Shortcuts 的「執行 JavaScript」來與 PWA 通信（如果 PWA 已打開）
+
+你覺得哪個方案可行？或者你能分享現在在 Shortcuts 中是怎麼打開 URL 的嗎？
+
+=====================================================
+
+---
+
+## [2026-02-18] ychsue 我想先跳過這一步好了，我們現在來處理 Scheduled/Task Pool 的欄位補齊
+
+不過，剛剛才發現，在您加了自動更新inbox等table後，Add 和 delete 出問題，add 第一次要按兩次才會真的開始新增，而delete 第一次按則會先新增一筆後，再刪除。也就是有bug了。

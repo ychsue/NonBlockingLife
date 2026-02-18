@@ -45,8 +45,8 @@ export interface ScheduledItem {
   title?: string
   status?: string
   cronExpr?: string
-  remindBefore?: number
-  remindAfter?: number
+  remindBefore?: string | number
+  remindAfter?: string | number
   callback?: string
   lastRun?: number
   note?: string

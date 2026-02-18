@@ -26,42 +26,29 @@ export function MicroTasksTable() {
   const [rows, setRows] = useState<MicroTaskItem[]>([])
   const [loading, setLoading] = useState(true)
 
-  const loadRows = async (activeRef: { current: boolean }) => {
-    setLoading(true)
-    try {
-      const data = await db.micro_tasks.toArray()
-      if (activeRef.current) {
-        setRows(data)
-      }
-    } catch (err) {
-      console.error('Failed to load micro tasks:', err)
-      if (activeRef.current) {
-        setRows([])
-      }
-    } finally {
-      if (activeRef.current) {
-        setLoading(false)
-      }
-    }
-  }
-
+  // 初始載入（不自動更新）
   useEffect(() => {
-    const activeRef = { current: true }
-    loadRows(activeRef)
-
-    const onChange = () => {
-      loadRows(activeRef)
-    }
-
-    db.micro_tasks.hook('creating', onChange)
-    db.micro_tasks.hook('updating', onChange)
-    db.micro_tasks.hook('deleting', onChange)
+    let active = true
+    db.micro_tasks
+      .toArray()
+      .then((data) => {
+        if (active) {
+          // taskId 降序排列（新的在前面）
+          const sorted = data.sort((a, b) => b.taskId.localeCompare(a.taskId))
+          setRows(sorted)
+          setLoading(false)
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load micro tasks:', err)
+        if (active) {
+          setRows([])
+          setLoading(false)
+        }
+      })
 
     return () => {
-      activeRef.current = false
-      db.micro_tasks.hook('creating').unsubscribe(onChange)
-      db.micro_tasks.hook('updating').unsubscribe(onChange)
-      db.micro_tasks.hook('deleting').unsubscribe(onChange)
+      active = false
     }
   }, [])
 

@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-02-18] 修正自動更新table，現在要回iPhone 看看
+
 ## [2026-02-16] 提交到 Github 看看，這PWA能否運作
 
 正在處理 iPhone 的部分，需要多180x180 的 icon
