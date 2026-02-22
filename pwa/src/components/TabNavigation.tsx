@@ -1,15 +1,18 @@
 import { SheetName } from '../hooks/useUrlAction'
 
+type AllPages = SheetName | 'selection_cache'
+
 interface TabNavigationProps {
-  currentSheet: SheetName
-  onSelectSheet: (sheet: SheetName) => void
+  currentSheet: AllPages
+  onSelectSheet: (sheet: AllPages) => void
 }
 
-const TABS: { sheet: SheetName; label: string; icon: string }[] = [
+const TABS: { sheet: AllPages; label: string; icon: string }[] = [
   { sheet: 'inbox', label: 'Inbox', icon: '📭' },
   { sheet: 'task_pool', label: 'Task Pool', icon: '📋' },
   { sheet: 'scheduled', label: 'Scheduled', icon: '📅' },
   { sheet: 'micro_tasks', label: 'Micro Tasks', icon: '✓' },
+  { sheet: 'selection_cache', label: 'Candidates', icon: '🎯' },
 ]
 
 export function TabNavigation({

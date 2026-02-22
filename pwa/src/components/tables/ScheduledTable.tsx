@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, type FocusEvent } from 'react'
 import {
   createColumnHelper,
   flexRender,
@@ -170,6 +170,7 @@ export function ScheduledTable() {
           const fullValue = info.getValue() ?? ''
           const parts = fullValue.split(' ')
           const [minute = '', hour = '', day = '', month = '', weekday = ''] = parts
+          const currentNextRun = info.row.original.nextRun
 
           const updateCronPart = (index: number, newValue: string) => {
             const updated = [...parts]
@@ -192,8 +193,37 @@ export function ScheduledTable() {
             return `${length + 1}ch`
           }
 
+          const buildCronExpr = () => {
+            const safeParts = [minute, hour, day, month, weekday].map((part) =>
+              part.trim() ? part.trim() : '*'
+            )
+            return safeParts.join(' ')
+          }
+
+          const maybeAutoFillNextRun = () => {
+            if (currentNextRun != null) return
+            const cronExpr = buildCronExpr()
+            const nextRunDate = Utils.getNextOccurrence(cronExpr, new Date())
+            if (!nextRunDate) return
+            const nextRun = nextRunDate.getTime()
+            updateLocalRow(taskId, { nextRun })
+            saveUpdate(taskId, { nextRun })
+          }
+
+          const handleCronGroupBlur = (event: FocusEvent<HTMLDivElement>) => {
+            const nextTarget = event.relatedTarget as Node | null
+            if (nextTarget && event.currentTarget.contains(nextTarget)) {
+              return
+            }
+            maybeAutoFillNextRun()
+          }
+
           return (
-            <div className="flex flex-wrap gap-1" style={{ minWidth: '10rem' }}>
+            <div
+              className="flex flex-wrap gap-1"
+              style={{ minWidth: '10rem' }}
+              onBlur={handleCronGroupBlur}
+            >
               <input
                 className="px-1 py-1 border rounded focus:outline-none focus:border-blue-500 font-mono text-xs"
                 style={{ minWidth: '1rem', width: inputWidth(minute) }}

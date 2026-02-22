@@ -17,7 +17,7 @@ function createNewMicroTaskRow(): MicroTaskItem {
   return {
     taskId,
     title: '',
-    status: 'Pending',
+    status: 'PENDING',
     lastRunDate: undefined,
   }
 }
@@ -146,9 +146,9 @@ export function MicroTasksTable() {
                 saveUpdate(taskId, { status: event.target.value })
               }
             >
-              <option value="Pending">Pending</option>
-              <option value="Doing">Doing</option>
-              <option value="Done">Done</option>
+              <option value="PENDING">PENDING</option>
+              <option value="DOING">DOING</option>
+              <option value="DONE">DONE</option>
             </select>
           )
         },

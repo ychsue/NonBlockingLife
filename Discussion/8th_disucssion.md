@@ -1473,7 +1473,7 @@ Open URL: baseURL + "?sheet=inbox&action=add&title=" + encodedTitle
 
 1. [x] 確認 GitHub Pages 的最終 base URL（例：`/NonBlockingLife/` 或根域名）
 2. [x] 開始實現 Tab Portal 與 useUrlAction Hook
-3. [ ] 優先完成 Inbox 與 Scheduled 表格（iPhone 主要操作這兩個）
+3. [x] 優先完成 Inbox 與 Scheduled 表格（iPhone 主要操作這兩個）
 4. [ ] 測試 iOS Shortcut 與 PWA 的集成流程
 
 ===============================================================================
@@ -1896,3 +1896,125 @@ if (sheet === 'inbox' && patch.receivedAt == null) {
 ## [2026-02-18] ychsue 我想先跳過這一步好了，我們現在來處理 Scheduled/Task Pool 的欄位補齊
 
 不過，剛剛才發現，在您加了自動更新inbox等table後，Add 和 delete 出問題，add 第一次要按兩次才會真的開始新增，而delete 第一次按則會先新增一筆後，再刪除。也就是有bug了。
+
+## [2026-02-22] 現在先做 Log 的部分好，還是先 Selection_Cache -> [handleQueryOptions](gas\src\Logic.js#handleQueryOptions) 好呢
+
+Selection_Cache 可以由 [updateSelectionCache](gas\src\SheetsService.js#updateSelectionCache) 看到她怎麼運作的。
+
+### Github Copilot's Answer
+
+我来查看这两个关键函数，了解 Selection\_Cache 和 Log 的工作原理，帮你判断优先级。
+
+根据代码分析，**建议优先做 Selection\_Cache**，原因如下：
+
+#### Selection\_Cache（优先）✅
+
+**GAS 端流程已完整：**
+
+-   updateSelectionCache() 从 Task\_Pool、Scheduled、Micro\_Tasks 计算候选任务得分
+-   按分数排序，取前 20 条，写入 Selection\_Cache 表（6 列）
+
+**PWA 端需要实现：**
+
+-   读取 Selection\_Cache 的候选任务列表
+-   支持用户点击任务 → 调用 handleStart（iOS 捷径的主要工作流）
+
+**数据流：**
+
+```js
+GAS updateSelectionCache() → Selection_Cache Sheet
+                                ↓
+PWA SelectionCacheTable 读取 → 用户点击任务 → handleStart
+```
+
+**表结构清晰：**
+
+-   taskId, title, score, source, (empty), totalMinsInPool
+
+#### Log（其次）
+
+**特点：**
+
+-   GAS 端已自动在 START/END/INTERRUPT 时 appendLog() 写入
+-   PWA 端只需**展示历史日志**，非实时工作流必需
+
+**LogEntry 字段：** timestamp, taskId, title, action, category, state, duration, notes
+
+#### 建议行动方案
+
+1.  **先做 Selection\_Cache**（1-2h）
+    -   实现 SelectionCacheTable 组件
+    -   添加点击任务弹窗→输入 note → 调用 handleStart 的流程
+    -   测试与 iOS Shortcut 的完整集成
+2.  **再做 Log**（1h）
+    -   实现 LogTable 展示日志
+    -   添加时间/任务/操作过滤
+
+要我直接开始做 SelectionCache 吗？
+
+==========================================================
+
+---
+
+## [2026-02-22] ychsue 原則上，原本的 GAS 版本是在 #file:checkTimers.js 裡面每15分鐘更新該表，所以，現在換成PWA，先不管與GAS sync 的話，可能除了定時更新，可能也可使用一個按鈕給使用者手動更新，或者一個任務結束(這會在Log補上一筆、也把 Dashboard 給清空，表示沒有在跑的任務)時更新
+
+## [2026-02-22] Selection_Cache 完整實現 ✅
+
+### 方案 A: 本地適配層（已實現）
+
+根據用戶建議，採用**方案 A**（穩扎穩打），GAS 版本保持不動，PWA 端創建獨立適配層。
+
+#### 1. **candidateUtils.ts** - PWA 版本的候選計算引擎
+
+- 📁 [pwa/src/utils/candidateUtils.ts](../pwa/src/utils/candidateUtils.ts)
+- ✅ 接收 Dexie 結構化數據（對象數組）
+- ✅ 核心算法與 GAS 版本完全一致
+- ✅ 無 GAS API 依賴，純 TypeScript
+- 導出函數：calculateCandidates、parseToMinutes、minutesToTimeString、getSourceEmoji
+
+#### 2. **SelectionCacheTable.tsx** - 互動式候選列表元件
+
+- 📁 [pwa/src/components/tables/SelectionCacheTable.tsx](../pwa/src/components/tables/SelectionCacheTable.tsx)
+- 🔄 刷新按鈕：重新計算候選任務
+- 📊 表格展示：任務 ID、標題、評分、來源
+- 🖱️ 行點擊：開啟"開始任務"對話框
+- 📝 備註輸入：讓用戶添加上下文
+- 💾 日誌記錄：寫入 db.log
+
+#### 3. **測試驗證**
+
+- ✅ 14 個 candidateUtils 單元測試（100% 通過）
+- ✅ 8 個 SelectionCacheTable 集成測試（100% 通過）
+- ✅ 生產構建成功(npm run build)
+
+#### 4. **App.tsx 集成**
+
+- 新增 AllPages 類型（SheetName | 'selection_cache'）
+- SelectionCacheTable 導入與路由
+- TabNavigation 新增"🎯 Candidates"標籤頁
+
+### 更新策略（本地優先）
+
+| 觸發時機 | 實現狀態 | 說明 |
+| --------- | -------- | ------ |
+| 手動點擊刷新按鈕 | ✅ 完成 | 立即計算並更新候選 |
+| 任務結束時自動更新 | ⏳ 待做 | 在 handleEnd() 後調用 |
+| 定時更新（15 分鐘） | ⏳ 待做 | 使用 Service Worker |
+
+### 技術統計
+
+**新增檔案：** 943 行代碼
+
+- candidateUtils.ts (169 行)
+- candidateUtils.test.ts (266 行)
+- SelectionCacheTable.tsx (267 行)
+- SelectionCacheTable.test.ts (241 行)
+
+**測試成果：** 22 個測試全部通過 ✅
+
+### 下一步
+
+- [ ] Log 表實現（顯示歷史記錄）
+- [ ] Dashboard 實現（當前任務狀態）
+- [ ] 自動刷新整合
+- [ ] Google Sheets 同步實現

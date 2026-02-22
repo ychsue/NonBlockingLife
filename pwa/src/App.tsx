@@ -7,17 +7,20 @@ import { InboxTable } from './components/tables/InboxTable'
 import { TaskPoolTable } from './components/tables/TaskPoolTable'
 import { ScheduledTable } from './components/tables/ScheduledTable'
 import { MicroTasksTable } from './components/tables/MicroTasksTable'
+import { SelectionCacheTable } from './components/tables/SelectionCacheTable'
 import { db } from './db/index'
 import './styles.css'
 
+type AllPages = SheetName | 'selection_cache'
+
 export default function App() {
-  const [currentSheet, setCurrentSheet] = useState<SheetName>('inbox')
+  const [currentSheet, setCurrentSheet] = useState<AllPages>('inbox')
   const [toast, setToast] = useState('')
   const [showResetConfirm, setShowResetConfirm] = useState(false)
 
   // 監聽 iPhone Shortcut URL 參數
   useUrlAction({
-    onNavigate: setCurrentSheet,
+    onNavigate: (sheet: SheetName) => setCurrentSheet(sheet),
     onSuccess: setToast,
     clientId: 'iphone-webkit',
   })
@@ -32,6 +35,8 @@ export default function App() {
         return <ScheduledTable />
       case 'micro_tasks':
         return <MicroTasksTable />
+      case 'selection_cache':
+        return <SelectionCacheTable />
       default:
         return <InboxTable />
     }

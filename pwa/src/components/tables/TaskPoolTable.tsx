@@ -21,7 +21,7 @@ function createNewTaskPoolRow(): TaskPoolItem {
   return {
     taskId,
     title: '',
-    status: 'Pending',
+    status: 'PENDING',
     project: '',
     spentTodayMins: 0,
     dailyLimitMins: 60,
@@ -152,9 +152,9 @@ export function TaskPoolTable() {
                 saveUpdate(taskId, { status: event.target.value })
               }
             >
-              <option value="Pending">Pending</option>
-              <option value="Doing">Doing</option>
-              <option value="Done">Done</option>
+              <option value="PENDING">PENDING</option>
+              <option value="DOING">DOING</option>
+              <option value="DONE">DONE</option>
             </select>
           )
         },
