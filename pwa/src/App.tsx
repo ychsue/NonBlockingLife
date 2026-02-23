@@ -8,10 +8,11 @@ import { TaskPoolTable } from './components/tables/TaskPoolTable'
 import { ScheduledTable } from './components/tables/ScheduledTable'
 import { MicroTasksTable } from './components/tables/MicroTasksTable'
 import { SelectionCacheTable } from './components/tables/SelectionCacheTable'
+import { LogTable } from './components/tables/LogTable'
 import { db } from './db/index'
 import './styles.css'
 
-type AllPages = SheetName | 'selection_cache'
+type AllPages = SheetName | 'selection_cache' | 'log'
 
 export default function App() {
   const [currentSheet, setCurrentSheet] = useState<AllPages>('inbox')
@@ -37,6 +38,8 @@ export default function App() {
         return <MicroTasksTable />
       case 'selection_cache':
         return <SelectionCacheTable />
+      case 'log':
+        return <LogTable />
       default:
         return <InboxTable />
     }

@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-02-23] 加入 Log, handleStart, handleEnd 與 handleInterrupt
+
 ## [2026-02-22] 完成Selection_Cache 的雛型
 
 ## [2026-02-18] 修正自動更新table，現在要回iPhone 看看

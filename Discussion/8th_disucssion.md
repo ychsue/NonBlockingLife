@@ -1911,13 +1911,13 @@ Selection_Cache 可以由 [updateSelectionCache](gas\src\SheetsService.js#update
 
 **GAS 端流程已完整：**
 
--   updateSelectionCache() 从 Task\_Pool、Scheduled、Micro\_Tasks 计算候选任务得分
--   按分数排序，取前 20 条，写入 Selection\_Cache 表（6 列）
+- updateSelectionCache() 从 Task\_Pool、Scheduled、Micro\_Tasks 计算候选任务得分
+- 按分数排序，取前 20 条，写入 Selection\_Cache 表（6 列）
 
 **PWA 端需要实现：**
 
--   读取 Selection\_Cache 的候选任务列表
--   支持用户点击任务 → 调用 handleStart（iOS 捷径的主要工作流）
+- 读取 Selection\_Cache 的候选任务列表
+- 支持用户点击任务 → 调用 handleStart（iOS 捷径的主要工作流）
 
 **数据流：**
 
@@ -1929,26 +1929,26 @@ PWA SelectionCacheTable 读取 → 用户点击任务 → handleStart
 
 **表结构清晰：**
 
--   taskId, title, score, source, (empty), totalMinsInPool
+- taskId, title, score, source, (empty), totalMinsInPool
 
 #### Log（其次）
 
 **特点：**
 
--   GAS 端已自动在 START/END/INTERRUPT 时 appendLog() 写入
--   PWA 端只需**展示历史日志**，非实时工作流必需
+- GAS 端已自动在 START/END/INTERRUPT 时 appendLog() 写入
+- PWA 端只需**展示历史日志**，非实时工作流必需
 
 **LogEntry 字段：** timestamp, taskId, title, action, category, state, duration, notes
 
 #### 建议行动方案
 
-1.  **先做 Selection\_Cache**（1-2h）
-    -   实现 SelectionCacheTable 组件
-    -   添加点击任务弹窗→输入 note → 调用 handleStart 的流程
-    -   测试与 iOS Shortcut 的完整集成
-2.  **再做 Log**（1h）
-    -   实现 LogTable 展示日志
-    -   添加时间/任务/操作过滤
+1. **先做 Selection\_Cache**（1-2h）
+    - 实现 SelectionCacheTable 组件
+    - 添加点击任务弹窗→输入 note → 调用 handleStart 的流程
+    - 测试与 iOS Shortcut 的完整集成
+2. **再做 Log**（1h）
+    - 实现 LogTable 展示日志
+    - 添加时间/任务/操作过滤
 
 要我直接开始做 SelectionCache 吗？
 
@@ -2018,3 +2018,39 @@ PWA SelectionCacheTable 读取 → 用户点击任务 → handleStart
 - [ ] Dashboard 實現（當前任務狀態）
 - [ ] 自動刷新整合
 - [ ] Google Sheets 同步實現
+
+=====================================================================================
+
+## [2026-02-23] ychsue Log 表基本上原本是在GAS Logic.js 裡面的 handleStart 與 handleEnd 來更新的(同時也更新該task原本條目)
+
+所以，感覺上應該 Log, Dashboard, handleStart 與 handleEnd 可以一起開發的。您覺得呢？
+而 handleStart 與 handleEnd 則可以使用 Selection_Cache 的畫面，然後類似`<dialog>` 來控制？當 Dashboard 有正在跑的task，就讓 dialog for ending 一直在該頁面上，這樣，強制使用者在開始新的task前先停止目前的task？簡單講不允許使用者同時跑好幾個task，因為我自己的腦袋不適合這樣跑。
+
+## [2026-02-23] PWA 版 handleInterrupt + Dialog + 條列可點樣式
+
+### ✅ 已完成
+
+- Selection_Cache 使用 `<dialog>` 來呈現 Start/End 流程
+- End dialog 內新增「中斷任務」按鈕（PWA 版 handleInterrupt）
+- 中斷行為：
+  - 將目前任務記錄為 `INTERRUPT`
+  - 清空 Dashboard
+  - 自動啟動 `SYS_INT` 任務並寫入 Log
+- 條列增加類似按鈕的 hover/active/focus 效果
+
+### 📁 相關檔案
+
+- [pwa/src/utils/taskFlow.ts](../pwa/src/utils/taskFlow.ts)
+  - `interruptTask()` 新增
+  - `endTask()` 支援 `isInterrupt` 行為
+- [pwa/src/components/tables/SelectionCacheTable.tsx](../pwa/src/components/tables/SelectionCacheTable.tsx)
+  - Start/End dialog
+  - 中斷按鈕
+  - 條列互動樣式
+
+### 🔜 接著可做
+
+- [ ] 中斷任務後，顯示「正在中斷模式」的視覺提示
+- [ ] 中斷模式下，提供「返回一般任務」的按鈕
+- [ ] Log 表加入過濾條件（START / END / INTERRUPT）
+- [ ] Selection_Cache 條列改成卡片式（更像可點項目）

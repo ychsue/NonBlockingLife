@@ -14,6 +14,8 @@ export interface LogEntry {
 
 export interface Dashboard {
   taskId: string
+  title?: string
+  source?: string
   notes?: string
   startAt?: number
   systemStatus?: string

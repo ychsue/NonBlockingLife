@@ -1,6 +1,6 @@
 import { SheetName } from '../hooks/useUrlAction'
 
-type AllPages = SheetName | 'selection_cache'
+type AllPages = SheetName | 'selection_cache' | 'log'
 
 interface TabNavigationProps {
   currentSheet: AllPages
@@ -13,6 +13,7 @@ const TABS: { sheet: AllPages; label: string; icon: string }[] = [
   { sheet: 'scheduled', label: 'Scheduled', icon: '📅' },
   { sheet: 'micro_tasks', label: 'Micro Tasks', icon: '✓' },
   { sheet: 'selection_cache', label: 'Candidates', icon: '🎯' },
+  { sheet: 'log', label: 'Log', icon: '🧾' },
 ]
 
 export function TabNavigation({

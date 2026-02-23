@@ -27,9 +27,13 @@ export async function applyChange({ table, recordId, op, patch, clientId }: Appl
   const now = Date.now()
   const id = buildChangeLogId(now, table, recordId)
   const data = patch && (patch as Record<string, unknown>).taskId ? patch : { ...patch, taskId: recordId }
+  const normalizedData =
+    op === 'add' && table === 'log' && !(data as Record<string, unknown>).id
+      ? { ...data, id: recordId }
+      : data
 
   if (op === 'add') {
-    await db.table(table).add({ ...data, updatedAt: now })
+    await db.table(table).add({ ...normalizedData, updatedAt: now })
   } else if (op === 'update') {
     await db.table(table).update(recordId, { ...patch, updatedAt: now })
   } else if (op === 'delete') {
