@@ -40,6 +40,8 @@ export interface TaskPoolItem {
   lastRunDate?: number
   totalSpentMins?: number
   updatedAt?: number
+  note?: string
+  url?: string
 }
 
 export interface ScheduledItem {
@@ -109,7 +111,7 @@ export class AppDB extends Dexie {
       log: 'id, timestamp, taskId, action, state, title',
       dashboard: 'taskId, systemStatus',
       inbox: 'taskId, receivedAt, title',
-      task_pool: 'taskId, status, project, priority, lastRunDate, title',
+      task_pool: 'taskId, status, project, priority, lastRunDate, title, note, url',
       scheduled: 'taskId, status, nextRun, title',
       selection_cache: 'taskId, score, source, title',
       micro_tasks: 'taskId, status, lastRunDate, title',

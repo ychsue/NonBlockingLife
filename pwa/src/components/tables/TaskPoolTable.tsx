@@ -16,11 +16,11 @@ import {
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<TaskPoolItem>()
 
-function createNewTaskPoolRow(): TaskPoolItem {
-  const taskId = Utils.generateId('T')
+function createNewTaskPoolRow(taskId?: string, title?: string, note?: string, url?: string): TaskPoolItem {
+  const id = taskId ?? Utils.generateId('T')
   return {
-    taskId,
-    title: '',
+    taskId: id,
+    title: title ?? '',
     status: 'PENDING',
     project: '',
     spentTodayMins: 0,
@@ -28,6 +28,8 @@ function createNewTaskPoolRow(): TaskPoolItem {
     priority: 0,
     lastRunDate: undefined,
     totalSpentMins: 0,
+    note: note ?? '',
+    url: url ?? '',
   }
 }
 
@@ -40,7 +42,33 @@ export function TaskPoolTable() {
     let active = true
     db.task_pool
       .toArray()
-      .then((data) => {
+      .then(async (data) => {
+        if (!active) return
+        
+        // 如果 task_pool 為空，自動添加五個預設任務
+        if (data.length === 0) {
+          const defaultTasks: TaskPoolItem[] = [
+            createNewTaskPoolRow('T0', 'Free(Idle)', '', 'None'),
+            createNewTaskPoolRow('Ta', 'Superconductor-like Society', '', 'https://ychsue.github.io/superconductorlike_society'),
+            createNewTaskPoolRow('Tb', 'ActionManifold', '', 'https://github.com/ychsue/ActionManifold'),
+            createNewTaskPoolRow('Tc', 'NonBlockingLife', '', 'https://ychsue.github.io/NonBlockingLife'),
+            createNewTaskPoolRow('Td', 'MyProject', '', 'None'),
+          ]
+          
+          // 批量添加到資料庫
+          for (const task of defaultTasks) {
+            await applyChange({
+              table: 'task_pool',
+              recordId: task.taskId,
+              op: 'add',
+              patch: task as unknown as Record<string, unknown>,
+              clientId: DEV_CLIENT_ID,
+            }).catch((err) => console.error('Failed to add default task:', err))
+          }
+          
+          data = defaultTasks
+        }
+        
         if (active) {
           // taskId 降序排列（新的在前面）
           const sorted = data.sort((a, b) => b.taskId.localeCompare(a.taskId))
@@ -265,6 +293,59 @@ export function TaskPoolTable() {
                 saveUpdate(taskId, { lastRunDate: nextValue })
               }}
             />
+          )
+        },
+      }),
+      columnHelper.accessor('note', {
+        header: 'Note',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const value = info.getValue() ?? ''
+
+          return (
+            <input
+              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              value={value}
+              onChange={(event) =>
+                updateLocalRow(taskId, { note: event.target.value })
+              }
+              onBlur={(event) =>
+                saveUpdate(taskId, { note: event.target.value })
+              }
+            />
+          )
+        },
+      }),
+      columnHelper.accessor('url', {
+        header: 'URL',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const value = info.getValue() ?? ''
+          const hasValidUrl = value && value !== 'None' && value !== ''
+
+          return (
+            <div className="flex items-center gap-2">
+              <input
+                className="flex-1 px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-xs"
+                value={value}
+                onChange={(event) =>
+                  updateLocalRow(taskId, { url: event.target.value })
+                }
+                onBlur={(event) =>
+                  saveUpdate(taskId, { url: event.target.value })
+                }
+              />
+              {hasValidUrl && (
+                <a
+                  href={value}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 whitespace-nowrap"
+                >
+                  開啟
+                </a>
+              )}
+            </div>
           )
         },
       }),
