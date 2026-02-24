@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-02-24] 加入精簡 change_log 的條目，因為有可能出現 add->update->delete 的情形，這種無需處理
+
 ## [2026-02-23] 加入 Log, handleStart, handleEnd 與 handleInterrupt
 
 ## [2026-02-22] 完成Selection_Cache 的雛型

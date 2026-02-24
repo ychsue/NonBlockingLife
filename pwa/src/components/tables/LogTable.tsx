@@ -7,12 +7,31 @@ import {
 } from '@tanstack/react-table'
 import { db } from '../../db/index'
 import type { LogEntry } from '../../db/schema'
+import { clearLogTableChanges } from '../../db/changeLog'
 
 const columnHelper = createColumnHelper<LogEntry>()
 
 export function LogTable() {
   const [rows, setRows] = useState<LogEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [clearing, setClearing] = useState(false)
+
+  const handleClearChangelog = async () => {
+    if (!confirm('確定要清除所有 Log 相關的 change_log 記錄嗎？')) {
+      return
+    }
+    
+    setClearing(true)
+    try {
+      const count = await clearLogTableChanges()
+      alert(`已清除 ${count} 筆 Log change_log 記錄`)
+    } catch (err) {
+      console.error('Failed to clear log changes:', err)
+      alert('清除失敗，請查看 console')
+    } finally {
+      setClearing(false)
+    }
+  }
 
   useEffect(() => {
     let active = true
@@ -89,7 +108,16 @@ export function LogTable() {
 
   return (
     <div className="p-4">
-      <div className="mb-4 text-sm text-gray-600">共 {rows.length} 筆記錄</div>
+      <div className="mb-4 flex items-center justify-between">
+        <div className="text-sm text-gray-600">共 {rows.length} 筆記錄</div>
+        <button
+          onClick={handleClearChangelog}
+          disabled={clearing}
+          className="px-3 py-1 text-xs bg-red-100 hover:bg-red-200 text-red-700 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+        >
+          {clearing ? '清除中...' : '清除 Log ChangeLog'}
+        </button>
+      </div>
       {rows.length === 0 ? (
         <div className="p-4 text-center text-gray-500">暫無紀錄</div>
       ) : (

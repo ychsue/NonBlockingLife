@@ -2054,3 +2054,11 @@ PWA SelectionCacheTable 读取 → 用户点击任务 → handleStart
 - [ ] 中斷模式下，提供「返回一般任務」的按鈕
 - [ ] Log 表加入過濾條件（START / END / INTERRUPT）
 - [ ] Selection_Cache 條列改成卡片式（更像可點項目）
+
+=================================================================
+
+---
+
+## [2026-02-23] ychsue 請幫我把 db.change_log 當有要 add 一個新的 change 時，如果是delete，就把裡面同一個 clientId 的 change 都清掉，如果同一個 clientId 的第一個就是 add，那麼，連這一個 change 也不用存進去了。此外，若是update，就把先前的update 以現在的這個擴充，然後，砍掉前一個，因為已經被現在這個組合了。您覺得呢？
+
+不過，可以多造一個 Log Table 的 change_log 的清洗用的button嗎？因為目前開發階段，會造出蠻多這種change_log for Log 卻清不掉
