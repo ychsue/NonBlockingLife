@@ -2077,3 +2077,105 @@ Td:MyProject:None
 然後 Table 多note 與 url 欄位，然後 url 可以按，可以嗎？謝謝。
 
 ### VSCode Copilot 也完成這部份了
+
+我來幫您在 `useUrlAction.ts` 中添加 `interrupt` action 的處理。首先讓我查看一下 `taskFlow.ts` 中的 `interruptTask` 實現。
+
+現在我了解了整個流程。讓我幫您修改兩個文件：
+
+1.  首先修改 taskFlow.ts 中的 interruptTask 函數，使其在沒有正在執行的任務時也能進入中斷狀態
+2.  然後在 `useUrlAction.ts` 中添加對 action=interrupt 的處理
+
+完成了！我已經幫您添加了 `interrupt` action 的支持。主要修改如下：
+
+#### 修改內容
+
+##### 1. taskFlow.ts
+
+修改了 interruptTask 函數，使其在無任務時也能進入中斷狀態：
+
+-   先檢查是否有正在執行的任務
+-   如果有，先結束它（中斷方式）
+-   無論有沒有舊任務，都啟動 `SYS_INT` 中斷任務
+
+##### 2. useUrlAction.ts
+
+添加了對 action=interrupt 的處理：
+
+-   導入 interruptTask 函數
+-   在 URL 解析中添加中斷邏輯
+-   創建 `handleInterruptAction` 函數處理中斷動作
+
+#### 使用方式
+
+在 iPhone Shortcut 中使用以下 URL 格式：
+
+[[https://your-app-url/?action=interrupt&note=緊急處理]]
+
+或者不帶備註：
+
+[[https://your-app-url/?action=interrupt]]
+
+這樣就可以透過捷徑一鍵進入中斷狀態了！✅
+
+======================================================================
+
+---
+
+## [2026-02-24] ychsue 安裝並配置 Tailwind CSS v4
+
+### 問題
+
+PWA 中的 React 組件使用了 Tailwind class（如 `text-sm`, `bg-blue-500`, `hover:bg-blue-600` 等），但樣式沒有作用。
+
+### 原因
+
+PWA 專案沒有安裝 Tailwind CSS，也沒有相應的配置文件。
+
+### 解決方案
+
+#### 1. 安裝依賴
+
+```bash
+npm install -D tailwindcss postcss autoprefixer
+npm install -D @tailwindcss/postcss
+```
+
+#### 2. 創建 `tailwind.config.js`
+
+```javascript
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,jsx,ts,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+```
+
+#### 3. 創建 `postcss.config.js`
+
+```javascript
+export default {
+  plugins: {
+    '@tailwindcss/postcss': {},
+  },
+}
+```
+
+#### 4. 更新 `src/styles.css`
+
+在文件頂部添加：
+
+```css
+@import "tailwindcss";
+
+/* 保留原有的自訂樣式... */
+```
+
+### 結果
+
+✅ Tailwind CSS 已正常工作，所有 class 樣式現在都能正確渲染
