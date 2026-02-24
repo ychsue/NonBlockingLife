@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { applyChange, db } from '../db/index'
 import Utils from '../../../gas/src/Utils'
+import { interruptTask } from '../utils/taskFlow'
 
 export type SheetName = 'inbox' | 'scheduled' | 'task_pool' | 'micro_tasks'
 
@@ -33,6 +34,12 @@ export function useUrlAction(options: UseUrlActionOptions) {
     const params = new URLSearchParams(window.location.search)
     const sheet = params.get('sheet') as SheetName | null
     const action = params.get('action')
+
+    // 處理中斷動作
+    if (action === 'interrupt') {
+      handleInterruptAction(params)
+      return
+    }
 
     // 若沒有參數或 action 不是 'add'，不處理
     if (!sheet || action !== 'add') return
@@ -106,6 +113,34 @@ export function useUrlAction(options: UseUrlActionOptions) {
         onError?.(`❌ 新增失敗：${errorMsg}`)
       })
   }, [onNavigate, onSuccess, onError, clientId])
+}
+
+/**
+ * 處理中斷動作
+ */
+function handleInterruptAction(params: URLSearchParams) {
+  const note = params.get('note') || ''
+  
+  interruptTask(note)
+    .then((result) => {
+      if (result.status === 'success') {
+        console.log('✅ 已進入中斷模式')
+      } else {
+        console.error('❌ 中斷失敗：', result.message)
+      }
+      
+      // 清除 URL（避免重複執行）
+      window.history.replaceState(
+        {},
+        document.title,
+        window.location.pathname
+      )
+    })
+    .catch((err) => {
+      const errorMsg = err instanceof Error ? err.message : String(err)
+      console.error('Failed to interrupt:', err)
+      console.error('❌ 中斷失敗：', errorMsg)
+    })
 }
 
 /**

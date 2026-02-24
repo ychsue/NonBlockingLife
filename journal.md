@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-02-24] 加入Interrupt action
+
 ## [2026-02-24] 自動添五個我常用的專案
 
 ## [2026-02-24] 加入精簡 change_log 的條目，因為有可能出現 add->update->delete 的情形，這種無需處理

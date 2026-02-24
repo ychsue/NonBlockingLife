@@ -145,11 +145,17 @@ export async function endTask(endNote: string, isInterrupt = false) {
 }
 
 export async function interruptTask(endNote: string) {
-  const result = await endTask(endNote, true)
-  if (result.status !== 'success') {
-    return result
+  const running = await getRunningTask()
+  
+  // 如果有正在執行的任務，先結束它
+  if (running) {
+    const result = await endTask(endNote, true)
+    if (result.status !== 'success') {
+      return result
+    }
   }
 
+  // 無論是否有舊任務，都啟動中斷任務
   const now = Date.now()
   const interruptId = 'SYS_INT'
   const interruptTitle = '[中斷] 處理突發狀況'
