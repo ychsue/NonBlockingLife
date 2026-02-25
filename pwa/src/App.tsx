@@ -85,9 +85,11 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">📱 Non-Blocking Life</h1>
-            <p className="text-sm text-gray-600">Local-first Task Management</p>
+            <div className='flex'>
+              <p className="text-sm text-gray-600">Local-first Task Management</p>
+              <SyncStatus />
+            </div>
           </div>
-          <SyncStatus />
         </div>
       </header>
 
