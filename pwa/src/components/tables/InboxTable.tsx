@@ -12,6 +12,9 @@ import {
   formatToDateTimeLocal,
   parseFromDateTimeLocal,
 } from '../../utils/timeUtils'
+import { useResponsiveTable } from '../../hooks/useResponsiveTable'
+import { TableCard } from '../TableCard'
+import { EditDialog, type FieldType } from '../EditDialog'
 
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<InboxItem>()
@@ -31,6 +34,8 @@ export function InboxTable() {
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     taskId: false,
   })
+  const { isMobile } = useResponsiveTable()
+  const [editingItem, setEditingItem] = useState<InboxItem | null>(null)
 
   // 初始載入（不自動更新）
   useEffect(() => {
@@ -99,6 +104,21 @@ export function InboxTable() {
       patch: {} as Record<string, unknown>,
       clientId: DEV_CLIENT_ID,
     }).catch((err) => console.error('Failed to delete row:', err))
+  }
+
+  const handleEditSave = async (data: Record<string, any>) => {
+    if (!editingItem) return
+
+    const patch = {
+      title: data.title,
+      receivedAt: parseFromDateTimeLocal(data.receivedAt),
+    }
+
+    // 立刻更新本地状态
+    updateLocalRow(editingItem.taskId, patch)
+    // 再异步保存到数据库
+    await saveUpdate(editingItem.taskId, patch)
+    setEditingItem(null)
   }
 
   const columns = useMemo(
@@ -198,7 +218,52 @@ export function InboxTable() {
         <div className="text-center text-gray-500">Loading...</div>
       ) : rows.length === 0 ? (
         <div className="text-center text-gray-500">No items yet.</div>
+      ) : isMobile ? (
+        // 移動視圖 - 卡片
+        <>
+          <div className="grid grid-cols-1 gap-3">
+            {rows.map((item) => (
+              <TableCard
+                key={item.taskId}
+                item={item}
+                fields={[
+                  { label: 'Title', value: item.title || '(empty)' },
+                  {
+                    label: 'Received At',
+                    value: item.receivedAt
+                      ? new Date(item.receivedAt).toLocaleString('zh-TW')
+                      : '(未設定)',
+                  },
+                ]}
+                onEdit={setEditingItem}
+                onDelete={(item) => deleteRow(item.taskId)}
+              />
+            ))}
+          </div>
+
+          <EditDialog
+            isOpen={!!editingItem}
+            title="編輯 Inbox 項目"
+            item={editingItem}
+            fields={[
+              {
+                name: 'title',
+                label: 'Title',
+                type: 'text' as FieldType,
+                placeholder: '輸入任務標題',
+              },
+              {
+                name: 'receivedAt',
+                label: 'Received At',
+                type: 'datetime' as FieldType,
+              },
+            ]}
+            onSave={handleEditSave}
+            onClose={() => setEditingItem(null)}
+          />
+        </>
       ) : (
+        // 桌面視圖 - 表格
         <div className="overflow-x-auto border rounded-lg">
           <table className="w-full text-sm">
             <thead className="bg-gray-100 border-b">

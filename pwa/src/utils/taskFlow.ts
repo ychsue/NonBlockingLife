@@ -1,6 +1,7 @@
 import { applyChange, db } from '../db/index'
 import type { Dashboard, SelectionCacheItem, ScheduledItem, TaskPoolItem } from '../db/schema'
 import Utils from '../../../gas/src/Utils'
+import { triggerShortcutTimer, getShortcutConfig } from './shortcutUtils'
 
 const DEV_CLIENT_ID = 'dev-task-flow'
 
@@ -77,6 +78,10 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
     },
     clientId: DEV_CLIENT_ID,
   })
+
+  // 如果是 iPhone 用户，触发 Shortcut 启动计时器
+  const shortcutConfig = getShortcutConfig()
+  triggerShortcutTimer(candidate.title??"", candidate.taskId, shortcutConfig)
 
   return { status: 'success', message: '任務已開始' }
 }

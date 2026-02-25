@@ -2179,3 +2179,170 @@ export default {
 ### 結果
 
 ✅ Tailwind CSS 已正常工作，所有 class 樣式現在都能正確渲染
+
+==============================================================
+
+---
+
+## [2026-02-25] ychsue 請問，有沒有可能這四張表當螢幕不夠大時(手機就很小)可以變成點他們則跳出一個 dialog 來修改。還有，我接著想要給 iOS 的系統可以透過 `shortcuts://run-....` 來跑捷徑，所以，可能需要全域 context (還是透過 Dexie.db 來做？)來存這個判斷嗎
+
+關於 `shortcuts://` 的部分，我的意思是比方當我在iPhone上在此PWA start 一個 task 後，若他發現是 iPhone ，就在開始一個 task 後，呼叫 `shortcuts://run... start a timer with 30 mins`， 30 也是計時器的參數，我們可調，未來若是有人在 windows, linux, android 我們再看看他們要怎麼配合
+
+### Github Copilot 解決法
+
+寫在 [說明檔](ios\iPhone_Shortcut_Integration.md) 裡面
+
+---
+
+## [2026-02-25] 響應式表格設計實現
+
+### 概述
+
+將四張表（Inbox、Task Pool、Scheduled、Micro Tasks）改造為響應式設計，在移動設備上顯示為卡片+對話框編輯，在桌面上保持原有表格視圖。斷點設定為 768px（md）。
+
+### 1. 新建核心組件
+
+#### `useResponsiveTable` Hook
+
+```typescript
+// pwa/src/hooks/useResponsiveTable.ts
+- 檢測 window.innerWidth < 768px
+- 使用防抖 (150ms) 優化性能
+- 監聽 window resize 事件
+- 返回 { isMobile: boolean }
+```
+
+#### `TableCard` 組件
+
+```typescript
+// pwa/src/components/TableCard.tsx
+- 通用卡片組件，接收 fields 陣列
+- 顯示 key-value 欄位對
+- 編輯和刪除按鈕，帶 hover 效果
+- Tailwind 樣式：bg-white, border, shadow-sm
+```
+
+#### `EditDialog` 組件
+
+```typescript
+// pwa/src/components/EditDialog.tsx
+- 動態表單對話框
+- 支援 4 種欄位類型：text, number, datetime, select
+- 移動端：fixed bottom + rounded-t-lg + max-h-[90vh]
+- 桌面：sm:fixed center + rounded-lg + max-h-[80vh]
+- 內部 flex 列布局
+  * 標題：flex-shrink-0（固定）
+  * 表單：flex-1 overflow-y-auto（可滾動）
+  * 按鈕：flex-shrink-0（固定底部）
+
+**修復項目：**
+- ✅ 背景黑色（使用 `bg-black/50` 替代 `bg-black bg-opacity-50`）
+- ✅ 長表單無法滾動（添加 flex 列布局和 overflow-y-auto）
+- ✅ 點擊背景可關閉（外層 div 添加 onClick={onClose}，內層 onClick={(e) => e.stopPropagation()}）
+```
+
+### 2. 四張表的改造
+
+#### 改造流程（以 InboxTable 為例）
+
+##### a) 導入依賴
+
+```typescript
+import { useResponsiveTable } from '../../hooks/useResponsiveTable'
+import { TableCard } from '../TableCard'
+import { EditDialog, type FieldType } from '../EditDialog'
+```
+
+##### b) 添加狀態
+
+```typescript
+const { isMobile } = useResponsiveTable()
+const [editingItem, setEditingItem] = useState<InboxItem | null>(null)
+```
+
+##### c) 修改 handleEditSave 流程（重要！）
+
+```typescript
+const handleEditSave = async (data: Record<string, any>) => {
+  if (!editingItem) return
+  
+  const patch = { /* 整理資料 */ }
+  
+  // ✅ 關鍵：先立即更新本地狀態（用戶看到變化）
+  updateLocalRow(editingItem.taskId, patch)
+  
+  // 再異步保存到數據庫（背景同步）
+  await saveUpdate(editingItem.taskId, patch)
+  setEditingItem(null)
+}
+```
+
+##### d) 條件渲染視圖
+
+```typescript
+return (
+  {isMobile ? (
+    // 移動視圖：卡片 + 對話框
+    <>
+      <div className="grid grid-cols-1 gap-3">
+        {rows.map(item => (
+          <TableCard 
+            item={item}
+            fields={[...]}
+            onEdit={setEditingItem}
+            onDelete={deleteRow}
+          />
+        ))}
+      </div>
+      <EditDialog 
+        isOpen={!!editingItem}
+        item={editingItem}
+        fields={[...]}
+        onSave={handleEditSave}
+        onClose={() => setEditingItem(null)}
+      />
+    </>
+  ) : (
+    // 桌面視圖：原有表格
+    <div className="overflow-x-auto border rounded-lg">
+      <table>...</table>
+    </div>
+  )}
+)
+```
+
+#### 四張表應用
+
+| 表格 | 文件 | 關鍵欄位 |
+| -- | -- | -- |
+| InboxTable | pwa/src/components/tables/InboxTable.tsx | title, receivedAt |
+| TaskPoolTable | pwa/src/components/tables/TaskPoolTable.tsx | title, status, priority, dailyLimitMins, spentTodayMins, url |
+| ScheduledTable | pwa/src/components/tables/ScheduledTable.tsx | title, status, cronExpr, remindBefore/After, nextRun |
+| MicroTasksTable | pwa/src/components/tables/MicroTasksTable.tsx | title, status, lastRunDate |
+
+### 3. 核心發現
+
+#### 問題 1：卡片編輯後內容不更新
+
+- 原因：只保存到數據庫，未更新本地 React 狀態
+- 解決：在 handleEditSave 中先 `updateLocalRow()`，再 `await saveUpdate()`
+
+#### 問題 2：EditDialog 長表單無法滾動
+
+- 原因：外層容器無最大高度限制，內容無滾動容器
+- 解決：使用 flex 列布局，內層表單區域添加 `flex-1 overflow-y-auto`
+
+#### 問題 3：黑色死區
+
+- 原因：`bg-black bg-opacity-50` 重複應用了不透明度
+- 解決：統一使用 `bg-black/50`（Tailwind v4 語法）
+
+### 4. 驗證
+
+✅ npm run build 成功
+✅ 無 TypeScript 編譯錯誤  
+✅ 響應式在 768px 斷點切換正常
+✅ 卡片編輯即時更新
+✅ EditDialog 內容可滾動
+
+---
