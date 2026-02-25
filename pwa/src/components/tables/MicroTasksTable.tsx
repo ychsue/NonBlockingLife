@@ -25,6 +25,9 @@ function createNewMicroTaskRow(): MicroTaskItem {
 export function MicroTasksTable() {
   const [rows, setRows] = useState<MicroTaskItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
+    taskId: false,
+  })
 
   // 初始載入（不自動更新）
   useEffect(() => {
@@ -117,7 +120,7 @@ export function MicroTasksTable() {
 
           return (
             <input
-              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 min-w-3xs"
               value={value}
               onChange={(event) =>
                 updateLocalRow(taskId, { title: event.target.value })
@@ -137,7 +140,7 @@ export function MicroTasksTable() {
 
           return (
             <select
-              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 min-w-[7rem]"
               value={value}
               onChange={(event) =>
                 updateLocalRow(taskId, { status: event.target.value })
@@ -173,6 +176,10 @@ export function MicroTasksTable() {
     data: rows,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    state: {
+      columnVisibility,
+    },
+    onColumnVisibilityChange: setColumnVisibility,
   })
 
   return (

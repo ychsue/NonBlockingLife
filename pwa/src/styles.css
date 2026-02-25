@@ -11,7 +11,6 @@
 
 * {
   box-sizing: border-box;
-  font-size: 16px;
 }
 
 body {
@@ -33,13 +32,13 @@ body {
 }
 
 h1 {
-  font-size: 31px;
+  font-size: 24px;
   margin: 0 0 8px;
 }
 
 .muted {
   color: #5b6472;
-  font-size: 17px;
+  font-size: 14px;
 }
 
 .actions {
@@ -53,7 +52,7 @@ h1 {
   padding: 8px 14px;
   border-radius: 10px;
   cursor: pointer;
-  font-size: 17px;
+  font-size: 14px;
 }
 
 .btn.primary {
@@ -84,7 +83,7 @@ h1 {
 }
 
 .table th {
-  font-size: 16px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #5b6472;
@@ -95,7 +94,7 @@ h1 {
   border: 1px solid #d6dde6;
   border-radius: 8px;
   padding: 6px 8px;
-  font-size: 17px;
+  font-size: 14px;
 }
 
 @media (max-width: 720px) {
