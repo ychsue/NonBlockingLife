@@ -31,6 +31,7 @@ export function SelectionCacheTable() {
   const setIsInterruptMode = useAppStore((state) => state.setIsInterruptMode)
 
   // 本地狀態（非持久化）
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [startNote, setStartNote] = useState('')
   const [runningTask, setRunningTask] = useState<Dashboard | null>(null)
   const [endNote, setEndNote] = useState('')
@@ -56,33 +57,29 @@ export function SelectionCacheTable() {
 
   // 當有運行中的任務時，自動顯示 EndDialog（除非是通過 URL action 觸發）
   useEffect(() => {
-    setShowEndDialog(!!runningTask || isInterruptMode)
-  }, [runningTask, isInterruptMode, setShowEndDialog])
+    setShowEndDialog(!!runningTask)
+  }, [runningTask, setShowEndDialog])
 
   useEffect(() => {
     const dialog = endDialogRef.current
+    console.log('[EndDialog] showEndDialog:', showEndDialog, 'dialog:', dialog, 'running:', !!runningTask)
+    
     if (!dialog) {
-      // 如果 ref 還沒值，延遲 50ms 再試一次
-      const timer = setTimeout(() => {
-        const dialogRetry = endDialogRef.current
-        if (dialogRetry) {
-          handleDialogState(dialogRetry)
-        }
-      }, 50)
-      return () => clearTimeout(timer)
+      console.warn('[EndDialog] dialog ref is null, waiting for mount...')
+      return
     }
-    handleDialogState(dialog)
-  }, [showEndDialog, isInterruptMode, endDialogRef.current])
-
-  const handleDialogState = (dialog: HTMLDialogElement) => {
+    
+    // 以 showEndDialog 為主要控制
     if (showEndDialog) {
       if (!dialog.open) {
+        console.log('[EndDialog] opening dialog')
         dialog.showModal()
       }
-    } else if (dialog.open && !isInterruptMode) {
+    } else if (dialog.open) {
+      console.log('[EndDialog] closing dialog')
       dialog.close()
     }
-  }
+  }, [showEndDialog])
 
   const loadRunningTask = async () => {
     const current = await getRunningTask()
@@ -233,8 +230,8 @@ export function SelectionCacheTable() {
       }
       setEndNote('')
       setWarning('')
-      setShowEndDialog(true)
-      setIsInterruptMode(true)
+      setShowEndDialog(false)
+      setIsInterruptMode(false)
       await loadRunningTask()
       await handleRefreshCandidates()
     } catch (err) {

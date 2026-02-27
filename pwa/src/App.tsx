@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useUrlAction, SheetName } from './hooks/useUrlAction'
+import { useAppStore } from './store/appStore'
 import { TabNavigation } from './components/TabNavigation'
 import { Toast } from './components/Toast'
 import { SyncStatus } from './components/SyncStatus'
@@ -15,7 +16,8 @@ import './styles.css'
 type AllPages = SheetName | 'selection_cache' | 'log'
 
 export default function App() {
-  const [currentSheet, setCurrentSheet] = useState<AllPages>('inbox')
+  const currentSheet = useAppStore((state) => state.currentSheet)
+  const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
   const [toast, setToast] = useState('')
   const [showResetConfirm, setShowResetConfirm] = useState(false)
 
@@ -81,6 +83,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
+      <div className="border-b border-gray-200 bg-white sticky top-0 z-40">
       <header className="border-b border-gray-200 bg-white sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div>
@@ -94,7 +97,8 @@ export default function App() {
       </header>
 
       {/* Tabs */}
-      <TabNavigation currentSheet={currentSheet} onSelectSheet={setCurrentSheet} />
+      <TabNavigation />
+      </div>
 
       {/* Main Content */}
       <main className="flex-1 bg-gray-50">

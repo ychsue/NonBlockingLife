@@ -1,11 +1,7 @@
+import { useAppStore } from '../store/appStore'
 import { SheetName } from '../hooks/useUrlAction'
 
 type AllPages = SheetName | 'selection_cache' | 'log'
-
-interface TabNavigationProps {
-  currentSheet: AllPages
-  onSelectSheet: (sheet: AllPages) => void
-}
 
 const TABS: { sheet: AllPages; label: string; icon: string }[] = [
   { sheet: 'inbox', label: 'Inbox', icon: '📭' },
@@ -16,17 +12,17 @@ const TABS: { sheet: AllPages; label: string; icon: string }[] = [
   { sheet: 'log', label: 'Log', icon: '🧾' },
 ]
 
-export function TabNavigation({
-  currentSheet,
-  onSelectSheet,
-}: TabNavigationProps) {
+export function TabNavigation() {
+  const currentSheet = useAppStore((state) => state.currentSheet)
+  const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
+
   return (
-    <nav className="border-b border-gray-200 bg-white">
+    <nav className="border-b border-gray-200 bg-white sticky top-0 z-10">
       <div className="flex gap-1 px-4 py-2 overflow-x-auto">
         {TABS.map(({ sheet, label, icon }) => (
           <button
             key={sheet}
-            onClick={() => onSelectSheet(sheet)}
+            onClick={() => setCurrentSheet(sheet)}
             className={`px-3 py-2 text-sm whitespace-nowrap rounded-t-md border-b-2 transition-colors ${
               currentSheet === sheet
                 ? 'border-blue-500 text-blue-600 bg-blue-50'

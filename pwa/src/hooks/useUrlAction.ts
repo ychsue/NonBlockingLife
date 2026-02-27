@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { applyChange, db } from '../db/index'
+import { useAppStore } from '../store/appStore'
 import Utils from '../../../gas/src/Utils'
 import { interruptTask } from '../utils/taskFlow'
 
@@ -116,7 +117,7 @@ export function useUrlAction(options: UseUrlActionOptions) {
 }
 
 /**
- * 處理中斷動作
+ * 處理中斷動作（使用 Zustand store，可在 .ts 文件中直接調用）
  */
 function handleInterruptAction(params: URLSearchParams) {
   const note = params.get('note') || ''
@@ -124,7 +125,15 @@ function handleInterruptAction(params: URLSearchParams) {
   interruptTask(note)
     .then((result) => {
       if (result.status === 'success') {
-        console.log('✅ 已進入中斷模式')
+        // ⏱️ 使用 queueMicrotask 確保 DOM 已更新後再設置狀態
+        queueMicrotask(() => {
+          useAppStore.setState({
+            showEndDialog: true,
+            isInterruptMode: true,
+            currentSheet: 'selection_cache', // 自動切到 Selection Cache 頁籤
+          })
+          console.log('✅ 已進入中斷模式，showEndDialog 設為 true')
+        })
       } else {
         console.error('❌ 中斷失敗：', result.message)
       }

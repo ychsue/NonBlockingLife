@@ -2346,3 +2346,228 @@ return (
 ✅ EditDialog 內容可滾動
 
 ---
+
+====================================================================
+
+---
+
+## [2026-02-26] ychsue 由於當我由 useUrlAction 來做 interrupt， SelectionCacheTable 的 `showStartDialog` 並不知道我想切換他，請問若改用 Zustand (還沒裝) 或 react 原生 contextprovider 來控制會比較好嗎？未來切換頁面恐怕也可以透過這機制，這樣，不管 tsx or ts 都可以控制，您覺得呢
+
+## [2026-02-26（續）] Zustand 全域狀態管理實現完成 ✅
+
+### 問題根源
+
+在 `useUrlAction.ts`（純 TS 檔案）中調用 `interruptTask()` 後，需要通知 React 組件 `SelectionCacheTable` 打開對話框。但本地 `useState` 狀態無法在非 React 檔案中訪問和修改，導致跨組件通信失效。
+
+### 解決方案：Zustand
+
+**決策選項對比：**
+
+| 特性 | Zustand | React Context | Redux |
+| --- | --- | --- | --- |
+| Bundle 大小 | 8.4KB ⭐ | 內置 | ~40KB |
+| TS 支持 | 完整 ⭐ | 需要 Provider 包裝 | 完整 |
+| 非 React 文件訪問 | ✅ 可直接調用 setState | ❌ 無法訪問 | ✅ 但笨重 |
+| 學習曲線 | 低 ⭐ | 低 | 陡峭 |
+| 性能 | 優秀 ⭐ | 可能 rerender 過多 | 優秀 |
+
+**選擇：Zustand** - 輕量、TS 友善、且支持在純 TS 文件中調用 `setState()`
+
+### 實現細節
+
+#### 1. 建立全域狀態倉庫
+
+**file:** `pwa/src/store/appStore.ts`
+
+```typescript
+import { create } from 'zustand'
+
+interface AppState {
+  // 當前標籤頁
+  currentSheet: SheetName | 'selection_cache' | 'log'
+  setCurrentSheet: (sheet) => void
+
+  // 開始任務對話框顯示狀態
+  showStartDialog: boolean
+  setShowStartDialog: (show: boolean) => void
+
+  // 當前編輯的候選任務（代替 selectedTaskId）
+  editingCandidate: any | null
+  setEditingCandidate: (item: any | null) => void
+
+  // 中斷模式指示
+  isInterruptMode: boolean
+  setIsInterruptMode: (isMode: boolean) => void
+
+  // 結束任務對話框顯示狀態
+  showEndDialog: boolean
+  setShowEndDialog: (show: boolean) => void
+}
+
+export const useAppStore = create<AppState>((set) => ({
+  currentSheet: 'inbox',
+  setCurrentSheet: (sheet) => set({ currentSheet: sheet }),
+
+  showStartDialog: false,
+  setShowStartDialog: (show) => set({ showStartDialog: show }),
+
+  editingCandidate: null,
+  setEditingCandidate: (item) => set({ editingCandidate: item }),
+
+  isInterruptMode: false,
+  setIsInterruptMode: (isMode) => set({ isInterruptMode: isMode }),
+
+  showEndDialog: false,
+  setShowEndDialog: (show) => set({ showEndDialog: show }),
+}))
+```
+
+#### 2. 在純 TS 檔案中調用全域狀態
+
+**file:** `pwa/src/hooks/useUrlAction.ts`
+
+*按 Interrupt URL 時，直接調用 Zustand 的 setState：*
+
+```typescript
+import { useAppStore } from '../store/appStore'
+
+function handleInterruptAction(params: URLSearchParams) {
+  const note = params.get('note') || ''
+  
+  interruptTask(note)
+    .then((result) => {
+      if (result.status === 'success') {
+        // ✨ 直接在 TS 檔案中修改全域狀態，無需 React Hook
+        useAppStore.setState({
+          showEndDialog: true,
+          isInterruptMode: true,
+          currentSheet: 'selection_cache', // 自動切到 Candidates 頁籤
+        })
+        console.log('✅ 已進入中斷模式')
+      }
+      // 清除 URL
+      window.history.replaceState({}, document.title, window.location.pathname)
+    })
+    .catch((err) => console.error('❌ 中斷失敗：', err))
+}
+```
+
+#### 3. 在 React 組件中訂閱全域狀態
+
+**file:** `pwa/src/components/tables/SelectionCacheTable.tsx`
+
+```typescript
+export function SelectionCacheTable() {
+  // ✨ 訂閱全域狀態（無須 useState，直接從 Zustand 讀取）
+  const showStartDialog = useAppStore((state) => state.showStartDialog)
+  const setShowStartDialog = useAppStore((state) => state.setShowStartDialog)
+  const editingCandidate = useAppStore((state) => state.editingCandidate)
+  const setEditingCandidate = useAppStore((state) => state.setEditingCandidate)
+  const showEndDialog = useAppStore((state) => state.showEndDialog)
+  const setShowEndDialog = useAppStore((state) => state.setShowEndDialog)
+
+  // ... 同時監聽狀態變化，自動控制對話框顯示
+  useEffect(() => {
+    const dialog = startDialogRef.current
+    if (showStartDialog && !dialog?.open) {
+      dialog?.showModal()
+    } else if (!showStartDialog && dialog?.open) {
+      dialog?.close()
+    }
+  }, [showStartDialog])
+
+  useEffect(() => {
+    const dialog = endDialogRef.current
+    if (showEndDialog && !dialog?.open) {
+      dialog?.showModal()
+    } else if (!showEndDialog && dialog?.open) {
+      dialog?.close()
+    }
+  }, [showEndDialog])
+}
+```
+
+#### 4. 更新 TabNavigation 移除 Props
+
+**file:** `pwa/src/components/TabNavigation.tsx`
+
+*從接收 props 改為直接訂閱全域狀態：*
+
+```typescript
+export function TabNavigation() {
+  const currentSheet = useAppStore((state) => state.currentSheet)
+  const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
+
+  return (
+    <nav className="border-b border-gray-200">
+      <div className="flex gap-1 px-4 py-2">
+        {TABS.map(({ sheet, label, icon }) => (
+          <button
+            key={sheet}
+            onClick={() => setCurrentSheet(sheet)}
+            className={currentSheet === sheet ? '... active' : '... inactive'}
+          >
+            {icon} {label}
+          </button>
+        ))}
+      </div>
+    </nav>
+  )
+}
+```
+
+**App.tsx 調用簡化：**
+
+```typescript
+// ❌ 之前
+<TabNavigation currentSheet={currentSheet} onSelectSheet={setCurrentSheet} />
+
+// ✅ 改為
+<TabNavigation />
+```
+
+### 5. 工作流程驗證
+
+**中斷動作觸發流程：**
+
+```js
+iPhone Shortcut
+    ↓
+?action=interrupt (URL Query)
+    ↓
+useUrlAction Hook 解析 URL
+    ↓
+interruptTask() 執行業務邏輯
+    ↓
+useAppStore.setState({ showEndDialog: true })  ← 在 TS 檔案中直接調用
+    ↓
+SelectionCacheTable 訂閱 showEndDialog
+    ↓
+自動打開結束任務對話框 ✅
+```
+
+### 6. 構建驗證
+
+✅ `npm install zustand` - 成功安裝 (1 package added)
+✅ `npm run build` - 生成 dist/ 文件夾無錯誤
+✅ TypeScript 檢查通過：無類型錯誤
+✅ 文件修改列表：
+
+- `pwa/src/store/appStore.ts` - 新增 Zustand Store
+- `pwa/src/App.tsx` - 遷移 currentSheet 到全域狀態
+- `pwa/src/hooks/useUrlAction.ts` - 整合 Zustand setState
+- `pwa/src/components/tables/SelectionCacheTable.tsx` - 訂閱全域狀態
+- `pwa/src/components/TabNavigation.tsx` - 移除 Props，直接使用全域狀態
+
+### 7. 提供的好處
+
+1. **跨檔案通信** ✅ - TS 檔案可直接修改全域狀態
+2. **減少 Props Drilling** ✅ - TabNavigation 和 SelectionCacheTable 不再需要層層傳遞 props
+3. **頁籤切換自動化** ✅ - interrupt 時自動切到 selection_cache 頁籤
+4. **未來擴展簡單** ✅ - 其他組件直接訂閱相同狀態，無需重構
+
+### 8. 下一步方向
+
+1. **視覺反饋** - 在 interrupt 模式時添加 UI 提示（顏色、動畫）
+2. **其他表格整合** - InboxTable, TaskPoolTable 等也可使用全域狀態
+3. **持久化考量** - 如需要記錄「用戶上次打開的頁籤」，可使用 `persist` middleware

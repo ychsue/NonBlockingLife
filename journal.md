@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-02-27] 總算能正常關閉 EndDialog，且使用 Zustand 來管理頁面與 ShowEndDialog了
+
 ## [2026-02-25] 讓螢幕太小的改用 Dialog 來修改參數
 
 ## [2026-02-25] 修正視覺
