@@ -7,7 +7,7 @@ import { interruptTask } from "../utils/taskFlow";
 export type SheetName = "inbox" | "scheduled" | "task_pool" | "micro_tasks";
 
 interface UseUrlActionOptions {
-  onNavigate: (sheet: SheetName) => void;
+  onNavigate: (sheet: SheetName|"selection_cache") => void;
   onSuccess?: (message: string) => void;
   onError?: (message: string) => void;
   clientId?: string;
@@ -35,8 +35,6 @@ export function useUrlAction(options: UseUrlActionOptions) {
     clientId = "iphone-shortcut",
   } = options;
 
-  const setCurrentSheet = useAppStore((state) => state.setCurrentSheet);
-
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const sheet = params.get("sheet") as SheetName | null;
@@ -49,7 +47,14 @@ export function useUrlAction(options: UseUrlActionOptions) {
     }
 
     if (action === "query") {
-      setCurrentSheet("selection_cache"); // 自動切到 Selection Cache 頁籤
+      onNavigate("selection_cache"); // 自動切到 Selection Cache 頁籤
+        // 清除 URL（避免重複新增）
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname,
+        );
+      return;
     }
 
     // 若沒有參數或 action 不是 'add'，不處理
