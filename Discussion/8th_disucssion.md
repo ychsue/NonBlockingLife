@@ -2571,3 +2571,11 @@ SelectionCacheTable 訂閱 showEndDialog
 1. **視覺反饋** - 在 interrupt 模式時添加 UI 提示（顏色、動畫）
 2. **其他表格整合** - InboxTable, TaskPoolTable 等也可使用全域狀態
 3. **持久化考量** - 如需要記錄「用戶上次打開的頁籤」，可使用 `persist` middleware
+
+=============================================================
+
+---
+
+## [2026-03-01] ychsue 我想要有個說明頁面，裏頭會講到類似 iOS 可以安裝哪些 Shortcuts 好開啟此專案與此專案需要哪些 Shortcuts 來增加此專案的效果
+
+### VSCode Copilot's Answer 01

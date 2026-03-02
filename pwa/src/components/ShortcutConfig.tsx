@@ -39,12 +39,12 @@ export function ShortcutConfig() {
               </label>
               <input
                 type="checkbox"
-                checked={config.enabled}
-                onChange={(e) => handleChange('enabled', e.target.checked)}
+                checked={config.started}
+                onChange={(e) => handleChange('started', e.target.checked)}
                 className="w-4 h-4"
               />
               <span className="ml-2 text-sm text-gray-600">
-                {config.enabled ? '已启用' : '已禁用'}
+                {config.started ? '已启用' : '已禁用'}
               </span>
             </div>
 
@@ -89,7 +89,7 @@ export function ShortcutConfig() {
               {saved ? '✅ 已保存' : '保存配置'}
             </button>
 
-            {config.enabled && (
+            {config.started && (
               <a
                 href={testShortcutUrl}
                 className="block w-full px-4 py-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600"
@@ -99,7 +99,7 @@ export function ShortcutConfig() {
             )}
           </div>
 
-          {config.enabled && (
+          {config.started && (
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
               <strong>使用说明：</strong>
               <ul className="list-disc list-inside mt-2 space-y-1">

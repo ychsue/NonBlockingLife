@@ -80,7 +80,7 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
   })
 
   // 如果是 iPhone 用户，触发 Shortcut 启动计时器
-  const shortcutConfig = getShortcutConfig()
+  const shortcutConfig = getShortcutConfig("start")
   triggerShortcutTimer(candidate.title??"", candidate.taskId, shortcutConfig)
 
   return { status: 'success', message: '任務已開始' }
@@ -145,6 +145,10 @@ export async function endTask(endNote: string, isInterrupt = false) {
     patch: {},
     clientId: DEV_CLIENT_ID,
   })
+
+  // 如果是 iPhone 用户，觸發 Shortcut 結束計時器
+  const shortcutConfig = getShortcutConfig("end")
+  triggerShortcutTimer(running.title??"", running.taskId, shortcutConfig)
 
   return { status: 'success', message: '任務已結束', duration }
 }

@@ -1,6 +1,17 @@
 # Journal
 
+## [2026-02-28] 規劃一下 iOS 那端想要甚麼
+
+1. [x] 開始`start` 後，就 **iPhone** 變單色，設30分鐘計時器
+2. [x] `end`後，就 **iPhone** 變回原來顏色，設定10分鐘計時器
+   1. [ ] 如果是 Scheduled，若有 `Callback` ，表示 **iPhone** 要 `Remind_After` 分鐘後需要提醒使用者要切換另一個任務
+3. [x] `inbox` 就直接加一個 inbox
+4. [x] `interrupt` 按下去就開始 start interrupt，讓 **iPhone** 走 `start`
+5. [x] `scheduled` 按下去會先開啟 **iPhone** calendar，然後，才寫入 `scheduled`
+
 ## [2026-02-27] 總算能正常關閉 EndDialog，且使用 Zustand 來管理頁面與 ShowEndDialog了
+
+簡單講，就是 ref.current 有可能在渲染後被改了，所以，原本的open就沒用了
 
 ## [2026-02-25] 讓螢幕太小的改用 Dialog 來修改參數
 

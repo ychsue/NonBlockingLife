@@ -27,6 +27,17 @@ export async function applyChange({ table, recordId, op, patch, clientId }: Appl
   const now = Date.now()
   const id = buildChangeLogId(now, table, recordId)
   const data = patch && (patch as Record<string, unknown>).taskId ? patch : { ...patch, taskId: recordId }
+  // 假如有 nextRun，但是是 string，嘗試解析成 Date 物件 ，再轉換為 timestamp
+  if (data.nextRun && typeof data.nextRun === 'string') {
+    const parsedDate = Date.parse(data.nextRun)
+    if (!isNaN(parsedDate)) {
+      data.nextRun = parsedDate
+    } else {
+      console.warn(`Unable to parse nextRun date string: ${data.nextRun}`)
+      delete data.nextRun // 移除無法解析的 nextRun 字段
+    }
+  }
+
   const normalizedData =
     op === 'add' && table === 'log' && !(data as Record<string, unknown>).id
       ? { ...data, id: id }

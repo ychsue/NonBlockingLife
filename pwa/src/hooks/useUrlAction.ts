@@ -1,155 +1,161 @@
-import { useEffect } from 'react'
-import { applyChange, db } from '../db/index'
-import { useAppStore } from '../store/appStore'
-import Utils from '../../../gas/src/Utils'
-import { interruptTask } from '../utils/taskFlow'
+import { useEffect } from "react";
+import { applyChange, db } from "../db/index";
+import { useAppStore } from "../store/appStore";
+import Utils from "../../../gas/src/Utils";
+import { interruptTask } from "../utils/taskFlow";
 
-export type SheetName = 'inbox' | 'scheduled' | 'task_pool' | 'micro_tasks'
+export type SheetName = "inbox" | "scheduled" | "task_pool" | "micro_tasks";
 
 interface UseUrlActionOptions {
-  onNavigate: (sheet: SheetName) => void
-  onSuccess?: (message: string) => void
-  onError?: (message: string) => void
-  clientId?: string
+  onNavigate: (sheet: SheetName) => void;
+  onSuccess?: (message: string) => void;
+  onError?: (message: string) => void;
+  clientId?: string;
 }
 
 /**
  * 監聽 URL Query 參數，自動將 iPhone Shortcut 的新增請求寫入 Dexie
- * 
+ *
  * 使用範例：
  * useUrlAction({
  *   onNavigate: setCurrentSheet,
  *   onSuccess: setToast,
  *   clientId: 'iphone-shortcut'
  * })
- * 
+ *
  * URL 格式：
  * ?sheet=inbox&action=add&title=Buy%20milk
  * ?sheet=scheduled&action=add&title=Morning%20Run&cronExpr=0%209%20*%20*%20*
  */
 export function useUrlAction(options: UseUrlActionOptions) {
-  const { onNavigate, onSuccess, onError, clientId = 'iphone-shortcut' } =
-    options
+  const {
+    onNavigate,
+    onSuccess,
+    onError,
+    clientId = "iphone-shortcut",
+  } = options;
+
+  const setCurrentSheet = useAppStore((state) => state.setCurrentSheet);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const sheet = params.get('sheet') as SheetName | null
-    const action = params.get('action')
+    const params = new URLSearchParams(window.location.search);
+    const sheet = params.get("sheet") as SheetName | null;
+    const action = params.get("action");
 
     // 處理中斷動作
-    if (action === 'interrupt') {
-      handleInterruptAction(params)
-      return
+    if (action === "interrupt") {
+      handleInterruptAction(params);
+      return;
+    }
+
+    if (action === "query") {
+      setCurrentSheet("selection_cache"); // 自動切到 Selection Cache 頁籤
     }
 
     // 若沒有參數或 action 不是 'add'，不處理
-    if (!sheet || action !== 'add') return
+    if (!sheet || action !== "add") return;
 
     // 允許的 sheet
     const validSheets: SheetName[] = [
-      'inbox',
-      'scheduled',
-      'task_pool',
-      'micro_tasks',
-    ]
+      "inbox",
+      "scheduled",
+      "task_pool",
+      "micro_tasks",
+    ];
     if (!validSheets.includes(sheet)) {
-      console.warn(`Invalid sheet: ${sheet}`)
-      return
+      console.warn(`Invalid sheet: ${sheet}`);
+      return;
     }
 
     // 提取所有參數為 record patch（排除 sheet 和 action）
-    const patch: Record<string, unknown> = {}
+    const patch: Record<string, unknown> = {};
     params.forEach((value, key) => {
-      if (key !== 'sheet' && key !== 'action') {
+      if (key !== "sheet" && key !== "action") {
         // 嘗試解析數字
         if (!isNaN(Number(value))) {
-          patch[key] = Number(value)
+          patch[key] = Number(value);
         } else {
-          patch[key] = value
+          patch[key] = value;
         }
       }
-    })
+    });
 
     // 補預設值，避免欄位顯示空白
-    if (sheet === 'inbox' && patch.receivedAt == null) {
-      patch.receivedAt = Date.now()
+    if (sheet === "inbox" && patch.receivedAt == null) {
+      patch.receivedAt = Date.now();
     }
 
     // 生成 recordId
-    const recordId = generateRecordId(sheet, patch)
+    const recordId = generateRecordId(sheet, patch);
 
     // 寫入 Dexie
     applyChange({
       table: sheet,
       recordId,
-      op: 'add',
+      op: "add",
       patch,
       clientId,
     })
       .then(() => {
         // 導航到該頁籤
-        onNavigate(sheet)
+        onNavigate(sheet);
 
         // 顯示成功提示
         const sheetLabel: Record<SheetName, string> = {
-          inbox: 'Inbox',
-          scheduled: 'Scheduled',
-          task_pool: 'Task Pool',
-          micro_tasks: 'Micro Tasks',
-        }
+          inbox: "Inbox",
+          scheduled: "Scheduled",
+          task_pool: "Task Pool",
+          micro_tasks: "Micro Tasks",
+        };
         onSuccess?.(
-          `✅ 已新增到 ${sheetLabel[sheet]}: ${patch.title || recordId}`
-        )
+          `✅ 已新增到 ${sheetLabel[sheet]}: ${patch.title || recordId}`,
+        );
 
         // 清除 URL（避免重複新增）
         window.history.replaceState(
           {},
           document.title,
-          window.location.pathname
-        )
+          window.location.pathname,
+        );
       })
       .catch((err) => {
-        const errorMsg = err instanceof Error ? err.message : String(err)
-        console.error('Failed to add from URL action:', err)
-        onError?.(`❌ 新增失敗：${errorMsg}`)
-      })
-  }, [onNavigate, onSuccess, onError, clientId])
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        console.error("Failed to add from URL action:", err);
+        onError?.(`❌ 新增失敗：${errorMsg}`);
+      });
+  }, [onNavigate, onSuccess, onError, clientId]);
 }
 
 /**
  * 處理中斷動作（使用 Zustand store，可在 .ts 文件中直接調用）
  */
 function handleInterruptAction(params: URLSearchParams) {
-  const note = params.get('note') || ''
-  
+  const note = params.get("note") || "";
+
   interruptTask(note)
     .then((result) => {
-      if (result.status === 'success') {
+      if (result.status === "success") {
         // ⏱️ 使用 queueMicrotask 確保 DOM 已更新後再設置狀態
         queueMicrotask(() => {
           useAppStore.setState({
             showEndDialog: true,
             isInterruptMode: true,
-            currentSheet: 'selection_cache', // 自動切到 Selection Cache 頁籤
-          })
-          console.log('✅ 已進入中斷模式，showEndDialog 設為 true')
-        })
+            currentSheet: "selection_cache", // 自動切到 Selection Cache 頁籤
+          });
+          console.log("✅ 已進入中斷模式，showEndDialog 設為 true");
+        });
       } else {
-        console.error('❌ 中斷失敗：', result.message)
+        console.error("❌ 中斷失敗：", result.message);
       }
-      
+
       // 清除 URL（避免重複執行）
-      window.history.replaceState(
-        {},
-        document.title,
-        window.location.pathname
-      )
+      window.history.replaceState({}, document.title, window.location.pathname);
     })
     .catch((err) => {
-      const errorMsg = err instanceof Error ? err.message : String(err)
-      console.error('Failed to interrupt:', err)
-      console.error('❌ 中斷失敗：', errorMsg)
-    })
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      console.error("Failed to interrupt:", err);
+      console.error("❌ 中斷失敗：", errorMsg);
+    });
 }
 
 /**
@@ -157,18 +163,18 @@ function handleInterruptAction(params: URLSearchParams) {
  */
 function generateRecordId(
   sheet: SheetName,
-  _patch: Record<string, unknown>
+  _patch: Record<string, unknown>,
 ): string {
   switch (sheet) {
-    case 'inbox':
-      return Utils.generateId('I')
-    case 'task_pool':
-      return Utils.generateId('T')
-    case 'micro_tasks':
-      return Utils.generateId('t')
-    case 'scheduled':
-      return Utils.generateId('S')
+    case "inbox":
+      return Utils.generateId("I");
+    case "task_pool":
+      return Utils.generateId("T");
+    case "micro_tasks":
+      return Utils.generateId("t");
+    case "scheduled":
+      return Utils.generateId("S");
     default:
-      return Utils.generateId('X')
+      return Utils.generateId("X");
   }
 }

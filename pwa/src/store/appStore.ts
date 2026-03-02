@@ -3,8 +3,8 @@ import type { SheetName } from '../hooks/useUrlAction'
 
 interface AppState {
   // 当前选中的页签
-  currentSheet: SheetName | 'selection_cache' | 'log'
-  setCurrentSheet: (sheet: SheetName | 'selection_cache' | 'log') => void
+  currentSheet: SheetName | 'selection_cache' | 'log' | 'guide'
+  setCurrentSheet: (sheet: SheetName | 'selection_cache' | 'log' | 'guide') => void
 
   // Selection Cache 对话框状态
   showStartDialog: boolean
@@ -24,7 +24,7 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  currentSheet: 'inbox',
+  currentSheet: 'guide',
   setCurrentSheet: (sheet) => set({ currentSheet: sheet }),
 
   showStartDialog: false,

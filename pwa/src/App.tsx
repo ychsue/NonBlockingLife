@@ -10,10 +10,11 @@ import { ScheduledTable } from './components/tables/ScheduledTable'
 import { MicroTasksTable } from './components/tables/MicroTasksTable'
 import { SelectionCacheTable } from './components/tables/SelectionCacheTable'
 import { LogTable } from './components/tables/LogTable'
+import { GuidePage } from './components/GuidePage'
 import { db } from './db/index'
 import './styles.css'
 
-type AllPages = SheetName | 'selection_cache' | 'log'
+type AllPages = SheetName | 'selection_cache' | 'log' | 'guide'
 
 export default function App() {
   const currentSheet = useAppStore((state) => state.currentSheet)
@@ -42,6 +43,8 @@ export default function App() {
         return <SelectionCacheTable />
       case 'log':
         return <LogTable />
+      case 'guide':
+        return <GuidePage />
       default:
         return <InboxTable />
     }
