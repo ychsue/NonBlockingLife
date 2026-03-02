@@ -76,11 +76,19 @@ export function useUrlAction(options: UseUrlActionOptions) {
     const patch: Record<string, unknown> = {};
     params.forEach((value, key) => {
       if (key !== "sheet" && key !== "action") {
+        // *重要NOTE* 修復 URL 編碼問題：URLSearchParams 會將 + 解析成空格，需要手動恢復
+        // 針對 ISO 8601 日期字符串的容錯處理
+        let fixedValue = value;
+        if (key === "nextRun" || key === "createdAt" || key === "updatedAt") {
+          // 修复时区偏移中的空格 (e.g., "2026-03-10T10:00:00 08:00" → "2026-03-10T10:00:00+08:00")
+          fixedValue = fixedValue.replace(/T(\d{2}:\d{2}:\d{2})\s+(\d{2}:\d{2})/, "T$1+$2");
+        }
+
         // 嘗試解析數字
-        if (!isNaN(Number(value))) {
-          patch[key] = Number(value);
+        if (!isNaN(Number(fixedValue))) {
+          patch[key] = Number(fixedValue);
         } else {
-          patch[key] = value;
+          patch[key] = fixedValue;
         }
       }
     });
