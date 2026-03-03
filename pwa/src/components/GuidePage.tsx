@@ -13,7 +13,7 @@ const SHORTCUTS = [
   },
   {
     name: 'NBL_Timer',
-    url: 'https://www.icloud.com/shortcuts/ca78a51fb2804151a101378b5b9ca8d6',
+    url: 'https://www.icloud.com/shortcuts/ef7902c94d3a4a8298695502a7c5fdf5',
     purpose: 'iPhone 裡面接收來自NBL提出的顯示模式與計時器切換的要求。',
   },
   {
@@ -28,7 +28,7 @@ const SHORTCUTS = [
   },
   {
     name: 'NBL Scheduled',
-    url: 'https://www.icloud.com/shortcuts/2ad9f62253214f1aa3907a261d9246d7',
+    url: 'https://www.icloud.com/shortcuts/5ebbb7afb98b44fc9515e824ec0a6a11',
     purpose: '快速把想法丟進 NBL Scheduled',
   },
 ]

@@ -1,10 +1,10 @@
 # Journal
 
-## [2026-03-02] 修改
+## [2026-03-02] 修改 Shortcuts 與一些datetime UI 顯示的問題
 
 1. Shortcuts:
-   1. [ ] Scheduled: 因為打錯字
-   2. 
+   1. [x] Scheduled: 因為打錯字
+   2. [x] NBL_Timer: 做點修正
 
 ## [2026-02-28] 規劃一下 iOS 那端想要甚麼
 

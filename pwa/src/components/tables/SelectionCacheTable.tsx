@@ -391,7 +391,14 @@ export function SelectionCacheTable() {
         onCancel={(event) => event.preventDefault()}
       >
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-lg font-bold mb-4 text-amber-900">結束任務</h2>
+          <div className='flex items-center mb-4'>
+            {/* 若 isInterrupt === true 就顯示 interrupt 的 icon，否則顯示正在執行某任務中 */}
+            <span className={`text-2xl mr-2 ${isInterruptMode ? 'text-yellow-500' : 'text-amber-500'}`}>
+              {isInterruptMode ? '⚠️' : '⏳'}
+            </span>
+            <h2 className="text-lg font-bold mb-4 text-amber-900">結束任務</h2>
+          </div>
+          
           {runningTask ? (
             <>
               <div className="text-sm text-amber-900 font-semibold">
@@ -438,7 +445,11 @@ export function SelectionCacheTable() {
         onClose={() => setShowStartDialog(false)}
       >
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-lg font-bold mb-4">開始任務</h2>
+          <div className="flex items-center mb-4">
+            {/* icon shows wanted to run selected task */}
+            <span className="text-green-500 text-2xl mr-2">🚀</span>
+            <h2 className="text-lg font-bold mb-4">開始任務</h2>
+          </div>
 
           <div className="space-y-4">
             <div>

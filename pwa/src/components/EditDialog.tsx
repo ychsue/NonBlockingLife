@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { formatToDateTimeLocal } from '../utils/timeUtils'
 
 export type FieldType = 'text' | 'number' | 'datetime' | 'select'
 
@@ -100,7 +101,7 @@ export function EditDialog<T>({
                 <input
                   id={field.name}
                   type="datetime-local"
-                  value={formData[field.name] ?? ''}
+                  value={typeof formData[field.name] === "number" ? formatToDateTimeLocal(formData[field.name]) : formData[field.name] ?? ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />

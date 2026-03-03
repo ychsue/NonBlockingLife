@@ -21,17 +21,18 @@ const columnHelper = createColumnHelper<ScheduledItem>()
 
 function createNewScheduledRow(): ScheduledItem {
   const taskId = Utils.generateId('S')
+  const cronExpr = '0 9 * * *' // 預設每天早上9點執行
   return {
     taskId,
     title: '',
     status: 'WAITING',
-    cronExpr: '0 9 * * *',
+    cronExpr: cronExpr,
     remindBefore: '',
     remindAfter: '',
     callback: '',
     lastRun: undefined,
     note: '',
-    nextRun: undefined,
+    nextRun: Utils.getNextOccurrence(cronExpr, new Date())?.getTime(),
   }
 }
 
@@ -496,9 +497,9 @@ export function ScheduledTable() {
                 label: 'Status',
                 type: 'select' as FieldType,
                 options: [
-                  { label: 'Waiting', value: 'WAITING' },
-                  { label: 'Running', value: 'RUNNING' },
-                  { label: 'Done', value: 'DONE' },
+                  { label: 'WAITING', value: 'WAITING' },
+                  { label: 'PENDING', value: 'PENDING' },
+                  { label: 'DONE', value: 'DONE' },
                 ],
               },
               {
