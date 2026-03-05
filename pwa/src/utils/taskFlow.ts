@@ -2,6 +2,7 @@ import { applyChange, db } from '../db/index'
 import type { Dashboard, SelectionCacheItem, ScheduledItem, TaskPoolItem } from '../db/schema'
 import Utils from '../../../gas/src/Utils'
 import { triggerShortcutTimer, getShortcutConfig } from './shortcutUtils'
+import { parseToMinutes } from './candidateUtils'
 
 const DEV_CLIENT_ID = 'dev-task-flow'
 
@@ -87,6 +88,7 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
 }
 
 export async function endTask(endNote: string, isInterrupt = false) {
+  let timerMinutes = 10 // 默認中斷後的預設計時器時間
   const running = await getRunningTask()
   if (!running) {
     return { status: 'warning', message: '目前無執行中任務' }
@@ -108,6 +110,7 @@ export async function endTask(endNote: string, isInterrupt = false) {
   } else if (running.source === 'Scheduled') {
     const task = await db.scheduled.get(running.taskId)
     await updateScheduledAfterEnd(task, now)
+    timerMinutes = parseToMinutes(task?.remindAfter) ?? timerMinutes
   } else if (running.source === 'Micro_Tasks') {
     await applyChange({
       table: 'micro_tasks',
@@ -148,6 +151,7 @@ export async function endTask(endNote: string, isInterrupt = false) {
 
   // 如果是 iPhone 用户，觸發 Shortcut 結束計時器
   const shortcutConfig = getShortcutConfig("end")
+  shortcutConfig.timerMinutes = timerMinutes
   triggerShortcutTimer(running.title??"", running.taskId, shortcutConfig)
 
   return { status: 'success', message: '任務已結束', duration }
@@ -242,6 +246,28 @@ async function updateScheduledAfterEnd(task: ScheduledItem | undefined, now: num
 
   let nextRun: number | null = null
 
+  // * 1. 如果有 callback，則更新 callback 的 nextRun 為 now + remindAfter??0
+  if (task.callback) {
+    // 先找到 title 為 callback 的 scheduled 任務
+    const callbackTask = await db.scheduled
+      .where('title')
+      .equals(task.callback)
+      .first()
+    if (callbackTask) {
+      const remindAfterMins = parseToMinutes(task.remindAfter) || 0
+      const callbackNextRun = now + remindAfterMins * 60 * 1000
+      await applyChange({
+        table: 'scheduled',
+        recordId: callbackTask.taskId,
+        op: 'update',
+        patch: {
+          nextRun: callbackNextRun,
+        },
+        clientId: DEV_CLIENT_ID,
+      })
+    }
+  }
+  // * 2. 如果有 cron 表達式，計算下一次執行時間，若沒有則設為 null
   if (task.cronExpr) {
     let nextRunDate = Utils.getNextOccurrence(task.cronExpr, new Date(now))
     const oldNextRun = task.nextRun ? new Date(task.nextRun) : null
@@ -258,6 +284,8 @@ async function updateScheduledAfterEnd(task: ScheduledItem | undefined, now: num
     }
 
     nextRun = nextRunDate ? nextRunDate.getTime() : null
+  } else {
+    nextRun = null
   }
 
   await applyChange({

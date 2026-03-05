@@ -414,10 +414,11 @@ export function SelectionCacheTable() {
                 {runningTask.title ? ` - ${runningTask.title}` : ""}
               </div>
               <div className="mt-3">
-                <label className="block text-sm font-semibold mb-1 text-amber-900">
+                <label htmlFor="note_end" className="block text-sm font-semibold mb-1 text-amber-900">
                   結束備註 (選填)
                 </label>
                 <textarea
+                  id="note_end"
                   value={endNote}
                   onChange={(e) => setEndNote(e.target.value)}
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:border-amber-500"
@@ -462,11 +463,12 @@ export function SelectionCacheTable() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold mb-1">
+              <label htmlFor="task_id_start" className="block text-sm font-semibold mb-1">
                 任務 ID
               </label>
               <input
                 type="text"
+                id="task_id_start"
                 value={editingCandidate ?? ""}
                 disabled
                 className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100"
@@ -474,11 +476,12 @@ export function SelectionCacheTable() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-1">
+              <label htmlFor="title_start" className="block text-sm font-semibold mb-1">
                 任務標題
               </label>
               <input
                 type="text"
+                id="title_start"
                 value={
                   rows.find((r) => r.taskId === editingCandidate)?.title || ""
                 }
@@ -488,10 +491,11 @@ export function SelectionCacheTable() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-1">
+              <label htmlFor="note_start" className="block text-sm font-semibold mb-1">
                 備註 (選填)
               </label>
               <textarea
+                id="note_start"
                 value={startNote}
                 onChange={(e) => setStartNote(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"

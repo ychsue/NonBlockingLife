@@ -55,6 +55,8 @@ export function GuidePage() {
         <p className="text-gray-700 leading-relaxed">
           Non-Blocking Life 的目的是把任務管理做成「不打斷主線」的日常系統，讓你在 iPhone
           與 PWA 之間可以快速開始、結束、打岔與回到任務。
+          <br />
+          這是<a href="https://ychsue.github.io/superconductorlike_society/" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">我之前寫的「超導體般社會」</a>裡面個人「時間管理系統」的實驗性版本，目前功能還在開發中，先放上來給有興趣的人參考。
         </p>
       </div>
 
@@ -62,9 +64,13 @@ export function GuidePage() {
         <h3 className="text-lg font-semibold text-gray-800 mb-3">🚀 怎麼用（最短流程）</h3>
         <ol className="list-decimal pl-5 space-y-2 text-gray-700">
           <li>先開啟本 PWA，確認可看到 Inbox / Task Pool / Scheduled 等頁籤。</li>
-          <li>在 iPhone 安裝下方 Shortcuts，第一次匯入時填入你的 API 網址。</li>
-          <li>日常用法：開始 Task → 中斷（需要時）→ 結束 Task → 隨手丟 Inbox。</li>
-          <li>需要系統建議時，用 QueryOptions 直接挑下一個建議任務。</li>
+          <li>在 iPhone 安裝下方 Shortcuts，然後將除了 <b>NBL_Timer</b> 以外的 Shortcuts 加入 iPhone 的下拉式控制項目裡面。</li>
+          <li>日常用法：用 <b>QueryOptions</b> 直接挑下一個建議任務執行，或者結束當前任務。</li>
+          <li>而當您有任務想要加入做時間管理時，請到本PWA網頁。若是有要在特定時間(群)執行，請Add到<b>NBL Scheduled</b>裡面，否則，請Add到<b>Task Pool</b>或者<b>Micro Task</b>裡面。</li>
+          <li>當遇到突發狀況需要中斷當前任務時，請使用 <b>NBL Interrupt</b>。</li>
+          <li>若有好想法，請使用 <b>NBL Inbox</b> 快速記錄。我是把它設為iPhone的<b>輔助使用➡️觸控➡️背面輕點</b>，這樣就能快速紀錄。</li>
+          <li>若有行事曆要記錄，請使用 <b>NBL Scheduled</b>，他會先在iPhone 自己的行事曆紀錄一份，然後再同步到 NBL Scheduled。</li>
+          <li>原則上開始與結束任務，都會在<b>Log</b>頁籤紀錄。未來再來想辦法統計。</li>
         </ol>
       </div>
 
@@ -101,7 +107,9 @@ export function GuidePage() {
           <li>✅ End 後恢復色彩 + 10 分鐘計時（由 NBL_Timer 處理）</li>
           <li>✅ Inbox 新增（iPhone 已完成）</li>
           <li>✅ Interrupt 啟動 start interrupt（iPhone 已完成）</li>
-          <li>🚧 Scheduled add：開啟行事曆後再寫入 Scheduled（尚未完成）</li>
+          <li>✅ Scheduled add：開啟行事曆後再寫入 Scheduled</li>
+         <li><i>🚧 尚未寫分析Log的功能，應該可以交由AI分析才對。此外，關於身心健康的部分，也尚未實作</i></li>
+
         </ul>
       </div>
     </section>

@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-03-05] 讓 scheduled callback 與 remindAfter 有作用
+
 ## [2026-03-04] 想說簡單的在 useEffect [] 裡面呼叫 handleRefreshCandidates 即可
 
 錯誤訊息如下：
