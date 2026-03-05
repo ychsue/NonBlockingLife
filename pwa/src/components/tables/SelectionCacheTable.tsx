@@ -256,6 +256,17 @@ export function SelectionCacheTable() {
       columnHelper.accessor("title", {
         header: "任務標題",
         size: 300,
+        cell: (info) => {
+          const score = info.row.original.score ?? 0;
+          const titleClassName =
+            score < 5
+              ? "bg-green-500"
+              : score > 200
+                ? "bg-red-400"
+                : "bg-white-900";
+
+          return <span className={titleClassName+" px-2 py-1 rounded w-full"}>{info.getValue()}</span>;
+        },
       }),
       columnHelper.accessor("score", {
         header: "評分",
