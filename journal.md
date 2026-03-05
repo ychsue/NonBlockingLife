@@ -1,5 +1,18 @@
 # Journal
 
+## [2026-03-04] 想說簡單的在 useEffect [] 裡面呼叫 handleRefreshCandidates 即可
+
+錯誤訊息如下：
+
+``` js
+selection_cache.bulkAdd(): 7 of 7 operations failed. Errors: ConstraintError: Key already exists in the object store.
+```
+
+Gemini 有回答
+
+1. `bulkAdd`改為使用 `bulkPut` 比較簡單，反正就複寫
+2. 使用 `db.transaction('rw',TABLE,async()=>{...})` 這個就會強制clear 與 bulkAdd 是依序的
+
 ## [2026-03-02] 修改 Shortcuts 與一些datetime UI 顯示的問題
 
 1. Shortcuts:
