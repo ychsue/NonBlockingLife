@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-03-06] 準備同步，目前在步驟 1
+
+順便給正在跑的 task 加上計時
+
 ## [2026-03-05] 讓 scheduled callback 與 remindAfter 有作用
 
 ## [2026-03-04] 想說簡單的在 useEffect [] 裡面呼叫 handleRefreshCandidates 即可

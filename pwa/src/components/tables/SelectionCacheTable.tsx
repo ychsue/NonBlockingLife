@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import {
   createColumnHelper,
   flexRender,
@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-table";
 import { applyChange, db } from "../../db/index";
 import type { Dashboard, SelectionCacheItem } from "../../db/schema";
-import { calculateCandidates } from "../../utils/candidateUtils";
+import { calculateCandidates, minutesToTimeString } from "../../utils/candidateUtils";
 import { checkScheduledTimers } from "../../utils/checkTimers";
 import {
   endTask,
@@ -42,6 +42,18 @@ export function SelectionCacheTable() {
   const [warning, setWarning] = useState("");
   const startDialogRef = useRef<HTMLDialogElement | null>(null);
   const endDialogRef = useRef<HTMLDialogElement | null>(null);
+  const [takeTime, setTakeTime] = useState("");
+
+  const updateTakeTime = useCallback((task: Dashboard | null) => {
+    if (!task?.startAt) {
+      setTakeTime("");
+      return;
+    }
+
+    const now = Date.now();
+    const elapsed = Math.floor((now - task.startAt) / 60000);
+    setTakeTime(minutesToTimeString(Math.max(0, elapsed)));
+  }, []);
 
   // 初始載入
   useEffect(() => {
@@ -63,7 +75,37 @@ export function SelectionCacheTable() {
   // 當有運行中的任務時，自動顯示 EndDialog（除非是通過 URL action 觸發）
   useEffect(() => {
     setShowEndDialog(!!runningTask || isInterruptMode);
-  }, [runningTask, isInterruptMode, setShowEndDialog]);
+    updateTakeTime(runningTask);
+  }, [runningTask, isInterruptMode, setShowEndDialog, updateTakeTime]);
+
+  // 若使用者切到別的瀏覽器分頁再回來，或停留在本頁一段時間，仍可更新已執行時間
+  useEffect(() => {
+    if (!runningTask) {
+      setTakeTime("");
+      return;
+    }
+
+    const refresh = () => updateTakeTime(runningTask);
+
+    // 先更新一次，避免剛回到頁面時顯示舊值
+    refresh();
+
+    const intervalId = window.setInterval(refresh, 30000);
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        refresh();
+      }
+    };
+
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [runningTask, updateTakeTime]);
 
   useEffect(() => {
     const dialog = endDialogRef.current;
@@ -416,6 +458,10 @@ export function SelectionCacheTable() {
               {isInterruptMode ? "⚠️" : "⏳"}
             </span>
             <h2 className="text-lg font-bold mb-4 text-amber-900">結束任務</h2>
+            <span className="ml-auto">
+            {/* 擺到右邊 */}
+              {runningTask && takeTime ? `已執行 ${takeTime}` : ""}
+            </span>
           </div>
 
           {runningTask ? (
