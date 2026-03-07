@@ -24,7 +24,7 @@ export default function App() {
 
   // 監聽 iPhone Shortcut URL 參數
   useUrlAction({
-    onNavigate: (sheet: SheetName) => setCurrentSheet(sheet),
+    onNavigate: (sheet: SheetName|"selection_cache") => setCurrentSheet(sheet),
     onSuccess: setToast,
     clientId: 'iphone-webkit',
   })

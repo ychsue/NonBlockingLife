@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-03-07] 同步了，但有問題
+
 ## [2026-03-06] 準備同步，目前在步驟 1
 
 順便給正在跑的 task 加上計時
@@ -29,7 +31,7 @@ Gemini 有回答
 
 1. [x] 開始`start` 後，就 **iPhone** 變單色，設30分鐘計時器
 2. [x] `end`後，就 **iPhone** 變回原來顏色，設定10分鐘計時器
-   1. [ ] 如果是 Scheduled，若有 `Callback` ，表示 **iPhone** 要 `Remind_After` 分鐘後需要提醒使用者要切換另一個任務
+   1. [x] 如果是 Scheduled，若有 `Callback` ，表示 **iPhone** 要 `Remind_After` 分鐘後需要提醒使用者要切換另一個任務
 3. [x] `inbox` 就直接加一個 inbox
 4. [x] `interrupt` 按下去就開始 start interrupt，讓 **iPhone** 走 `start`
 5. [x] `scheduled` 按下去會先開啟 **iPhone** calendar，然後，才寫入 `scheduled`

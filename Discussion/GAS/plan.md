@@ -13,10 +13,13 @@
 - 用戶已完成 Google Apps Script 部署與第一階段驗證
 - 完整代碼與部署說明位於 [9th_discussion.md](./9th_discussion.md)
 
-**第 2 步：PWA 端實現** 🟡 準備開始（明天）
+**第 2 步：PWA 端實現** 🟡 進行中
 
-- 預計於 2026-03-07 啟動
-- 將建立同步相關組件與工具函數（SyncStatus / syncUtils / setup flow）
+- 🟢 Part A：`syncUtils.ts` - SyncManager 核心類完成
+- 🟢 Part B：增強 `SyncStatus.tsx` - UI 與同步邏輯完成
+- ⚪ Part C：GAS URL 配置流程（已在 SyncStatus.tsx 中實現）
+- ⚪ Part D：端到端測試與驗證
+- ⚪ Part E：調整與優化
 
 ---
 

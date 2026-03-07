@@ -875,11 +875,11 @@ async function verifySync(gasUrl: string) {
 
 #### **第 1 天：GAS 打通**
 
-- [ ] 建立 GAS 專案
-- [ ] 實現 `doPost` 寫入數據
-- [ ] 部署為 Web 應用程式
-- [ ] 手動測試（在 GAS 編輯器中點擊 doPost）
-- [ ] 複製 Web App URL
+- [x] 建立 GAS 專案
+- [x] 實現 `doPost` 寫入數據
+- [x] 部署為 Web 應用程式
+- [x] 手動測試（在 GAS 編輯器中點擊 doPost）
+- [x] 複製 Web App URL
 
 #### **第 2 天：PWA 前端**
 
@@ -2092,3 +2092,285 @@ https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=ping
    1. A: 有
 
 完成後，我會立即進入 **第 2 步：PWA 端實現**。
+
+====================================================================================
+
+---
+
+## [2026-03-07] ychsue 由於前端已經寫好，而昨天也已經簡易安裝了 GAS 在 [程式碼.js](pwa\src\gas\程式碼.js)，也測試了此API能動
+
+所以，今天是要來寫前端與 GAS API 對接的部分，對吧。目前已經有的表顯示在 [schema](pwa\src\db\schema.ts)，請依據 `plan.md` 與 [9th_discussion.md](Discussion\GAS\9th_discussion.md) 繼續開發。請在 `9th_discussion.md` 將您覺得需要紀錄的對話紀錄在此，並視情況修改 `plan.md`。謝謝。
+
+---
+
+## 🎯 第 2 步：PWA 端實現（PWA 與 GAS 對接）
+
+**開始日期**: 2026-03-07  
+**目標**: 創建前端同步管理器，與 GAS Web App 通信
+
+### 2.1 前提與現況分析
+
+**已有資源**:
+
+- ✅ GAS API 已完成部署（[程式碼.js](../../../pwa/src/gas/程式碼.js)）
+  - `doGet(action)` 支持：`ping`、`sync-status`、`pull`
+  - `doPost(operations)` 支持：批量 CRUD
+- ✅ 前端 UI 框架已完成（Inbox / TaskPool / Scheduled / MicroTasks / SelectionCache）
+- ✅ IndexedDB 表結構已定義（[schema.ts](../../../pwa/src/db/schema.ts)）
+- ✅ 現有 `SyncStatus.tsx` 部件只渲染 UI，缺少實際同步邏輯
+
+**缺失部分**:
+
+- ❌ `pwa/src/utils/syncUtils.ts` - SyncManager 類
+- ❌ GAS Web App URL 配置流程
+- ❌ 與 GAS 的雙向同步實現
+- ❌ 離線隊列管理（Phase 2）
+
+### 2.2 設計決策
+
+| 決策 | 方案 | 理由 |
+|------|------|------|
+| **GAS URL 存儲** | localStorage | 簡單，無需伺服器 |
+| **同步觸發方式** | 手動按鈕 + 定期輪詢（Phase 2） | MVP 先手動，後續加自動 |
+| **數據映射策略** | change_log 表追蹤變更 | 與現有架構一致 |
+| **衝突策略** | Last-Write-Wins（timestamp） | 簡單可靠 |
+| **錯誤處理** | Toast 通知 + 重試機制 | 用户友好 |
+
+### 2.3 實現計畫
+
+#### Phase 2.3.1: 核心同步邏輯（SyncManager）
+
+**文件**: `pwa/src/utils/syncUtils.ts`
+
+**核心方法**:
+
+```typescript
+class SyncManager {
+  // 1. 初始化（讀取 GAS URL）
+  constructor(gasUrl: string)
+  
+  // 2. 上傳本地變更
+  async push(): Promise<PushResult>
+  
+  // 3. 拉取遠端變更
+  async pull(): Promise<PullResult>
+  
+  // 4. 雙向同步（push → pull）
+  async sync(): Promise<SyncResult>
+  
+  // 5. 輔助方法
+  private getUnsyncedItems()
+  private mergeChanges(changes)
+  private markAsSynced(items)
+}
+```
+
+**數據流**:
+
+```js
+本地 IndexedDB (change_log 待同步)
+    ↓ (getUnsyncedItems)
+操作轉換 (type, entityType, data)
+    ↓ (fetch POST)
+GAS doPost
+    ↓
+Google Sheets 更新
+    ↓ (fetch GET pull)
+遠端變更拉回
+    ↓ (mergeChanges)
+本地 IndexedDB 合併
+```
+
+#### Phase 2.3.2: UI 集成（SyncStatus + SetupWizard）
+
+**文件**:
+
+- `pwa/src/components/SyncStatus.tsx` - 增強版本
+- `pwa/src/components/SetupWizard.tsx` - 新建（如需要）
+
+**新功能**:
+
+1. 輸入 GAS URL 的配置界面
+2. 手動「同步」按鈕
+3. 同步狀態實時更新
+4. 錯誤提示和重試
+
+#### Phase 2.3.3: 資料模型補充
+
+**修改 schema.ts**:
+
+- Task 表需添加 `timestamp`、`deviceId`、`synced` 等字段（支持同步跟蹤）
+- 或利用現有 `change_log` 追蹤所有變更
+
+### 2.4 實現步驟（今日優先順序）
+
+- [x] Part A: 創建 `syncUtils.ts` - SyncManager 完整實現
+- [x] Part B: 增強 `SyncStatus.tsx` - 添加同步按鈕和邏輯
+- [x] Part C: 集成 GAS URL 配置（localStorage 或輸入框）
+- [ ] Part D: 簡單測試（手動拉/推）
+- [ ] Part E: 視情況修改 `plan.md` 進度
+
+### 2.5 核心 API 定義
+
+基於 GAS 已有的接口，前端封裝如下：
+
+```typescript
+// 請求類型
+interface PushOperation {
+  type: 'create' | 'update' | 'delete'
+  entityType: 'task' | 'inbox' | 'log'
+  entityId: string
+  data: any
+  timestamp: number
+  deviceId: string
+}
+
+// 響應類型
+interface SyncResult {
+  status: 'success' | 'error'
+  pushed: number
+  pulled: number
+  conflicts?: any[]
+  message?: string
+}
+```
+
+---
+
+## [2026-03-07 實作進度] Part A & Part B 已完成
+
+### ✅ Part A: `pwa/src/utils/syncUtils.ts` 完成
+
+**核心模塊 - SyncManager 類**:
+
+```typescript
+class SyncManager {
+  // 1. testConnection() - 測試 GAS 連接（ping）
+  // 2. getSyncStatus() - 查詢遠端軟體資訊
+  // 3. push() - 上傳本地 change_log (pending) 到 GAS
+  // 4. pull() - 拉取遠端變更，合併到本地 IndexedDB
+  // 5. sync() - 完整雙向同步（push → pull）
+}
+```
+
+**主要特性**:
+
+- ✅ 設備 ID 自動生成與持久化（localStorage）
+- ✅ 上次同步時間戳追踪（增量同步）
+- ✅ Last-Write-Wins 衝突解決策略
+- ✅ 自動重試機制（retryCount 遞增）
+- ✅ 完整的錯誤日誌
+
+**數據流**:
+
+```js
+本地 IndexedDB
+    (change_log: pending)
+         ↓
+   getUnsyncedItems()
+         ↓
+  transformToOperation()
+         ↓
+    GAS doPost()
+         ↓
+  Google Sheets update
+         ↓
+    pull() 拉取
+         ↓
+  mergeRemoteChange()
+         ↓
+   各表 update/add
+```
+
+### ✅ Part B: `pwa/src/components/SyncStatus.tsx` 增強
+
+**新增功能**:
+
+1. **GAS URL 配置界面**
+   - 自動檢測已保存的 URL（localStorage）
+   - 輸入框驗證與保存
+   - 重新配置按鈕
+
+2. **同步按鈕與狀態**
+   - 即時顯示 pending 數量
+   - 同步執行時 disabled
+   - 最後同步時間顯示（「剛剛」、「5 分鐘前」等）
+
+3. **即時反饋**
+   - 使用顏色區分狀態（✅ 綠、⚠️ 黃、❌ 紅）
+   - 3 秒後自動清除提示訊息
+   - GAS 連接狀態檢測
+
+4. **自動更新**
+   - 每 5 秒檢查待同步計數
+   - 初化時測試 GAS 連接
+
+### 🔧 整合點
+
+**在 `App.tsx` 中已使用**:
+
+```tsx
+<SyncStatus />  // 在 header 區域
+```
+
+當用戶：
+
+1. 首次打開 PWA → 提示輸入 GAS URL
+2. 輸入配置 → 創建 SyncManager，測試連接
+3. 點擊「💾 同步」→ 執行 manager.sync()
+4. 同步完成 → 顯示結果，更新 pending 計數
+
+### 📊 測試準備
+
+**需要驗證的流程**:
+
+| 步驟 | 測試項目 | 預期結果 |
+|------|---------|---------|
+| 1 | 輸入正確的 GAS URL | URL 保存，顯示連接成功 |
+| 2 | 在 PWA 新增任務 | change_log 記錄狀態為 pending |
+| 3 | 點擊「💾 同步」 | 按鈕變灰，顯示「🔄 同步中...」 |
+| 4 | 同步完成 | 待同步數變 0，顯示「✅ 同步完成」 |
+| 5 | 查看 Google Sheet | 看到新增的任務數據 |
+| 6 | 其他設備拉取 | pull() 從 Google Sheet 讀取新數據 |
+
+---
+
+**下一步行動 (Part D)**:
+
+1. 編譯並運行 PWA (`npm run dev`)
+2. 配置 GAS URL（從 secret.md 複製）
+3. 新增測試任務
+4. 執行手動同步，驗證端到端流程
+
+---
+
+## [2026-03-07 CORS 修正記錄]
+
+### 問題現象
+
+本地開發環境 (`http://localhost:5173`) 點擊「同步」時出現：
+
+```text
+No 'Access-Control-Allow-Origin' header is present on the requested resource
+Response to preflight request doesn't pass access control check
+```
+
+### 根因
+
+前端 `fetch` 在 POST 時手動加了 `Content-Type: application/json`，
+瀏覽器因此先發 `OPTIONS` preflight。GAS Web App 對 preflight 不回傳所需 CORS header，導致被攔截。
+
+### 修正
+
+檔案：`pwa/src/utils/syncUtils.ts`
+
+- 移除 POST 的 `headers: { 'Content-Type': 'application/json' }`
+- 保留 `body: JSON.stringify({ operations })`
+
+這樣請求會走 simple request（不觸發 preflight），可正常送到 GAS `doPost(e)`。
+
+### 驗證重點
+
+1. `syncUtils.ts` 的 `push()` 不再設定 JSON header
+2. 點擊同步後 Network 不應再出現失敗的 `OPTIONS`
+3. `POST .../exec` 成功並回傳 `{ status: 'completed', ... }`
