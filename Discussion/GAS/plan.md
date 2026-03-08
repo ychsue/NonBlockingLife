@@ -59,7 +59,9 @@
 | **安裝流程** | 手動 → 半自動 | MVP 先手動，後續優化為自動複製模板 |
 | **衝突解決** | Last-Write-Wins | 簡單可靠，MVP 階段足夠 |
 | **同步觸發** | 手動 + 定期輪詢 | MVP 先手動，Phase 2 加入自動 |
-| **Sheets 結構** | 單表混合 | 簡化設計，後續可拆分 |
+| **Sheets 結構** | 星型架構（Star Schema） | Log 表完全展開利於分析，其他表提取 taskId 用於關聯 |
+| **Log 表格式** | 完全展開欄位（Fact Table） | 方便 Gemini/Excel 直接分析，不需解析 JSON |
+| **其他表格式** | taskId + payloadJson（Dimension） | 透過 taskId 關聯 Log，保留 payloadJson 確保靈活性 |
 
 ---
 
@@ -137,24 +139,45 @@ function doPost(e) {
 
 #### 數據結構（Google Sheets）
 
-**表名**: `Tasks`
+**採用星型架構（Star Schema）** - 2026-03-08 更新：
 
-| 列 | 類型 | 說明 |
-|----|------|------|
-| taskId | string | UUID |
+- `NBL_Log` - **Fact Table（事實表）**：完全展開，利於分析
+- `NBL_TaskPool`, `NBL_Scheduled`, `NBL_MicroTasks`, `NBL_Inbox` - **Dimension Tables（維度表）**：提取 taskId，用於關聯
+
+**1. Log 表欄位（完全展開）**:
+
+| 欄位 | 類型 | 說明 |
+|------|------|------|
+| recordId | string | 主鍵（log id） |
+| timestamp | number | 事件發生時間 |
+| taskId | string | 關聯任務 ID（外鍵） |
 | title | string | 任務標題 |
-| status | string | todo/doing/done |
-| priority | number | 優先級 |
-| timestamp | number | 最後修改時間（毫秒） |
-| deviceId | string | 來源設備 |
-| operationId | string | 操作 ID（去重用） |
+| action | string | 動作類型（complete, start, pause...） |
+| state | string | 狀態 |
+| duration | number | 持續時間（分鐘） |
+| notes | string | 備註 |
+| updatedAt | number | 記錄更新時間 |
 | deleted | boolean | 軟刪除標記 |
+| operationId | string | 操作 ID |
+| deviceId | string | 來源設備 |
 
-**後續可能增加的表**:
+**2. 其他表欄位（提取 taskId）**:
 
-- `Inbox` - 收集箱
-- `Log` - 操作日誌
-- `SyncMetadata` - 同步元數據
+| 欄位 | 類型 | 說明 |
+|------|------|------|
+| recordId | string | 主鍵（taskId） |
+| taskId | string | 任務 ID（主鍵，用於關聯 Log） |
+| payloadJson | string | 其他欄位 JSON（便於 schema 演進） |
+| updatedAt | number | 最後修改時間 |
+| deleted | boolean | 軟刪除標記 |
+| operationId | string | 操作 ID（去重/追蹤） |
+| deviceId | string | 來源設備 |
+
+**分析優勢**：
+
+- ✅ Log 表可直接用 Gemini、Excel 分析，不需解析 JSON
+- ✅ 用 `taskId` JOIN 其他表做關聯分析
+- ✅ 例如：「分析高優先級任務的完成率」= `SELECT ... FROM NBL_Log JOIN NBL_TaskPool ON taskId ...`
 
 ### 1.2 PWA 端實現
 
@@ -176,36 +199,10 @@ pwa/src/
 #### IndexedDB Schema 擴展
 
 ```typescript
-// pwa/src/db/schema.ts
-
-// 新增表：syncQueue
-export interface SyncQueueItem {
-  id: string;                    // 自增 ID
-  operationId: string;           // UUID（去重）
-  type: 'create' | 'update' | 'delete';
-  entityType: 'task' | 'inbox' | 'log';
-  entityId: string;
-  data: any;
-  timestamp: number;
-  deviceId: string;
-  status: 'pending' | 'syncing' | 'failed' | 'success';
-  retryCount: number;
-  lastAttempt?: number;
-  error?: string;
-}
-
-// 擴展現有表：tasks
-export interface Task {
-  id: string;
-  title: string;
-  status: string;
-  priority: number;
-  // 新增同步相關欄位
-  timestamp: number;             // 最後修改時間
-  deviceId: string;              // 來源設備
-  synced: boolean;               // 是否已同步到 GS
-  syncedAt?: number;             // 同步時間
-}
+// 目前結論：暫不重定義 schema.ts
+// 直接沿用既有 table（task_pool/scheduled/micro_tasks/inbox/log/change_log）
+// 透過 change_log + SyncManager 做同步即可。
+// 若未來要做離線隊列優化，再新增 syncQueue（Phase 2）。
 ```
 
 #### 核心同步邏輯
@@ -488,7 +485,7 @@ describe('SyncManager', () => {
 - [ ] Service Worker Background Sync
 - [ ] 失敗重試機制（指數退避）
 - [ ] 批量同步
-- [ ] UI 狀態指示器（在線/離線/同步中）
+- [x] UI 狀態指示器（在線/離線/同步中）
 
 ---
 
@@ -527,7 +524,7 @@ describe('SyncManager', () => {
 
 | 階段 | 預估時間 | 開始日期 | 狀態 |
 |------|---------|---------|------|
-| Phase 1: MVP | 4-5 天 | 2026-03-06 | 🟡 進行中（GAS 已完成，PWA 即將開始） |
+| Phase 1: MVP | 4-5 天 | 2026-03-06 | � **已完成**（v1.2.0 星型架構） |
 | Phase 2: 離線 | 3-4 天 | TBD | ⚪ 待定 |
 | Phase 3: 衝突 | 2-3 天 | TBD | ⚪ 待定 |
 | Phase 4: 優化 | 根據需求 | TBD | ⚪ 待定 |
@@ -536,11 +533,13 @@ describe('SyncManager', () => {
 
 ## ✅ MVP 完成標準
 
-- [x] ✅ GAS 可成功接收和響應請求（已完成）
-- [ ] PWA 可上傳數據到 Google Sheets
-- [ ] PWA 可從 Google Sheets 拉取數據
-- [ ] 多用戶測試通過（至少 3 個帳戶）
-- [ ] 設置流程用戶可在 5 分鐘內完成
+- [x] ✅ GAS 可成功接收和響應請求（v1.2.0）
+- [x] ✅ PWA 可上傳數據到 Google Sheets（syncUtils.ts 完成）
+- [x] ✅ PWA 可從 Google Sheets 拉取數據（pullChanges 完成）
+- [x] ✅ Log 表完全展開，利於 Gemini/Excel 分析（星型架構）
+- [x] ✅ 其他表提取 taskId，支援關聯分析
+- [ ] 🔄 多用戶測試通過（至少 3 個帳戶）— **下一步**
+- [ ] 🔄 實際同步測試與驗證 — **下一步**
 - [ ] 基本錯誤處理完善
 
 ---
@@ -549,7 +548,7 @@ describe('SyncManager', () => {
 
 | 問題 | 選項 | 決定 | 備註 |
 |------|------|------|------|
-| Google Sheets 是否分表？ | A: 單表混合<br/>B: 多表分離 | A | MVP 先單表，後續優化 |
+| Google Sheets 是否分表？ | A: 單表混合<br/>B: 多表分離 | B | 已改為多表分離（2026-03-08） |
 | 輪詢間隔？ | 5分鐘/10分鐘/用戶自訂 | 10分鐘 | 避免配額問題 |
 | 軟刪除 vs 硬刪除？ | 軟刪除 | ✅ 軟刪除 | 便於同步 |
 | 是否需要變更日誌？ | Phase 3 再決定 | - | MVP 暫不需要 |

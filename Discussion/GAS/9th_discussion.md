@@ -883,10 +883,10 @@ async function verifySync(gasUrl: string) {
 
 #### **第 2 天：PWA 前端**
 
-- [ ] 新增「同步」UI 組件
-- [ ] 實現 `uploadTaskToSheets` 函數
-- [ ] 新增 GAS URL 設置輸入框
-- [ ] 測試單個任務上傳
+- [x] 新增「同步」UI 組件
+- [x] 實現 `uploadTaskToSheets` 函數
+- [x] 新增 GAS URL 設置輸入框
+- [x] 測試單個任務上傳
 
 #### **第 3 天：多用戶驗證**
 
@@ -908,16 +908,16 @@ async function verifySync(gasUrl: string) {
 
 ```js
 GAS 功能測試：
-- [ ] GET ?action=sync-status 返回 200
-- [ ] POST 寫入數據返回 {status: 'success'}
-- [ ] 登入 Google Sheets 看到新增的行
-- [ ] Google Apps Script 日誌無紅色錯誤
+- [x] GET ?action=sync-status 返回 200
+- [x] POST 寫入數據返回 {status: 'success'}
+- [x] 登入 Google Sheets 看到新增的行
+- [x] Google Apps Script 日誌無紅色錯誤
 
 PWA 功能測試：
-- [ ] 輸入 GAS URL 到設置
-- [ ] 點擊「Upload」無報錯
-- [ ] 檢查 Network 標籤，POST 請求成功（200 或 302）
-- [ ] 登入 Google Sheets，確認數據出現
+- [x] 輸入 GAS URL 到設置
+- [x] 點擊「Upload」無報錯
+- [x] 檢查 Network 標籤，POST 請求成功（200 或 302）
+- [x] 登入 Google Sheets，確認數據出現
 
 多用戶驗證：
 - [ ] 用帳戶 A 上傳 → 驗證 Sheets A 更新
@@ -2207,8 +2207,8 @@ Google Sheets 更新
 - [x] Part A: 創建 `syncUtils.ts` - SyncManager 完整實現
 - [x] Part B: 增強 `SyncStatus.tsx` - 添加同步按鈕和邏輯
 - [x] Part C: 集成 GAS URL 配置（localStorage 或輸入框）
-- [ ] Part D: 簡單測試（手動拉/推）
-- [ ] Part E: 視情況修改 `plan.md` 進度
+- [x] Part D: 簡單測試（手動拉/推）
+- [x] Part E: 視情況修改 `plan.md` 進度
 
 ### 2.5 核心 API 定義
 
@@ -2374,3 +2374,288 @@ Response to preflight request doesn't pass access control check
 1. `syncUtils.ts` 的 `push()` 不再設定 JSON header
 2. 點擊同步後 Network 不應再出現失敗的 `OPTIONS`
 3. `POST .../exec` 成功並回傳 `{ status: 'completed', ... }`
+
+======================================================================
+
+## [2026-03-08] ychsue 原則上，按同步後，能確實push 與 pull，但是，沒有 Log ，沒有 inbox ，所有 task 被收集在同一 sheet 裡面。所以，會弄亂我原本的 Task Pool table。
+
+看來，PWA與GAS都要修改。請問是否需要重新定義 [schema.ts](pwa\src\db\schema.ts) 裡面的東西呢？請問您覺得怎麼改比較好呢？
+
+## [2026-03-08] GitHub Copilot 的建議與實作
+
+### 結論（先回答核心問題）
+
+**目前不需要重定義 `schema.ts`。**
+
+原因：
+
+1. 本地表結構（`task_pool / scheduled / micro_tasks / inbox / log`）已足夠完整。
+2. 真正的問題在於「同步協議」與「GAS 儲存模型」：
+   - 前端把多個 table 壓成 `task`
+   - GAS 只寫單一 `NonBlockingLife_Tasks` sheet
+
+所以應該改的是 **PWA SyncManager + GAS API**，而不是先動本地 schema。
+
+### 這次改法（已實作）
+
+#### PWA 端：`pwa/src/utils/syncUtils.ts`
+
+- 改為 table-aware 同步協議，操作格式改成：
+
+```typescript
+{
+  type: 'add' | 'update' | 'delete',
+  table: 'task_pool' | 'scheduled' | 'micro_tasks' | 'inbox' | 'log',
+  recordId: string,
+  data: Record<string, unknown>,
+  timestamp: number,
+  deviceId: string,
+  operationId: string,
+}
+```
+
+- `push()` 只同步上述 5 個雲端表；`dashboard/selection_cache/sync_state` 視為本地專用，不再推雲端。
+- `transformToOperation()` 改為盡量送完整記錄（不只 patch），避免遠端資料殘缺。
+- `pull()` 改為按 `change.table` 合併回本地對應 Dexie table。
+
+#### GAS 端：`pwa/src/gas/程式碼.js`
+
+- 改為每個 table 對應獨立 sheet：
+  - `NBL_TaskPool`
+  - `NBL_Scheduled`
+  - `NBL_MicroTasks`
+  - `NBL_Inbox`
+  - `NBL_Log`
+
+- 每張 sheet 使用統一雲端欄位：
+  - `recordId`
+  - `payloadJson`
+  - `updatedAt`
+  - `deleted`
+  - `operationId`
+  - `deviceId`
+
+- `doPost()` / `processOperation()` 會依 `table` 寫入對應 sheet。
+- `pull()` 會跨所有 sheet 拉增量，回傳 `table + recordId + data`，前端可正確回填。
+
+### 為什麼這樣比較穩
+
+1. 不會再發生 task/inbox/log 混表污染。
+2. 雲端層用 `payloadJson`，本地 schema 改版時不需要同步改 GAS 表頭。
+3. 後續擴充新表，只要加 `TABLE_SHEETS` mapping 即可。
+
+### 下一步驗證
+
+1. `clasp push` 重新部署 GAS 代碼。
+2. 在 PWA 新增一筆 `inbox` 與一筆 `task_pool`。
+3. 按同步後確認：
+   - `NBL_Inbox` 只看到 inbox 資料
+   - `NBL_TaskPool` 只看到 task_pool 資料
+   - `NBL_Log` 有 log 記錄
+
+==============================================================================
+
+## [2026-03-08] ychsue 很棒ㄟ😍 不過，由於 log 的主要目的是未來需要做分析使用的，由於技術與AI進展太快，而使用者其實沒事不會去做分析，所以，想說既然有給 Google sheets ，他們就可以自己在 Google Sheets 搭配如 Gemini 或者下載到自己本機使用 Excel 或甚麼的自己分析，是否需要多一個 Log 表讓 AI 或使用者容易分析用？其他表保持原樣嗎？還是多個 taskId 欄位？
+
+### GitHub Copilot 的建議與實作：星型架構（Star Schema）
+
+**採用方案 A**：Log 表完全展開 + 其他表提取 taskId
+
+#### 設計理念：
+
+```js
+                    ┌──────────────────┐
+                    │   NBL_TaskPool   │
+                    │ (Dimension)      │
+                    │ • taskId (PK)    │
+                    │ • payloadJson    │
+                    └─────────┬────────┘
+                              │
+       ┌──────────────────────┼──────────────────────┐
+       │                      │                      │
+┌──────▼─────────┐   ┌───────▼────────┐   ┌────────▼────────┐
+│ NBL_Scheduled  │   │    NBL_Log     │   │  NBL_MicroTasks │
+│ (Dimension)    │   │  (Fact Table)  │   │  (Dimension)    │
+│ • taskId (PK)  │───│ • timestamp    │───│ • taskId (PK)   │
+│ • payloadJson  │   │ • taskId (FK)  │   │ • payloadJson   │
+└────────────────┘   │ • title        │   └─────────────────┘
+                     │ • action       │
+┌────────────────┐   │ • state        │
+│   NBL_Inbox    │   │ • duration     │
+│ (Dimension)    │───│ • notes        │
+│ • taskId (PK)  │   │ • ...          │
+│ • payloadJson  │   └────────────────┘
+└────────────────┘
+```
+
+#### 實作細節：
+
+**1. Log 表（NBL_Log）— 完全展開**
+
+```js
+| recordId | timestamp  | taskId | title    | action   | state | duration | notes    | updatedAt | deleted |
+| log123   | 1234567890 | T001   | 完成任務  | complete | done  | 120      | 順利完成  | ...       | 0       |
+```
+
+- ✅ Gemini 可以直接理解欄位結構
+- ✅ Excel/Google Sheets 可以直接做樞紐分析、圖表
+- ✅ 不需要解析 JSON
+- ✅ 適合時間序列分析（timestamp 為索引）
+
+**2. 其他表 — 提取 taskId + 保留 payloadJson**
+
+```js
+| recordId | taskId | payloadJson                         | updatedAt | deleted |
+| T001     | T001   | {"title":"...","status":"..."}      | ...       | 0       |
+```
+
+- ✅ 用 `taskId` 關聯 Log 表做分析（例如：哪些高優先級任務的完成率如何）
+- ✅ `payloadJson` 保留細節，不影響同步靈活性
+- ✅ 比起用 `SELECT ... WHERE JSON_EXTRACT(...)` 輕量很多
+
+#### 修改內容：
+
+**GAS `程式碼.js` v1.2.0**
+
+1. **增加 `getSheetHeaders()`**：根據 table 返回對應的 headers
+   - Log 表：12 個欄位（完全展開）
+   - 其他表：7 個欄位（recordId, taskId, payloadJson, ...）
+
+2. **修改 `writeRowByTable()`**：
+   - Log 表：展開寫入所有欄位
+   - 其他表：提取 `taskId`，其餘資料存入 `payloadJson`
+
+3. **修改 `pullChanges()`**：
+   - Log 表：讀取展開欄位，重組成完整物件
+   - 其他表：讀取 `taskId` + `payloadJson`，重組並確保 `taskId` 欄位存在
+
+4. **修改 `readExistingData()`**：支援讀取不同表結構用於 merge 更新
+
+#### 分析範例：
+
+**查詢：「T001 這個任務的完成記錄」**
+
+```sql
+SELECT * FROM NBL_Log 
+WHERE taskId = 'T001' AND action = 'complete'
+ORDER BY timestamp DESC
+```
+
+**查詢：「高優先級任務的平均完成時間」**
+
+```sql
+SELECT 
+  t.payloadJson ->> '$.priority' AS priority,
+  AVG(l.duration) AS avg_duration
+FROM NBL_Log l
+JOIN NBL_TaskPool t ON l.taskId = t.taskId
+WHERE l.action = 'complete'
+GROUP BY priority
+```
+
+（註：Google Sheets 可用 `QUERY()` 或 Gemini 輔助分析）
+
+#### 部署步驟：
+
+1. **推送 GAS 程式碼**：
+
+   ```bash
+   npm run clasp:push
+   ```
+
+2. **重新發佈 Web App 新版本**（Apps Script Console）：
+   - Deploy → Manage deployments → Edit → New version → Deploy
+
+3. **測試同步**：
+   - 回 PWA 按一次同步
+   - 確認 Google Sheet 各表結構：
+     - `NBL_Log`：12 個欄位（展開）
+     - `NBL_TaskPool`, `NBL_Inbox` 等：7 個欄位（taskId + payloadJson）
+
+4. **驗證分析能力**：
+   - 在 Google Sheets 用 Gemini 分析：「分析我過去一週的任務完成情況」
+   - 或用 `=QUERY(NBL_Log!A:L, "SELECT C, D, E WHERE E='complete'")`
+
+---
+
+## 📝 今日總結（2026-03-08）
+
+### ✅ 已完成
+
+1. **星型架構設計與實作**（v1.2.0）
+   - Log 表完全展開（12 個欄位）：recordId, timestamp, taskId, title, action, state, duration, notes...
+   - 其他表提取 taskId（7 個欄位）：recordId, taskId, payloadJson...
+   - 支援用 taskId JOIN 做關聯分析
+
+2. **GAS 程式碼重構**
+   - 新增 `getSheetHeaders(table)` 函數：根據表類型返回對應 headers
+   - 新增 `writeRowByTable()` 函數：Log 表展開寫入，其他表提取 taskId
+   - 新增 `readExistingData()` 函數：支援讀取不同表結構
+   - 修改 `pullChanges()`：正確重組不同格式的資料
+   - 修改 `processOperation()`：使用新的寫入函數
+
+3. **文件更新**
+   - [9th_discussion.md](9th_discussion.md)：增加完整的星型架構說明與分析範例
+   - [plan.md](plan.md)：更新決策表、資料結構、MVP 完成標準
+
+### 🎯 下一步建議
+
+#### **優先級 1：部署與測試**（必須）
+
+1. **部署新版本**
+
+   ```bash
+   npm run clasp:push
+   ```
+
+   然後到 Apps Script Console 重新部署 Web App（New version）
+
+2. **功能驗證**
+   - 在 PWA 新增一筆 Log、一筆 Inbox、一筆 TaskPool
+   - 按「同步」
+   - 檢查 Google Sheet：
+     - `NBL_Log` 應該有 12 個欄位（展開格式）
+     - `NBL_Inbox` 和 `NBL_TaskPool` 應該有 7 個欄位（taskId + payloadJson）
+
+3. **分析測試**
+   - 在 `NBL_Log` 用 Gemini：「分析我的任務完成情況」
+   - 或用 QUERY 函數測試：`=QUERY(NBL_Log!A:L, "SELECT C, D WHERE E='complete'")`
+
+#### **優先級 2：健康檢查工具**（建議）
+
+新增「同步健康檢查」按鈕，顯示：
+
+- 每張遠端 sheet 的 row count
+- 最後同步時間
+- 本地待同步數量
+- GAS 版本號
+
+#### **優先級 3：錯誤處理強化**（可選）
+
+- 增加更詳細的錯誤訊息
+- 同步失敗時顯示具體原因
+- 支援手動重試單個失敗的操作
+
+#### **優先級 4：多設備測試**（驗證）
+
+- 用不同瀏覽器或裝置測試同步
+- 驗證 Last-Write-Wins 衝突解決
+- 確認 deviceId 正確識別
+
+### 💡 技術債務提醒
+
+- [ ] 目前 PWA 端的 `payloadJson` 在寫入時會移除 `taskId`（避免重複），但讀取時需要確保 `taskId` 存在
+- [ ] Log 表的 `category` 欄位在 schema.ts 中定義但目前未使用，可能需要未來補上
+- [ ] 考慮增加 `sync_history` 表記錄每次同步的詳細資訊，方便除錯
+
+---
+
+## 🎉 成就解鎖
+
+- ✅ 完成多表同步架構（避免資料混表）
+- ✅ 實作星型架構（Log 為 Fact Table，其他為 Dimension Tables）
+- ✅ 支援 AI 友善的分析格式（Gemini/Excel 可直接使用）
+- ✅ 保持 schema.ts 不變（確認不需要重定義）
+- ✅ GAS v1.2.0 + PWA syncUtils.ts 整合完成
+
+**下次見！** 🚀

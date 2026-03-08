@@ -1,11 +1,11 @@
 import { db } from '../db/index'
-import type {
-  ChangeLogEntry,
-  TaskPoolItem,
-  ScheduledItem,
-  MicroTaskItem,
-  InboxItem,
-} from '../db/schema'
+import type { ChangeLogEntry } from '../db/schema'
+
+const SYNC_TABLES = ['task_pool', 'scheduled', 'micro_tasks', 'inbox', 'log'] as const
+
+type SyncTable = (typeof SYNC_TABLES)[number]
+
+type SyncOp = 'add' | 'update' | 'delete'
 
 /**
  * 同步結果類型
@@ -20,16 +20,29 @@ export interface SyncResult {
 }
 
 /**
- * 推送操作類型
+ * 推送操作類型（前端 -> GAS）
  */
 interface PushOperation {
-  type: 'create' | 'update' | 'delete'
-  entityType: 'task' | 'inbox' | 'log'
-  entityId: string
-  data: any
+  type: SyncOp
+  table: SyncTable
+  recordId: string
+  data: Record<string, unknown>
   timestamp: number
   deviceId: string
   operationId: string
+}
+
+/**
+ * 拉取變更類型（GAS -> 前端）
+ */
+interface PulledChange {
+  table: string
+  recordId: string
+  data: Record<string, unknown>
+  timestamp: number
+  deleted: boolean
+  deviceId?: string
+  operationId?: string
 }
 
 /**
@@ -38,11 +51,10 @@ interface PushOperation {
 interface GASResponse {
   status: string
   error?: string
-  changes?: any[]
-  results?: any[]
+  changes?: PulledChange[]
+  results?: Array<{ success: boolean }>
   timestamp?: number
-  sheetName?: string
-  rowCount?: number
+  counts?: Record<string, number>
 }
 
 /**
@@ -51,7 +63,7 @@ interface GASResponse {
 export class SyncManager {
   private gasUrl: string
   private deviceId: string
-  private lastSyncTimestamp: number = 0
+  private lastSyncTimestamp = 0
 
   constructor(gasUrl: string) {
     this.gasUrl = gasUrl
@@ -66,7 +78,18 @@ export class SyncManager {
     const stored = localStorage.getItem('device-id')
     if (stored) return stored
 
-    const newId = `device-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+    const ua = navigator.userAgent.toLowerCase()
+    const deviceType = /iphone|ipad|ipod/.test(ua)
+      ? 'ios'
+      : /mac/.test(ua)
+        ? 'mac'
+        : /win/.test(ua)
+          ? 'windows'
+          : /android/.test(ua)
+            ? 'android'
+            : 'other'
+
+    const newId = `device-${deviceType}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
     localStorage.setItem('device-id', newId)
     return newId
   }
@@ -76,7 +99,7 @@ export class SyncManager {
    */
   private loadLastSyncTimestamp(): void {
     const stored = localStorage.getItem('last-sync-timestamp')
-    this.lastSyncTimestamp = stored ? parseInt(stored) : 0
+    this.lastSyncTimestamp = stored ? parseInt(stored, 10) : 0
   }
 
   /**
@@ -84,7 +107,7 @@ export class SyncManager {
    */
   private saveLastSyncTimestamp(timestamp: number): void {
     this.lastSyncTimestamp = timestamp
-    localStorage.setItem('last-sync-timestamp', timestamp.toString())
+    localStorage.setItem('last-sync-timestamp', String(timestamp))
   }
 
   /**
@@ -96,7 +119,7 @@ export class SyncManager {
       const data = (await response.json()) as GASResponse
       return data.status === 'ok'
     } catch (error) {
-      console.error('❌ GAS 連接測試失敗:', error)
+      console.error('GAS 連接測試失敗:', error)
       return false
     }
   }
@@ -107,20 +130,18 @@ export class SyncManager {
   async getSyncStatus(): Promise<GASResponse | null> {
     try {
       const response = await fetch(`${this.gasUrl}?action=sync-status`)
-      const data = (await response.json()) as GASResponse
-      return data
+      return (await response.json()) as GASResponse
     } catch (error) {
-      console.error('❌ 獲取同步狀態失敗:', error)
+      console.error('獲取同步狀態失敗:', error)
       return null
     }
   }
 
   /**
-   * 上傳本地未同步的變更到 GAS
+   * 上傳本地未同步變更到 GAS
    */
   async push(): Promise<{ success: number; failed: number; error?: string }> {
     try {
-      // 1. 從 change_log 取得所有 pending 項目
       const pendingChanges = await db.change_log
         .where('status')
         .equals('pending')
@@ -130,46 +151,65 @@ export class SyncManager {
         return { success: 0, failed: 0 }
       }
 
-      // 2. 轉換為 GAS 操作格式
+      // 本地專用表不進雲端，直接標記已同步避免 change_log 積壓
+      const localOnlyChanges = pendingChanges.filter(
+        (c) => !this.isSyncTable(c.table)
+      )
+      if (localOnlyChanges.length > 0) {
+        await Promise.all(
+          localOnlyChanges.map((c) =>
+            db.change_log.update(c.id, {
+              status: 'synced',
+              syncedAt: Date.now(),
+            })
+          )
+        )
+      }
+
+      const syncableChanges = pendingChanges.filter((c) => this.isSyncTable(c.table))
+      if (syncableChanges.length === 0) {
+        return { success: 0, failed: 0 }
+      }
+
       const operations = await Promise.all(
-        pendingChanges.map((change) => this.transformToOperation(change))
+        syncableChanges.map((change) => this.transformToOperation(change))
       )
 
-      // 3. 發送到 GAS
-      // 注意：不要手動設置 application/json，否則瀏覽器會先發 OPTIONS preflight，
-      // 而 GAS Web App 不會返回所需 CORS header，導致本地開發被擋。
       const response = await fetch(this.gasUrl, {
         method: 'POST',
+        // 不設 application/json，避免 GAS CORS preflight 問題
         body: JSON.stringify({ operations }),
       })
 
       const result = (await response.json()) as GASResponse
-
       if (result.status === 'error') {
-        return { success: 0, failed: pendingChanges.length, error: result.error }
+        return { success: 0, failed: syncableChanges.length, error: result.error }
       }
 
-      // 4. 標記已同步
-      const successCount = (result.results?.filter((r: any) => r.success) || [])
-        .length
-      for (let i = 0; i < pendingChanges.length; i++) {
-        if (i < successCount) {
-          await db.change_log.update(pendingChanges[i].id, {
+      const opResults = result.results ?? []
+      let successCount = 0
+
+      for (let i = 0; i < syncableChanges.length; i++) {
+        const ok = Boolean(opResults[i]?.success)
+        if (ok) {
+          successCount += 1
+          await db.change_log.update(syncableChanges[i].id, {
             status: 'synced',
             syncedAt: Date.now(),
           })
         } else {
-          // 如果同步部分失敗，增加重試次數
-          await db.change_log.update(pendingChanges[i].id, {
-            retryCount: (pendingChanges[i].retryCount || 0) + 1,
+          await db.change_log.update(syncableChanges[i].id, {
+            retryCount: (syncableChanges[i].retryCount || 0) + 1,
           })
         }
       }
 
-      console.log(`✅ 上傳 ${successCount} 項變更到 GAS`)
-      return { success: successCount, failed: pendingChanges.length - successCount }
+      return {
+        success: successCount,
+        failed: syncableChanges.length - successCount,
+      }
     } catch (error) {
-      console.error('❌ 上傳失敗:', error)
+      console.error('上傳失敗:', error)
       return { success: 0, failed: -1, error: String(error) }
     }
   }
@@ -179,7 +219,6 @@ export class SyncManager {
    */
   async pull(): Promise<{ success: number; error?: string }> {
     try {
-      // 1. 從 GAS 拉取自上次同步以來的變更
       const url = `${this.gasUrl}?action=pull&lastSync=${this.lastSyncTimestamp}`
       const response = await fetch(url)
       const result = (await response.json()) as GASResponse
@@ -188,25 +227,18 @@ export class SyncManager {
         return { success: 0, error: result.error }
       }
 
-      const changes = result.changes || []
-      if (changes.length === 0) {
-        return { success: 0 }
-      }
-
-      // 2. 合併變更到本地 IndexedDB
+      const changes = result.changes ?? []
       for (const change of changes) {
         await this.mergeRemoteChange(change)
       }
 
-      // 3. 更新最後同步時間
       if (result.timestamp) {
         this.saveLastSyncTimestamp(result.timestamp)
       }
 
-      console.log(`✅ 拉取 ${changes.length} 項變更從 GAS`)
       return { success: changes.length }
     } catch (error) {
-      console.error('❌ 拉取失敗:', error)
+      console.error('拉取失敗:', error)
       return { success: 0, error: String(error) }
     }
   }
@@ -218,7 +250,6 @@ export class SyncManager {
     const startTime = Date.now()
 
     try {
-      // 1. 先推送本地變更
       const pushResult = await this.push()
       if (pushResult.error) {
         return {
@@ -230,7 +261,6 @@ export class SyncManager {
         }
       }
 
-      // 2. 再拉取遠端變更
       const pullResult = await this.pull()
       if (pullResult.error) {
         return {
@@ -242,12 +272,11 @@ export class SyncManager {
         }
       }
 
-      const duration = Date.now() - startTime
       return {
         status: 'success',
         pushed: pushResult.success,
         pulled: pullResult.success,
-        message: `✅ 同步完成 (${Math.round(duration)}ms)`,
+        message: `同步完成 (${Date.now() - startTime}ms)`,
         timestamp: Date.now(),
       }
     } catch (error) {
@@ -261,182 +290,64 @@ export class SyncManager {
     }
   }
 
+  private isSyncTable(table: string): table is SyncTable {
+    return (SYNC_TABLES as readonly string[]).includes(table)
+  }
+
   /**
-   * 將 change_log 條目轉換為 GAS 操作格式
+   * change_log 條目轉為 GAS 操作
    */
-  private async transformToOperation(
-    change: ChangeLogEntry
-  ): Promise<PushOperation> {
+  private async transformToOperation(change: ChangeLogEntry): Promise<PushOperation> {
+    if (!this.isSyncTable(change.table)) {
+      throw new Error(`Unsupported sync table: ${change.table}`)
+    }
+
+    const localRecord = await this.getLocalRecord(change.table, change.recordId)
+
     return {
-      type: change.op as any,
-      entityType: this.normalizeEntityType(change.table),
-      entityId: change.recordId,
-      data: change.patch || {},
+      type: this.normalizeOp(change.op),
+      table: change.table,
+      recordId: change.recordId,
+      // update 也盡量送完整記錄，避免遠端只拿到 patch
+      data: (localRecord as Record<string, unknown> | undefined) ?? (change.patch ?? {}),
       timestamp: change.createdAt,
       deviceId: this.deviceId,
       operationId: change.id,
     }
   }
 
-  /**
-   * 正規化表名為實體類型
-   */
-  private normalizeEntityType(
-    tableName: string
-  ): 'task' | 'inbox' | 'log' {
-    if (tableName === 'inbox') return 'inbox'
-    if (tableName === 'log') return 'log'
-    return 'task' // task_pool, scheduled, micro_tasks 都當作 'task'
+  private normalizeOp(op: ChangeLogEntry['op']): SyncOp {
+    if (op === 'add' || op === 'update' || op === 'delete') return op
+    return 'update'
+  }
+
+  private async getLocalRecord(table: SyncTable, recordId: string): Promise<unknown> {
+    return db.table(table).get(recordId)
   }
 
   /**
    * 合併遠端變更到本地
    */
-  private async mergeRemoteChange(change: any): Promise<void> {
-    const { taskId, title, status, priority, timestamp, deleted, ...rest } =
-      change
-    const table = this.mapGasFieldToTable(change.source || 'task_pool')
+  private async mergeRemoteChange(change: PulledChange): Promise<void> {
+    const table = change.table
+    if (!this.isSyncTable(table)) return
 
-    try {
-      if (deleted) {
-        // 軟刪除：標記為已刪除
-        switch (table) {
-          case 'task_pool':
-            const existingPool = await db.task_pool.get(taskId)
-            if (existingPool) {
-              await db.task_pool.update(taskId, { status: 'deleted', ...rest } as any)
-            }
-            break
-          case 'scheduled':
-            const existingScheduled = await db.scheduled.get(taskId)
-            if (existingScheduled) {
-              await db.scheduled.update(taskId, { status: 'deleted', ...rest } as any)
-            }
-            break
-          case 'micro_tasks':
-            const existingMicro = await db.micro_tasks.get(taskId)
-            if (existingMicro) {
-              await db.micro_tasks.update(taskId, { status: 'deleted', ...rest } as any)
-            }
-            break
-          case 'inbox':
-            await db.inbox.delete(taskId)
-            break
-        }
-      } else {
-        // 更新或新增
-        switch (table) {
-          case 'task_pool':
-            const existingPool = await db.task_pool.get(taskId)
-            if (existingPool) {
-              if ((existingPool.updatedAt || 0) > timestamp) {
-                console.log(`⏭️ 跳過舊變更: ${taskId}`)
-                return
-              }
-              await db.task_pool.update(taskId, {
-                title,
-                status,
-                priority,
-                updatedAt: timestamp,
-                ...rest,
-              } as any)
-            } else {
-              await db.task_pool.add({
-                taskId,
-                title,
-                status,
-                priority,
-                updatedAt: timestamp,
-                ...rest,
-              } as any)
-            }
-            break
+    const record = {
+      ...change.data,
+      updatedAt: change.timestamp,
+    } as Record<string, unknown>
 
-          case 'scheduled':
-            const existingScheduled = await db.scheduled.get(taskId)
-            if (existingScheduled) {
-              if ((existingScheduled.updatedAt || 0) > timestamp) {
-                console.log(`⏭️ 跳過舊變更: ${taskId}`)
-                return
-              }
-              await db.scheduled.update(taskId, {
-                title,
-                status,
-                updatedAt: timestamp,
-                ...rest,
-              } as any)
-            } else {
-              await db.scheduled.add({
-                taskId,
-                title,
-                status,
-                updatedAt: timestamp,
-                ...rest,
-              } as any)
-            }
-            break
-
-          case 'micro_tasks':
-            const existingMicro = await db.micro_tasks.get(taskId)
-            if (existingMicro) {
-              if ((existingMicro.updatedAt || 0) > timestamp) {
-                console.log(`⏭️ 跳過舊變更: ${taskId}`)
-                return
-              }
-              await db.micro_tasks.update(taskId, {
-                title,
-                status,
-                updatedAt: timestamp,
-                ...rest,
-              } as any)
-            } else {
-              await db.micro_tasks.add({
-                taskId,
-                title,
-                status,
-                updatedAt: timestamp,
-                ...rest,
-              } as any)
-            }
-            break
-
-          case 'inbox':
-            const existingInbox = await db.inbox.get(taskId)
-            if (existingInbox) {
-              await db.inbox.update(taskId, {
-                title,
-                updatedAt: timestamp,
-                ...rest,
-              } as any)
-            } else {
-              await db.inbox.add({
-                taskId,
-                title,
-                updatedAt: timestamp,
-                ...rest,
-              } as any)
-            }
-            break
-        }
-      }
-
-      console.log(`✓ 合併變更: ${taskId}`)
-    } catch (error) {
-      console.error(`❌ 合併失敗 (${taskId}):`, error)
+    const primaryKey = table === 'log' ? 'id' : 'taskId'
+    if (!record[primaryKey]) {
+      record[primaryKey] = change.recordId
     }
-  }
 
-  /**
-   * 根據來源映射到正確的 IndexedDB 表
-   */
-  private mapGasFieldToTable(source: string): string {
-    const mapping: Record<string, string> = {
-      Task_Pool: 'task_pool',
-      Scheduled: 'scheduled',
-      Micro_Tasks: 'micro_tasks',
-      Inbox: 'inbox',
+    if (change.deleted) {
+      await db.table(table).delete(change.recordId)
+      return
     }
-    return mapping[source] || 'task_pool'
+
+    await db.table(table).put(record)
   }
 }
 

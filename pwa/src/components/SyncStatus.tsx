@@ -54,6 +54,16 @@ export function SyncStatus({
     return () => clearInterval(interval);
   }, []);
 
+  // 順便在console.log看一下 change_log 的內容，確保它在更新
+  useEffect(() => {
+    const logChangeLog = async () => {
+      const allChanges = await db.change_log.toArray();
+      console.log("Change Log:", allChanges);
+    };
+
+    logChangeLog();
+  }, [showUrlInput]);
+
   // 處理 GAS URL 配置
   const handleSetGasUrl = async (url: string) => {
     const normalizedUrl = url

@@ -1,40 +1,60 @@
-
 /**
- * NonBlockingLife Sync API - MVP 版本
- * 
- * 功能：
- * - doGet: 拉取數據、查詢同步狀態
- * - doPost: 推送數據到 Google Sheets
- * 
- * 作者：您自己（運行在您的 Google 帳戶下）
- * 版本：1.0 MVP
- * 最後更新：2026-03-06
+ * NonBlockingLife Sync API - Star Schema with Analysis Support
+ *
+ * 說明：
+ * - 每個本地 table 對應獨立 Google Sheet，避免資料混表
+ * - Log 表採用「完全展開」（Fact Table），方便 Gemini/Excel 分析
+ * - 其他表提取 taskId（Dimension Table），用於關聯分析
+ * - 架構：星型（Star Schema），Log 為中心事實表，其他為維度表
  */
-
-// ==================== 配置 ====================
 
 const CONFIG = {
-  SHEET_NAME: 'NonBlockingLife_Tasks',  // 主表名稱
-  MAX_ROWS: 10000,                      // 最大行數限制
-  VERSION: '1.0.0'
-};
+  VERSION: '1.2.0',
+  TABLE_SHEETS: {
+    task_pool: 'NBL_TaskPool',
+    scheduled: 'NBL_Scheduled',
+    micro_tasks: 'NBL_MicroTasks',
+    inbox: 'NBL_Inbox',
+    log: 'NBL_Log',
+  },
+}
 
-// ==================== 主要處理函數 ====================
+// Log 表：完全展開（Fact Table）
+const LOG_HEADERS = [
+  'recordId',
+  'timestamp',
+  'taskId',
+  'title',
+  'action',
+  'state',
+  'duration',
+  'notes',
+  'updatedAt',
+  'deleted',
+  'operationId',
+  'deviceId',
+]
 
-/**
- * 處理 GET 請求
- * 支援的操作：
- *   - ping: 測試連接
- *   - sync-status: 查詢同步狀態
- *   - pull: 拉取更新（根據 lastSync 時間戳）
- */
+// 其他表：提取 taskId（Dimension Tables）
+const DIMENSION_HEADERS = [
+  'recordId',
+  'taskId',
+  'payloadJson',
+  'updatedAt',
+  'deleted',
+  'operationId',
+  'deviceId',
+]
+
+function getSheetHeaders(table) {
+  return table === 'log' ? LOG_HEADERS : DIMENSION_HEADERS
+}
+
 function doGet(e) {
   try {
-    const action = e.parameter.action || 'ping';
-    const lastSync = parseInt(e.parameter.lastSync) || 0;
-    
-    Logger.log(`GET 請求 - Action: ${action}, LastSync: ${lastSync}`);
-    
+    const action = (e && e.parameter && e.parameter.action) || 'ping'
+    const lastSync = parseInt((e && e.parameter && e.parameter.lastSync) || '0', 10) || 0
+
     switch (action) {
       case 'ping':
         return createJsonResponse({
@@ -42,374 +62,425 @@ function doGet(e) {
           message: 'NonBlockingLife Sync API is running',
           version: CONFIG.VERSION,
           timestamp: now(),
-          user: Session.getActiveUser().getEmail()
-        });
-      
+          user: Session.getActiveUser().getEmail(),
+        })
       case 'sync-status':
-        return getSyncStatus();
-      
+        return getSyncStatus()
       case 'pull':
-        return pullChanges(lastSync);
-      
+        return pullChanges(lastSync)
       default:
         return createJsonResponse({
+          status: 'error',
           error: 'Unknown action',
-          validActions: ['ping', 'sync-status', 'pull']
-        }, 400);
+          validActions: ['ping', 'sync-status', 'pull'],
+        })
     }
   } catch (error) {
-    Logger.log('GET Error: ' + error.toString());
     return createJsonResponse({
-      error: error.toString(),
-      stack: error.stack
-    }, 500);
+      status: 'error',
+      error: String(error),
+      stack: error && error.stack,
+    })
   }
 }
 
-/**
- * 處理 POST 請求
- * 接收格式：
- * {
- *   operations: [
- *     { type: 'create', entityType: 'task', data: {...} },
- *     { type: 'update', entityType: 'task', id: '...', data: {...} }
- *   ]
- * }
- */
 function doPost(e) {
   try {
-    Logger.log('POST 請求收到');
-    
-    // 解析請求
-    if (!e.postData || !e.postData.contents) {
-      throw new Error('No post data received');
+    if (!e || !e.postData || !e.postData.contents) {
+      throw new Error('No post data received')
     }
-    
-    const payload = JSON.parse(e.postData.contents);
-    const operations = payload.operations || [];
-    
-    Logger.log(`處理 ${operations.length} 個操作`);
-    
-    // 處理每個操作
-    const results = [];
+
+    const payload = JSON.parse(e.postData.contents)
+    const operations = payload.operations || []
+
+    const results = []
     for (let i = 0; i < operations.length; i++) {
       try {
-        const result = processOperation(operations[i]);
-        results.push({
-          index: i,
-          success: true,
-          result: result
-        });
+        const result = processOperation(operations[i])
+        results.push({ index: i, success: true, result: result })
       } catch (opError) {
-        Logger.log(`操作 ${i} 失敗: ${opError.toString()}`);
-        results.push({
-          index: i,
-          success: false,
-          error: opError.toString()
-        });
+        results.push({ index: i, success: false, error: String(opError) })
       }
     }
-    
-    // 統計結果
-    const successCount = results.filter(r => r.success).length;
-    const failCount = results.length - successCount;
-    
+
+    const successCount = results.filter(function (r) {
+      return r.success
+    }).length
+
     return createJsonResponse({
       status: 'completed',
       total: operations.length,
       success: successCount,
-      failed: failCount,
+      failed: operations.length - successCount,
       results: results,
-      timestamp: now()
-    });
-    
+      timestamp: now(),
+    })
   } catch (error) {
-    Logger.log('POST Error: ' + error.toString());
     return createJsonResponse({
       status: 'error',
-      error: error.toString(),
-      stack: error.stack
-    }, 500);
+      error: String(error),
+      stack: error && error.stack,
+    })
   }
 }
 
-// ==================== 核心功能 ====================
-
-/**
- * 獲取同步狀態
- */
 function getSyncStatus() {
-  const sheet = getOrCreateSheet();
-  const lastRow = sheet.getLastRow();
-  const rowCount = lastRow > 1 ? lastRow - 1 : 0; // 扣除標題行
-  
-  // 獲取最後修改時間
-  let lastModified = 0;
-  if (lastRow > 1) {
-    const timestampCol = 5; // timestamp 列
-    const timestamps = sheet.getRange(2, timestampCol, lastRow - 1, 1).getValues();
-    lastModified = Math.max(...timestamps.map(row => row[0] || 0));
-  }
-  
+  const counts = {}
+  let total = 0
+
+  Object.keys(CONFIG.TABLE_SHEETS).forEach(function (table) {
+    const sheet = getOrCreateSheet(table)
+    const lastRow = sheet.getLastRow()
+    const count = lastRow > 1 ? lastRow - 1 : 0
+    counts[table] = count
+    total += count
+  })
+
   return createJsonResponse({
     status: 'ok',
-    sheetName: CONFIG.SHEET_NAME,
-    rowCount: rowCount,
-    lastModified: lastModified,
+    counts: counts,
+    totalRows: total,
     timestamp: now(),
-    user: Session.getActiveUser().getEmail()
-  });
+  })
 }
 
-/**
- * 拉取變更（增量同步）
- */
 function pullChanges(lastSync) {
-  const sheet = getOrCreateSheet();
-  const lastRow = sheet.getLastRow();
-  
-  if (lastRow <= 1) {
-    return createJsonResponse({
-      changes: [],
-      timestamp: now(),
-      message: 'No data found'
-    });
-  }
-  
-  // 獲取所有數據
-  const dataRange = sheet.getRange(2, 1, lastRow - 1, 8);
-  const data = dataRange.getValues();
-  
-  // 過濾出 timestamp > lastSync 的行
-  const changes = data
-    .filter(row => {
-      const timestamp = row[4]; // timestamp 列
-      return timestamp > lastSync;
-    })
-    .map(row => ({
-      taskId: row[0],
-      title: row[1],
-      status: row[2],
-      priority: row[3],
-      timestamp: row[4],
-      deviceId: row[5],
-      operationId: row[6],
-      deleted: row[7] || false
-    }));
-  
-  Logger.log(`拉取 ${changes.length} 條變更（自 ${lastSync}）`);
-  
+  const changes = []
+
+  Object.keys(CONFIG.TABLE_SHEETS).forEach(function (table) {
+    const sheet = getOrCreateSheet(table)
+    const lastRow = sheet.getLastRow()
+    if (lastRow <= 1) return
+
+    const headers = getSheetHeaders(table)
+    const values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues()
+
+    if (table === 'log') {
+      // Log 表：重組展開欄位
+      for (var i = 0; i < values.length; i++) {
+        const row = values[i]
+        const recordId = row[0]
+        const timestamp = Number(row[1]) || 0
+        const taskId = row[2]
+        const title = row[3]
+        const action = row[4]
+        const state = row[5]
+        const duration = Number(row[6]) || 0
+        const notes = row[7]
+        const updatedAt = Number(row[8]) || 0
+        const deleted = Boolean(row[9])
+        const operationId = row[10]
+        const deviceId = row[11]
+
+        if (updatedAt <= lastSync) continue
+
+        changes.push({
+          table: table,
+          recordId: recordId,
+          data: {
+            id: recordId,
+            timestamp: timestamp,
+            taskId: taskId,
+            title: title,
+            action: action,
+            state: state,
+            duration: duration,
+            notes: notes,
+          },
+          timestamp: updatedAt,
+          deleted: deleted,
+          operationId: operationId,
+          deviceId: deviceId,
+        })
+      }
+    } else {
+      // 其他表：重組 taskId + payloadJson
+      for (var i = 0; i < values.length; i++) {
+        const row = values[i]
+        const recordId = row[0]
+        const taskId = row[1]
+        const payloadJson = row[2]
+        const updatedAt = Number(row[3]) || 0
+        const deleted = Boolean(row[4])
+        const operationId = row[5]
+        const deviceId = row[6]
+
+        if (updatedAt <= lastSync) continue
+
+        const payload = safeParseJson(payloadJson)
+        payload.taskId = taskId // 確保 taskId 存在
+
+        changes.push({
+          table: table,
+          recordId: recordId,
+          data: payload,
+          timestamp: updatedAt,
+          deleted: deleted,
+          operationId: operationId,
+          deviceId: deviceId,
+        })
+      }
+    }
+  })
+
+  changes.sort(function (a, b) {
+    return (a.timestamp || 0) - (b.timestamp || 0)
+  })
+
   return createJsonResponse({
+    status: 'ok',
     changes: changes,
     count: changes.length,
-    timestamp: now()
-  });
+    timestamp: now(),
+  })
 }
 
-/**
- * 處理單個操作
- */
 function processOperation(operation) {
-  const { type, entityType, data } = operation;
-  
-  // MVP 階段只支持 task
-  if (entityType !== 'task') {
-    throw new Error(`Unsupported entity type: ${entityType}`);
-  }
-  
-  const sheet = getOrCreateSheet();
-  
-  switch (type) {
-    case 'create':
-      return createTask(sheet, data);
-    
-    case 'update':
-      return updateTask(sheet, operation.id || data.taskId, data);
-    
-    case 'delete':
-      return deleteTask(sheet, operation.id || data.taskId);
-    
-    default:
-      throw new Error(`Unknown operation type: ${type}`);
-  }
-}
+  const table = resolveTable(operation)
+  const type = normalizeType(operation.type)
+  const recordId = resolveRecordId(operation)
 
-/**
- * 創建任務
- */
-function createTask(sheet, data) {
-  // 檢查是否已存在（防止重複）
-  const existingRow = findTaskRow(sheet, data.taskId);
-  if (existingRow > 0) {
-    Logger.log(`Task ${data.taskId} 已存在，跳過創建`);
-    return { action: 'skipped', reason: 'already exists' };
+  if (!table || !CONFIG.TABLE_SHEETS[table]) {
+    throw new Error('Unsupported table: ' + table)
   }
-  
-  // 新增行
-  const row = [
-    data.taskId || generateUUID(),
-    data.title || '',
-    data.status || 'todo',
-    data.priority || 0,
-    data.timestamp || now(),
-    data.deviceId || 'unknown',
-    data.operationId || generateUUID(),
-    false  // deleted
-  ];
-  
-  sheet.appendRow(row);
-  Logger.log(`創建任務: ${row[0]}`);
-  
-  return { action: 'created', taskId: row[0] };
-}
-
-/**
- * 更新任務
- */
-function updateTask(sheet, taskId, data) {
-  const rowIndex = findTaskRow(sheet, taskId);
-  
-  if (rowIndex <= 0) {
-    // 如果不存在，創建它
-    Logger.log(`Task ${taskId} 不存在，改為創建`);
-    return createTask(sheet, { ...data, taskId });
+  if (!recordId) {
+    throw new Error('Missing recordId')
   }
-  
-  // 更新數據
-  if (data.title !== undefined) sheet.getRange(rowIndex, 2).setValue(data.title);
-  if (data.status !== undefined) sheet.getRange(rowIndex, 3).setValue(data.status);
-  if (data.priority !== undefined) sheet.getRange(rowIndex, 4).setValue(data.priority);
-  sheet.getRange(rowIndex, 5).setValue(data.timestamp || now());
-  if (data.deviceId !== undefined) sheet.getRange(rowIndex, 6).setValue(data.deviceId);
-  if (data.operationId !== undefined) sheet.getRange(rowIndex, 7).setValue(data.operationId);
-  
-  Logger.log(`更新任務: ${taskId}`);
-  
-  return { action: 'updated', taskId: taskId };
-}
 
-/**
- * 刪除任務（軟刪除）
- */
-function deleteTask(sheet, taskId) {
-  const rowIndex = findTaskRow(sheet, taskId);
-  
-  if (rowIndex <= 0) {
-    Logger.log(`Task ${taskId} 不存在，無法刪除`);
-    return { action: 'skipped', reason: 'not found' };
-  }
-  
-  // 軟刪除：標記 deleted = true
-  sheet.getRange(rowIndex, 8).setValue(true);
-  sheet.getRange(rowIndex, 5).setValue(now()); // 更新時間戳
-  
-  Logger.log(`刪除任務: ${taskId}`);
-  
-  return { action: 'deleted', taskId: taskId };
-}
+  const sheet = getOrCreateSheet(table)
+  const rowIndex = findRowByRecordId(sheet, recordId)
+  const data = operation.data || {}
+  const ts = Number(operation.timestamp) || now()
+  const operationId = operation.operationId || generateUUID()
+  const deviceId = operation.deviceId || 'unknown-device'
 
-/**
- * 查找任務行號
- */
-function findTaskRow(sheet, taskId) {
-  const lastRow = sheet.getLastRow();
-  if (lastRow <= 1) return -1;
-  
-  const taskIds = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-  
-  for (let i = 0; i < taskIds.length; i++) {
-    if (taskIds[i][0] === taskId) {
-      return i + 2; // +2 因為：1 是標題行，數組從 0 開始
+  if (type === 'delete') {
+    if (rowIndex > 0) {
+      writeRowByTable(sheet, table, rowIndex, recordId, data, ts, true, operationId, deviceId)
+      return { action: 'deleted', table: table, recordId: recordId }
     }
+
+    writeRowByTable(sheet, table, -1, recordId, data, ts, true, operationId, deviceId)
+    return { action: 'deleted', table: table, recordId: recordId, createdTombstone: true }
   }
-  
-  return -1;
+
+  if (type === 'add') {
+    if (rowIndex > 0) {
+      return { action: 'skipped', reason: 'already exists', table: table, recordId: recordId }
+    }
+    writeRowByTable(sheet, table, -1, recordId, data, ts, false, operationId, deviceId)
+    return { action: 'created', table: table, recordId: recordId }
+  }
+
+  if (rowIndex > 0) {
+    const prev = readExistingData(sheet, table, rowIndex)
+    const merged = mergePayload(prev, data)
+    writeRowByTable(sheet, table, rowIndex, recordId, merged, ts, false, operationId, deviceId)
+    return { action: 'updated', table: table, recordId: recordId }
+  }
+
+  writeRowByTable(sheet, table, -1, recordId, data, ts, false, operationId, deviceId)
+  return { action: 'created', table: table, recordId: recordId, fromUpdate: true }
 }
 
-// ==================== 工具函數 ====================
+function resolveTable(operation) {
+  if (operation.table && CONFIG.TABLE_SHEETS[operation.table]) return operation.table
 
-/**
- * 獲取或創建 Sheet
- * 
- * 因為此 Apps Script 是從 Google Sheet 中建立的（bound script），
- * 可以直接用 getActiveSpreadsheet() 獲取綁定的 Sheet
- */
-function getOrCreateSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  
+  // 向下兼容舊協議 entityType
+  if (operation.entityType === 'inbox') return 'inbox'
+  if (operation.entityType === 'log') return 'log'
+
+  if (operation.entityType === 'task') {
+    const source = operation.data && operation.data.source
+    if (source === 'Scheduled') return 'scheduled'
+    if (source === 'Micro_Tasks') return 'micro_tasks'
+    return 'task_pool'
+  }
+
+  return 'task_pool'
+}
+
+function normalizeType(type) {
+  if (type === 'add' || type === 'create') return 'add'
+  if (type === 'delete') return 'delete'
+  return 'update'
+}
+
+function resolveRecordId(operation) {
+  if (operation.recordId) return operation.recordId
+  if (operation.entityId) return operation.entityId
+  if (operation.id) return operation.id
+
+  const data = operation.data || {}
+  return data.id || data.taskId || ''
+}
+
+function getOrCreateSheet(table) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet()
   if (!ss) {
-    throw new Error(
-      '❌ 錯誤：此 Apps Script 未綁定到任何 Google Sheet\n' +
-      '請確保您是從 Google Sheet 的「擴充功能 > Apps Script」建立的'
-    );
+    throw new Error('Apps Script is not bound to a Google Sheet. Please use Extensions > Apps Script from the target sheet.')
   }
-  
-  let sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
-  
+
+  const sheetName = CONFIG.TABLE_SHEETS[table]
+  let sheet = ss.getSheetByName(sheetName)
+
   if (!sheet) {
-    Logger.log(`創建新表: ${CONFIG.SHEET_NAME}`);
-    sheet = ss.insertSheet(CONFIG.SHEET_NAME);
-    
-    // 設置標題行
-    const headers = [
-      'taskId',
-      'title',
-      'status',
-      'priority',
-      'timestamp',
-      'deviceId',
-      'operationId',
-      'deleted'
-    ];
-    
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-    sheet.setFrozenRows(1);
-    
-    // 設置列寬
-    sheet.setColumnWidth(1, 200); // taskId
-    sheet.setColumnWidth(2, 300); // title
-    sheet.setColumnWidth(3, 100); // status
-    sheet.setColumnWidth(4, 80);  // priority
-    sheet.setColumnWidth(5, 150); // timestamp
-    sheet.setColumnWidth(6, 150); // deviceId
-    sheet.setColumnWidth(7, 200); // operationId
-    sheet.setColumnWidth(8, 80);  // deleted
+    const headers = getSheetHeaders(table)
+    sheet = ss.insertSheet(sheetName)
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers])
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold')
+    sheet.setFrozenRows(1)
   }
-  
-  return sheet;
+
+  return sheet
 }
 
-/**
- * 創建 JSON 響應
- */
-function createJsonResponse(data, statusCode = 200) {
-  const output = ContentService.createTextOutput(JSON.stringify(data));
-  output.setMimeType(ContentService.MimeType.JSON);
-  
-  // 注意：GAS 不支持直接設置 HTTP 狀態碼，但可以在響應中包含狀態
-  if (statusCode !== 200) {
-    data.statusCode = statusCode;
+function findRowByRecordId(sheet, recordId) {
+  const lastRow = sheet.getLastRow()
+  if (lastRow <= 1) return -1
+
+  const values = sheet.getRange(2, 1, lastRow - 1, 1).getValues()
+  for (var i = 0; i < values.length; i++) {
+    if (String(values[i][0]) === String(recordId)) return i + 2
   }
-  
-  return output;
+
+  return -1
 }
 
-/**
- * 獲取當前時間戳（毫秒）
- */
+function writeRowByTable(sheet, table, rowIndex, recordId, data, updatedAt, deleted, operationId, deviceId) {
+  let row
+
+  if (table === 'log') {
+    // Log 表：展開所有欄位
+    row = [
+      recordId,
+      Number(data.timestamp) || 0,
+      data.taskId || '',
+      data.title || '',
+      data.action || '',
+      data.state || '',
+      Number(data.duration) || 0,
+      data.notes || '',
+      updatedAt,
+      deleted,
+      operationId,
+      deviceId,
+    ]
+  } else {
+    // 其他表：提取 taskId + payloadJson
+    const taskId = data.taskId || ''
+    const payload = Object.assign({}, data)
+    delete payload.taskId // 避免重複存儲
+
+    row = [recordId, taskId, JSON.stringify(payload), updatedAt, deleted, operationId, deviceId]
+  }
+
+  const headers = getSheetHeaders(table)
+  if (rowIndex > 0) {
+    sheet.getRange(rowIndex, 1, 1, headers.length).setValues([row])
+  } else {
+    sheet.appendRow(row)
+  }
+}
+
+function readExistingData(sheet, table, rowIndex) {
+  if (table === 'log') {
+    // Log 表：讀取展開欄位
+    const row = sheet.getRange(rowIndex, 1, 1, LOG_HEADERS.length).getValues()[0]
+    return {
+      id: row[0],
+      timestamp: Number(row[1]) || 0,
+      taskId: row[2],
+      title: row[3],
+      action: row[4],
+      state: row[5],
+      duration: Number(row[6]) || 0,
+      notes: row[7],
+    }
+  } else {
+    // 其他表：讀取 taskId + payloadJson
+    const taskId = sheet.getRange(rowIndex, 2).getValue()
+    const payloadJson = sheet.getRange(rowIndex, 3).getValue() || '{}'
+    const payload = safeParseJson(payloadJson)
+    payload.taskId = taskId
+    return payload
+  }
+}
+
+function mergePayload(prev, patch) {
+  const merged = {}
+  const p1 = prev || {}
+  const p2 = patch || {}
+
+  Object.keys(p1).forEach(function (k) {
+    merged[k] = p1[k]
+  })
+  Object.keys(p2).forEach(function (k) {
+    merged[k] = p2[k]
+  })
+
+  return merged
+}
+
+function safeParseJson(jsonText) {
+  try {
+    if (!jsonText) return {}
+    if (typeof jsonText === 'object') return jsonText
+    return JSON.parse(String(jsonText))
+  } catch (e) {
+    return {}
+  }
+}
+
+function createJsonResponse(data) {
+  const output = ContentService.createTextOutput(JSON.stringify(data))
+  output.setMimeType(ContentService.MimeType.JSON)
+  return output
+}
+
 function now() {
-  return new Date().getTime();
+  return new Date().getTime()
 }
 
-/**
- * 生成 UUID（簡化版）
- */
 function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0
+    const v = c === 'x' ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
 }
 
+// 測試函數
+function testDoGet() {
+  const response = doGet({ parameter: { action: 'sync-status' } })
+  Logger.log(response.getContent())
+}
+
+function testDoPost() {
+  const testData = {
+    operations: [
+      {
+        type: 'add',
+        table: 'task_pool',
+        recordId: 'T_TEST_' + now(),
+        data: {
+          taskId: 'T_TEST_' + now(),
+          title: '測試任務',
+          status: 'PENDING',
+          priority: 1,
+        },
+        timestamp: now(),
+        deviceId: 'test-device',
+        operationId: generateUUID(),
+      },
+    ],
+  }
+
+  const response = doPost({
+    postData: {
+      contents: JSON.stringify(testData),
+    },
+  })
+
+  Logger.log(response.getContent())
+}
