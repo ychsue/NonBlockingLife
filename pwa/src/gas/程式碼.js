@@ -368,7 +368,7 @@ function writeRowByTable(sheet, table, rowIndex, recordId, data, updatedAt, dele
       deleted,
       operationId,
       deviceId,
-      category || 'unknown',
+      data.category || 'unknown',
     ]
   } else {
     // 其他表：提取 taskId + payloadJson
