@@ -33,6 +33,7 @@ const LOG_HEADERS = [
   'deleted',
   'operationId',
   'deviceId',
+  'category', // 例如：task_pool, scheduled, micro_tasks, inbox
 ]
 
 // 其他表：提取 taskId（Dimension Tables）
@@ -171,6 +172,7 @@ function pullChanges(lastSync) {
         const deleted = Boolean(row[9])
         const operationId = row[10]
         const deviceId = row[11]
+        const category = row[12] || 'unknown'
 
         if (updatedAt <= lastSync) continue
 
@@ -186,6 +188,7 @@ function pullChanges(lastSync) {
             state: state,
             duration: duration,
             notes: notes,
+            category: category,
           },
           timestamp: updatedAt,
           deleted: deleted,
@@ -365,6 +368,7 @@ function writeRowByTable(sheet, table, rowIndex, recordId, data, updatedAt, dele
       deleted,
       operationId,
       deviceId,
+      category || 'unknown',
     ]
   } else {
     // 其他表：提取 taskId + payloadJson
@@ -396,6 +400,7 @@ function readExistingData(sheet, table, rowIndex) {
       state: row[5],
       duration: Number(row[6]) || 0,
       notes: row[7],
+      category: row[12] || 'unknown',
     }
   } else {
     // 其他表：讀取 taskId + payloadJson

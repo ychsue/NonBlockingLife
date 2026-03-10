@@ -1,8 +1,8 @@
 # NonBlockingLife 同步功能實現計劃
 
-**最後更新**: 2026-03-06  
-**版本**: 1.0  
-**狀態**: 🟡 Phase 1 進行中 - GAS 已完成，準備進入 PWA 實作
+**最後更新**: 2026-03-10  
+**版本**: 1.1  
+**狀態**: 🟢 Phase 1 MVP 基本完成 - 同步功能運作中，進行優化
 
 ---
 
@@ -12,14 +12,22 @@
 
 - 用戶已完成 Google Apps Script 部署與第一階段驗證
 - 完整代碼與部署說明位於 [9th_discussion.md](./9th_discussion.md)
+- 星型架構實作完成（Log 表展開，其他表提取 taskId）
 
-**第 2 步：PWA 端實現** 🟡 進行中
+**第 2 步：PWA 端實現** ✅ 基本完成
 
 - 🟢 Part A：`syncUtils.ts` - SyncManager 核心類完成
 - 🟢 Part B：增強 `SyncStatus.tsx` - UI 與同步邏輯完成
-- ⚪ Part C：GAS URL 配置流程（已在 SyncStatus.tsx 中實現）
-- ⚪ Part D：端到端測試與驗證
-- ⚪ Part E：調整與優化
+- 🟢 Part C：GAS URL 配置流程（SetupWizard modal 整合）
+- 🟢 Part D：端到端測試與驗證
+- 🟢 Part E：Log 單向同步優化（2026-03-10）
+
+**第 3 步：優化與調整** 🟡 進行中
+
+- 🟢 Log 表單向推送（只 push 不 pull）
+- 🟢 LogTable 本地過濾（按天數、搜尋）
+- ⚪ 多設備測試與驗證
+- ⚪ 性能監控與錯誤處理
 
 ---
 
@@ -62,6 +70,8 @@
 | **Sheets 結構** | 星型架構（Star Schema） | Log 表完全展開利於分析，其他表提取 taskId 用於關聯 |
 | **Log 表格式** | 完全展開欄位（Fact Table） | 方便 Gemini/Excel 直接分析，不需解析 JSON |
 | **其他表格式** | taskId + payloadJson（Dimension） | 透過 taskId 關聯 Log，保留 payloadJson 確保靈活性 |
+| **Log 同步方向** | 單向推送（One-way Push） | PWA 只推送 Log 到 Sheets，不拉回（避免重複，專注分析） |
+| **Log 本地顯示** | 按天數過濾 + 搜尋 | PWA 只顯示近期 Log（1/3/7/14/30/90天），支援關鍵字搜尋 |
 
 ---
 
@@ -178,6 +188,31 @@ function doPost(e) {
 - ✅ Log 表可直接用 Gemini、Excel 分析，不需解析 JSON
 - ✅ 用 `taskId` JOIN 其他表做關聯分析
 - ✅ 例如：「分析高優先級任務的完成率」= `SELECT ... FROM NBL_Log JOIN NBL_TaskPool ON taskId ...`
+
+**Log 單向同步設計** - 2026-03-10 新增：
+
+**設計理由**：
+
+1. **避免重複問題**：Log 主要用於歷史分析，不需要多設備實時同步
+2. **減少傳輸量**：Log 隨時間累積增長，雙向同步會造成大量不必要的數據傳輸
+3. **分析場景**：用戶主要在 Google Sheets 用 Gemini 或 Excel 分析，不需要在 PWA 查看完整歷史
+4. **性能優化**：本地只保留近期 Log，減少 IndexedDB 存儲壓力
+
+**實現方式**：
+
+- `syncUtils.ts` 的 `pull()` 方法跳過 `log` 表（只處理 push）
+- `LogTable.tsx` 本地過濾顯示：
+  - 按天數篩選（1/3/7/14/30/90 天）
+  - 關鍵字搜尋（title, taskId, action, notes, category）
+- Google Sheets 成為 Log 的唯一完整數據源
+
+**數據流向**：
+
+```js
+PWA (近期 Log)  ─push→  Google Sheets (完整 Log)
+    ↓ 本地過濾                    ↓ 分析工具
+顯示 1-90 天           Gemini/Excel/QUERY
+```
 
 ### 1.2 PWA 端實現
 

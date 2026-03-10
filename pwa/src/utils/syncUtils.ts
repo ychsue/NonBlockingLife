@@ -216,6 +216,8 @@ export class SyncManager {
 
   /**
    * 從 GAS 拉取遠端變更
+   * 
+   * 注意：Log 表只做單向推送，不從雲端拉回（用戶在 Google Sheets 自行分析）
    */
   async pull(): Promise<{ success: number; error?: string }> {
     try {
@@ -228,15 +230,24 @@ export class SyncManager {
       }
 
       const changes = result.changes ?? []
+      let mergedCount = 0
+      
       for (const change of changes) {
+        // 跳過 log 表（單向推送，不拉回）
+        if (change.table === 'log') {
+          console.log('跳過 log 表拉取:', change.recordId)
+          continue
+        }
+        
         await this.mergeRemoteChange(change)
+        mergedCount++
       }
 
       if (result.timestamp) {
         this.saveLastSyncTimestamp(result.timestamp)
       }
 
-      return { success: changes.length }
+      return { success: mergedCount }
     } catch (error) {
       console.error('拉取失敗:', error)
       return { success: 0, error: String(error) }

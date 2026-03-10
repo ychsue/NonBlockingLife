@@ -2659,3 +2659,280 @@ GROUP BY priority
 - ✅ GAS v1.2.0 + PWA syncUtils.ts 整合完成
 
 **下次見！** 🚀
+
+===============================================================
+
+---
+
+## [2026-03-10] ychsue 我發現 PWA 的 Log 在sync 後，先前的會被再加入一次，而Source的部分為空白。後來檢查原因，應該是因為在 [taskFlow](/pwa\src\utils\taskFlow.ts) 裡面將 category 設為 sheetname，而您的 [程式碼.js](pwa\src\gas\程式碼.js) 卻沒有此欄位，所以，我把他補上，尚未確認是否這樣就解決問題了。
+
+不過，由於打算讓使用者不是在個別裝置上分析，而是統一在Google Sheets 或者他們自己下載到電腦上分析，所以，其實，PWA的 Log 只要顯示幾天內的資料即可，或者可搜尋後只顯示要看的。
+此外，Log既然是如此，其實好像只需要單向推送到 Google Sheets 而不必再拉下來到 PWA 上，對吧？
+
+---
+
+## [2026-03-10] Log 單向同步優化 - 決策與實現
+
+### 🔍 問題分析
+
+**Log 重複問題**：
+
+1. **根本原因**：PWA 端 `taskFlow.ts` 在建立 Log 時設定 `category` 欄位（對應來源表名如 `task_pool`、`inbox` 等）
+2. **欄位不匹配**：GAS 端 `程式碼.js` 的 `LOG_HEADERS` 原本缺少 `category` 欄位（只有 12 個欄位，應為 13 個）
+3. **同步行為**：因欄位不匹配，GAS 拉取資料時無法正確對應，導致 PWA 認為是新紀錄而重複寫入
+
+**用戶手動修正**：
+
+- 在 `程式碼.js` 中補上 `category` 欄位到 `LOG_HEADERS`
+- 等待確認此修改是否解決重複問題
+
+### 💡 設計決策：Log 單向同步
+
+**核心理念**：
+
+> Log 表是 Fact Table（事實表），主要用於歷史分析，不需要多設備實時同步
+
+**優勢分析**：
+
+1. **避免重複**：Log 只推不拉，不會因為同步邏輯導致重複紀錄
+2. **減少傳輸**：Log 隨時間累積，雙向同步會造成大量不必要的數據傳輸
+3. **專注分析**：用戶主要在 Google Sheets 用 Gemini 或下載到 Excel 分析，不需要在 PWA 查看完整歷史
+4. **性能優化**：本地只保留近期 Log，減少 IndexedDB 存儲和查詢負擔
+
+**使用場景**：
+
+- **PWA**：顯示近期 Log（1-90 天），快速查看最近活動
+- **Google Sheets**：完整 Log 數據源，用於深度分析、Gemini AI 報告、Excel 圖表
+
+### 🛠️ 實現細節
+
+#### 1. syncUtils.ts - 跳過 Log 拉取
+
+**修改位置**：`pwa/src/utils/syncUtils.ts` 的 `pull()` 方法
+
+**實現邏輯**：
+
+```typescript
+async pull(): Promise<SyncResult> {
+  // ... 取得遠端變更 ...
+  
+  let mergedCount = 0;
+  for (const change of changes) {
+    // 注意：Log 表只做單向推送，不從雲端拉回（用戶在 Google Sheets 自行分析）
+    if (change.table === 'log') {
+      console.log('跳過 log 表拉取:', change.recordId);
+      continue;
+    }
+    
+    // 處理其他表的合併邏輯...
+    await this.mergeRemoteChange(change);
+    mergedCount++;
+  }
+  
+  return { 
+    pulled: mergedCount,  // 只計算非 log 的合併數量
+    timestamp: now 
+  };
+}
+`
+
+**關鍵點**：
+
+- 使用 `continue` 跳過 log 表的處理
+- `mergedCount` 只追蹤非 log 表的合併數量
+- 加入 console.log 方便除錯
+
+#### 2. LogTable.tsx - 本地過濾顯示
+
+**修改位置**：`pwa/src/components/tables/LogTable.tsx`
+
+**新增功能**：
+
+**a. 天數過濾**：
+
+```typescript
+const [daysFilter, setDaysFilter] = useState(7);  // 預設顯示 7 天
+
+useEffect(() => {
+  async function load() {
+    const cutoffTime = Date.now() - daysFilter * 24 * 60 * 60 * 1000;
+    const allLogs = await db.log.toArray();
+    
+    const filtered = allLogs.filter(log => 
+      log.timestamp >= cutoffTime &&
+      (searchText === '' || 
+        log.title?.toLowerCase().includes(searchText.toLowerCase()) ||
+        log.taskId?.toLowerCase().includes(searchText.toLowerCase()) ||
+        log.action?.toLowerCase().includes(searchText.toLowerCase()) ||
+        log.notes?.toLowerCase().includes(searchText.toLowerCase()) ||
+        log.category?.toLowerCase().includes(searchText.toLowerCase())
+      )
+    );
+    
+    setLogs(filtered);
+  }
+  load();
+}, [daysFilter, searchText]);
+`
+
+**b. 關鍵字搜尋**：
+
+```typescript
+const [searchText, setSearchText] = useState('');
+
+// 搜尋範圍：title, taskId, action, notes, category
+```
+
+**c. UI 控制項**：
+
+```tsx
+<div className="flex gap-2 mb-4">
+  {/* 天數選擇器 */}
+  <select 
+    value={daysFilter} 
+    onChange={(e) => setDaysFilter(Number(e.target.value))}
+    className="px-3 py-2 border rounded"
+  >
+    <option value={1}>最近 1 天</option>
+    <option value={3}>最近 3 天</option>
+    <option value={7}>最近 7 天</option>
+    <option value={14}>最近 14 天</option>
+    <option value={30}>最近 30 天</option>
+    <option value={90}>最近 90 天</option>
+  </select>
+  
+  {/* 搜尋框 */}
+  <div className="relative flex-1">
+    <input
+      type="text"
+      value={searchText}
+      onChange={(e) => setSearchText(e.target.value)}
+      placeholder="搜尋標題、任務ID、動作、備註、分類..."
+      className="w-full px-3 py-2 border rounded pr-8"
+    />
+    {searchText && (
+      <button
+        onClick={() => setSearchText('')}
+        className="absolute right-2 top-1/2 -translate-y-1/2"
+      >
+        ✕
+      </button>
+    )}
+  </div>
+  
+  {/* 結果計數 */}
+  <div className="text-gray-600 self-center">
+    共 {logs.length} 筆記錄
+  </div>
+</div>
+`
+
+### 📊 數據流向圖
+
+`
+┌─────────────────┐
+│   PWA (設備)     │
+│                 │
+│ IndexedDB       │
+│ ├─ task_pool    │◄──┐
+│ ├─ scheduled    │   │ 雙向同步
+│ ├─ micro_tasks  │   │ (push + pull)
+│ ├─ inbox        │   │
+│ └─ log (近期)   │───┤ 
+└─────────────────┘   │ 單向 push
+         │            │ (不 pull)
+         │ push all   │
+         ▼            ▼
+┌─────────────────────────────┐
+│   Google Sheets (雲端)        │
+│                             │
+│ ├─ NBL_TaskPool             │
+│ ├─ NBL_Scheduled            │
+│ ├─ NBL_MicroTasks           │
+│ ├─ NBL_Inbox                │
+│ └─ NBL_Log (完整歷史)        │
+│                             │
+│   ↓ 分析工具                 │
+│   • Gemini AI               │
+│   • Excel 下載              │
+│   • QUERY 函數              │
+└─────────────────────────────┘
+`
+
+**關鍵設計**：
+
+- **其他表**：雙向同步（push + pull），確保多設備任務狀態一致
+- **Log 表**：單向推送（只 push），Google Sheets 是唯一完整數據源
+- **PWA 顯示**：本地過濾近期 Log，提供快速查看，不需要完整歷史
+
+### ✅ 實現檢查清單
+
+**已完成**：
+
+- ✅ `syncUtils.ts` 修改 `pull()` 方法，跳過 log 表拉取
+- ✅ `LogTable.tsx` 新增天數過濾（1/3/7/14/30/90 天）
+- ✅ `LogTable.tsx` 新增關鍵字搜尋功能
+- ✅ `LogTable.tsx` 新增清除搜尋按鈕（X）
+- ✅ `LogTable.tsx` 顯示結果計數
+- ✅ 用戶手動補上 `程式碼.js` 的 `category` 欄位
+
+**待驗證**：
+
+- ⏳ 確認 `category` 欄位補上後，Log 重複問題是否解決
+- ⏳ 測試單向同步：PWA push → Google Sheets，確認不會 pull 回來
+- ⏳ 測試過濾功能：切換天數、輸入搜尋關鍵字
+- ⏳ 多設備測試：確認其他表仍正常雙向同步
+
+### 🎯 下一步建議
+
+1. **驗證 category 欄位修復**
+   - 在 PWA 新增幾筆不同 category 的 Log（如從 inbox、task_pool 完成任務）
+   - 執行同步
+   - 檢查 Google Sheets `NBL_Log` 的 `category` 欄位是否正確填入
+
+2. **測試單向同步行為**
+   - 在 Google Sheets 手動新增一筆 Log（模擬外部寫入）
+   - 在 PWA 執行「同步」
+   - 確認該筆 Log **不會** 出現在 PWA 的 LogTable 中
+
+3. **性能監控**
+   - 觀察 `console.log('跳過 log 表拉取: ...')` 的輸出次數
+   - 若數量很大，表示成功節省了大量拉取操作
+
+4. **用戶體驗優化**（可選）
+   - 在 SyncStatus 顯示「Log: 單向推送」提示
+   - 在 LogTable 加入「查看完整 Log」按鈕，連結到 Google Sheets
+
+### 📝 技術債務與未來改進
+
+- [ ] 考慮定期清理本地 Log（如自動刪除 90 天前的紀錄）
+- [ ] 評估是否需要「強制拉取 Log」功能（用於設備遷移場景）
+- [ ] 監控 IndexedDB 容量，確保 Log 不會佔用過多空間
+- [ ] 考慮在 Google Sheets 建立「Log 彙總視圖」（每日/每週/每月統計）
+
+---
+
+## 📊 MVP 完成標準更新（2026-03-10）
+
+### 核心功能
+
+- ✅ 雙向同步（task_pool, scheduled, micro_tasks, inbox）
+- ✅ 單向推送（log）
+- ✅ 星型架構（Log 展開，其他表 taskId + JSON）
+- ✅ SetupWizard 整合（modal 模式，動態 GAS 代碼嵌入）
+- ✅ LogTable 過濾功能（天數 + 搜尋）
+
+### 測試項目
+
+- ⏳ 多設備同步測試（非 log 表）
+- ⏳ Log 單向推送驗證
+- ⏳ Google Sheets 分析測試（用 Gemini 或 QUERY）
+
+### 文件更新
+
+- ✅ [plan.md](plan.md) - 新增 Log 單向同步決策
+- ✅ [9th_discussion.md](9th_discussion.md) - 記錄實現細節與技術決策
+
+---
+
+**今日進度總結**：完成 Log 單向同步設計與實現，優化 PWA 本地顯示效能，為深度分析奠定基礎。🚀
