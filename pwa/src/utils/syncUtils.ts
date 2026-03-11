@@ -57,6 +57,10 @@ interface GASResponse {
   counts?: Record<string, number>
 }
 
+interface ResetAndPullOptions {
+  includeLog?: boolean
+}
+
 /**
  * 同步管理器 - 負責 PWA 與 GAS 的雙向同步
  */
@@ -296,6 +300,92 @@ export class SyncManager {
         pushed: 0,
         pulled: 0,
         message: `同步出錯: ${String(error)}`,
+        timestamp: Date.now(),
+      }
+    }
+  }
+
+  /**
+   * 清空本地資料（不含 Log），再從 GAS 完整拉取（用於設備遷移或資料還原）
+   * ⚠️ 危險操作：本地未同步的資料將遺失
+   */
+  async resetAndPull(options: ResetAndPullOptions = {}): Promise<SyncResult> {
+    const startTime = Date.now()
+    const includeLog = options.includeLog === true
+
+    try {
+      const txTables = includeLog
+        ? [
+            db.task_pool,
+            db.scheduled,
+            db.micro_tasks,
+            db.inbox,
+            db.selection_cache,
+            db.dashboard,
+            db.change_log,
+            db.sync_state,
+            db.log,
+          ]
+        : [
+            db.task_pool,
+            db.scheduled,
+            db.micro_tasks,
+            db.inbox,
+            db.selection_cache,
+            db.dashboard,
+            db.change_log,
+            db.sync_state,
+          ]
+
+      await db.transaction('rw', txTables, async () => {
+        const clearOps: Array<Promise<unknown>> = [
+          db.task_pool.clear(),
+          db.scheduled.clear(),
+          db.micro_tasks.clear(),
+          db.inbox.clear(),
+          db.selection_cache.clear(),
+          db.dashboard.clear(),
+          db.change_log.clear(),
+          db.sync_state.clear(),
+        ]
+
+        // Log 預設保留，僅在使用者勾選時才清除。
+        if (includeLog) {
+          clearOps.push(db.log.clear())
+        }
+
+        await Promise.all(clearOps)
+      })
+
+      // 重置同步時間戳，確保拉取全部資料
+      this.lastSyncTimestamp = 0
+      localStorage.removeItem('last-sync-timestamp')
+
+      // 從 GAS 拉取所有資料
+      const pullResult = await this.pull()
+      if (pullResult.error) {
+        return {
+          status: 'error',
+          pushed: 0,
+          pulled: 0,
+          message: `還原失敗: ${pullResult.error}`,
+          timestamp: Date.now(),
+        }
+      }
+
+      return {
+        status: 'success',
+        pushed: 0,
+        pulled: pullResult.success,
+        message: `還原完成，已從雲端載入 ${pullResult.success} 筆資料${includeLog ? '（含清除 Log）' : '（保留 Log）'} (${Date.now() - startTime}ms)`,
+        timestamp: Date.now(),
+      }
+    } catch (error) {
+      return {
+        status: 'error',
+        pushed: 0,
+        pulled: 0,
+        message: `還原出錯: ${String(error)}`,
         timestamp: Date.now(),
       }
     }

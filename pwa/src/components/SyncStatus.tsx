@@ -25,6 +25,8 @@ export function SyncStatus({
   const [message, setMessage] = useState("");
   const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
   const [showSetupWizard, setShowSetupWizard] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [includeLogOnReset, setIncludeLogOnReset] = useState(false);
 
   // 初始化：檢查 GAS URL，初始化 SyncManager
   useEffect(() => {
@@ -91,6 +93,39 @@ export function SyncStatus({
 
     // 2 秒後清除提示
     setTimeout(() => setMessage(""), 2000);
+  };
+
+  // 從 GAS 完整還原（清空本地非 Log 資料後重新拉取）
+  const handleResetAndPull = async () => {
+    setShowResetConfirm(false);
+    if (!manager) {
+      setMessage("❌ 未配置 GAS URL，無法還原");
+      setSyncStatus("error");
+      return;
+    }
+
+    setSyncStatus("syncing");
+    setMessage("🔄 還原中...");
+
+    try {
+      const result: SyncResult = await manager.resetAndPull({
+        includeLog: includeLogOnReset,
+      });
+      if (result.status === "success") {
+        setSyncStatus("idle");
+        setLastSyncTime(Date.now());
+        setMessage(`✅ ${result.message}`);
+        setPendingCount(0);
+      } else {
+        setSyncStatus("error");
+        setMessage(`❌ ${result.message}`);
+      }
+    } catch (error) {
+      setSyncStatus("error");
+      setMessage(`❌ 還原出錯: ${String(error)}`);
+    }
+
+    setTimeout(() => setMessage(""), 4000);
   };
 
   // 處理 SetupWizard 完成
@@ -232,6 +267,17 @@ export function SyncStatus({
           ⚙️
         </button>
 
+        <button
+          onClick={() => {
+            setIncludeLogOnReset(false);
+            setShowResetConfirm(true);
+          }}
+          title="從 Google Sheets 還原所有資料（清空本地後重新拉取）"
+          className="px-2 py-1 text-xs text-gray-500 hover:text-orange-500 hover:underline"
+        >
+          ☁️
+        </button>
+
         {message && (
           <span
             className={`ml-2 text-xs ${
@@ -252,6 +298,58 @@ export function SyncStatus({
           onComplete={handleSetupComplete}
           onClose={() => setShowSetupWizard(false)}
         />
+      )}
+
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-2xl">
+            <h3 className="text-lg font-bold text-orange-600 mb-3">
+              ☁️ 從雲端還原資料
+            </h3>
+            <p className="text-gray-700 text-sm mb-3">
+              本地任務資料將被清除，並從 Google Sheets 重新拉取。
+            </p>
+            <label className="flex items-start gap-2 mb-3 text-sm text-gray-700 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeLogOnReset}
+                onChange={(e) => setIncludeLogOnReset(e.target.checked)}
+                className="mt-0.5"
+              />
+              <span>
+                同時清除本地 Log（危險）
+                <span className="block text-xs text-gray-500">
+                  Log 不會從雲端拉回，勾選後本機 Log 會清空。
+                </span>
+              </span>
+            </label>
+            {pendingCount > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded p-2 mb-3 text-xs text-red-700">
+                ⚠️ 目前有 <strong>{pendingCount}</strong> 筆尚未同步的變更，還原後將遺失！建議先執行「同步」。
+              </div>
+            )}
+            {includeLogOnReset && (
+              <div className="bg-amber-50 border border-amber-200 rounded p-2 mb-3 text-xs text-amber-700">
+                ⚠️ 你選擇了清除 Log。此操作後，Log 將無法透過 pull 還原。
+              </div>
+            )}
+            <p className="text-gray-400 text-xs mb-4">此操作不可復原。</p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-50"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleResetAndPull}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+              >
+                確認還原{includeLogOnReset ? "（含 Log）" : ""}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

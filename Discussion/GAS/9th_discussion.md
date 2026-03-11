@@ -2825,11 +2825,11 @@ const [searchText, setSearchText] = useState('');
     共 {logs.length} 筆記錄
   </div>
 </div>
-`
+```
 
 ### 📊 數據流向圖
 
-`
+```js
 ┌─────────────────┐
 │   PWA (設備)     │
 │                 │
@@ -2857,7 +2857,7 @@ const [searchText, setSearchText] = useState('');
 │   • Excel 下載              │
 │   • QUERY 函數              │
 └─────────────────────────────┘
-`
+```
 
 **關鍵設計**：
 
@@ -2883,7 +2883,7 @@ const [searchText, setSearchText] = useState('');
 - ⏳ 測試過濾功能：切換天數、輸入搜尋關鍵字
 - ⏳ 多設備測試：確認其他表仍正常雙向同步
 
-### 🎯 下一步建議
+### 🎯 下一步建議 03-10
 
 1. **驗證 category 欄位修復**
    - 在 PWA 新增幾筆不同 category 的 Log（如從 inbox、task_pool 完成任務）
@@ -2936,3 +2936,13 @@ const [searchText, setSearchText] = useState('');
 ---
 
 **今日進度總結**：完成 Log 單向同步設計與實現，優化 PWA 本地顯示效能，為深度分析奠定基礎。🚀
+
+==================================================================================
+
+---
+
+## [2026-03-11] ychsue 運作良好，可否試看看在手機狀態時，將 App.tsx 裡面的 SyncStatus 整個放進 `menu icon` 的 list 裡面？這樣，使用者點 menu icon，就可以看到他，不然畫面會太擠。還是您有更好的建議都可以提出。此外，能否給個按鈕就是整個dexie db洗掉後，然後由 Google Sheets pull 回所有資料(不含Log，也就是現在的狀態)，您覺得這個按鈕會否太危險？😅
+
+### Github Copilot 已經完成
+
+## [2026-03-11] ychsue 這份 #file:README.md `目前實作` 並沒有提到 sync 的部分(先前v1.0是幾乎全然使用GAS，現在v2.0則是使用PWA，GAS當作後端資料庫使用)，而且與 #file:GuidePage.tsx 裡面寫的(for pwa, 也同樣缺 sync 的部分)也不大相同，請問可以幫我升級一下這兩個檔案的內容嗎？謝謝。😄

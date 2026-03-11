@@ -2,46 +2,63 @@
 
 > **大腦的高效作業系統：實現「超導般」的人生調度**
 
-📖 專案簡介
+## 📖 專案簡介
 
-**NonBlockingLife** 是一個基於電腦科學 **Event Loop (事件循環)** 原理開發的個人調度系統。
+**NonBlockingLife** 是一個基於電腦科學 **Event Loop (事件循環)** 原理開發的個人調度系統。
 
-透過將大腦視為 **單執行緒 (Single Thread)** 處理器，本專案旨在建立一個外部監控機制，防止「主執行緒阻塞 (Main Thread Blocking)」，確保生活的各類任務（微任務、宏任務、異步回調）能流暢運轉。
+透過將大腦視為 **單執行緒 (Single Thread)** 處理器，本專案旨在建立外部監控機制，防止「主執行緒阻塞 (Main Thread Blocking)」，確保生活中的微任務、宏任務與異步回調能流暢運轉。
 
-本專案也是 超導般的社會 [(Superconductorlike Society)](https://ychsue.github.io/superconductorlike_society/) 願景下的一個關鍵實踐，旨在消除生活中的「阻力」，讓人的專注力如同超導體中的電子般，無損且高效地流動。就算受到打岔，依然能夠回到主線上。
+本專案也是 [Superconductorlike Society](https://ychsue.github.io/superconductorlike_society/) 願景下的關鍵實踐，目標是讓人即使被打岔也能快速回到主線。
 
-🛠️ 目前實作 (v1.0)
+## 🛠️ 目前實作 (v2.0)
 
-目前系統利用 **Google Apps Script (GAS)** 作為核心調度引擎，並透過 **iPhone 捷徑 (Shortcuts)** 作為交互終端，實現以下功能：
+v2.0 已從「GAS 主體」升級為 **PWA 主體 + GAS 雲端資料層**：
 
--   **開始任務 (Start)**：掛載任務至執行棧，並自動觸發「30 分鐘專注濾鏡」與計時器，防止單一任務過度佔用 CPU。
--   **結束任務 (End)**：結算工時、累加配額，並自動觸發「異步回調 (Callback)」鏈結（如：洗衣服 ➡️ 晾衣服）。
--   **中斷處理 (Interrupt)**：一鍵保存當前上下文（Context Save），切換至系統級中斷監控狀態，確保時間不漏失。
--   **靈感捕捉 (Inbox)**：非阻塞式快速輸入，將突發想法存入緩衝區，減少大腦記憶體（RAM）負擔。
--   **智慧選單 (Query Options)**：由 Google AI 與權重演算法設計的邏輯，根據任務狀態、優先級與到期時間，動態產出「目前最建議執行」的候選清單。
+- **PWA (Local-first)**：以 Dexie/IndexedDB 作為主要資料庫與操作介面。
+- **GAS + Google Sheets**：作為同步後端與雲端備援資料源。
+- **iPhone Shortcuts**：作為快速觸發端（Start/End/Interrupt/Inbox/Scheduled）。
 
-🧠 Event Loop 哲學對應
+目前已支援：
 
--   **Call Stack**：你當下的專注力（一次只能做一件事）。
--   **Task Pool**：宏任務隊列（專案與大目標）。
--   **Scheduled (Timers)**：異步回調（利用計時器處理洗衣、等待回信等非阻塞事務）。
--   **Selection Cache**：Ready Queue（經過 AI 權重計算後，準備好被執行的任務）。
+- **Start / End / Interrupt** 任務流
+- **Inbox / Task Pool / Scheduled / Micro Tasks** 任務管理
+- **手動同步**（Push + Pull）
+- **首次設定精靈**（SetupWizard）
+- **雲端還原**（可清空本地後重新 pull）
 
-🚀 未來願景 (Roadmap)
+## 🔄 同步策略（目前版本）
 
-我們不滿足於僅僅「完成事情」，NonBlockingLife 的終極目標是從 **效率工具** 進化為 **生命伴侶**：
+- **雙向同步表**：`task_pool`, `scheduled`, `micro_tasks`, `inbox`
+- **Log 表策略**：預設 **單向推送**（PWA push 到 Sheets，不自動 pull 回 PWA）
+- **分析定位**：完整 Log 保存在 Google Sheets，方便 Gemini / Excel 分析
+- **本地 Log 顯示**：以近期紀錄與搜尋為主（避免裝置端資料過大）
 
-1.  **AI 深度分析**：利用 AI 整合分析執行日誌 (Log)，找出使用者專注力的「黃金時段」與「疲勞規律」。
-2.  **身心狀態建模**：整合穿戴式裝置數據（心率、睡眠、壓力值），將身心狀態作為權重參數納入調度邏輯。
-3.  **動態調解**：當偵測到身心負擔過重時，AI 將自動調整建議任務為「微任務」或「強制休息」，並切換提醒方式。
-4.  **隨身導師與醫生**：進化為能主動預警心理與身體健康、提供專業建議的智慧調度器，實現真正的個人「超導狀態」。
+## 🧠 Event Loop 哲學對應
 
-⚙️ 快速開始
+- **Call Stack**：你當下的專注力（一次只能做一件事）
+- **Task Pool**：宏任務隊列（專案與大目標）
+- **Micro Task**：微任務對列 (有空時就可處理)
+- **Scheduled (Timers)**：異步回調（利用計時器處理等待類任務）
+- **Selection Cache**：Ready Queue（AI/規則挑選後的候選任務）
+- **Log**：執行歷程事件流（供回顧與分析）
 
-1.  **Backend**: 複製本專案的 Google Sheets 模板，並部署 `gas/src` 內的代碼為 Web App。
-2.  **Shortcuts**: 下載 iPhone 捷徑檔案 並在導入問答中輸入您的 API 網址。
-3.  **Test**: 使用 `npm run test` 進行本地邏輯驗證後，利用 `clasp push` 上傳。
+## 🚀 未來願景 (Roadmap)
 
-📄 授權與貢獻
+NonBlockingLife 的目標是從效率工具進化為生命伴侶：
 
-本專案採用 MIT 授權。歡迎所有對「優化生命執行效率」有熱情的開發者加入！
+1. **AI 深度分析**：分析 Log 找出專注黃金時段與疲勞規律
+2. **身心狀態建模**：整合穿戴裝置資料納入調度權重
+3. **動態調解**：高負荷時自動調整為微任務或休息模式
+4. **隨身導師與醫生**：主動預警並提供個人化建議
+
+## ⚙️ 快速開始
+
+1. **PWA**：啟動 `pwa/` 專案並開啟網頁
+2. **Backend**：部署 `pwa/src/gas/` 對應程式碼為 Web App，並綁定 Google Sheets
+3. **Setup**：在 PWA 右上角同步區設定 GAS Web App URL
+4. **Sync**：按「同步」驗證 push/pull 是否正常
+5. **Shortcuts**：安裝 iPhone Shortcuts 並串接 API URL
+
+## 📄 授權與貢獻
+
+本專案採用 MIT 授權。歡迎所有對「優化生命執行效率」有熱情的開發者加入。

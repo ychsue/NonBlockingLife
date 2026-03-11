@@ -8,27 +8,27 @@ import {
 const SHORTCUTS = [
   {
     name: 'QueryOptions',
-    url: 'https://www.icloud.com/shortcuts/f05b8313418a419590881039c0034b70',
+    url: 'https://www.icloud.com/shortcuts/ce9e7a05926244d2aca8eec11860a000',
     purpose: '由NBL取得候選任務清單',
   },
   {
     name: 'NBL_Timer',
-    url: 'https://www.icloud.com/shortcuts/ef7902c94d3a4a8298695502a7c5fdf5',
+    url: 'https://www.icloud.com/shortcuts/d6cf2c879d0f42f78d531ac540bb2d0a',
     purpose: 'iPhone 裡面接收來自NBL提出的顯示模式與計時器切換的要求。',
   },
   {
     name: 'NBL Interrupt',
-    url: 'https://www.icloud.com/shortcuts/b53586e2d0d148b79bb571c2cf172c5f',
+    url: 'https://www.icloud.com/shortcuts/dc4620410baf4df6aec49dec77ebad5b',
     purpose: '遇到打岔時一鍵切換中斷流程',
   },
   {
     name: 'NBL Inbox',
-    url: 'https://www.icloud.com/shortcuts/c9737680739048d3b994336b7dffef9d',
+    url: 'https://www.icloud.com/shortcuts/2ab3e7572f3048838ba079c0626f76b0',
     purpose: '快速把想法丟進 NBL Inbox',
   },
   {
     name: 'NBL Scheduled',
-    url: 'https://www.icloud.com/shortcuts/5ebbb7afb98b44fc9515e824ec0a6a11',
+    url: 'https://www.icloud.com/shortcuts/d45e5661b79946ac98274caa14852e7a',
     purpose: '快速把想法丟進 NBL Scheduled',
   },
 ]
@@ -56,7 +56,17 @@ export function GuidePage() {
           Non-Blocking Life 的目的是把任務管理做成「不打斷主線」的日常系統，讓你在 iPhone
           與 PWA 之間可以快速開始、結束、打岔與回到任務。
           <br />
-          這是<a href="https://ychsue.github.io/superconductorlike_society/" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">我之前寫的「超導體般社會」</a>裡面個人「時間管理系統」的實驗性版本，目前功能還在開發中，先放上來給有興趣的人參考。
+          v2.0 已升級為「PWA 本地優先 + GAS 雲端同步」架構，平常在本機快速操作，需要時再同步到 Google Sheets。
+          這是
+          <a
+            href="https://ychsue.github.io/superconductorlike_society/"
+            target="_blank"
+            rel="noreferrer"
+            className="text-blue-600 hover:underline"
+          >
+            我之前寫的「超導體般社會」
+          </a>
+          裡面個人時間管理系統的實驗性版本。
         </p>
       </div>
 
@@ -64,14 +74,42 @@ export function GuidePage() {
         <h3 className="text-lg font-semibold text-gray-800 mb-3">🚀 怎麼用（最短流程）</h3>
         <ol className="list-decimal pl-5 space-y-2 text-gray-700">
           <li>先開啟本 PWA，確認可看到 Inbox / Task Pool / Scheduled 等頁籤。</li>
-          <li>在 iPhone 安裝下方 Shortcuts，然後將除了 <b>NBL_Timer</b> 以外的 Shortcuts 加入 iPhone 的下拉式控制項目裡面。</li>
+          <li>第一次使用請先設定同步 URL：點右上角「⚙️」貼上 GAS Web App URL。</li>
+          <li>按一次「💾 同步」確認可成功 push / pull。</li>
+          <li>在 iPhone 安裝下方 Shortcuts，並將除了 <b>NBL_Timer</b> 以外的 Shortcuts 加入 iPhone 下拉式控制項目。</li>
           <li>日常用法：用 <b>QueryOptions</b> 直接挑下一個建議任務執行，或者結束當前任務。</li>
-          <li>而當您有任務想要加入做時間管理時，請到本PWA網頁。若是有要在特定時間(群)執行，請Add到<b>NBL Scheduled</b>裡面，否則，請Add到<b>Task Pool</b>或者<b>Micro Task</b>裡面。</li>
-          <li>當遇到突發狀況需要中斷當前任務時，請使用 <b>NBL Interrupt</b>。</li>
-          <li>若有好想法，請使用 <b>NBL Inbox</b> 快速記錄。我是把它設為iPhone的<b>輔助使用➡️觸控➡️背面輕點</b>，這樣就能快速紀錄。</li>
-          <li>若有行事曆要記錄，請使用 <b>NBL Scheduled</b>，他會先在iPhone 自己的行事曆紀錄一份，然後再同步到 NBL Scheduled。</li>
-          <li>原則上開始與結束任務，都會在<b>Log</b>頁籤紀錄。未來再來想辦法統計。</li>
+          <li>若有任務想納入管理，請在 PWA 新增。特定時間執行請加到 <b>NBL Scheduled</b>，其他請加到 <b>Task Pool</b> 或 <b>Micro Task</b>。</li>
+          <li>遇到突發狀況需要中斷時，請使用 <b>NBL Interrupt</b>。</li>
+          <li>若有好想法，請使用 <b>NBL Inbox</b> 快速記錄。我是把它設為 iPhone 的 <b>輔助使用➡️觸控➡️背面輕點</b>，可快速紀錄。</li>
+          <li>若有行事曆要記錄，請使用 <b>NBL Scheduled</b>，會先寫入 iPhone 行事曆，再同步到 NBL Scheduled。</li>
+          <li>開始與結束任務都會在 <b>Log</b> 頁籤紀錄，完整 Log 會推送到 Google Sheets 供 AI/Excel 分析。</li>
         </ol>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">🔄 同步說明（v2.0）</h3>
+        <ul className="space-y-2 text-gray-700 list-disc pl-5">
+          <li>
+            <b>資料主體在 PWA：</b>
+            本機 Dexie/IndexedDB 為主資料庫，操作速度快且可離線。
+          </li>
+          <li>
+            <b>GAS + Google Sheets 是雲端資料層：</b>
+            用於跨設備同步與備份。
+          </li>
+          <li>
+            <b>雙向同步表：</b>
+            Task Pool / Scheduled / Micro Tasks / Inbox。
+          </li>
+          <li>
+            <b>Log 表目前採單向推送：</b>
+            PWA 會推送 Log 到 Google Sheets，但不自動拉回，避免重複與大量傳輸。
+          </li>
+          <li>
+            <b>☁️ 還原功能：</b>
+            可清空本地後從 Google Sheets 重新拉取。預設保留 Log，也可切換連 Log 一起清除。
+          </li>
+        </ul>
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg p-5">
@@ -108,8 +146,11 @@ export function GuidePage() {
           <li>✅ Inbox 新增（iPhone 已完成）</li>
           <li>✅ Interrupt 啟動 start interrupt（iPhone 已完成）</li>
           <li>✅ Scheduled add：開啟行事曆後再寫入 Scheduled</li>
-         <li><i>🚧 尚未寫分析Log的功能，應該可以交由AI分析才對。此外，關於身心健康的部分，也尚未實作</i></li>
-
+          <li>
+            <i>
+              🚧 Log 深度分析與身心健康整合尚未實作，現階段建議先使用 Google Sheets + AI 工具分析。
+            </i>
+          </li>
         </ul>
       </div>
     </section>

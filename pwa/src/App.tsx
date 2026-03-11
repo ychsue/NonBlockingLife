@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useUrlAction, SheetName } from './hooks/useUrlAction'
 import { useAppStore } from './store/appStore'
+import { useResponsiveTable } from './hooks/useResponsiveTable'
 import { TabNavigation } from './components/TabNavigation'
 import { Toast } from './components/Toast'
 import { SyncStatus } from './components/SyncStatus'
@@ -21,6 +22,8 @@ export default function App() {
   const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
   const [toast, setToast] = useState('')
   const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const { isMobile } = useResponsiveTable()
 
   // 監聽 iPhone Shortcut URL 參數
   useUrlAction({
@@ -91,13 +94,30 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">📱 Non-Blocking Life</h1>
-            <div className='flex'>
+            <div className='flex items-center gap-2'>
               <p className="text-sm text-gray-600">Local-first Task Management</p>
-              <SyncStatus />
+              {!isMobile && <SyncStatus />}
             </div>
           </div>
+          {/* 手機漢堡選單按鈕 */}
+          {isMobile && (
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg text-xl leading-none"
+              aria-label="選單"
+            >
+              {showMobileMenu ? '✕' : '☰'}
+            </button>
+          )}
         </div>
       </header>
+
+      {/* 手機選單下拉面板 */}
+      {isMobile && showMobileMenu && (
+        <div className="bg-white border-t border-gray-100 px-4 py-3 shadow-md">
+          <SyncStatus />
+        </div>
+      )}
 
       {/* Tabs */}
       <TabNavigation />
