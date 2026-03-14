@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { getShortcutConfig, setShortcutConfig, isIOSDevice, generateShortcutUrl, type ShortcutConfig } from '../utils/shortcutUtils'
+import { getShortcutConfig, setShortcutConfig, getDeviceType, generateShortcutUrl, type ShortcutConfig } from '../utils/shortcutUtils'
 
 export function ShortcutConfig() {
-  const [config, setConfig] = useState<ShortcutConfig>(getShortcutConfig())
-  const [isIOS] = useState(isIOSDevice())
+  const [startOrEnd, setStartOrEnd] = useState<'start' | 'end'>('start')
+  const [config, setConfig] = useState<ShortcutConfig>(getShortcutConfig(startOrEnd))
+  const [isIOS] = useState(getDeviceType() === 'Shortcuts')
   const [saved, setSaved] = useState(false)
 
   const handleChange = (key: keyof ShortcutConfig, value: unknown) => {
@@ -13,12 +14,12 @@ export function ShortcutConfig() {
   }
 
   const handleSave = () => {
-    setShortcutConfig(config)
+    setShortcutConfig(config, startOrEnd)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
 
-  const testShortcutUrl = generateShortcutUrl('Test Task')
+  const testShortcutUrl = generateShortcutUrl('Test Task', startOrEnd)
 
   return (
     <div className="p-4 bg-white rounded-lg border border-gray-200">

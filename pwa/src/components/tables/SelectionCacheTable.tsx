@@ -372,7 +372,7 @@ export function SelectionCacheTable() {
           onClick={handleInterrupt}
           className="flex-1 px-4 py-2 border border-amber-300 text-amber-800 rounded hover:bg-amber-100"
         >
-          中斷任務
+          ⚡ 中斷任務
         </button>
       </div>
 
@@ -494,7 +494,7 @@ export function SelectionCacheTable() {
                   onClick={handleInterrupt}
                   className="flex-1 px-4 py-2 border border-amber-300 text-amber-800 rounded hover:bg-amber-100"
                 >
-                  中斷任務
+                  ⚡
                 </button>
               </div>
             </>
