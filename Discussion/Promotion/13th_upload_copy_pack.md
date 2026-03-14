@@ -39,6 +39,7 @@
 - Local-first，操作快
 - Google Sheets 同步，資料在自己手上
 - 中斷可追蹤，不再回不去主線
+- Inbox 可快速收件，先記錄再決策
 
 ---
 
@@ -111,6 +112,9 @@
 
 它的核心想法是：把大腦視為單執行緒，用 Event Loop 的概念管理 Task Pool、Scheduled、Micro Tasks、Selection Cache 與 Log，讓「被打岔」這件事不再只是混亂，而是能被追蹤、結束、回到主線的正常事件。
 
+另外，Inbox 在這套系統裡是非常關鍵的緩衝區：
+突然想到、看到、聽到的事情先收進去，不強迫當下分類，避免破壞主線執行。
+
 目前 v2.0 採用：
 
 - PWA 本地優先（Local-first）
@@ -122,6 +126,7 @@
 
 - 候選任務 Selection Cache
 - Start / Interrupt / End 流程
+- 有甚麼想法都先丟 Inbox
 - Log 回看
 - 手動同步到 Google Sheets
 - iPhone Shortcuts 的整合方式
@@ -189,6 +194,7 @@ GitHub：
 - v2.0 目前是 PWA 主體 + GAS / Google Sheets 同步層
 - 日常操作走 local-first
 - Log 目前主要是單向 push 到 Google Sheets 做分析
+- Inbox 是先收件再分類；Interrupt 是當下要處理的執行事件
 
 GitHub 在說明欄，歡迎 issue / PR。
 

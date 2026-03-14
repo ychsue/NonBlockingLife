@@ -19,12 +19,12 @@ import { EditDialog, type FieldType } from '../EditDialog'
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<ScheduledItem>()
 
-function createNewScheduledRow(): ScheduledItem {
-  const taskId = Utils.generateId('S')
+function createNewScheduledRow(taskId?: string, title?: string): ScheduledItem {
+  taskId = taskId || Utils.generateId('S')
   const cronExpr = '0 9 * * *' // 預設每天早上9點執行
   return {
     taskId,
-    title: '',
+    title: title || '',
     status: 'WAITING',
     cronExpr: cronExpr,
     remindBefore: '',
@@ -50,13 +50,34 @@ export function ScheduledTable() {
     let active = true
     db.scheduled
       .toArray()
-      .then((data) => {
-        if (active) {
-          // taskId 降序排列（新的在前面）
-          const sorted = data.sort((a, b) => b.taskId.localeCompare(a.taskId))
-          setRows(sorted)
-          setLoading(false)
+      .then(async (data) => {
+        if (!active) return
+
+        let loadedRows = data
+
+        // 如果 scheduled 為空，就補一筆「定時檢查 Inbox」示範資料
+        // 注意：不能直接呼叫 addRow 後再用舊的 data setRows，否則會被空陣列覆蓋
+        if (loadedRows.length === 0) {
+          const starterRow = createNewScheduledRow('S0', 'Check out the Inbox table!')
+
+          await applyChange({
+            table: 'scheduled',
+            recordId: starterRow.taskId,
+            op: 'add',
+            patch: starterRow as unknown as Record<string, unknown>,
+            clientId: DEV_CLIENT_ID,
+          }).catch((err) => console.error('Failed to add starter scheduled row:', err))
+
+          loadedRows = await db.scheduled.toArray()
+          if (loadedRows.length === 0) {
+            loadedRows = [starterRow]
+          }
         }
+
+        // taskId 降序排列（新的在前面）
+        const sorted = [...loadedRows].sort((a, b) => b.taskId.localeCompare(a.taskId))
+        setRows(sorted)
+        setLoading(false)
       })
       .catch((err) => {
         console.error('Failed to load scheduled:', err)
@@ -95,8 +116,8 @@ export function ScheduledTable() {
     }).catch((err) => console.error('Failed to save update:', err))
   }
 
-  const addRow = async () => {
-    const newRow = createNewScheduledRow()
+  const addRow = async (taskId?: string, title?: string) => {
+    const newRow = createNewScheduledRow(taskId, title)
     setRows((prev) => [newRow, ...prev])
 
     await applyChange({
@@ -445,7 +466,7 @@ export function ScheduledTable() {
           <p className="text-sm text-gray-600">定期執行的任務設定</p>
         </div>
         <button
-          onClick={addRow}
+          onClick={() => addRow()}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           + Add

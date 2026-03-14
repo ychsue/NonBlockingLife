@@ -16,6 +16,10 @@
 
 > NonBlockingLife 是把 Event Loop 搬到人生任務管理：本機快速操作（Local-first），需要時再同步到你自己的 Google Sheets。
 
+### 一句話補充（Inbox 與 Interrupt）
+
+> Inbox 是「先收再分類」的緩衝區；Interrupt 是「必須當下處理」的執行中事件。
+
 ### 這支影片的主軸
 
 1. 為什麼要做（痛點）
@@ -62,16 +66,18 @@
 
 1. 打開 `Guide`（先給觀眾全貌：PWA + iOS Shortcuts + Sync）
 2. 到 `Task Pool` 快速看任務
-3. 到 `Selection Cache` 按「刷新候選」
-4. 點一個候選任務 → `開始任務`
-5. 展示「目前有任務執行中」對話框
-6. 按 `中斷任務`（示範突發狀況）
-7. 再 `結束任務`
-8. 打開 `Log` 看 START / INTERRUPT / END 紀錄
+3. 快速示範 `Inbox` 新增一筆「先記下來，暫不決策」
+4. 到 `Selection Cache` 按「刷新候選」
+5. 點一個候選任務 → `開始任務`
+6. 展示「目前有任務執行中」對話框
+7. 按 `中斷任務`（示範突發狀況）
+8. 再 `結束任務`
+9. 打開 `Log` 看 START / INTERRUPT / END 紀錄
 
 口播重點：
 > 候選清單不是死清單，它會根據優先度、已用配額、排程到期狀態做排序。  
 > 中斷不是失敗，而是被系統正式記錄的一段時間。
+> Inbox 的目的不是立刻分類，而是讓你先保住主線，不把腦內暫存塞爆。
 
 ### [02:40 - 03:45] 同步展示（差異化）
 
@@ -141,6 +147,7 @@
 ### 必拍（主影片）
 
 - `GuidePage`：一句話說清整體流程（PWA + Shortcuts + Sync）
+- `InboxTable`：快速丟想法，不必當下分類
 - `SelectionCacheTable`：刷新候選、點選任務、開始/中斷/結束
 - `SyncStatus`：同步按鈕、同步訊息、還原雲端
 - `LogTable`：用時間篩選 + 搜尋，快速回看事件
@@ -160,6 +167,7 @@
 - 「Local-first + 手動同步」
 - 「Log 目前預設是單向 push 到 Sheets 做分析」
 - 「這是一套可演進的個人調度系統，不是單純 checklist」
+- 「Inbox 是收件匣，不是立即排程；Interrupt 是當下執行事件」
 
 ### 避免這樣講
 

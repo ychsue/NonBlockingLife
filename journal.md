@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-03-14] 影片中應該強調一下 Inbox 的用處。
+
 ## [2026-03-13] 想使用 ms-clock://timer 來啟動計時器，但是失敗，因為她不接受 `duration` 與 `title` 的設定
 
 ### Copilot 建議：

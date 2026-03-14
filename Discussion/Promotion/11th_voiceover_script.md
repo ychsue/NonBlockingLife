@@ -25,6 +25,11 @@
 我做了一個系統，叫 NonBlockingLife。  
 它把 Event Loop 的概念搬到人生任務管理：Task Pool、Scheduled、Selection Cache、Log。
 
+### [00:20 - 00:28]（可替換）
+
+（畫面：Inbox 快速新增）  
+突然想到的事，我先丟 Inbox，不強迫自己當下分類。
+
 ### [00:20 - 00:42]
 
 （畫面：Candidates 刷新 → 開始 → 中斷 → 結束）  
@@ -74,6 +79,11 @@ Task Pool 是主任務，Scheduled 是定時或回調任務，Micro Tasks 是碎
 我先切到 Candidates，按刷新候選。  
 你會看到候選不是死排序，而是根據優先度、配額、排程狀態做加權。  
 
+（畫面：Inbox 快速新增）  
+如果我突然想到一件事，但現在不想切換上下文，  
+我會先丟到 Inbox。  
+Inbox 的角色是緩衝，不是立即決策。  
+
 （畫面：點任務開始）  
 我現在開始這個任務。  
 系統會把當前任務掛到 Dashboard，並寫一筆 START 到 Log。  
@@ -81,6 +91,9 @@ Task Pool 是主任務，Scheduled 是定時或回調任務，Micro Tasks 是碎
 （畫面：中斷流程）  
 假設現在突然被電話打斷，我按中斷。  
 中斷在這裡不是失敗，而是一段正式被追蹤的事件。  
+
+（畫面：Inbox 與 Interrupt 對比圖卡）  
+簡單說，Inbox 是「先記下來」，Interrupt 是「現在就得處理」。  
 
 （畫面：結束流程）  
 事情處理完我按結束，系統會計算 duration，更新任務狀態，然後再寫入 Log。
