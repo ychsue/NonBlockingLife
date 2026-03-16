@@ -126,7 +126,7 @@
 
 ### [8-20 秒]
 
-「這個專案把 Event Loop 用在人生任務管理：Task Pool、Scheduled、Selection Cache、Log。」
+「這個專案把 Event Loop 用在人生任務管理：Inbox、Task Pool、Scheduled、Selection Cache、Log。」
 
 ### [20-42 秒]
 
@@ -138,7 +138,7 @@
 
 ### [52-60 秒]
 
-「這就是 NonBlockingLife。想試的話，去 GitHub 看 README。」
+「這就是 NonBlockingLife。想試的話，打開她的網頁，或去 GitHub 看 README。」
 
 ---
 
