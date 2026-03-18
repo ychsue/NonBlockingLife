@@ -17,13 +17,13 @@
 ### [00:00 - 00:08]
 
 （畫面：通知轟炸 + 待辦很多）  
-你不是沒做事，你是被打岔後，回不來主線。
+你不是整天忙亂卻一事無成，你是被打岔後，回不來主線。
 
 ### [00:08 - 00:20]
 
 （畫面：NBL 首頁分頁快速切換）  
 我做了一個系統，叫 NonBlockingLife。  
-它把 Event Loop 的概念搬到人生任務管理：Inbox、Selection Cache、Task Pool、Scheduled、Micro Tasks、Log。
+它把 Event Loop 的概念搬到人生任務管理：Inbox、Candidate、Task Pool、Scheduled、Micro Tasks、Log。
 
 ### [00:20 - 00:28]（可替換）
 

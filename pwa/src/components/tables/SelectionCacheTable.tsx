@@ -300,12 +300,15 @@ export function SelectionCacheTable() {
         size: 300,
         cell: (info) => {
           const score = info.row.original.score ?? 0;
-          const titleClassName =
+          let titleClassName =
             score < 5
               ? "bg-green-500"
               : score > 200
                 ? "bg-red-400"
                 : "bg-white-900";
+          if (info.row.original.title?.includes("⛔")) {
+            titleClassName = score < 10 ? "bg-gray-300 line-through" : titleClassName;
+          }
 
           return <span className={titleClassName+" px-2 py-1 rounded w-full"}>{info.getValue()}</span>;
         },

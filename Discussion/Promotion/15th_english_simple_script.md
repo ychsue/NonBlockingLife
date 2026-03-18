@@ -19,42 +19,52 @@
 
 ### Version 1: Problem + Demo
 
-Hi, I am building a system called NonBlockingLife.
+You are not lazy.
+You are just interrupted, and you lose your main track.
+
+I am building a system called NonBlockingLife.
 
 It is not just a todo app.
 It is a task system for real life interruptions.
 
 I use Event Loop thinking.
-I have task pools, scheduled tasks, candidate tasks, and logs.
+I have Inbox, Candidates, Task Pool, Scheduled, Micro Tasks, and Log.
 
-Here is the flow.
-Refresh candidates.
-Start one task.
-Get interrupted.
-End it.
-Everything goes into the log.
+If I suddenly think of something,
+I put it in Inbox first.
+I do not force a decision right away.
+
+Here is the flow:
+refresh Candidates,
+start one task,
+get interrupted,
+end it,
+and log everything.
 
 It is local-first.
 It is fast.
-And I can sync to my own Google Sheets.
+And I sync to my own Google Sheets.
 
 This is NonBlockingLife.
 
-### Version 2: More developer-friendly
+### Version 2: Even easier (very safe for recording)
 
-I turned Event Loop thinking into a personal productivity system.
+This is NonBlockingLife.
 
-It is called NonBlockingLife.
+It helps me when life interrupts my work.
 
-It is a PWA.
-It works local-first.
-And it syncs with Google Sheets.
+If I get a random idea,
+I put it in Inbox.
 
-The key idea is simple.
-Interruptions are normal.
-So the system should track them, not ignore them.
+If I must handle something now,
+I use Interrupt.
 
-That is what this project does.
+Then I can go back to my main task.
+
+Everything is logged.
+
+It is local-first and fast.
+I can sync it to my own Google Sheets.
 
 ---
 
