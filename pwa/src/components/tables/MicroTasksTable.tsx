@@ -15,6 +15,8 @@ import {
 import { useResponsiveTable } from '../../hooks/useResponsiveTable'
 import { TableCard } from '../TableCard'
 import { EditDialog, type FieldType } from '../EditDialog'
+import { TableHelpDialog } from '../TableHelpDialog'
+import microTasksHelpMarkdown from './MicroTasksHelp.md?raw'
 
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<MicroTaskItem>()
@@ -32,6 +34,7 @@ function createNewMicroTaskRow(): MicroTaskItem {
 export function MicroTasksTable() {
   const [rows, setRows] = useState<MicroTaskItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [showHelp, setShowHelp] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     taskId: false,
   })
@@ -214,12 +217,20 @@ export function MicroTasksTable() {
           <h2 className="text-xl font-bold">Micro Tasks</h2>
           <p className="text-sm text-gray-600">小型任務快速完成</p>
         </div>
-        <button
-          onClick={addRow}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          + Add
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowHelp(true)}
+            className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
+          >
+            說明
+          </button>
+          <button
+            onClick={addRow}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            + Add
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -321,6 +332,13 @@ export function MicroTasksTable() {
           </table>
         </div>
       )}
+
+      <TableHelpDialog
+        isOpen={showHelp}
+        title="Micro Tasks 使用說明"
+        markdown={microTasksHelpMarkdown}
+        onClose={() => setShowHelp(false)}
+      />
     </div>
   )
 }

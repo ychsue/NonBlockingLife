@@ -15,6 +15,8 @@ import {
 import { useResponsiveTable } from '../../hooks/useResponsiveTable'
 import { TableCard } from '../TableCard'
 import { EditDialog, type FieldType } from '../EditDialog'
+import { TableHelpDialog } from '../TableHelpDialog'
+import scheduledHelpMarkdown from './ScheduledHelp.md?raw'
 
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<ScheduledItem>()
@@ -39,6 +41,7 @@ function createNewScheduledRow(taskId?: string, title?: string): ScheduledItem {
 export function ScheduledTable() {
   const [rows, setRows] = useState<ScheduledItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [showHelp, setShowHelp] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     taskId: false,
   })
@@ -465,12 +468,20 @@ export function ScheduledTable() {
           <h2 className="text-xl font-bold">Scheduled Tasks</h2>
           <p className="text-sm text-gray-600">定期執行的任務設定</p>
         </div>
-        <button
-          onClick={() => addRow()}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          + Add
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowHelp(true)}
+            className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
+          >
+            說明
+          </button>
+          <button
+            onClick={() => addRow()}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            + Add
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -604,6 +615,13 @@ export function ScheduledTable() {
           </table>
         </div>
       )}
+
+      <TableHelpDialog
+        isOpen={showHelp}
+        title="Scheduled 使用說明"
+        markdown={scheduledHelpMarkdown}
+        onClose={() => setShowHelp(false)}
+      />
     </div>
   )
 }

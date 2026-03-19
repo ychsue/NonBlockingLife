@@ -16,6 +16,8 @@ import {
   startTask,
 } from "../../utils/taskFlow";
 import { useAppStore } from "../../store/appStore";
+import { TableHelpDialog } from "../TableHelpDialog";
+import selectionCacheHelpMarkdown from "./SelectionCacheHelp.md?raw";
 
 const DEV_CLIENT_ID = "dev-selection-cache";
 const columnHelper = createColumnHelper<SelectionCacheItem>();
@@ -23,7 +25,11 @@ const columnHelper = createColumnHelper<SelectionCacheItem>();
 export function SelectionCacheTable() {
   const [rows, setRows] = useState<SelectionCacheItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
+    taskId: false,
+  });
   const [refreshing, setRefreshing] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   // 使用 Zustand 全域狀態管理
   const showStartDialog = useAppStore((state) => state.showStartDialog);
@@ -350,6 +356,10 @@ export function SelectionCacheTable() {
     data: rows,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    state: {
+      columnVisibility,
+    },
+    onColumnVisibilityChange: setColumnVisibility,
   });
 
   if (loading) {
@@ -366,6 +376,12 @@ export function SelectionCacheTable() {
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
         >
           {refreshing ? "刷新中..." : "🔄 刷新候選"}
+        </button>
+        <button
+          onClick={() => setShowHelp(true)}
+          className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
+        >
+          說明
         </button>
         <span className="text-sm text-gray-600">
           共 {rows.length} 個候選任務
@@ -581,6 +597,13 @@ export function SelectionCacheTable() {
           </div>
         </div>
       </dialog>
+
+      <TableHelpDialog
+        isOpen={showHelp}
+        title="Candidates 使用說明"
+        markdown={selectionCacheHelpMarkdown}
+        onClose={() => setShowHelp(false)}
+      />
     </div>
   );
 }

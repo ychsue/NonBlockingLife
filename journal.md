@@ -1,5 +1,10 @@
 # Journal
 
+## [2026-03-19] AI 的幫助下，給頁面們加上了說明，並且改良手機時的卡片行為
+
+1. [TableCard.tsx](pwa\src\components\TableCard.tsx) 讓手機可以用滑動的來編輯與刪除
+2. [TableHelpDialog.tsx](pwa\src\components\TableHelpDialog.tsx) 引進 react-markdown，這樣就可以直接寫 Markdown 來說明了，還有一些樣式上的改良
+
 ## [2026-03-18] 試著使用別人的影片與新增想減少使用時間的任務
 
 1. 使用 [ed br 的](https://www.pexels.com/zh-tw/@ed-br-1727831108/) 的素材

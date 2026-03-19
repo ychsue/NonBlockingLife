@@ -15,6 +15,8 @@ import {
 import { useResponsiveTable } from '../../hooks/useResponsiveTable'
 import { TableCard } from '../TableCard'
 import { EditDialog, type FieldType } from '../EditDialog'
+import { TableHelpDialog } from '../TableHelpDialog'
+import inboxHelpMarkdown from './InboxHelp.md?raw'
 
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<InboxItem>()
@@ -31,6 +33,7 @@ function createNewInboxRow(): InboxItem {
 export function InboxTable() {
   const [rows, setRows] = useState<InboxItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [showHelp, setShowHelp] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     taskId: false,
   })
@@ -206,12 +209,20 @@ export function InboxTable() {
           <h2 className="text-xl font-bold">Inbox</h2>
           <p className="text-sm text-gray-600">新增想法與待辦項目</p>
         </div>
-        <button
-          onClick={addRow}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          + Add
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowHelp(true)}
+            className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
+          >
+            說明
+          </button>
+          <button
+            onClick={addRow}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            + Add
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -302,6 +313,13 @@ export function InboxTable() {
           </table>
         </div>
       )}
+
+      <TableHelpDialog
+        isOpen={showHelp}
+        title="Inbox 使用說明"
+        markdown={inboxHelpMarkdown}
+        onClose={() => setShowHelp(false)}
+      />
     </div>
   )
 }

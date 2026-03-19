@@ -31,6 +31,11 @@ const SHORTCUTS = [
     url: 'https://www.icloud.com/shortcuts/d45e5661b79946ac98274caa14852e7a',
     purpose: '快速把想法丟進 NBL Scheduled',
   },
+  {
+    name: 'Apple Clock (時鐘)',
+    url: 'https://apps.apple.com/tw/app/clock/id1584215688',
+    purpose: 'iPhone 該內建的時鐘 App，提供計時器功能，配合 NBL_Timer Shortcut 切換工作/休息模式時會啟動對應的計時器。iPhone 有可能沒有預設安裝。',
+  }
 ]
 
 export function GuidePage() {

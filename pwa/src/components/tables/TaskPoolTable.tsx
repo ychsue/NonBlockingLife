@@ -15,6 +15,8 @@ import {
 import { useResponsiveTable } from '../../hooks/useResponsiveTable'
 import { TableCard } from '../TableCard'
 import { EditDialog, type FieldType } from '../EditDialog'
+import { TableHelpDialog } from '../TableHelpDialog'
+import taskPoolHelpMarkdown from './TaskPoolHelper.md?raw'
 
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<TaskPoolItem>()
@@ -39,6 +41,7 @@ function createNewTaskPoolRow(taskId?: string, title?: string, note?: string, ur
 export function TaskPoolTable() {
   const [rows, setRows] = useState<TaskPoolItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [showHelp, setShowHelp] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     taskId: false,
   })
@@ -413,12 +416,20 @@ export function TaskPoolTable() {
           <h2 className="text-xl font-bold">Task Pool</h2>
           <p className="text-sm text-gray-600">任務優先序與時間管理</p>
         </div>
-        <button
-          onClick={addRow}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          + Add
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowHelp(true)}
+            className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
+          >
+            說明
+          </button>
+          <button
+            onClick={addRow}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            + Add
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -553,6 +564,13 @@ export function TaskPoolTable() {
           </table>
         </div>
       )}
+
+      <TableHelpDialog
+        isOpen={showHelp}
+        title="Task Pool 使用說明"
+        markdown={taskPoolHelpMarkdown}
+        onClose={() => setShowHelp(false)}
+      />
     </div>
   )
 }
