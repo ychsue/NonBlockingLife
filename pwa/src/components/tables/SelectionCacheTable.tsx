@@ -7,7 +7,10 @@ import {
 } from "@tanstack/react-table";
 import { applyChange, db } from "../../db/index";
 import type { Dashboard, SelectionCacheItem } from "../../db/schema";
-import { calculateCandidates, minutesToTimeString } from "../../utils/candidateUtils";
+import {
+  calculateCandidates,
+  minutesToTimeString,
+} from "../../utils/candidateUtils";
 import { checkScheduledTimers } from "../../utils/checkTimers";
 import {
   endTask,
@@ -18,6 +21,7 @@ import {
 import { useAppStore } from "../../store/appStore";
 import { TableHelpDialog } from "../TableHelpDialog";
 import selectionCacheHelpMarkdown from "./SelectionCacheHelp.md?raw";
+import { useResponsiveTable } from "../../hooks/useResponsiveTable";
 
 const DEV_CLIENT_ID = "dev-selection-cache";
 const columnHelper = createColumnHelper<SelectionCacheItem>();
@@ -25,11 +29,14 @@ const columnHelper = createColumnHelper<SelectionCacheItem>();
 export function SelectionCacheTable() {
   const [rows, setRows] = useState<SelectionCacheItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
+  const [columnVisibility, setColumnVisibility] = useState<
+    Record<string, boolean>
+  >({
     taskId: false,
   });
   const [refreshing, setRefreshing] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const { isMobile } = useResponsiveTable();
 
   // 使用 Zustand 全域狀態管理
   const showStartDialog = useAppStore((state) => state.showStartDialog);
@@ -313,10 +320,15 @@ export function SelectionCacheTable() {
                 ? "bg-red-400"
                 : "bg-white-900";
           if (info.row.original.title?.includes("⛔")) {
-            titleClassName = score < 10 ? "bg-gray-300 line-through" : titleClassName;
+            titleClassName =
+              score < 10 ? "bg-gray-300 line-through" : titleClassName;
           }
 
-          return <span className={titleClassName+" px-2 py-1 rounded w-full"}>{info.getValue()}</span>;
+          return (
+            <span className={titleClassName + " px-2 py-1 rounded w-full"}>
+              {info.getValue()}
+            </span>
+          );
         },
       }),
       columnHelper.accessor("score", {
@@ -377,12 +389,21 @@ export function SelectionCacheTable() {
         >
           {refreshing ? "刷新中..." : "🔄 刷新候選"}
         </button>
-        <button
-          onClick={() => setShowHelp(true)}
-          className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
-        >
-          說明
-        </button>
+        {isMobile ? (
+          <button
+            onClick={() => setShowHelp(true)}
+            className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
+          >
+            ❓
+          </button>
+        ) : (
+          <button
+            onClick={() => setShowHelp(true)}
+            className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
+          >
+            說明
+          </button>
+        )}
         <span className="text-sm text-gray-600">
           共 {rows.length} 個候選任務
         </span>
@@ -391,7 +412,7 @@ export function SelectionCacheTable() {
           onClick={handleInterrupt}
           className="flex-1 px-4 py-2 border border-amber-300 text-amber-800 rounded hover:bg-amber-100"
         >
-          ⚡ 中斷任務
+          ⚡ {isMobile ? "" : "中斷任務"}
         </button>
       </div>
 
@@ -478,7 +499,7 @@ export function SelectionCacheTable() {
             </span>
             <h2 className="text-lg font-bold mb-4 text-amber-900">結束任務</h2>
             <span className="ml-auto">
-            {/* 擺到右邊 */}
+              {/* 擺到右邊 */}
               {runningTask && takeTime ? `已執行 ${takeTime}` : ""}
             </span>
           </div>
@@ -490,7 +511,10 @@ export function SelectionCacheTable() {
                 {runningTask.title ? ` - ${runningTask.title}` : ""}
               </div>
               <div className="mt-3">
-                <label htmlFor="note_end" className="block text-sm font-semibold mb-1 text-amber-900">
+                <label
+                  htmlFor="note_end"
+                  className="block text-sm font-semibold mb-1 text-amber-900"
+                >
                   結束備註 (選填)
                 </label>
                 <textarea
@@ -539,7 +563,10 @@ export function SelectionCacheTable() {
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="task_id_start" className="block text-sm font-semibold mb-1">
+              <label
+                htmlFor="task_id_start"
+                className="block text-sm font-semibold mb-1"
+              >
                 任務 ID
               </label>
               <input
@@ -552,7 +579,10 @@ export function SelectionCacheTable() {
             </div>
 
             <div>
-              <label htmlFor="title_start" className="block text-sm font-semibold mb-1">
+              <label
+                htmlFor="title_start"
+                className="block text-sm font-semibold mb-1"
+              >
                 任務標題
               </label>
               <input
@@ -567,7 +597,10 @@ export function SelectionCacheTable() {
             </div>
 
             <div>
-              <label htmlFor="note_start" className="block text-sm font-semibold mb-1">
+              <label
+                htmlFor="note_start"
+                className="block text-sm font-semibold mb-1"
+              >
                 備註 (選填)
               </label>
               <textarea
