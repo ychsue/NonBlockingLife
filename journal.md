@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-03-25] 當有任務在跑時，讓Header閃爍，並且顯示一個按鈕可跳到Selection_Cache的頁面 
+
 ## [2026-03-19] AI 的幫助下，給頁面們加上了說明，並且改良手機時的卡片行為
 
 1. [TableCard.tsx](pwa\src\components\TableCard.tsx) 讓手機可以用滑動的來編輯與刪除

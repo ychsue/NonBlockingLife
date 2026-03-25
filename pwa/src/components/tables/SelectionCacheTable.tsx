@@ -48,9 +48,12 @@ export function SelectionCacheTable() {
   const isInterruptMode = useAppStore((state) => state.isInterruptMode);
   const setIsInterruptMode = useAppStore((state) => state.setIsInterruptMode);
 
+  const setRunningTask = useAppStore((state) => state.setRunningTask);
+  const runningTask = useAppStore((state) => state.runningTask);
+  const loadRunningTask = useAppStore((state) => state.loadRunningTask);
+
   // 本地狀態（非持久化）
   const [startNote, setStartNote] = useState("");
-  const [runningTask, setRunningTask] = useState<Dashboard | null>(null);
   const [endNote, setEndNote] = useState("");
   const [warning, setWarning] = useState("");
   const startDialogRef = useRef<HTMLDialogElement | null>(null);
@@ -143,12 +146,6 @@ export function SelectionCacheTable() {
     } else if (dialog.open && !isInterruptMode) {
       dialog.close();
     }
-  };
-
-  const loadRunningTask = async () => {
-    const current = await getRunningTask();
-    setRunningTask(current);
-    // ✅ 移除這裡的 setShowEndDialog - 由 useEffect 和 URL action 管理
   };
 
   const loadCandidates = async () => {

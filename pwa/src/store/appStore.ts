@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { SheetName } from '../hooks/useUrlAction'
+import { Dashboard, db } from '../db/schema'
 
 interface AppState {
   // 当前选中的页签
@@ -21,6 +22,11 @@ interface AppState {
   // 显示 End Dialog（强制停止当前任务）
   showEndDialog: boolean
   setShowEndDialog: (show: boolean) => void
+
+  // 当前正在运行的任务
+  runningTask: Dashboard | null
+  setRunningTask: (task: Dashboard | null) => void
+  loadRunningTask: () => Promise<void>
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -38,4 +44,12 @@ export const useAppStore = create<AppState>((set) => ({
 
   showEndDialog: false,
   setShowEndDialog: (show) => set({ showEndDialog: show }),
+
+  runningTask: null,
+  setRunningTask: (task) => set({ runningTask: task }),
+  loadRunningTask: async () => {
+    const rows = await db.dashboard.toArray();
+    const current = rows[0] ?? null;
+    set({ runningTask: current });
+  },
 }))
