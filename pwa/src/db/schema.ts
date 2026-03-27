@@ -33,6 +33,7 @@ export interface TaskPoolItem {
   taskId: string
   title?: string
   status?: string
+  focusTime?: number
   project?: string
   spentTodayMins?: number
   dailyLimitMins?: number
@@ -48,6 +49,7 @@ export interface ScheduledItem {
   taskId: string
   title?: string
   status?: string
+  focusTime?: number
   cronExpr?: string
   remindBefore?: string | number
   remindAfter?: string | number
@@ -70,6 +72,7 @@ export interface MicroTaskItem {
   taskId: string
   title?: string
   status?: string
+  focusTime?: number
   lastRunDate?: number
   updatedAt?: number
 }

@@ -27,6 +27,7 @@ function createNewTaskPoolRow(taskId?: string, title?: string, note?: string, ur
     taskId: id,
     title: title ?? '',
     status: 'PENDING',
+    focusTime: undefined,
     project: '',
     spentTodayMins: 0,
     dailyLimitMins: 60,
@@ -152,6 +153,7 @@ export function TaskPoolTable() {
     const patch = {
       title: data.title,
       status: data.status,
+      focusTime: data.focusTime === '' || data.focusTime == null ? undefined : parseInt(data.focusTime) || 0,
       project: data.project,
       priority: parseInt(data.priority) || 0,
       dailyLimitMins: parseInt(data.dailyLimitMins) || 0,
@@ -217,6 +219,31 @@ export function TaskPoolTable() {
               <option value="DOING">DOING</option>
               <option value="DONE">DONE</option>
             </select>
+          )
+        },
+      }),
+      columnHelper.accessor('focusTime', {
+        header: 'Focus Time',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const value = info.getValue()
+
+          return (
+            <input
+              className="w-24 px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              type="number"
+              min={0}
+              value={value ?? ''}
+              placeholder="mins"
+              onChange={(event) => {
+                const raw = event.target.value
+                updateLocalRow(taskId, { focusTime: raw === '' ? undefined : parseInt(raw) || 0 })
+              }}
+              onBlur={(event) => {
+                const raw = event.target.value
+                saveUpdate(taskId, { focusTime: raw === '' ? undefined : parseInt(raw) || 0 })
+              }}
+            />
           )
         },
       }),
@@ -447,6 +474,10 @@ export function TaskPoolTable() {
                 fields={[
                   { label: 'Title', value: item.title || '(empty)' },
                   { label: 'Status', value: item.status },
+                  {
+                    label: 'Focus Time',
+                    value: item.focusTime == null ? '(default 30)' : `${item.focusTime} mins`,
+                  },
                   { label: 'Priority', value: item.priority },
                   {
                     label: 'Daily Limit',
@@ -488,6 +519,11 @@ export function TaskPoolTable() {
                 name: 'project',
                 label: 'Project',
                 type: 'text' as FieldType,
+              },
+              {
+                name: 'focusTime',
+                label: 'Focus Time (mins)',
+                type: 'number' as FieldType,
               },
               {
                 name: 'priority',

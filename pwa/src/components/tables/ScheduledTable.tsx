@@ -28,6 +28,7 @@ function createNewScheduledRow(taskId?: string, title?: string): ScheduledItem {
     taskId,
     title: title || '',
     status: 'WAITING',
+    focusTime: undefined,
     cronExpr: cronExpr,
     remindBefore: '',
     remindAfter: '',
@@ -150,6 +151,7 @@ export function ScheduledTable() {
     const patch = {
       title: data.title,
       status: data.status,
+      focusTime: data.focusTime === '' || data.focusTime == null ? undefined : parseInt(data.focusTime) || 0,
       cronExpr: data.cronExpr,
       remindBefore: data.remindBefore,
       remindAfter: data.remindAfter,
@@ -215,6 +217,31 @@ export function ScheduledTable() {
               <option value="PENDING">PENDING</option>
               <option value="DONE">DONE</option>
             </select>
+          )
+        },
+      }),
+      columnHelper.accessor('focusTime', {
+        header: 'Focus Time',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const value = info.getValue()
+
+          return (
+            <input
+              className="w-24 px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              type="number"
+              min={0}
+              value={value ?? ''}
+              placeholder="mins"
+              onChange={(event) => {
+                const raw = event.target.value
+                updateLocalRow(taskId, { focusTime: raw === '' ? undefined : parseInt(raw) || 0 })
+              }}
+              onBlur={(event) => {
+                const raw = event.target.value
+                saveUpdate(taskId, { focusTime: raw === '' ? undefined : parseInt(raw) || 0 })
+              }}
+            />
           )
         },
       }),
@@ -499,6 +526,10 @@ export function ScheduledTable() {
                 fields={[
                   { label: 'Title', value: item.title || '(empty)' },
                   { label: 'Status', value: item.status },
+                  {
+                    label: 'Focus Time',
+                    value: item.focusTime == null ? '(default 30)' : `${item.focusTime} mins`,
+                  },
                   { label: 'Cron', value: item.cronExpr },
                   {
                     label: 'Next Run',
@@ -539,6 +570,11 @@ export function ScheduledTable() {
                 label: 'Cron Expression',
                 type: 'text' as FieldType,
                 placeholder: '例: 0 9 * * *',
+              },
+              {
+                name: 'focusTime',
+                label: 'Focus Time (mins)',
+                type: 'number' as FieldType,
               },
               {
                 name: 'remindBefore',

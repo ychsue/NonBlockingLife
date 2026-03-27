@@ -10,6 +10,7 @@ import { triggerShortcutTimer, getShortcutConfig } from "./shortcutUtils";
 import { parseToMinutes } from "./candidateUtils";
 
 const DEV_CLIENT_ID = "dev-task-flow";
+const DEFAULT_FOCUS_TIME_MINUTES = 30;
 
 const SOURCE_TABLE_MAP: Record<
   string,
@@ -41,6 +42,8 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
       message: "任務來源不明，無法開始。",
     };
   }
+
+  const sourceTable = SOURCE_TABLE_MAP[source]
 
   const now = Date.now();
   const dashboardRow: Dashboard = {
@@ -89,8 +92,13 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
   });
 
   // 如果是 iPhone 用户，触发 Shortcut 启动计时器
-  const shortcutConfig = getShortcutConfig("start");
-  triggerShortcutTimer(candidate.title ?? "", candidate.taskId, shortcutConfig);
+  const focusTime = await getFocusTimeBySource(sourceTable, candidate.taskId)
+  const timerMinutes = resolveStartTimerMinutes(focusTime)
+  // if (timerMinutes > 0) { // 想想就算0也傳0回去好了，讓使用者可以選擇不啟動計時器
+    const shortcutConfig = getShortcutConfig("start");
+    shortcutConfig.timerMinutes = timerMinutes
+    triggerShortcutTimer(candidate.title ?? "", candidate.taskId, shortcutConfig);
+  // }
 
   return { status: "success", message: "任務已開始" };
 }
@@ -320,4 +328,38 @@ async function updateScheduledAfterEnd(
     },
     clientId: DEV_CLIENT_ID,
   });
+}
+
+async function getFocusTimeBySource(
+  sourceTable: "task_pool" | "scheduled" | "micro_tasks",
+  taskId: string,
+): Promise<number | undefined> {
+  if (sourceTable === "task_pool") {
+    const row = await db.task_pool.get(taskId)
+    return row?.focusTime
+  }
+
+  if (sourceTable === "scheduled") {
+    const row = await db.scheduled.get(taskId)
+    return row?.focusTime
+  }
+
+  const row = await db.micro_tasks.get(taskId)
+  return row?.focusTime
+}
+
+function resolveStartTimerMinutes(focusTime: number | undefined): number {
+  if (focusTime == null || Number.isNaN(focusTime)) {
+    return DEFAULT_FOCUS_TIME_MINUTES
+  }
+
+  if (focusTime <= 0) {
+    return 0
+  }
+
+  return Math.floor(focusTime)
+}
+
+export const __taskFlowTestables = {
+  resolveStartTimerMinutes,
 }

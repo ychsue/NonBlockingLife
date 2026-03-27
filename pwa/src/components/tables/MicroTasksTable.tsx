@@ -27,6 +27,7 @@ function createNewMicroTaskRow(): MicroTaskItem {
     taskId,
     title: '',
     status: 'PENDING',
+    focusTime: undefined,
     lastRunDate: undefined,
   }
 }
@@ -122,6 +123,7 @@ export function MicroTasksTable() {
     const patch = {
       title: data.title,
       status: data.status,
+      focusTime: data.focusTime === '' || data.focusTime == null ? undefined : parseInt(data.focusTime) || 0,
       lastRunDate: data.lastRunDate ? parseFromDateTimeLocal(data.lastRunDate) : undefined,
     }
 
@@ -181,6 +183,31 @@ export function MicroTasksTable() {
               <option value="DOING">DOING</option>
               <option value="DONE">DONE</option>
             </select>
+          )
+        },
+      }),
+      columnHelper.accessor('focusTime', {
+        header: 'Focus Time',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const value = info.getValue()
+
+          return (
+            <input
+              className="w-24 px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              type="number"
+              min={0}
+              value={value ?? ''}
+              placeholder="mins"
+              onChange={(event) => {
+                const raw = event.target.value
+                updateLocalRow(taskId, { focusTime: raw === '' ? undefined : parseInt(raw) || 0 })
+              }}
+              onBlur={(event) => {
+                const raw = event.target.value
+                saveUpdate(taskId, { focusTime: raw === '' ? undefined : parseInt(raw) || 0 })
+              }}
+            />
           )
         },
       }),
@@ -249,6 +276,10 @@ export function MicroTasksTable() {
                   { label: 'Title', value: item.title || '(empty)' },
                   { label: 'Status', value: item.status },
                   {
+                    label: 'Focus Time',
+                    value: item.focusTime == null ? '(default 30)' : `${item.focusTime} mins`,
+                  },
+                  {
                     label: 'Last Run',
                     value: item.lastRunDate
                       ? new Date(item.lastRunDate).toLocaleString('zh-TW')
@@ -281,6 +312,11 @@ export function MicroTasksTable() {
                   { label: 'Doing', value: 'DOING' },
                   { label: 'Done', value: 'DONE' },
                 ],
+              },
+              {
+                name: 'focusTime',
+                label: 'Focus Time (mins)',
+                type: 'number' as FieldType,
               },
               {
                 name: 'lastRunDate',

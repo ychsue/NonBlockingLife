@@ -1,5 +1,10 @@
 # Journal
 
+## [2026-03-27] 允許使用者在 iPhone 上設定任務的 focus_time 以決定是否啟動計時器
+
+原則上，在 [schema.ts](pwa\src\db\schema.ts) 多設 `focusTime?: number`，然後在 [ScheduledTable.tsx](pwa\src\components\tables\ScheduledTable.tsx) 裡面加入這個欄位的顯示與編輯，最後，在 START 的流程裡面，根據這個欄位來決定要不要啟動計時器。
+這樣，就可以舊手機上的data也相容(要上iPhone 再測看看)
+
 ## [2026-03-25] 當有任務在跑時，讓Header閃爍，並且顯示一個按鈕可跳到Selection_Cache的頁面 
 
 ## [2026-03-19] AI 的幫助下，給頁面們加上了說明，並且改良手機時的卡片行為
