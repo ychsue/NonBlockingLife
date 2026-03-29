@@ -36,6 +36,7 @@ function createNewScheduledRow(taskId?: string, title?: string): ScheduledItem {
     lastRun: undefined,
     note: '',
     nextRun: Utils.getNextOccurrence(cronExpr, new Date())?.getTime(),
+    url: '',
   }
 }
 
@@ -159,6 +160,7 @@ export function ScheduledTable() {
       lastRun: data.lastRun ? parseFromDateTimeLocal(data.lastRun) : undefined,
       nextRun: data.nextRun ? parseFromDateTimeLocal(data.nextRun) : undefined,
       note: data.note,
+      url: data.url,
     }
 
     // 立刻更新本地状态
@@ -438,6 +440,39 @@ export function ScheduledTable() {
           )
         },
       }),
+      columnHelper.accessor('url', {
+        header: 'URL',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const value = info.getValue() ?? ''
+          const hasValidUrl = value && value !== 'None'
+
+          return (
+            <div className="flex items-center gap-2">
+              <input
+                className="flex-1 px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-xs"
+                value={value}
+                onChange={(event) =>
+                  updateLocalRow(taskId, { url: event.target.value })
+                }
+                onBlur={(event) =>
+                  saveUpdate(taskId, { url: event.target.value })
+                }
+              />
+              {hasValidUrl && (
+                <a
+                  href={value}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 whitespace-nowrap"
+                >
+                  開啟
+                </a>
+              )}
+            </div>
+          )
+        },
+      }),
       columnHelper.accessor('nextRun', {
         header: 'Next Run',
         cell: (info) => {
@@ -605,6 +640,12 @@ export function ScheduledTable() {
                 name: 'note',
                 label: 'Note',
                 type: 'text' as FieldType,
+              },
+              {
+                name: 'url',
+                label: 'URL',
+                type: 'text' as FieldType,
+                placeholder: 'https://...',
               },
             ]}
             onSave={handleEditSave}

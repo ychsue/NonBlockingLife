@@ -27,6 +27,7 @@ export interface InboxItem {
   title?: string
   receivedAt?: number
   updatedAt?: number
+  url?: string
 }
 
 export interface TaskPoolItem {
@@ -58,6 +59,7 @@ export interface ScheduledItem {
   note?: string
   nextRun?: number
   updatedAt?: number
+  url?: string
 }
 
 export interface SelectionCacheItem {
@@ -75,6 +77,7 @@ export interface MicroTaskItem {
   focusTime?: number
   lastRunDate?: number
   updatedAt?: number
+  url?: string
 }
 
 export type ChangeLogStatus = 'pending' | 'synced' | 'failed'

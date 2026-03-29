@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-03-29] 多 URL 欄位與 如果該欄位有值，就在 [TableCard.tsx](/pwa\src\components\TableCard.tsx) 顯示連結按鈕，讓使用者按該按鈕就會開啟該連結
+
 ## [2026-03-29] 試著修正在iPhone XS手機上， #file:EditDialog.tsx 裡面的 input 的 type 為 datetime-local的 input，寬度硬是比其他的長了一點，似乎因為這樣，導致我在滑那頁面時，本該只有上下，卻會有點左右飄移
 
 ## [2026-03-27] 允許使用者在 iPhone 上設定任務的 focus_time 以決定是否啟動計時器

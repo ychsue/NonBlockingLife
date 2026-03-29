@@ -26,6 +26,7 @@ interface UseUrlActionOptions {
  * URL 格式：
  * ?sheet=inbox&action=add&title=Buy%20milk
  * ?sheet=scheduled&action=add&title=Morning%20Run&cronExpr=0%209%20*%20*%20*
+ * ?sheet=micro_tasks&action=add&title=Read&url=https%3A%2F%2Fexample.com
  */
 export function useUrlAction(options: UseUrlActionOptions) {
   const {

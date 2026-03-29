@@ -10,7 +10,11 @@ interface TableCardProps<T> {
   onDelete: (item: T) => void
 }
 
-export function TableCard<T extends { taskId?: string | number }>({
+function isUsableUrl(value: unknown): value is string {
+  return typeof value === 'string' && value.trim() !== '' && value !== 'None'
+}
+
+export function TableCard<T extends { taskId?: string | number; url?: string }>({
   item,
   fields,
   onEdit,
@@ -25,6 +29,7 @@ export function TableCard<T extends { taskId?: string | number }>({
   const SWIPE_MAX = 110
   const SWIPE_TRIGGER = 70
   const CONFIRM_WINDOW_MS = 3000
+  const itemUrl = isUsableUrl(item.url) ? item.url.trim() : null
 
   useEffect(() => {
     return () => {
@@ -142,6 +147,23 @@ export function TableCard<T extends { taskId?: string | number }>({
             </div>
           ))}
         </div>
+
+        {itemUrl && (
+          <div className="mt-4 flex justify-end">
+            <a
+              href={itemUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center rounded-md bg-blue-500 px-3 py-2 text-sm font-medium text-white hover:bg-blue-600"
+              onClick={(event) => event.stopPropagation()}
+              onTouchStart={(event) => event.stopPropagation()}
+              onTouchMove={(event) => event.stopPropagation()}
+              onTouchEnd={(event) => event.stopPropagation()}
+            >
+              開啟連結
+            </a>
+          </div>
+        )}
 
         {pendingDeleteConfirm && (
           <div className="mt-3 text-xs text-red-600 text-right">再左滑一次以確認刪除</div>
