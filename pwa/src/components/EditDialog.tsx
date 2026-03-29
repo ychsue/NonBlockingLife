@@ -71,12 +71,12 @@ export function EditDialog<T>({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center items-center bg-black/50" onClick={onClose}>
-      <div className="bg-white w-full sm:max-w-md rounded-t-lg sm:rounded-lg p-6 shadow-lg max-h-[90vh] sm:max-h-[80vh] flex flex-col overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white w-full sm:max-w-md rounded-t-lg sm:rounded-lg p-6 shadow-lg max-h-[90vh] sm:max-h-[80vh] flex flex-col overflow-y-auto overflow-x-hidden" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-lg font-bold mb-4 flex-shrink-0">{title}</h2>
 
         {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded text-sm flex-shrink-0">{error}</div>}
 
-        <div className="space-y-4 mb-6 flex-1 overflow-y-auto pr-2">
+        <div className="space-y-4 mb-6 flex-1 overflow-y-auto overflow-x-hidden pr-2">
           {fields.map((field) => (
             <div key={field.name}>
               <label htmlFor={field.name} className="block text-sm font-medium text-gray-700 mb-1">
@@ -103,7 +103,7 @@ export function EditDialog<T>({
                   type="datetime-local"
                   value={typeof formData[field.name] === "number" ? formatToDateTimeLocal(formData[field.name]) : formData[field.name] ?? ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full min-w-0 max-w-full box-border px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               ) : field.type === 'number' ? (
                 <input
