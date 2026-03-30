@@ -16,6 +16,8 @@ import {
   endTask,
   getRunningTask,
   interruptTask,
+  MAX_RECORD_DURATION_MINUTES,
+  recordTaskEvent,
   startTask,
 } from "../../utils/taskFlow";
 import { useAppStore } from "../../store/appStore";
@@ -54,11 +56,14 @@ export function SelectionCacheTable() {
 
   // 本地狀態（非持久化）
   const [startNote, setStartNote] = useState("");
+  const [recordDuration, setRecordDuration] = useState("");
   const [endNote, setEndNote] = useState("");
   const [warning, setWarning] = useState("");
   const startDialogRef = useRef<HTMLDialogElement | null>(null);
   const endDialogRef = useRef<HTMLDialogElement | null>(null);
+  const recordDialogRef = useRef<HTMLDialogElement | null>(null);
   const [takeTime, setTakeTime] = useState("");
+  const [showRecordDialog, setShowRecordDialog] = useState(false);
 
   const updateTakeTime = useCallback((task: Dashboard | null) => {
     if (!task?.startAt) {
@@ -137,6 +142,16 @@ export function SelectionCacheTable() {
     }
     handleDialogState(dialog);
   }, [showEndDialog, isInterruptMode, endDialogRef.current]);
+
+  useEffect(() => {
+    const dialog = recordDialogRef.current;
+    if (!dialog) return;
+    if (showRecordDialog) {
+      if (!dialog.open) dialog.showModal();
+    } else if (dialog.open) {
+      dialog.close();
+    }
+  }, [showRecordDialog]);
 
   const handleDialogState = (dialog: HTMLDialogElement) => {
     if (showEndDialog) {
@@ -229,7 +244,31 @@ export function SelectionCacheTable() {
     }
     setEditingCandidate(taskId);
     setStartNote("");
+    setRecordDuration("");
     setShowStartDialog(true);
+  };
+
+  const parseRecordDurationInput = (
+    input: string,
+  ): { duration?: number; error?: string } => {
+    const trimmed = input.trim();
+    if (!trimmed) {
+      return {};
+    }
+
+    const parsed = Number(trimmed);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      return { error: "補記時長必須是 0 以上的數字。" };
+    }
+
+    const floored = Math.floor(parsed);
+    if (floored > MAX_RECORD_DURATION_MINUTES) {
+      return {
+        error: `補記時長上限為 ${MAX_RECORD_DURATION_MINUTES} 分鐘。`,
+      };
+    }
+
+    return { duration: floored };
   };
 
   // 確認開始任務
@@ -250,6 +289,7 @@ export function SelectionCacheTable() {
       setShowStartDialog(false);
       setEditingCandidate(null);
       setStartNote("");
+      setRecordDuration("");
       setWarning("");
       await loadRunningTask();
 
@@ -257,6 +297,50 @@ export function SelectionCacheTable() {
       // await handleRefreshCandidates()
     } catch (err) {
       console.error("Failed to start task:", err);
+    }
+  };
+
+  const handleRecordOnly = async () => {
+    setShowStartDialog(false);
+    setShowRecordDialog(true);
+  };
+
+  const handleCancelRecordDialog = () => {
+    setShowRecordDialog(false);
+    setShowStartDialog(true);
+  };
+
+  const handleConfirmRecordOnly = async () => {
+    if (!editingCandidate) return;
+
+    try {
+      const selectedTask = rows.find((r) => r.taskId === editingCandidate);
+      if (!selectedTask) return;
+
+      const durationResult = parseRecordDurationInput(recordDuration);
+      if (durationResult.error) {
+        setWarning(durationResult.error);
+        return;
+      }
+
+      const result = await recordTaskEvent(
+        selectedTask,
+        startNote,
+        durationResult.duration,
+      );
+      if (result.status !== "success") {
+        setWarning(result.message);
+        return;
+      }
+
+      setShowStartDialog(false);
+      setShowRecordDialog(false);
+      setEditingCandidate(null);
+      setStartNote("");
+      setRecordDuration("");
+      setWarning("");
+    } catch (err) {
+      console.error("Failed to record task event:", err);
     }
   };
 
@@ -613,16 +697,102 @@ export function SelectionCacheTable() {
 
           <div className="flex gap-2 mt-6">
             <button
-              onClick={() => setShowStartDialog(false)}
+              onClick={() => {
+                setShowStartDialog(false);
+                setRecordDuration("");
+              }}
               className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
             >
               取消
+            </button>
+            <button
+              onClick={handleRecordOnly}
+              className="flex-1 px-4 py-2 border border-indigo-300 text-indigo-700 rounded hover:bg-indigo-50"
+            >
+              只記錄
             </button>
             <button
               onClick={handleConfirmStart}
               className="flex-1 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
             >
               開始任務
+            </button>
+          </div>
+        </div>
+      </dialog>
+
+      <dialog
+        ref={recordDialogRef}
+        className="rounded-lg w-full max-w-md"
+        style={{ padding: 0 }}
+      >
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="flex items-center mb-4">
+            <span className="text-indigo-500 text-2xl mr-2">📝</span>
+            <h2 className="text-lg font-bold">只記錄事件</h2>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold mb-1">任務</label>
+              <div className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 text-sm">
+                {editingCandidate || "-"}
+                {editingCandidate
+                  ? ` - ${rows.find((r) => r.taskId === editingCandidate)?.title || ""}`
+                  : ""}
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="duration_record_only"
+                className="block text-sm font-semibold mb-1"
+              >
+                補記時長 (分鐘, 選填)
+              </label>
+              <input
+                type="number"
+                id="duration_record_only"
+                value={recordDuration}
+                min={0}
+                max={MAX_RECORD_DURATION_MINUTES}
+                step={1}
+                onChange={(e) => setRecordDuration(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-indigo-500"
+                placeholder={`例如 25（上限 ${MAX_RECORD_DURATION_MINUTES}）`}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="note_record_only"
+                className="block text-sm font-semibold mb-1"
+              >
+                備註 (選填)
+              </label>
+              <textarea
+                id="note_record_only"
+                value={startNote}
+                onChange={(e) => setStartNote(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-indigo-500"
+                rows={3}
+                placeholder="可輸入事件備註；仍可相容 JSON（如有舊習慣）。"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 mt-6">
+            <button
+              onClick={handleCancelRecordDialog}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+            >
+              返回
+            </button>
+            <button
+              onClick={handleConfirmRecordOnly}
+              className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+            >
+              確認記錄
             </button>
           </div>
         </div>

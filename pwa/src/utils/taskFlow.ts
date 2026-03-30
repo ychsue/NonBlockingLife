@@ -11,6 +11,7 @@ import { parseToMinutes } from "./candidateUtils";
 
 const DEV_CLIENT_ID = "dev-task-flow";
 const DEFAULT_FOCUS_TIME_MINUTES = 30;
+export const MAX_RECORD_DURATION_MINUTES = 12 * 60;
 
 const SOURCE_TABLE_MAP: Record<
   string,
@@ -103,6 +104,60 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
   return { status: "success", message: "任務已開始" };
 }
 
+export async function recordTaskEvent(
+  candidate: SelectionCacheItem,
+  note: string,
+  durationOverride?: number,
+) {
+  const source = candidate.source;
+  if (!source || !SOURCE_TABLE_MAP[source]) {
+    return {
+      status: "error",
+      message: "任務來源不明，無法記錄。",
+    };
+  }
+
+  const now = Date.now();
+  const metadata = parseRecordMetadata(note);
+  const { duration, error } = resolveRecordDuration(
+    durationOverride,
+    metadata.duration,
+  );
+  if (error) {
+    return {
+      status: "error",
+      message: error,
+    };
+  }
+
+  await applySourceCompletionUpdates({
+    source,
+    taskId: candidate.taskId,
+    now,
+    duration,
+    mode: "record",
+  });
+
+  await applyChange({
+    table: "log",
+    recordId: `log_${candidate.taskId}_${now}`,
+    op: "add",
+    patch: {
+      timestamp: now,
+      taskId: candidate.taskId,
+      title: candidate.title,
+      action: "RECORD",
+      category: source,
+      state: "DONE",
+      ...(duration != null ? { duration } : {}),
+      notes: metadata.normalizedNote,
+    },
+    clientId: DEV_CLIENT_ID,
+  });
+
+  return { status: "success", message: "事件已記錄" };
+}
+
 export async function endTask(endNote: string, isInterrupt = false) {
   let timerMinutes = 10; // 默認中斷後的預設計時器時間
   const running = await getRunningTask();
@@ -119,26 +174,14 @@ export async function endTask(endNote: string, isInterrupt = false) {
     : endNote;
   const action = isInterrupt ? "INTERRUPT" : "END";
   const state = isInterrupt ? "BUSY" : "DONE";
-
-  if (running.source === "Task_Pool") {
-    const task = await db.task_pool.get(running.taskId);
-    await updateTaskPoolAfterEnd(task, now, duration);
-  } else if (running.source === "Scheduled") {
-    const task = await db.scheduled.get(running.taskId);
-    await updateScheduledAfterEnd(task, now);
-    timerMinutes = parseToMinutes(task?.remindAfter) ?? timerMinutes;
-  } else if (running.source === "Micro_Tasks") {
-    await applyChange({
-      table: "micro_tasks",
-      recordId: running.taskId,
-      op: "update",
-      patch: {
-        status: "DONE",
-        lastRunDate: now,
-      },
-      clientId: DEV_CLIENT_ID,
-    });
-  }
+  const sourceUpdateResult = await applySourceCompletionUpdates({
+    source: running.source,
+    taskId: running.taskId,
+    now,
+    duration,
+    mode: "end",
+  });
+  timerMinutes = sourceUpdateResult.timerMinutes ?? timerMinutes;
 
   await applyChange({
     table: "log",
@@ -173,6 +216,52 @@ export async function endTask(endNote: string, isInterrupt = false) {
   }
 
   return { status: "success", message: "任務已結束", duration };
+}
+
+async function applySourceCompletionUpdates(params: {
+  source?: string;
+  taskId: string;
+  now: number;
+  duration?: number;
+  mode: "end" | "record";
+}): Promise<{ timerMinutes?: number }> {
+  const { source, taskId, now, duration = 0, mode } = params;
+
+  if (source === "Task_Pool") {
+    if (mode === "record") {
+      if (duration > 0) {
+        await updateTaskPoolAfterRecord(taskId, now, duration);
+      }
+      return {};
+    }
+
+    const task = await db.task_pool.get(taskId);
+    await updateTaskPoolAfterEnd(task, now, duration);
+    return {};
+  }
+
+  if (source === "Scheduled") {
+    const task = await db.scheduled.get(taskId);
+    await updateScheduledAfterEnd(task, now);
+    return {
+      timerMinutes: parseToMinutes(task?.remindAfter) ?? undefined,
+    };
+  }
+
+  if (source === "Micro_Tasks") {
+    await applyChange({
+      table: "micro_tasks",
+      recordId: taskId,
+      op: "update",
+      patch: {
+        status: "DONE",
+        lastRunDate: now,
+      },
+      clientId: DEV_CLIENT_ID,
+    });
+  }
+
+  return {};
 }
 
 export async function interruptTask(endNote: string) {
@@ -259,6 +348,43 @@ async function updateTaskPoolAfterEnd(
     op: "update",
     patch: {
       status: "PENDING",
+      spentTodayMins: spentToday,
+      totalSpentMins: totalSpent,
+      lastRunDate: now,
+    },
+    clientId: DEV_CLIENT_ID,
+  });
+}
+
+async function updateTaskPoolAfterRecord(
+  taskId: string,
+  now: number,
+  duration: number,
+) {
+  const task = await db.task_pool.get(taskId);
+  if (!task) return;
+
+  const lastRun = task.lastRunDate ? new Date(task.lastRunDate) : null;
+  const todayStr = new Date(now).toDateString();
+  let spentToday = task.spentTodayMins || 0;
+  let totalSpent = task.totalSpentMins || 0;
+
+  if (
+    !lastRun ||
+    isNaN(lastRun.getTime()) ||
+    lastRun.toDateString() !== todayStr
+  ) {
+    spentToday = 0;
+  }
+
+  spentToday += duration;
+  totalSpent += duration;
+
+  await applyChange({
+    table: "task_pool",
+    recordId: taskId,
+    op: "update",
+    patch: {
       spentTodayMins: spentToday,
       totalSpentMins: totalSpent,
       lastRunDate: now,
@@ -360,6 +486,101 @@ function resolveStartTimerMinutes(focusTime: number | undefined): number {
   return Math.floor(focusTime)
 }
 
+function parseRecordMetadata(note: string): {
+  duration?: number;
+  normalizedNote: string;
+} {
+  const trimmed = note.trim();
+  if (!trimmed) {
+    return { normalizedNote: "" };
+  }
+
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const payload = JSON.parse(trimmed);
+      if (payload && typeof payload === "object") {
+        const objectPayload = payload as Record<string, unknown>;
+        const duration = parseDurationFromUnknown(
+          objectPayload.duration ??
+            objectPayload.durationMins ??
+            objectPayload.minutes ??
+            objectPayload.mins,
+        );
+        const normalizedNote =
+          (typeof objectPayload.note === "string" && objectPayload.note) ||
+          (typeof objectPayload.notes === "string" && objectPayload.notes) ||
+          (typeof objectPayload.message === "string" &&
+            objectPayload.message) ||
+          (typeof objectPayload.comment === "string" &&
+            objectPayload.comment) ||
+          note;
+
+        return { duration, normalizedNote };
+      }
+    } catch {
+      // 非 JSON 字串就走一般文字解析
+    }
+  }
+
+  const inlineDurationMatch = note.match(
+    /(?:^|\s)(?:duration|minutes|mins|dur|d)\s*[:=]\s*(\d+(?:\.\d+)?)/i,
+  );
+  if (!inlineDurationMatch) {
+    return { normalizedNote: note };
+  }
+
+  const duration = parseDurationFromUnknown(inlineDurationMatch[1]);
+  const normalizedNote = note.replace(inlineDurationMatch[0], " ").trim();
+  return {
+    duration,
+    normalizedNote: normalizedNote || note,
+  };
+}
+
+function parseDurationFromUnknown(value: unknown): number | undefined {
+  if (typeof value === "number") {
+    if (!Number.isFinite(value) || value < 0) {
+      return undefined;
+    }
+    return Math.floor(value);
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      return undefined;
+    }
+    return Math.floor(parsed);
+  }
+
+  return undefined;
+}
+
+function resolveRecordDuration(
+  durationOverride: number | undefined,
+  parsedDuration: number | undefined,
+): { duration?: number; error?: string } {
+  const duration = durationOverride ?? parsedDuration;
+  if (duration == null) {
+    return {};
+  }
+
+  if (!Number.isFinite(duration) || duration < 0) {
+    return { error: "補記時長必須是 0 以上的數字。" };
+  }
+
+  const floored = Math.floor(duration);
+  if (floored > MAX_RECORD_DURATION_MINUTES) {
+    return {
+      error: `補記時長上限為 ${MAX_RECORD_DURATION_MINUTES} 分鐘。`,
+    };
+  }
+
+  return { duration: floored };
+}
+
 export const __taskFlowTestables = {
   resolveStartTimerMinutes,
+  parseRecordMetadata,
+  resolveRecordDuration,
 }

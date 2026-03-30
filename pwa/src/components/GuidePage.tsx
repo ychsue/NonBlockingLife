@@ -79,8 +79,9 @@ export function GuidePage() {
         <h3 className="text-lg font-semibold text-gray-800 mb-3">🚀 怎麼用（最短流程）</h3>
         <ol className="list-decimal pl-5 space-y-2 text-gray-700">
           <li>先開啟本 PWA，確認可看到 Inbox / Task Pool / Scheduled 等頁籤。</li>
-          <li>第一次使用請先設定同步 URL：點右上角「⚙️」貼上 GAS Web App URL。</li>
-          <li>按一次「💾 同步」確認可成功 push / pull。</li>
+          <li>iPhone的使用者，請確認不是在 `私密瀏覽模式` 下使用，若是的話，請切換到一般模式，不然會無法紀錄。</li>
+          <li>[可選] 第一次使用請先設定同步 URL：點右上角「⚙️」貼上 GAS Web App URL。</li>
+          <li>[可選] 按一次「💾 同步」確認可成功 push / pull。</li>
           <li>在 iPhone 安裝下方 Shortcuts，並將除了 <b>NBL_Timer</b> 以外的 Shortcuts 加入 iPhone 下拉式控制項目。</li>
           <li>日常用法：用 <b>QueryOptions</b> 直接挑下一個建議任務執行，或者結束當前任務。</li>
           <li>若有任務想納入管理，請在 PWA 新增。特定時間執行請加到 <b>NBL Scheduled</b>，其他請加到 <b>Task Pool</b> 或 <b>Micro Task</b>。</li>
