@@ -23,7 +23,7 @@ const SHORTCUTS = [
   },
   {
     name: 'NBL Inbox',
-    url: 'https://www.icloud.com/shortcuts/762e906e607e4d0a8f513029d9130c01',
+    url: 'https://www.icloud.com/shortcuts/0d4f6fe7565a401fadfc2636f85ebc42',
     purpose: '快速把想法丟進 NBL Inbox',
   },
   {
