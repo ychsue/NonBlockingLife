@@ -1,5 +1,11 @@
 # Journal
 
+## [2026-03-31] Task Tables 都在addRow裡面加上 與 避免兩次 add New Row 的邏輯 還有Inbox 的移動功能
+
+```tsx
+setEditingItem(newRow)
+```
+
 ## [2026-03-30] 做以下的修正
 
 1. [x] NBL使用者有可能Safari切到私密瀏覽，就會導致沒辦法使用D B紀錄

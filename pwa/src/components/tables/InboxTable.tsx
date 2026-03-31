@@ -13,6 +13,7 @@ import {
   parseFromDateTimeLocal,
 } from '../../utils/timeUtils'
 import { useResponsiveTable } from '../../hooks/useResponsiveTable'
+import { useAppStore } from '../../store/appStore'
 import { TableCard } from '../TableCard'
 import { EditDialog, type FieldType } from '../EditDialog'
 import { TableHelpDialog } from '../TableHelpDialog'
@@ -20,6 +21,77 @@ import inboxHelpMarkdown from './InboxHelp.md?raw'
 
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<InboxItem>()
+type MoveTargetSheet = 'task_pool' | 'micro_tasks' | 'scheduled'
+
+const MOVE_TARGET_OPTIONS: Array<{ value: MoveTargetSheet; label: string }> = [
+  { value: 'task_pool', label: 'Task Pool' },
+  { value: 'micro_tasks', label: 'Micro Tasks' },
+  { value: 'scheduled', label: 'Scheduled' },
+]
+
+function createMovePayload(source: InboxItem, target: MoveTargetSheet) {
+  const title = source.title ?? ''
+  const url = source.url ?? ''
+
+  if (target === 'task_pool') {
+    const taskId = Utils.generateId('T')
+    return {
+      target,
+      taskId,
+      patch: {
+        taskId,
+        title,
+        status: 'PENDING',
+        focusTime: undefined,
+        project: '',
+        spentTodayMins: 0,
+        dailyLimitMins: 60,
+        priority: 0,
+        lastRunDate: undefined,
+        totalSpentMins: 0,
+        note: '',
+        url,
+      },
+    }
+  }
+
+  if (target === 'micro_tasks') {
+    const taskId = Utils.generateId('t')
+    return {
+      target,
+      taskId,
+      patch: {
+        taskId,
+        title,
+        status: 'PENDING',
+        focusTime: undefined,
+        lastRunDate: undefined,
+        url,
+      },
+    }
+  }
+
+  const taskId = Utils.generateId('S')
+  const cronExpr = '0 9 * * *'
+  return {
+    target,
+    taskId,
+    patch: {
+      taskId,
+      title,
+      status: 'WAITING',
+      focusTime: undefined,
+      cronExpr,
+      remindBefore: '',
+      remindAfter: '',
+      callback: '',
+      lastRun: undefined,
+      note: '',
+      nextRun: Utils.getNextOccurrence(cronExpr, new Date())?.getTime(),
+      url,
+    },
+  }
+}
 
 function createNewInboxRow(): InboxItem {
   const taskId = Utils.generateId('I')
@@ -40,6 +112,12 @@ export function InboxTable() {
   })
   const { isMobile } = useResponsiveTable()
   const [editingItem, setEditingItem] = useState<InboxItem | null>(null)
+  const [moveError, setMoveError] = useState<string | null>(null)
+  const [movingTaskId, setMovingTaskId] = useState<string | null>(null)
+  const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
+  const setPendingEditIntent = useAppStore((state) => state.setPendingEditIntent)
+  const showGlobalToast = useAppStore((state) => state.showGlobalToast)
+  const clearGlobalToast = useAppStore((state) => state.clearGlobalToast)
 
   // 初始載入（不自動更新）
   useEffect(() => {
@@ -96,6 +174,8 @@ export function InboxTable() {
       patch: newRow as unknown as Record<string, unknown>,
       clientId: DEV_CLIENT_ID,
     }).catch((err) => console.error('Failed to add row:', err))
+
+    setEditingItem(newRow)
   }
 
   const deleteRow = async (taskId: string) => {
@@ -124,6 +204,94 @@ export function InboxTable() {
     // 再异步保存到数据库
     await saveUpdate(editingItem.taskId, patch)
     setEditingItem(null)
+  }
+
+  const moveRow = async (item: InboxItem, target: MoveTargetSheet) => {
+    if (movingTaskId === item.taskId) return
+
+    setMoveError(null)
+    setMovingTaskId(item.taskId)
+    clearGlobalToast()
+
+    const payload = createMovePayload(item, target)
+
+    try {
+      await applyChange({
+        table: payload.target,
+        recordId: payload.taskId,
+        op: 'add',
+        patch: payload.patch as Record<string, unknown>,
+        clientId: DEV_CLIENT_ID,
+      })
+
+      await applyChange({
+        table: 'inbox',
+        recordId: item.taskId,
+        op: 'delete',
+        patch: {} as Record<string, unknown>,
+        clientId: DEV_CLIENT_ID,
+      })
+
+      setRows((prev) => prev.filter((row) => row.taskId !== item.taskId))
+      setEditingItem(null)
+      setPendingEditIntent({ sheet: target, taskId: payload.taskId })
+      setCurrentSheet(target)
+
+      const targetLabel = MOVE_TARGET_OPTIONS.find((option) => option.value === target)?.label ?? target
+      showGlobalToast({
+        message: `已移動到 ${targetLabel}`,
+        duration: 3000,
+        actionLabel: 'Undo',
+        onAction: () => {
+          void (async () => {
+            try {
+              await applyChange({
+                table: 'inbox',
+                recordId: item.taskId,
+                op: 'add',
+                patch: item as unknown as Record<string, unknown>,
+                clientId: DEV_CLIENT_ID,
+              }).catch(async () => {
+                await applyChange({
+                  table: 'inbox',
+                  recordId: item.taskId,
+                  op: 'update',
+                  patch: item as unknown as Record<string, unknown>,
+                  clientId: DEV_CLIENT_ID,
+                })
+              })
+
+              await applyChange({
+                table: payload.target,
+                recordId: payload.taskId,
+                op: 'delete',
+                patch: {} as Record<string, unknown>,
+                clientId: DEV_CLIENT_ID,
+              })
+
+              useAppStore.getState().setCurrentSheet('inbox')
+              useAppStore.getState().showGlobalToast({
+                message: '已復原 Move',
+                duration: 1800,
+              })
+            } catch (undoErr) {
+              const undoMsg = undoErr instanceof Error ? undoErr.message : String(undoErr)
+              console.error('Failed to undo move:', undoErr)
+              useAppStore.getState().showGlobalToast({
+                message: `Undo 失敗：${undoMsg}`,
+                duration: 3000,
+              })
+            }
+          })()
+        },
+      })
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err)
+      console.error('Failed to move inbox row:', err)
+      setMoveError(`Move 失敗：${errorMsg}`)
+    } finally {
+      setMovingTaskId(null)
+    }
   }
 
   const columns = useMemo(
@@ -214,17 +382,43 @@ export function InboxTable() {
       columnHelper.display({
         id: 'actions',
         header: 'Actions',
-        cell: (info) => (
-          <button
-            onClick={() => deleteRow(info.row.original.taskId)}
-            className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-          >
-            Delete
-          </button>
-        ),
+        cell: (info) => {
+          const item = info.row.original
+          const isMoving = movingTaskId === item.taskId
+
+          return (
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                disabled={isMoving}
+                defaultValue=""
+                onChange={(event) => {
+                  const target = event.target.value as MoveTargetSheet
+                  if (!target) return
+                  event.currentTarget.value = ''
+                  void moveRow(item, target)
+                }}
+                className="px-2 py-1 text-xs border rounded bg-white focus:outline-none focus:border-blue-500 disabled:opacity-50"
+              >
+                <option value="">Move...</option>
+                {MOVE_TARGET_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={() => deleteRow(item.taskId)}
+                disabled={isMoving}
+                className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+              >
+                Delete
+              </button>
+            </div>
+          )
+        },
       }),
     ],
-    []
+    [movingTaskId]
   )
 
   const table = useReactTable({
@@ -259,6 +453,12 @@ export function InboxTable() {
           </button>
         </div>
       </div>
+
+      {moveError && (
+        <div className="mb-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {moveError}
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center text-gray-500">Loading...</div>
@@ -312,6 +512,30 @@ export function InboxTable() {
             ]}
             onSave={handleEditSave}
             onClose={() => setEditingItem(null)}
+            footerLeft={
+              editingItem ? (
+                <div className="flex items-center gap-2">
+                  <select
+                    defaultValue=""
+                    disabled={movingTaskId === editingItem.taskId}
+                    onChange={(event) => {
+                      const target = event.target.value as MoveTargetSheet
+                      if (!target) return
+                      event.currentTarget.value = ''
+                      void moveRow(editingItem, target)
+                    }}
+                    className="px-2 py-1 text-xs border rounded bg-white focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                  >
+                    <option value="">Move...</option>
+                    {MOVE_TARGET_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null
+            }
           />
         </>
       ) : (

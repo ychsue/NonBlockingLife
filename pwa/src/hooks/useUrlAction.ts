@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { applyChange, db } from "../db/index";
+import { useEffect, useRef } from "react";
+import { applyChange } from "../db/index";
 import { useAppStore } from "../store/appStore";
 import Utils from "../../../gas/src/Utils";
 import { interruptTask } from "../utils/taskFlow";
@@ -35,15 +35,21 @@ export function useUrlAction(options: UseUrlActionOptions) {
     onError,
     clientId = "iphone-shortcut",
   } = options;
+  const isHandlingRef = useRef(false);
 
   useEffect(() => {
+    if (isHandlingRef.current) return;
+
     const params = new URLSearchParams(window.location.search);
     const sheet = params.get("sheet") as SheetName | null;
     const action = params.get("action");
 
     // 處理中斷動作
     if (action === "interrupt") {
-      handleInterruptAction(params);
+      isHandlingRef.current = true;
+      void handleInterruptAction(params).finally(() => {
+        isHandlingRef.current = false;
+      });
       return;
     }
 
@@ -72,6 +78,10 @@ export function useUrlAction(options: UseUrlActionOptions) {
       console.warn(`Invalid sheet: ${sheet}`);
       return;
     }
+
+    // 先清除 URL，避免 StrictMode/重渲染導致同一 action 被重複觸發
+    window.history.replaceState({}, document.title, window.location.pathname);
+    isHandlingRef.current = true;
 
     // 提取所有參數為 record patch（排除 sheet 和 action）
     const patch: Record<string, unknown> = {};
@@ -125,17 +135,14 @@ export function useUrlAction(options: UseUrlActionOptions) {
           `✅ 已新增到 ${sheetLabel[sheet]}: ${patch.title || recordId}`,
         );
 
-        // 清除 URL（避免重複新增）
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname,
-        );
       })
       .catch((err) => {
         const errorMsg = err instanceof Error ? err.message : String(err);
         console.error("Failed to add from URL action:", err);
         onError?.(`❌ 新增失敗：${errorMsg}`);
+      })
+      .finally(() => {
+        isHandlingRef.current = false;
       });
   }, [onNavigate, onSuccess, onError, clientId]);
 }
@@ -146,7 +153,7 @@ export function useUrlAction(options: UseUrlActionOptions) {
 function handleInterruptAction(params: URLSearchParams) {
   const note = params.get("note") || "";
 
-  interruptTask(note)
+  return interruptTask(note)
     .then((result) => {
       if (result.status === "success") {
         // ⏱️ 使用 queueMicrotask 確保 DOM 已更新後再設置狀態

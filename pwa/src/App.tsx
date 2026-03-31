@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useUrlAction, SheetName } from "./hooks/useUrlAction";
 import { useAppStore } from "./store/appStore";
 import { useResponsiveTable } from "./hooks/useResponsiveTable";
@@ -21,6 +21,8 @@ export default function App() {
   const currentSheet = useAppStore((state) => state.currentSheet);
   const setCurrentSheet = useAppStore((state) => state.setCurrentSheet);
   const [toast, setToast] = useState("");
+  const globalToast = useAppStore((state) => state.globalToast);
+  const clearGlobalToast = useAppStore((state) => state.clearGlobalToast);
   const runningTask = useAppStore((state) => state.runningTask);
   const loadRunningTask = useAppStore((state) => state.loadRunningTask);
   
@@ -33,10 +35,16 @@ export default function App() {
     loadRunningTask();
   }, []);
 
+  const handleUrlNavigate = useCallback(
+    (sheet: SheetName | "selection_cache") => {
+      setCurrentSheet(sheet);
+    },
+    [setCurrentSheet],
+  );
+
   // 監聽 iPhone Shortcut URL 參數
   useUrlAction({
-    onNavigate: (sheet: SheetName | "selection_cache") =>
-      setCurrentSheet(sheet),
+    onNavigate: handleUrlNavigate,
     onSuccess: setToast,
     clientId: "iphone-webkit",
   });
@@ -190,7 +198,20 @@ export default function App() {
       )}
 
       {/* Toast Notification */}
-      {toast && (
+      {globalToast && (
+        <Toast
+          message={globalToast.message}
+          duration={globalToast.duration ?? 3000}
+          actionLabel={globalToast.actionLabel}
+          onAction={() => {
+            globalToast.onAction?.();
+            clearGlobalToast();
+          }}
+          onClose={clearGlobalToast}
+        />
+      )}
+
+      {toast && !globalToast && (
         <Toast message={toast} duration={3000} onClose={() => setToast("")} />
       )}
     </div>

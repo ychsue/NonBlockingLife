@@ -13,6 +13,7 @@ import {
   parseFromDateTimeLocal,
 } from '../../utils/timeUtils'
 import { useResponsiveTable } from '../../hooks/useResponsiveTable'
+import { useAppStore } from '../../store/appStore'
 import { TableCard } from '../TableCard'
 import { EditDialog, type FieldType } from '../EditDialog'
 import { TableHelpDialog } from '../TableHelpDialog'
@@ -49,6 +50,9 @@ export function ScheduledTable() {
   })
   const { isMobile } = useResponsiveTable()
   const [editingItem, setEditingItem] = useState<ScheduledItem | null>(null)
+  const currentSheet = useAppStore((state) => state.currentSheet)
+  const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
+  const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
 
   // 初始載入（不自動更新）
   useEffect(() => {
@@ -97,6 +101,17 @@ export function ScheduledTable() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!pendingEditIntent || pendingEditIntent.sheet !== 'scheduled') return
+    if (currentSheet !== 'scheduled') return
+
+    const targetRow = rows.find((row) => row.taskId === pendingEditIntent.taskId)
+    if (!targetRow) return
+
+    setEditingItem(targetRow)
+    clearPendingEditIntent()
+  }, [rows, pendingEditIntent, currentSheet, clearPendingEditIntent])
+
   const updateLocalRow = (
     taskId: string,
     patch: Partial<ScheduledItem>
@@ -132,6 +147,8 @@ export function ScheduledTable() {
       patch: newRow as unknown as Record<string, unknown>,
       clientId: DEV_CLIENT_ID,
     }).catch((err) => console.error('Failed to add row:', err))
+
+    setEditingItem(newRow)
   }
 
   const deleteRow = async (taskId: string) => {

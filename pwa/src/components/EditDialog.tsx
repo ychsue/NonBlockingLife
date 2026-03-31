@@ -22,6 +22,7 @@ interface EditDialogProps<T> {
   fields: DialogField[]
   onSave: (data: Record<string, any>) => Promise<void>
   onClose: () => void
+  footerLeft?: React.ReactNode
 }
 
 export function EditDialog<T>({
@@ -31,6 +32,7 @@ export function EditDialog<T>({
   fields,
   onSave,
   onClose,
+  footerLeft,
 }: EditDialogProps<T>) {
   const [formData, setFormData] = useState<Record<string, any>>({})
   const [isSaving, setIsSaving] = useState(false)
@@ -130,21 +132,24 @@ export function EditDialog<T>({
           ))}
         </div>
 
-        <div className="flex gap-3 justify-end flex-shrink-0 pt-4 border-t">
-          <button
-            onClick={onClose}
-            disabled={isSaving}
-            className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50"
-          >
-            取消
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors disabled:opacity-50"
-          >
-            {isSaving ? '保存中...' : '保存'}
-          </button>
+        <div className="flex items-center justify-between gap-3 flex-shrink-0 pt-4 border-t">
+          <div className="flex items-center gap-2">{footerLeft}</div>
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={onClose}
+              disabled={isSaving}
+              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50"
+            >
+              取消
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors disabled:opacity-50"
+            >
+              {isSaving ? '保存中...' : '保存'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
