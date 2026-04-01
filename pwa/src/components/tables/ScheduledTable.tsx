@@ -18,6 +18,7 @@ import { TableCard } from '../TableCard'
 import { EditDialog, type FieldType } from '../EditDialog'
 import { TableHelpDialog } from '../TableHelpDialog'
 import scheduledHelpMarkdown from './ScheduledHelp.md?raw'
+import { useSearchFilter, useHideDone } from '../../hooks/useSearchFilter'
 
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<ScheduledItem>()
@@ -50,6 +51,9 @@ export function ScheduledTable() {
   })
   const { isMobile } = useResponsiveTable()
   const [editingItem, setEditingItem] = useState<ScheduledItem | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isOrMode, setIsOrMode] = useState(true)
+  const [hideDone, setHideDone] = useState(false)
   const currentSheet = useAppStore((state) => state.currentSheet)
   const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
   const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
@@ -530,8 +534,15 @@ export function ScheduledTable() {
     []
   )
 
+  const searchFiltered = useSearchFilter(
+    rows,
+    { query: searchQuery, isOrMode },
+    ['title', 'note', 'url', 'callback'] as (keyof ScheduledItem)[]
+  )
+  const filteredRows = useHideDone(searchFiltered, hideDone)
+
   const table = useReactTable({
-    data: rows,
+    data: filteredRows,
     columns,
     getCoreRowModel: getCoreRowModel(),
     state: {
@@ -563,15 +574,47 @@ export function ScheduledTable() {
         </div>
       </div>
 
+      {/* 搜尋欄 */}
+      <div className="mb-4 flex gap-2">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="搜尋 Title、Note、Callback、URL..."
+          className="flex-1 px-3 py-2 border rounded focus:outline-none focus:border-blue-500"
+        />
+        <button
+          onClick={() => setIsOrMode(!isOrMode)}
+          className={`px-3 py-2 rounded ${
+            isOrMode
+              ? 'bg-blue-500 text-white hover:bg-blue-600'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          {isOrMode ? 'OR' : 'AND'}
+        </button>
+        <label className="flex items-center gap-1 px-3 py-2 border rounded cursor-pointer select-none text-sm text-gray-700 hover:bg-gray-50">
+          <input
+            type="checkbox"
+            checked={hideDone}
+            onChange={(e) => setHideDone(e.target.checked)}
+            className="accent-blue-500"
+          />
+          隱藏 Done
+        </label>
+      </div>
+
       {loading ? (
         <div className="text-center text-gray-500">Loading...</div>
       ) : rows.length === 0 ? (
         <div className="text-center text-gray-500">No items yet.</div>
+      ) : filteredRows.length === 0 ? (
+        <div className="text-center text-gray-500">No matching items.</div>
       ) : isMobile ? (
         // 移動視圖 - 卡片
         <>
           <div className="grid grid-cols-1 gap-3">
-            {rows.map((item) => (
+            {filteredRows.map((item) => (
               <TableCard
                 key={item.taskId}
                 item={item}

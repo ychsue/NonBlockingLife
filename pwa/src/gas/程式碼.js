@@ -9,12 +9,13 @@
  */
 
 const CONFIG = {
-  VERSION: '1.2.0',
+  VERSION: '2.0.0',
   TABLE_SHEETS: {
     task_pool: 'NBL_TaskPool',
     scheduled: 'NBL_Scheduled',
     micro_tasks: 'NBL_MicroTasks',
     inbox: 'NBL_Inbox',
+    resource: 'NBL_Resource',
     log: 'NBL_Log',
   },
 }
@@ -297,6 +298,7 @@ function resolveTable(operation) {
     const source = operation.data && operation.data.source
     if (source === 'Scheduled') return 'scheduled'
     if (source === 'Micro_Tasks') return 'micro_tasks'
+    if (source === 'Resource') return 'resource'
     return 'task_pool'
   }
 
