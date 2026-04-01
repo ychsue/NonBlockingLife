@@ -4,7 +4,7 @@ import { useAppStore } from "../store/appStore";
 import Utils from "../../../gas/src/Utils";
 import { interruptTask } from "../utils/taskFlow";
 
-export type SheetName = "inbox" | "scheduled" | "task_pool" | "micro_tasks";
+export type SheetName = "inbox" | "scheduled" | "task_pool" | "micro_tasks" | "resource";
 
 interface UseUrlActionOptions {
   onNavigate: (sheet: SheetName|"selection_cache") => void;
@@ -130,6 +130,7 @@ export function useUrlAction(options: UseUrlActionOptions) {
           scheduled: "Scheduled",
           task_pool: "Task Pool",
           micro_tasks: "Micro Tasks",
+          resource: "Resource"
         };
         onSuccess?.(
           `✅ 已新增到 ${sheetLabel[sheet]}: ${patch.title || recordId}`,

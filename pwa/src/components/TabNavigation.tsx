@@ -10,6 +10,7 @@ const TABS: { sheet: AllPages; label: string; icon: string }[] = [
   { sheet: 'scheduled', label: 'Scheduled', icon: '📅' },
   { sheet: 'micro_tasks', label: 'Micro Tasks', icon: '✓' },
   { sheet: 'log', label: 'Log', icon: '🧾' },
+  { sheet: 'resource', label: 'Resources', icon: '📚' },
   { sheet: 'guide', label: 'Guide', icon: '📘' },
 ]
 

@@ -35,6 +35,7 @@ export function SelectionCacheTable() {
     Record<string, boolean>
   >({
     taskId: false,
+    score: false,
   });
   const [refreshing, setRefreshing] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -53,6 +54,9 @@ export function SelectionCacheTable() {
   const setRunningTask = useAppStore((state) => state.setRunningTask);
   const runningTask = useAppStore((state) => state.runningTask);
   const loadRunningTask = useAppStore((state) => state.loadRunningTask);
+
+  const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
+
 
   // 本地狀態（非持久化）
   const [startNote, setStartNote] = useState("");
@@ -610,13 +614,21 @@ export function SelectionCacheTable() {
               <div className="flex gap-2 mt-6">
                 <button
                   onClick={handleConfirmEnd}
-                  className="flex-1 px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700"
+                  className="flex-1 px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
                 >
                   結束任務
                 </button>
                 <button
+                  onClick={() => {
+                    setCurrentSheet("inbox");
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors text-lg"
+                >
+                  📭
+                </button>
+                <button
                   onClick={handleInterrupt}
-                  className="flex-1 px-4 py-2 border border-amber-300 text-amber-800 rounded hover:bg-amber-100"
+                  className="flex-1 px-4 py-2 border border-amber-300 text-amber-800 rounded hover:bg-amber-100 transition-colors text-lg"
                 >
                   ⚡
                 </button>

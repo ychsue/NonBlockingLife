@@ -1,312 +1,332 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from "react";
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   useReactTable,
-} from '@tanstack/react-table'
-import { applyChange, db } from '../../db/index'
-import type { InboxItem } from '../../db/schema'
-import Utils from '../../../../gas/src/Utils'
+} from "@tanstack/react-table";
+import { applyChange, db } from "../../db/index";
+import type { InboxItem } from "../../db/schema";
+import Utils from "../../../../gas/src/Utils";
 import {
   formatToDateTimeLocal,
   parseFromDateTimeLocal,
-} from '../../utils/timeUtils'
-import { useResponsiveTable } from '../../hooks/useResponsiveTable'
-import { useAppStore } from '../../store/appStore'
-import { TableCard } from '../TableCard'
-import { EditDialog, type FieldType } from '../EditDialog'
-import { TableHelpDialog } from '../TableHelpDialog'
-import inboxHelpMarkdown from './InboxHelp.md?raw'
+} from "../../utils/timeUtils";
+import { useResponsiveTable } from "../../hooks/useResponsiveTable";
+import { useAppStore } from "../../store/appStore";
+import { TableCard } from "../TableCard";
+import { EditDialog, type FieldType } from "../EditDialog";
+import { TableHelpDialog } from "../TableHelpDialog";
+import inboxHelpMarkdown from "./InboxHelp.md?raw";
 
-const DEV_CLIENT_ID = 'dev-client'
-const columnHelper = createColumnHelper<InboxItem>()
-type MoveTargetSheet = 'task_pool' | 'micro_tasks' | 'scheduled'
+const DEV_CLIENT_ID = "dev-client";
+const columnHelper = createColumnHelper<InboxItem>();
+type MoveTargetSheet = "task_pool" | "micro_tasks" | "scheduled" | "resource";
 
 const MOVE_TARGET_OPTIONS: Array<{ value: MoveTargetSheet; label: string }> = [
-  { value: 'task_pool', label: 'Task Pool' },
-  { value: 'micro_tasks', label: 'Micro Tasks' },
-  { value: 'scheduled', label: 'Scheduled' },
-]
+  { value: "task_pool", label: "Task Pool" },
+  { value: "micro_tasks", label: "Micro Tasks" },
+  { value: "scheduled", label: "Scheduled" },
+  { value: "resource", label: "Resource" },
+];
 
 function createMovePayload(source: InboxItem, target: MoveTargetSheet) {
-  const title = source.title ?? ''
-  const url = source.url ?? ''
+  const title = source.title ?? "";
+  const url = source.url ?? "";
 
-  if (target === 'task_pool') {
-    const taskId = Utils.generateId('T')
+  if (target === "task_pool") {
+    const taskId = Utils.generateId("T");
     return {
       target,
       taskId,
       patch: {
         taskId,
         title,
-        status: 'PENDING',
+        status: "PENDING",
         focusTime: undefined,
-        project: '',
+        project: "",
         spentTodayMins: 0,
         dailyLimitMins: 60,
         priority: 0,
         lastRunDate: undefined,
         totalSpentMins: 0,
-        note: '',
+        note: "",
         url,
       },
-    }
-  }
-
-  if (target === 'micro_tasks') {
-    const taskId = Utils.generateId('t')
+    };
+  } else if (target === "micro_tasks") {
+    const taskId = Utils.generateId("t");
     return {
       target,
       taskId,
       patch: {
         taskId,
         title,
-        status: 'PENDING',
+        status: "PENDING",
         focusTime: undefined,
         lastRunDate: undefined,
         url,
       },
-    }
-  }
-
-  const taskId = Utils.generateId('S')
-  const cronExpr = '0 9 * * *'
-  return {
-    target,
-    taskId,
-    patch: {
+    };
+  } else if (target === "scheduled") {
+    const taskId = Utils.generateId("S");
+    const cronExpr = "0 9 * * *";
+    return {
+      target,
       taskId,
-      title,
-      status: 'WAITING',
-      focusTime: undefined,
-      cronExpr,
-      remindBefore: '',
-      remindAfter: '',
-      callback: '',
-      lastRun: undefined,
-      note: '',
-      nextRun: Utils.getNextOccurrence(cronExpr, new Date())?.getTime(),
-      url,
-    },
+      patch: {
+        taskId,
+        title,
+        status: "WAITING",
+        focusTime: undefined,
+        cronExpr,
+        remindBefore: "",
+        remindAfter: "",
+        callback: "",
+        lastRun: undefined,
+        note: "",
+        nextRun: Utils.getNextOccurrence(cronExpr, new Date())?.getTime(),
+        url,
+      },
+    };
+  } else if (target === "resource") {
+    const taskId = Utils.generateId("R");
+    return {
+      target,
+      taskId,
+      patch: {
+        taskId,
+        title,
+        category: "",
+        receivedAt: Date.now(),
+        url,
+        note: "",
+      },
+    };
+  } else {
+    throw new Error(`Unsupported target sheet: ${target}`);
   }
 }
 
 function createNewInboxRow(): InboxItem {
-  const taskId = Utils.generateId('I')
+  const taskId = Utils.generateId("I");
   return {
     taskId,
-    title: '',
+    title: "",
     receivedAt: Date.now(),
-    url: '',
-  }
+    url: "",
+  };
 }
 
 export function InboxTable() {
-  const [rows, setRows] = useState<InboxItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showHelp, setShowHelp] = useState(false)
-  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
+  const [rows, setRows] = useState<InboxItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showHelp, setShowHelp] = useState(false);
+  const [columnVisibility, setColumnVisibility] = useState<
+    Record<string, boolean>
+  >({
     taskId: false,
-  })
-  const { isMobile } = useResponsiveTable()
-  const [editingItem, setEditingItem] = useState<InboxItem | null>(null)
-  const [moveError, setMoveError] = useState<string | null>(null)
-  const [movingTaskId, setMovingTaskId] = useState<string | null>(null)
-  const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
-  const setPendingEditIntent = useAppStore((state) => state.setPendingEditIntent)
-  const showGlobalToast = useAppStore((state) => state.showGlobalToast)
-  const clearGlobalToast = useAppStore((state) => state.clearGlobalToast)
+  });
+  const { isMobile } = useResponsiveTable();
+  const [editingItem, setEditingItem] = useState<InboxItem | null>(null);
+  const [moveError, setMoveError] = useState<string | null>(null);
+  const [movingTaskId, setMovingTaskId] = useState<string | null>(null);
+  const setCurrentSheet = useAppStore((state) => state.setCurrentSheet);
+  const setPendingEditIntent = useAppStore(
+    (state) => state.setPendingEditIntent,
+  );
+  const showGlobalToast = useAppStore((state) => state.showGlobalToast);
+  const clearGlobalToast = useAppStore((state) => state.clearGlobalToast);
 
   // 初始載入（不自動更新）
   useEffect(() => {
-    let active = true
+    let active = true;
     db.inbox
       .toArray()
       .then((data) => {
         if (active) {
           // taskId 降序排列（新的在前面）
-          const sorted = data.sort((a, b) => b.taskId.localeCompare(a.taskId))
-          setRows(sorted)
-          setLoading(false)
+          const sorted = data.sort((a, b) => b.taskId.localeCompare(a.taskId));
+          setRows(sorted);
+          setLoading(false);
         }
       })
       .catch((err) => {
-        console.error('Failed to load inbox:', err)
+        console.error("Failed to load inbox:", err);
         if (active) {
-          setRows([])
-          setLoading(false)
+          setRows([]);
+          setLoading(false);
         }
-      })
+      });
 
     return () => {
-      active = false
-    }
-  }, [])
+      active = false;
+    };
+  }, []);
 
   const updateLocalRow = (taskId: string, patch: Partial<InboxItem>) => {
     setRows((prev) =>
-      prev.map((row) =>
-        row.taskId === taskId ? { ...row, ...patch } : row
-      )
-    )
-  }
+      prev.map((row) => (row.taskId === taskId ? { ...row, ...patch } : row)),
+    );
+  };
 
   const saveUpdate = async (taskId: string, patch: Partial<InboxItem>) => {
     await applyChange({
-      table: 'inbox',
+      table: "inbox",
       recordId: taskId,
-      op: 'update',
+      op: "update",
       patch: patch as Record<string, unknown>,
       clientId: DEV_CLIENT_ID,
-    }).catch((err) => console.error('Failed to save update:', err))
-  }
+    }).catch((err) => console.error("Failed to save update:", err));
+  };
 
   const addRow = async () => {
-    const newRow = createNewInboxRow()
-    setRows((prev) => [newRow, ...prev])
+    const newRow = createNewInboxRow();
+    setRows((prev) => [newRow, ...prev]);
 
     await applyChange({
-      table: 'inbox',
+      table: "inbox",
       recordId: newRow.taskId,
-      op: 'add',
+      op: "add",
       patch: newRow as unknown as Record<string, unknown>,
       clientId: DEV_CLIENT_ID,
-    }).catch((err) => console.error('Failed to add row:', err))
+    }).catch((err) => console.error("Failed to add row:", err));
 
-    setEditingItem(newRow)
-  }
+    setEditingItem(newRow);
+  };
 
   const deleteRow = async (taskId: string) => {
-    setRows((prev) => prev.filter((row) => row.taskId !== taskId))
+    setRows((prev) => prev.filter((row) => row.taskId !== taskId));
 
     await applyChange({
-      table: 'inbox',
+      table: "inbox",
       recordId: taskId,
-      op: 'delete',
+      op: "delete",
       patch: {} as Record<string, unknown>,
       clientId: DEV_CLIENT_ID,
-    }).catch((err) => console.error('Failed to delete row:', err))
-  }
+    }).catch((err) => console.error("Failed to delete row:", err));
+  };
 
   const handleEditSave = async (data: Record<string, any>) => {
-    if (!editingItem) return
+    if (!editingItem) return;
 
     const patch = {
       title: data.title,
       receivedAt: parseFromDateTimeLocal(data.receivedAt),
       url: data.url,
-    }
+    };
 
     // 立刻更新本地状态
-    updateLocalRow(editingItem.taskId, patch)
+    updateLocalRow(editingItem.taskId, patch);
     // 再异步保存到数据库
-    await saveUpdate(editingItem.taskId, patch)
-    setEditingItem(null)
-  }
+    await saveUpdate(editingItem.taskId, patch);
+    setEditingItem(null);
+  };
 
   const moveRow = async (item: InboxItem, target: MoveTargetSheet) => {
-    if (movingTaskId === item.taskId) return
+    if (movingTaskId === item.taskId) return;
 
-    setMoveError(null)
-    setMovingTaskId(item.taskId)
-    clearGlobalToast()
+    setMoveError(null);
+    setMovingTaskId(item.taskId);
+    clearGlobalToast();
 
-    const payload = createMovePayload(item, target)
+    const payload = createMovePayload(item, target);
 
     try {
       await applyChange({
         table: payload.target,
         recordId: payload.taskId,
-        op: 'add',
+        op: "add",
         patch: payload.patch as Record<string, unknown>,
         clientId: DEV_CLIENT_ID,
-      })
+      });
 
       await applyChange({
-        table: 'inbox',
+        table: "inbox",
         recordId: item.taskId,
-        op: 'delete',
+        op: "delete",
         patch: {} as Record<string, unknown>,
         clientId: DEV_CLIENT_ID,
-      })
+      });
 
-      setRows((prev) => prev.filter((row) => row.taskId !== item.taskId))
-      setEditingItem(null)
-      setPendingEditIntent({ sheet: target, taskId: payload.taskId })
-      setCurrentSheet(target)
+      setRows((prev) => prev.filter((row) => row.taskId !== item.taskId));
+      setEditingItem(null);
+      setPendingEditIntent({ sheet: target, taskId: payload.taskId });
+      setCurrentSheet(target);
 
-      const targetLabel = MOVE_TARGET_OPTIONS.find((option) => option.value === target)?.label ?? target
+      const targetLabel =
+        MOVE_TARGET_OPTIONS.find((option) => option.value === target)?.label ??
+        target;
       showGlobalToast({
         message: `已移動到 ${targetLabel}`,
         duration: 3000,
-        actionLabel: 'Undo',
+        actionLabel: "Undo",
         onAction: () => {
           void (async () => {
             try {
               await applyChange({
-                table: 'inbox',
+                table: "inbox",
                 recordId: item.taskId,
-                op: 'add',
+                op: "add",
                 patch: item as unknown as Record<string, unknown>,
                 clientId: DEV_CLIENT_ID,
               }).catch(async () => {
                 await applyChange({
-                  table: 'inbox',
+                  table: "inbox",
                   recordId: item.taskId,
-                  op: 'update',
+                  op: "update",
                   patch: item as unknown as Record<string, unknown>,
                   clientId: DEV_CLIENT_ID,
-                })
-              })
+                });
+              });
 
               await applyChange({
                 table: payload.target,
                 recordId: payload.taskId,
-                op: 'delete',
+                op: "delete",
                 patch: {} as Record<string, unknown>,
                 clientId: DEV_CLIENT_ID,
-              })
+              });
 
-              useAppStore.getState().setCurrentSheet('inbox')
+              useAppStore.getState().setCurrentSheet("inbox");
               useAppStore.getState().showGlobalToast({
-                message: '已復原 Move',
+                message: "已復原 Move",
                 duration: 1800,
-              })
+              });
             } catch (undoErr) {
-              const undoMsg = undoErr instanceof Error ? undoErr.message : String(undoErr)
-              console.error('Failed to undo move:', undoErr)
+              const undoMsg =
+                undoErr instanceof Error ? undoErr.message : String(undoErr);
+              console.error("Failed to undo move:", undoErr);
               useAppStore.getState().showGlobalToast({
                 message: `Undo 失敗：${undoMsg}`,
                 duration: 3000,
-              })
+              });
             }
-          })()
+          })();
         },
-      })
+      });
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : String(err)
-      console.error('Failed to move inbox row:', err)
-      setMoveError(`Move 失敗：${errorMsg}`)
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      console.error("Failed to move inbox row:", err);
+      setMoveError(`Move 失敗：${errorMsg}`);
     } finally {
-      setMovingTaskId(null)
+      setMovingTaskId(null);
     }
-  }
+  };
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('taskId', {
-        header: 'Task ID',
+      columnHelper.accessor("taskId", {
+        header: "Task ID",
         cell: (info) => (
           <span className="text-xs text-gray-500">{info.getValue()}</span>
         ),
       }),
-      columnHelper.accessor('title', {
-        header: 'Title',
+      columnHelper.accessor("title", {
+        header: "Title",
         cell: (info) => {
-          const taskId = info.row.original.taskId
-          const value = info.getValue() ?? ''
+          const taskId = info.row.original.taskId;
+          const value = info.getValue() ?? "";
 
           return (
             <input
@@ -319,15 +339,15 @@ export function InboxTable() {
                 saveUpdate(taskId, { title: event.target.value })
               }
             />
-          )
+          );
         },
       }),
-      columnHelper.accessor('receivedAt', {
-        header: 'Received At',
+      columnHelper.accessor("receivedAt", {
+        header: "Received At",
         cell: (info) => {
-          const taskId = info.row.original.taskId
-          const rawValue = info.getValue()
-          const value = formatToDateTimeLocal(rawValue)
+          const taskId = info.row.original.taskId;
+          const rawValue = info.getValue();
+          const value = formatToDateTimeLocal(rawValue);
 
           return (
             <input
@@ -335,23 +355,23 @@ export function InboxTable() {
               type="datetime-local"
               value={value}
               onChange={(event) => {
-                const nextValue = parseFromDateTimeLocal(event.target.value)
-                updateLocalRow(taskId, { receivedAt: nextValue })
+                const nextValue = parseFromDateTimeLocal(event.target.value);
+                updateLocalRow(taskId, { receivedAt: nextValue });
               }}
               onBlur={(event) => {
-                const nextValue = parseFromDateTimeLocal(event.target.value)
-                saveUpdate(taskId, { receivedAt: nextValue })
+                const nextValue = parseFromDateTimeLocal(event.target.value);
+                saveUpdate(taskId, { receivedAt: nextValue });
               }}
             />
-          )
+          );
         },
       }),
-      columnHelper.accessor('url', {
-        header: 'URL',
+      columnHelper.accessor("url", {
+        header: "URL",
         cell: (info) => {
-          const taskId = info.row.original.taskId
-          const value = info.getValue() ?? ''
-          const hasValidUrl = value && value !== 'None'
+          const taskId = info.row.original.taskId;
+          const value = info.getValue() ?? "";
+          const hasValidUrl = value && value !== "None";
 
           return (
             <div className="flex items-center gap-2">
@@ -376,15 +396,15 @@ export function InboxTable() {
                 </a>
               )}
             </div>
-          )
+          );
         },
       }),
       columnHelper.display({
-        id: 'actions',
-        header: 'Actions',
+        id: "actions",
+        header: "Actions",
         cell: (info) => {
-          const item = info.row.original
-          const isMoving = movingTaskId === item.taskId
+          const item = info.row.original;
+          const isMoving = movingTaskId === item.taskId;
 
           return (
             <div className="flex flex-wrap items-center gap-2">
@@ -392,10 +412,10 @@ export function InboxTable() {
                 disabled={isMoving}
                 defaultValue=""
                 onChange={(event) => {
-                  const target = event.target.value as MoveTargetSheet
-                  if (!target) return
-                  event.currentTarget.value = ''
-                  void moveRow(item, target)
+                  const target = event.target.value as MoveTargetSheet;
+                  if (!target) return;
+                  event.currentTarget.value = "";
+                  void moveRow(item, target);
                 }}
                 className="px-2 py-1 text-xs border rounded bg-white focus:outline-none focus:border-blue-500 disabled:opacity-50"
               >
@@ -414,12 +434,12 @@ export function InboxTable() {
                 Delete
               </button>
             </div>
-          )
+          );
         },
       }),
     ],
-    [movingTaskId]
-  )
+    [movingTaskId],
+  );
 
   const table = useReactTable({
     data: rows,
@@ -429,7 +449,7 @@ export function InboxTable() {
       columnVisibility,
     },
     onColumnVisibilityChange: setColumnVisibility,
-  })
+  });
 
   return (
     <div className="p-4">
@@ -473,12 +493,12 @@ export function InboxTable() {
                 key={item.taskId}
                 item={item}
                 fields={[
-                  { label: 'Title', value: item.title || '(empty)' },
+                  { label: "Title", value: item.title || "(empty)" },
                   {
-                    label: 'Received At',
+                    label: "Received At",
                     value: item.receivedAt
-                      ? new Date(item.receivedAt).toLocaleString('zh-TW')
-                      : '(未設定)',
+                      ? new Date(item.receivedAt).toLocaleString("zh-TW")
+                      : "(未設定)",
                   },
                 ]}
                 onEdit={setEditingItem}
@@ -493,21 +513,21 @@ export function InboxTable() {
             item={editingItem}
             fields={[
               {
-                name: 'title',
-                label: 'Title',
-                type: 'text' as FieldType,
-                placeholder: '輸入任務標題',
+                name: "title",
+                label: "Title",
+                type: "text" as FieldType,
+                placeholder: "輸入任務標題",
               },
               {
-                name: 'receivedAt',
-                label: 'Received At',
-                type: 'datetime' as FieldType,
+                name: "receivedAt",
+                label: "Received At",
+                type: "datetime" as FieldType,
               },
               {
-                name: 'url',
-                label: 'URL',
-                type: 'text' as FieldType,
-                placeholder: 'https://...',
+                name: "url",
+                label: "URL",
+                type: "text" as FieldType,
+                placeholder: "https://...",
               },
             ]}
             onSave={handleEditSave}
@@ -519,10 +539,10 @@ export function InboxTable() {
                     defaultValue=""
                     disabled={movingTaskId === editingItem.taskId}
                     onChange={(event) => {
-                      const target = event.target.value as MoveTargetSheet
-                      if (!target) return
-                      event.currentTarget.value = ''
-                      void moveRow(editingItem, target)
+                      const target = event.target.value as MoveTargetSheet;
+                      if (!target) return;
+                      event.currentTarget.value = "";
+                      void moveRow(editingItem, target);
                     }}
                     className="px-2 py-1 text-xs border rounded bg-white focus:outline-none focus:border-blue-500 disabled:opacity-50"
                   >
@@ -554,7 +574,7 @@ export function InboxTable() {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </th>
                   ))}
@@ -568,7 +588,7 @@ export function InboxTable() {
                     <td key={cell.id} className="px-4 py-2">
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </td>
                   ))}
@@ -586,5 +606,5 @@ export function InboxTable() {
         onClose={() => setShowHelp(false)}
       />
     </div>
-  )
+  );
 }

@@ -6,7 +6,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { applyChange, db } from '../../db/index'
-import type { MicroTaskItem } from '../../db/schema'
+import type { ResourceItem } from '../../db/schema'
 import Utils from '../../../../gas/src/Utils'
 import {
   formatToDateTimeLocal,
@@ -17,44 +17,46 @@ import { useAppStore } from '../../store/appStore'
 import { TableCard } from '../TableCard'
 import { EditDialog, type FieldType } from '../EditDialog'
 import { TableHelpDialog } from '../TableHelpDialog'
-import microTasksHelpMarkdown from './MicroTasksHelp.md?raw'
-import { useSearchFilter, useHideDone } from '../../hooks/useSearchFilter'
+import { useSearchFilter } from '../../hooks/useSearchFilter'
+import resourceHelpMarkdown from './ResourceHelp.md?raw'
 
 const DEV_CLIENT_ID = 'dev-client'
-const columnHelper = createColumnHelper<MicroTaskItem>()
+const columnHelper = createColumnHelper<ResourceItem>()
 
-function createNewMicroTaskRow(): MicroTaskItem {
-  const taskId = Utils.generateId('t')
+function createNewResourceRow(): ResourceItem {
+  const taskId = Utils.generateId('R')
   return {
     taskId,
     title: '',
-    status: 'PENDING',
-    focusTime: undefined,
-    lastRunDate: undefined,
+    category: '',
+    receivedAt: Date.now(),
     url: '',
+    note: '',
   }
 }
 
-export function MicroTasksTable() {
-  const [rows, setRows] = useState<MicroTaskItem[]>([])
+export function ResourceTable() {
+  const [rows, setRows] = useState<ResourceItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showHelp, setShowHelp] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     taskId: false,
   })
   const { isMobile } = useResponsiveTable()
-  const [editingItem, setEditingItem] = useState<MicroTaskItem | null>(null)
-    const [searchQuery, setSearchQuery] = useState('')
-    const [isOrMode, setIsOrMode] = useState(true)
-    const [hideDone, setHideDone] = useState(false)
+  const [editingItem, setEditingItem] = useState<ResourceItem | null>(null)
+  
+  // 搜尋狀態
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isOrMode, setIsOrMode] = useState(true)
+
   const currentSheet = useAppStore((state) => state.currentSheet)
   const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
   const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
 
-  // 初始載入（不自動更新）
+  // 初始載入
   useEffect(() => {
     let active = true
-    db.micro_tasks
+    db.resource
       .toArray()
       .then((data) => {
         if (active) {
@@ -65,7 +67,7 @@ export function MicroTasksTable() {
         }
       })
       .catch((err) => {
-        console.error('Failed to load micro tasks:', err)
+        console.error('Failed to load resource:', err)
         if (active) {
           setRows([])
           setLoading(false)
@@ -78,8 +80,8 @@ export function MicroTasksTable() {
   }, [])
 
   useEffect(() => {
-    if (!pendingEditIntent || pendingEditIntent.sheet !== 'micro_tasks') return
-    if (currentSheet !== 'micro_tasks') return
+    if (!pendingEditIntent || pendingEditIntent.sheet !== 'resource') return
+    if (currentSheet !== 'resource') return
 
     const targetRow = rows.find((row) => row.taskId === pendingEditIntent.taskId)
     if (!targetRow) return
@@ -90,7 +92,7 @@ export function MicroTasksTable() {
 
   const updateLocalRow = (
     taskId: string,
-    patch: Partial<MicroTaskItem>
+    patch: Partial<ResourceItem>
   ) => {
     setRows((prev) =>
       prev.map((row) =>
@@ -101,10 +103,10 @@ export function MicroTasksTable() {
 
   const saveUpdate = async (
     taskId: string,
-    patch: Partial<MicroTaskItem>
+    patch: Partial<ResourceItem>
   ) => {
     await applyChange({
-      table: 'micro_tasks',
+      table: 'resource',
       recordId: taskId,
       op: 'update',
       patch: patch as Record<string, unknown>,
@@ -113,11 +115,11 @@ export function MicroTasksTable() {
   }
 
   const addRow = async () => {
-    const newRow = createNewMicroTaskRow()
+    const newRow = createNewResourceRow()
     setRows((prev) => [newRow, ...prev])
 
     await applyChange({
-      table: 'micro_tasks',
+      table: 'resource',
       recordId: newRow.taskId,
       op: 'add',
       patch: newRow as unknown as Record<string, unknown>,
@@ -131,7 +133,7 @@ export function MicroTasksTable() {
     setRows((prev) => prev.filter((row) => row.taskId !== taskId))
 
     await applyChange({
-      table: 'micro_tasks',
+      table: 'resource',
       recordId: taskId,
       op: 'delete',
       patch: {} as Record<string, unknown>,
@@ -144,23 +146,28 @@ export function MicroTasksTable() {
 
     const patch = {
       title: data.title,
-      status: data.status,
-      focusTime: data.focusTime === '' || data.focusTime == null ? undefined : parseInt(data.focusTime) || 0,
-      lastRunDate: data.lastRunDate ? parseFromDateTimeLocal(data.lastRunDate) : undefined,
+      category: data.category,
+      receivedAt: data.receivedAt ? parseFromDateTimeLocal(data.receivedAt) : Date.now(),
       url: data.url,
+      note: data.note,
     }
 
-    // 立刻更新本地状态
     updateLocalRow(editingItem.taskId, patch)
-    // 再异步保存到数据库
     await saveUpdate(editingItem.taskId, patch)
     setEditingItem(null)
   }
 
+  // 搜尋過濾
+  const filteredRows = useSearchFilter(
+    rows,
+    { query: searchQuery, isOrMode },
+    ['title', 'category', 'note', 'url'] as (keyof ResourceItem)[]
+  )
+
   const columns = useMemo(
     () => [
       columnHelper.accessor('taskId', {
-        header: 'Task ID',
+        header: 'Resource ID',
         cell: (info) => (
           <span className="text-xs text-gray-500">{info.getValue()}</span>
         ),
@@ -185,51 +192,68 @@ export function MicroTasksTable() {
           )
         },
       }),
-      columnHelper.accessor('status', {
-        header: 'Status',
+      columnHelper.accessor('category', {
+        header: 'Category',
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
 
           return (
-            <select
-              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 min-w-[7rem]"
+            <input
+              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
               value={value}
               onChange={(event) =>
-                updateLocalRow(taskId, { status: event.target.value })
+                updateLocalRow(taskId, { category: event.target.value })
               }
               onBlur={(event) =>
-                saveUpdate(taskId, { status: event.target.value })
+                saveUpdate(taskId, { category: event.target.value })
               }
-            >
-              <option value="PENDING">PENDING</option>
-              <option value="DOING">DOING</option>
-              <option value="DONE">DONE</option>
-            </select>
+              placeholder="e.g., Tutorial, Reference"
+            />
           )
         },
       }),
-      columnHelper.accessor('focusTime', {
-        header: 'Focus Time',
+      columnHelper.accessor('receivedAt', {
+        header: 'Received',
         cell: (info) => {
           const taskId = info.row.original.taskId
-          const value = info.getValue()
+          const rawValue = info.getValue()
+          const value = formatToDateTimeLocal(rawValue)
 
           return (
             <input
-              className="w-24 px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
-              type="number"
-              min={0}
-              value={value ?? ''}
-              placeholder="mins"
+              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-xs"
+              type="datetime-local"
+              value={value}
               onChange={(event) => {
-                const raw = event.target.value
-                updateLocalRow(taskId, { focusTime: raw === '' ? undefined : parseInt(raw) || 0 })
+                const nextValue = parseFromDateTimeLocal(event.target.value)
+                updateLocalRow(taskId, { receivedAt: nextValue })
               }}
               onBlur={(event) => {
-                const raw = event.target.value
-                saveUpdate(taskId, { focusTime: raw === '' ? undefined : parseInt(raw) || 0 })
+                const nextValue = parseFromDateTimeLocal(event.target.value)
+                saveUpdate(taskId, { receivedAt: nextValue })
               }}
+            />
+          )
+        },
+      }),
+      columnHelper.accessor('note', {
+        header: 'Note',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const value = info.getValue() ?? ''
+
+          return (
+            <input
+              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              value={value}
+              onChange={(event) =>
+                updateLocalRow(taskId, { note: event.target.value })
+              }
+              onBlur={(event) =>
+                saveUpdate(taskId, { note: event.target.value })
+              }
+              placeholder="Additional notes"
             />
           )
         },
@@ -284,7 +308,7 @@ export function MicroTasksTable() {
   )
 
   const table = useReactTable({
-    data: rows,
+    data: filteredRows,
     columns,
     getCoreRowModel: getCoreRowModel(),
     state: {
@@ -297,8 +321,8 @@ export function MicroTasksTable() {
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-xl font-bold">Micro Tasks</h2>
-          <p className="text-sm text-gray-600">小型任務快速完成</p>
+          <h2 className="text-xl font-bold">Resources</h2>
+          <p className="text-sm text-gray-600">外部參考資源庫</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -316,67 +340,73 @@ export function MicroTasksTable() {
         </div>
       </div>
 
+      {/* 搜尋欄 */}
+      <div className="mb-4 flex gap-2">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="搜尋 Title、Category、Note、URL..."
+          className="flex-1 px-3 py-2 border rounded focus:outline-none focus:border-blue-500"
+        />
+        <button
+          onClick={() => setIsOrMode(!isOrMode)}
+          className={`px-3 py-2 rounded ${
+            isOrMode
+              ? 'bg-blue-500 text-white hover:bg-blue-600'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          {isOrMode ? 'OR' : 'AND'}
+        </button>
+      </div>
+
       {loading ? (
         <div className="text-center text-gray-500">Loading...</div>
-      ) : rows.length === 0 ? (
-        <div className="text-center text-gray-500">No items yet.</div>
+      ) : filteredRows.length === 0 ? (
+        <div className="text-center text-gray-500">
+          {rows.length === 0 ? 'No resources yet.' : 'No matching resources.'}
+        </div>
       ) : isMobile ? (
         // 移動視圖 - 卡片
         <>
           <div className="grid grid-cols-1 gap-3">
-            {rows.map((item) => (
+            {filteredRows.map((item) => (
               <TableCard
                 key={item.taskId}
                 item={item}
                 fields={[
-                  { label: 'Title', value: item.title || '(empty)' },
-                  { label: 'Status', value: item.status },
-                  {
-                    label: 'Focus Time',
-                    value: item.focusTime == null ? '(default 30)' : `${item.focusTime} mins`,
-                  },
-                  {
-                    label: 'Last Run',
-                    value: item.lastRunDate
-                      ? new Date(item.lastRunDate).toLocaleString('zh-TW')
-                      : '(未執行)',
-                  },
+                    {label: 'Title', value: item.title ?? '(Untitled)'},
+                    {label: 'Category', value: item.category ?? '(No category)'},
+                    {label: 'Received', value: item.receivedAt ? new Date(item.receivedAt).toLocaleString() : '(No date)'},
+                    {label: 'Note', value: item.note ?? '(No note)'},
                 ]}
                 onEdit={setEditingItem}
-                onDelete={(item) => deleteRow(item.taskId)}
-              />
+                onDelete={(item)=> deleteRow(item.taskId)}
+                />
             ))}
           </div>
 
           <EditDialog
             isOpen={!!editingItem}
-            title="編輯微任務"
+            title="編輯資源"
             item={editingItem}
             fields={[
               {
                 name: 'title',
                 label: 'Title',
                 type: 'text' as FieldType,
-                placeholder: '輸入任務標題',
+                placeholder: '輸入資源標題',
               },
               {
-                name: 'status',
-                label: 'Status',
-                type: 'select' as FieldType,
-                options: [
-                  { label: 'Pending', value: 'PENDING' },
-                  { label: 'Doing', value: 'DOING' },
-                  { label: 'Done', value: 'DONE' },
-                ],
+                name: 'category',
+                label: 'Category',
+                type: 'text' as FieldType,
+                placeholder: '例如: Tutorial, Reference',
               },
               {
-                name: 'focusTime',
-                label: 'Focus Time (mins)',
-                type: 'number' as FieldType,
-              },
-              {
-                name: 'lastRunDate',
-                label: 'Last Run',
+                name: 'receivedAt',
+                label: 'Received At',
                 type: 'datetime' as FieldType,
               },
               {
@@ -384,6 +414,12 @@ export function MicroTasksTable() {
                 label: 'URL',
                 type: 'text' as FieldType,
                 placeholder: 'https://...',
+              },
+              {
+                name: 'note',
+                label: 'Note',
+                type: 'text' as FieldType,
+                placeholder: '添加備註',
               },
             ]}
             onSave={handleEditSave}
@@ -394,20 +430,18 @@ export function MicroTasksTable() {
         // 桌面視圖 - 表格
         <div className="overflow-x-auto border rounded-lg">
           <table className="w-full text-sm">
-            <thead className="bg-gray-100 border-b">
+            <thead className="bg-gray-100">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="px-4 py-2 text-left font-semibold"
+                      className="p-2 text-left border-b border-gray-200 font-semibold"
                     >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                     </th>
                   ))}
                 </tr>
@@ -415,9 +449,13 @@ export function MicroTasksTable() {
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-b hover:bg-gray-50">
+                <tr
+                  key={row.id}
+                  onClick={() => setEditingItem(row.original)}
+                  className="border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-2">
+                    <td key={cell.id} className="p-2">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -433,8 +471,8 @@ export function MicroTasksTable() {
 
       <TableHelpDialog
         isOpen={showHelp}
-        title="Micro Tasks 使用說明"
-        markdown={microTasksHelpMarkdown}
+        title="Resources 使用說明"
+        markdown={resourceHelpMarkdown}
         onClose={() => setShowHelp(false)}
       />
     </div>

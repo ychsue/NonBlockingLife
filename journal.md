@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-04-01] 現在有 Resource 了，還有搜尋功能，但還沒套用到其他頁面
+
 ## [2026-03-31] Task Tables 都在addRow裡面加上 與 避免兩次 add New Row 的邏輯 還有Inbox 的移動功能
 
 ```tsx

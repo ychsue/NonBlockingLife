@@ -14,6 +14,7 @@ import { LogTable } from "./components/tables/LogTable";
 import { GuidePage } from "./components/GuidePage";
 import { db } from "./db/index";
 import "./styles.css";
+import { ResourceTable } from "./components/tables/ResourceTable";
 
 type AllPages = SheetName | "selection_cache" | "log" | "guide";
 
@@ -63,6 +64,8 @@ export default function App() {
         return <SelectionCacheTable />;
       case "log":
         return <LogTable />;
+      case "resource":
+        return <ResourceTable />;
       case "guide":
         return <GuidePage />;
       default:

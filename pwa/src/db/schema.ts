@@ -82,6 +82,16 @@ export interface MicroTaskItem {
 
 export type ChangeLogStatus = 'pending' | 'synced' | 'failed'
 
+export interface ResourceItem {
+  taskId: string
+  title?: string
+  category?: string
+  receivedAt?: number
+  url?: string
+  note?: string
+  updatedAt?: number
+}
+
 export interface ChangeLogEntry {
   id: string
   clientId?: string
@@ -110,6 +120,7 @@ export class AppDB extends Dexie {
   micro_tasks!: Table<MicroTaskItem, string>
   change_log!: Table<ChangeLogEntry, string>
   sync_state!: Table<SyncState, string>
+  resource!: Table<ResourceItem, string>
 
   constructor() {
     super('NonBlockingLife')
@@ -122,7 +133,8 @@ export class AppDB extends Dexie {
       selection_cache: 'taskId, score, source, title',
       micro_tasks: 'taskId, status, lastRunDate, title',
       change_log: 'id, table, recordId, op, status, createdAt',
-      sync_state: 'key'
+      sync_state: 'key',
+      resource: 'taskId, category, receivedAt, title'
     })
   }
 }
@@ -132,7 +144,8 @@ export const db = new AppDB()
 export const TASK_PREFIX = {
   task_pool: 'T',
   micro_tasks: 't',
-  scheduled: 'S'
+  scheduled: 'S',
+  resource: 'R'
 }
 
 export const LOG_ID_PREFIX = 'log'
