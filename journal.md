@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-04-01] 修補 sync 沒有加resource入白名單的問題
+
+[syncUtils.ts](pwa\src\utils\syncUtils.ts) 要加入白名單
+
 ## [2026-04-01] 現在有 Resource 了，還有搜尋功能，但還沒套用到其他頁面
 
 修改細節，請見 [discussion_20260401.md](Discussion\discussion_20260401.md)

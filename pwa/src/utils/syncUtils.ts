@@ -1,7 +1,7 @@
 import { db } from '../db/index'
 import type { ChangeLogEntry } from '../db/schema'
 
-const SYNC_TABLES = ['task_pool', 'scheduled', 'micro_tasks', 'inbox', 'log'] as const
+const SYNC_TABLES = ['task_pool', 'scheduled', 'micro_tasks', 'inbox', 'resource', 'log'] as const
 
 type SyncTable = (typeof SYNC_TABLES)[number]
 
@@ -320,6 +320,7 @@ export class SyncManager {
             db.scheduled,
             db.micro_tasks,
             db.inbox,
+            db.resource,
             db.selection_cache,
             db.dashboard,
             db.change_log,
@@ -331,6 +332,7 @@ export class SyncManager {
             db.scheduled,
             db.micro_tasks,
             db.inbox,
+            db.resource,
             db.selection_cache,
             db.dashboard,
             db.change_log,
@@ -343,6 +345,7 @@ export class SyncManager {
           db.scheduled.clear(),
           db.micro_tasks.clear(),
           db.inbox.clear(),
+          db.resource.clear(),
           db.selection_cache.clear(),
           db.dashboard.clear(),
           db.change_log.clear(),
