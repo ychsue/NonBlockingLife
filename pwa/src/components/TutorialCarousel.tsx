@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 interface TutorialCarouselProps {
   onClose: () => void;
@@ -128,14 +128,68 @@ export function TutorialCarousel({
   onOpenScheduled,
 }: TutorialCarouselProps) {
   const [index, setIndex] = useState(0);
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
   const slide = SLIDES[index];
   const isLastSlide = index === SLIDES.length - 1;
   const isSetupSlide = index === 7;
 
+  const goToPrevious = () => {
+    setIndex((current) => Math.max(0, current - 1));
+  };
+
+  const goToNext = () => {
+    if (isLastSlide) {
+      onClose();
+      return;
+    }
+
+    setIndex((current) => Math.min(SLIDES.length - 1, current + 1));
+  };
+
+  const handleTouchStart = (event: React.TouchEvent<HTMLElement>) => {
+    const touch = event.touches[0];
+    touchStartXRef.current = touch.clientX;
+    touchStartYRef.current = touch.clientY;
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent<HTMLElement>) => {
+    const touch = event.changedTouches[0];
+    const startX = touchStartXRef.current;
+    const startY = touchStartYRef.current;
+
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+
+    if (startX == null || startY == null) {
+      return;
+    }
+
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+
+    if (absX < 48 || absX <= absY * 1.2) {
+      return;
+    }
+
+    if (deltaX < 0) {
+      goToNext();
+      return;
+    }
+
+    goToPrevious();
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm">
       <div className="flex min-h-full items-center justify-center p-3 sm:p-6">
-        <section className="flex max-h-[96vh] w-full max-w-6xl flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl">
+        <section
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className="flex max-h-[96vh] w-full max-w-6xl touch-pan-y flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl"
+        >
           <header className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-8">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
@@ -235,7 +289,7 @@ export function TutorialCarousel({
               <div className="flex items-center gap-3 self-end sm:self-auto">
                 <button
                   type="button"
-                  onClick={() => setIndex((current) => Math.max(0, current - 1))}
+                  onClick={goToPrevious}
                   disabled={index === 0}
                   className="rounded-2xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
                 >
@@ -243,13 +297,7 @@ export function TutorialCarousel({
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (isLastSlide) {
-                      onClose();
-                      return;
-                    }
-                    setIndex((current) => Math.min(SLIDES.length - 1, current + 1));
-                  }}
+                  onClick={goToNext}
                   className="rounded-2xl bg-sky-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-700"
                 >
                   {isLastSlide ? "開始使用" : "下一頁"}
