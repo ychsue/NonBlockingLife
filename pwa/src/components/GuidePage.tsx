@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { TutorialCarousel } from './TutorialCarousel'
+import { useAppStore } from '../store/appStore'
 import {
   getNblTimerInstallUrl,
   isValidICloudShortcutUrl,
@@ -39,8 +41,10 @@ const SHORTCUTS = [
 ]
 
 export function GuidePage() {
+  const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
   const [timerUrlInput, setTimerUrlInput] = useState(getNblTimerInstallUrl())
   const [saved, setSaved] = useState(false)
+  const [showTutorial, setShowTutorial] = useState(false)
 
   const canInstallNblTimer = useMemo(
     () => isValidICloudShortcutUrl(timerUrlInput),
@@ -53,8 +57,21 @@ export function GuidePage() {
     setTimeout(() => setSaved(false), 2000)
   }
 
+  const handleCloseTutorial = useCallback(() => {
+    setShowTutorial(false)
+  }, [])
+
+  const handleOpenTutorialSheet = useCallback(
+    (sheet: 'task_pool' | 'scheduled') => {
+      setCurrentSheet(sheet)
+      setShowTutorial(false)
+    },
+    [setCurrentSheet]
+  )
+
   return (
-    <section className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+    <>
+      <section className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
       <div className="bg-white border border-gray-200 rounded-lg p-5">
         <h2 className="text-xl font-bold text-gray-800 mb-2">📘 說明頁</h2>
         <p className="text-gray-700 leading-relaxed">
@@ -73,6 +90,18 @@ export function GuidePage() {
           </a>
           裡面個人時間管理系統的實驗性版本。
         </p>
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <button
+            type="button"
+            onClick={() => setShowTutorial(true)}
+            className="inline-flex items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
+          >
+            查看首次教學輪播
+          </button>
+          <p className="text-sm text-gray-500">
+            可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。
+          </p>
+        </div>
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg p-5">
@@ -159,6 +188,15 @@ export function GuidePage() {
           </li>
         </ul>
       </div>
-    </section>
+      </section>
+
+      {showTutorial && (
+        <TutorialCarousel
+          onClose={handleCloseTutorial}
+          onOpenTaskPool={() => handleOpenTutorialSheet('task_pool')}
+          onOpenScheduled={() => handleOpenTutorialSheet('scheduled')}
+        />
+      )}
+    </>
   )
 }

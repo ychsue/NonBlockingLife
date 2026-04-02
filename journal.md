@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-04-02] 在首頁加入簡易教學的輪播，動畫尚未實作
+
 ## [2026-04-01] 修補 sync 沒有加resource入白名單的問題
 
 [syncUtils.ts](pwa\src\utils\syncUtils.ts) 要加入白名單

@@ -12,6 +12,7 @@ import { MicroTasksTable } from "./components/tables/MicroTasksTable";
 import { SelectionCacheTable } from "./components/tables/SelectionCacheTable";
 import { LogTable } from "./components/tables/LogTable";
 import { GuidePage } from "./components/GuidePage";
+import { TutorialCarousel } from "./components/TutorialCarousel";
 import { db } from "./db/index";
 import "./styles.css";
 import { ResourceTable } from "./components/tables/ResourceTable";
@@ -19,6 +20,7 @@ import { ResourceTable } from "./components/tables/ResourceTable";
 type AllPages = SheetName | "selection_cache" | "log" | "guide";
 
 export default function App() {
+  const TUTORIAL_SESSION_KEY = "nbl-home-tutorial-dismissed";
   const currentSheet = useAppStore((state) => state.currentSheet);
   const setCurrentSheet = useAppStore((state) => state.setCurrentSheet);
   const [toast, setToast] = useState("");
@@ -29,12 +31,56 @@ export default function App() {
   
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const { isMobile } = useResponsiveTable();
 
   useEffect(() => {
     // 初始加载时获取当前正在运行的任务
     loadRunningTask();
-  }, []);
+  }, [loadRunningTask]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const checkTutorialVisibility = async () => {
+      const hasUrlParams = window.location.search.trim().length > 0;
+      const isDismissedInSession = sessionStorage.getItem(TUTORIAL_SESSION_KEY) === "1";
+
+      if (hasUrlParams || isDismissedInSession) {
+        return;
+      }
+
+      const [inboxCount, taskPoolCount, scheduledCount] = await Promise.all([
+        db.inbox.count(),
+        db.task_pool.count(),
+        db.scheduled.count(),
+      ]);
+
+      if (!isCancelled && (inboxCount === 0 || taskPoolCount === 0 || scheduledCount === 0)) {
+        setShowTutorial(true);
+      }
+    };
+
+    void checkTutorialVisibility();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [TUTORIAL_SESSION_KEY]);
+
+  const handleCloseTutorial = useCallback(() => {
+    sessionStorage.setItem(TUTORIAL_SESSION_KEY, "1");
+    setShowTutorial(false);
+  }, [TUTORIAL_SESSION_KEY]);
+
+  const handleOpenTutorialSheet = useCallback(
+    (sheet: SheetName) => {
+      sessionStorage.setItem(TUTORIAL_SESSION_KEY, "1");
+      setCurrentSheet(sheet);
+      setShowTutorial(false);
+    },
+    [setCurrentSheet, TUTORIAL_SESSION_KEY],
+  );
 
   const handleUrlNavigate = useCallback(
     (sheet: SheetName | "selection_cache") => {
@@ -216,6 +262,14 @@ export default function App() {
 
       {toast && !globalToast && (
         <Toast message={toast} duration={3000} onClose={() => setToast("")} />
+      )}
+
+      {showTutorial && (
+        <TutorialCarousel
+          onClose={handleCloseTutorial}
+          onOpenTaskPool={() => handleOpenTutorialSheet("task_pool")}
+          onOpenScheduled={() => handleOpenTutorialSheet("scheduled")}
+        />
       )}
     </div>
   );
