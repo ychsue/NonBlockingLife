@@ -111,6 +111,17 @@ const SLIDES: TutorialSlide[] = [
   },
   {
     eyebrow: "頁 9",
+    title: "iPhone 用戶可以搭配捷徑實現一鍵新增與專注計時",
+    description:
+      "在 iOS 上，你可以用捷徑實現從鎖屏一鍵新增任務、開始番茄鐘，甚至是被打斷時的快速記錄，讓手機成為真正的生產力工具。",
+    visual: {
+      label: "iPhone 捷徑",
+      accent: "from-pink-100 via-white to-red-100",
+      scene: ["📱 Lock Screen", "➕ Add Inbox", "⏱️ Start Focus"],
+    },
+  },
+  {
+    eyebrow: "頁 10",
     title: "這是 open source 專案，歡迎一起參與開發",
     description:
       "如果這套方法對你有幫助，你也可以一起改進流程、文件、同步、UI 與分析功能。",
