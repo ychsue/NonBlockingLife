@@ -1,0 +1,207 @@
+.carousel-page-one-stage {
+  isolation: isolate;
+}
+
+.carousel-page-one-svg {
+  overflow: visible;
+}
+
+.carousel-page-one-mainline {
+  opacity: 0;
+  animation: carousel-page-one-fade-in 0.45s ease-out forwards;
+}
+
+.carousel-page-one-progress {
+  transform-box: fill-box;
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: carousel-page-one-progress-fill 2s ease-out 0.3s forwards;
+}
+
+.carousel-page-one-clock-base {
+  opacity: 0;
+  animation: carousel-page-one-fade-in 0.4s ease-out 0.2s forwards;
+}
+
+.carousel-page-one-clock-yellow,
+.carousel-page-one-clock-red {
+  transform-box: fill-box;
+  transform-origin: center;
+  stroke-linecap: butt;
+}
+
+.carousel-page-one-clock-yellow {
+  transform: rotate(-90deg);
+  stroke-dasharray: 0 100;
+  animation: carousel-page-one-clock-yellow 2s linear 0.35s forwards;
+}
+
+.carousel-page-one-clock-red {
+  transform: rotate(90deg);
+  stroke-dasharray: 0 100;
+  animation: carousel-page-one-clock-red 1.28s linear 2.35s forwards;
+}
+
+.carousel-page-one-flag {
+  opacity: 0;
+  animation: carousel-page-one-fade-in 0.45s ease-out 0.15s forwards;
+}
+
+.carousel-page-one-phone {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.35);
+  animation: carousel-page-one-phone-pop 0.68s cubic-bezier(0.2, 0.8, 0.2, 1) 2.35s forwards;
+}
+
+.carousel-page-one-branch-down,
+.carousel-page-one-branch-chaos,
+.carousel-page-one-chaos-mark {
+  opacity: 0;
+}
+
+.carousel-page-one-branch-down {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: carousel-page-one-line-draw 0.7s ease-out 3s forwards;
+}
+
+.carousel-page-one-person {
+  opacity: 0;
+  transform: translate(-50%, -50%) translateY(12px) scale(0.84);
+  animation: carousel-page-one-person-appear 0.55s ease-out 3.25s forwards;
+}
+
+.carousel-page-one-branch-chaos {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: carousel-page-one-line-draw 1s ease-out 3.6s forwards;
+}
+
+.carousel-page-one-distraction {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.64) rotate(-8deg);
+  animation: carousel-page-one-distraction-appear 0.5s ease-out forwards;
+}
+
+.carousel-page-one-chaos-mark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: carousel-page-one-chaos-appear 0.7s ease-out 5.15s forwards;
+}
+
+@keyframes carousel-page-one-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes carousel-page-one-progress-fill {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes carousel-page-one-clock-yellow {
+  from {
+    stroke-dasharray: 0 100;
+  }
+
+  to {
+    stroke-dasharray: 50 100;
+  }
+}
+
+@keyframes carousel-page-one-clock-red {
+  from {
+    stroke-dasharray: 0 100;
+  }
+
+  to {
+    stroke-dasharray: 32 100;
+  }
+}
+
+@keyframes carousel-page-one-phone-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35);
+  }
+
+  48% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(2);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes carousel-page-one-line-draw {
+  from {
+    opacity: 1;
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes carousel-page-one-person-appear {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(12px) scale(0.84);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes carousel-page-one-distraction-appear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.64) rotate(-8deg);
+  }
+
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08) rotate(4deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes carousel-page-one-chaos-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0.74) rotate(-14deg);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scale(1.08) rotate(6deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}

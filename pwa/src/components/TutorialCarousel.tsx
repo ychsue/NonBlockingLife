@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { PageOneMainlineInterrupt } from "./carousel/PageOneMainlineInterrupt";
 
 interface TutorialCarouselProps {
   onClose: () => void;
@@ -24,7 +25,7 @@ const SLIDES: TutorialSlide[] = [
     title: "忙了一整天，卻總覺得主線一直被打斷？",
     description:
       "很多時間不是沒做事，而是被電話、雜事、臨時念頭與娛樂切碎，最後回頭看，真正重要的事並沒有往前推進。",
-    helper: "之後這一頁會補上主線被打岔的 SVG 敘事動畫。",
+    helper: "第一版先用 SVG 與 CSS 做出主線被電話打斷、一路分流到混亂終點的 MVP 動畫。",
     visual: {
       label: "主線被打斷",
       accent: "from-amber-100 via-white to-rose-100",
@@ -193,6 +194,25 @@ export function TutorialCarousel({
     goToPrevious();
   };
 
+  const renderVisual = () => {
+    if (index === 0) {
+      return <PageOneMainlineInterrupt />;
+    }
+
+    return (
+      <div className="space-y-4 text-center">
+        {slide.visual.scene.map((line) => (
+          <div
+            key={line}
+            className="rounded-2xl border border-white/80 bg-white/80 px-4 py-3 text-lg font-semibold shadow-sm sm:text-2xl"
+          >
+            {line}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm">
       <div className="flex min-h-full items-center justify-center p-3 sm:p-6">
@@ -229,18 +249,11 @@ export function TutorialCarousel({
                       {slide.visual.label}
                     </p>
                   </div>
-                  <div className="space-y-4 text-center">
-                    {slide.visual.scene.map((line) => (
-                      <div
-                        key={line}
-                        className="rounded-2xl border border-white/80 bg-white/80 px-4 py-3 text-lg font-semibold shadow-sm sm:text-2xl"
-                      >
-                        {line}
-                      </div>
-                    ))}
-                  </div>
+                  {renderVisual()}
                   <p className="text-center text-xs text-slate-500 sm:text-sm">
-                    這一格會在下一階段逐頁補上 SVG 與 CSS 動畫。
+                    {index === 0
+                      ? "第一頁已先做成 SVG + CSS MVP，後面頁面再依序補上動畫。"
+                      : "這一格會在下一階段逐頁補上 SVG 與 CSS 動畫。"}
                   </p>
                 </div>
               </div>
@@ -253,7 +266,7 @@ export function TutorialCarousel({
                 <p className="mt-4 text-base leading-8 text-slate-700 sm:text-lg">
                   {slide.description}
                 </p>
-                {slide.helper && (
+                {slide.helper && import.meta.env.DEV && (
                   <p className="mt-4 rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm leading-7 text-sky-900">
                     {slide.helper}
                   </p>
