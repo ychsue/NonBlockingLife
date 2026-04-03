@@ -25,7 +25,7 @@ const SHORTCUTS = [
   },
   {
     name: 'NBL Inbox',
-    url: 'https://www.icloud.com/shortcuts/0d4f6fe7565a401fadfc2636f85ebc42',
+    url: 'https://www.icloud.com/shortcuts/49028b49cdf1441b9d938830948c02dc',
     purpose: '快速把想法丟進 NBL Inbox',
   },
   {
@@ -37,6 +37,11 @@ const SHORTCUTS = [
     name: 'Apple Clock (時鐘)',
     url: 'https://apps.apple.com/tw/app/clock/id1584215688',
     purpose: 'iPhone 該內建的時鐘 App，提供計時器功能，配合 NBL_Timer Shortcut 切換工作/休息模式時會啟動對應的計時器。iPhone 有可能沒有預設安裝。',
+  },
+  {
+    name: 'NBL Last Log Time',
+    url: 'https://www.icloud.com/shortcuts/a553937cb1fe49d3bb7c1ee926140115',
+    purpose: '這個比較進階，您得先使用`備忘錄`寫個文字類似`2026-04-03`，然後存到iPhone檔案目錄一個檔叫`last_log_time`(.txt會自動補，別加)，然後，在Shortcuts裡面利用自動化執行APP開啟時，串接自動化，先呼叫這個Shortcut，如果傳回的值大於2，就執行Shortcut NBL Query，這樣，就能在打開您要開的APP後，自動呼叫NBL 來管理您的任務了！這是我個人用來在打開社交媒體時自動呼叫NBL，提醒自己先看看待辦清單再決定要不要打開的做法，您也可以發揮創意串接在其他情境！',
   }
 ]
 
