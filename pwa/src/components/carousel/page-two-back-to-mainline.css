@@ -1,0 +1,250 @@
+.carousel-page-two-stage {
+  isolation: isolate;
+}
+
+.carousel-page-two-svg {
+  overflow: visible;
+}
+
+.carousel-page-two-mainline,
+.carousel-page-two-clock-base,
+.carousel-page-two-flag-shell,
+.carousel-page-two-log-scroll {
+  opacity: 0;
+  animation: carousel-page-two-fade-in 0.45s ease-out forwards;
+}
+
+.carousel-page-two-clock-base {
+  animation-delay: 0.15s;
+}
+
+.carousel-page-two-flag-shell {
+  animation-delay: 0.2s;
+}
+
+.carousel-page-two-log-scroll {
+  animation-delay: 0.3s;
+}
+
+.carousel-page-two-progress {
+  transform-box: fill-box;
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+
+.carousel-page-two-progress-one {
+  animation: carousel-page-two-progress-fill 1.05s ease-out 0.45s forwards;
+}
+
+.carousel-page-two-progress-two {
+  animation: carousel-page-two-progress-fill 0.95s ease-out 2.95s forwards;
+}
+
+.carousel-page-two-progress-three {
+  animation: carousel-page-two-progress-fill 1.2s ease-out 5.35s forwards;
+}
+
+.carousel-page-two-clock-yellow {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(-90deg);
+  stroke-linecap: butt;
+  stroke-dasharray: 0 100;
+  animation: carousel-page-two-clock 6.2s linear 0.4s forwards;
+}
+
+.carousel-page-two-event-badge,
+.carousel-page-two-nbl-one,
+.carousel-page-two-nbl-two,
+.carousel-page-two-flag-win,
+.carousel-page-two-log-entry {
+  opacity: 0;
+}
+
+.carousel-page-two-event-badge-one {
+  animation: carousel-page-two-pop-badge 0.55s ease-out 1.45s forwards;
+}
+
+.carousel-page-two-event-badge-two {
+  animation: carousel-page-two-pop-badge 0.55s ease-out 3.95s forwards;
+}
+
+.carousel-page-two-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+}
+
+.carousel-page-two-path-down-one {
+  animation: carousel-page-two-line-draw 1.05s linear 1.8s forwards;
+}
+
+.carousel-page-two-path-turn-one {
+  animation: carousel-page-two-line-draw 0.3s ease-in-out 2.9s forwards;
+}
+
+.carousel-page-two-path-up-one {
+  animation: carousel-page-two-line-draw 0.42s linear 3.15s forwards;
+}
+
+.carousel-page-two-path-down-two {
+  animation: carousel-page-two-line-draw 1.05s linear 4s forwards;
+}
+
+.carousel-page-two-path-turn-two {
+  animation: carousel-page-two-line-draw 0.32s ease-in-out 5.05s forwards;
+}
+
+.carousel-page-two-path-up-two {
+  animation: carousel-page-two-line-draw 0.44s linear 5.3s forwards;
+}
+
+.carousel-page-two-nbl-one {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: carousel-page-two-nbl-appear 0.55s ease-out 2.6s forwards;
+}
+
+.carousel-page-two-nbl-two {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: carousel-page-two-nbl-appear 0.55s ease-out 4.8s forwards;
+}
+
+.carousel-page-two-log-entry-one {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: carousel-page-two-log-write 0.55s linear 2.8s forwards;
+}
+
+.carousel-page-two-log-entry-two {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: carousel-page-two-log-write 0.55s linear 5s forwards;
+}
+
+.carousel-page-two-flag-gray {
+  opacity: 1;
+}
+
+.carousel-page-two-flag-win {
+  animation: carousel-page-two-flag-win 0.7s ease-out 6.35s forwards;
+}
+
+@keyframes carousel-page-two-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes carousel-page-two-progress-fill {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes carousel-page-two-clock {
+  0% {
+    stroke-dasharray: 0 100;
+  }
+
+  24% {
+    stroke-dasharray: 23 100;
+  }
+
+  38% {
+    stroke-dasharray: 23 100;
+  }
+
+  60% {
+    stroke-dasharray: 51 100;
+  }
+
+  74% {
+    stroke-dasharray: 51 100;
+  }
+
+  100% {
+    stroke-dasharray: 93 100;
+  }
+}
+
+@keyframes carousel-page-two-pop-badge {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.45);
+  }
+
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes carousel-page-two-line-draw {
+  from {
+    opacity: 1;
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes carousel-page-two-nbl-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.5) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes carousel-page-two-log-write {
+  from {
+    opacity: 1;
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes carousel-page-two-flag-win {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.92);
+  }
+
+  70% {
+    opacity: 1;
+    transform: translateY(0) scale(1.08);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

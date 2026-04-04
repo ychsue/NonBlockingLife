@@ -17,13 +17,13 @@ export function PageOneMainlineInterrupt() {
       >
         <defs>
           <clipPath id="carousel-page-one-arrow-clip">
-            <polygon points="110,300 565,300 565,235 870,370 565,505 565,440 110,440" />
+            <polygon points="110,300 800,300 800,255 870,330 800,405 800,370 110,370" />
           </clipPath>
         </defs>
 
         <g className="carousel-page-one-mainline">
           <polygon
-            points="110,300 565,300 565,235 870,370 565,505 565,440 110,440"
+            points="110,300 800,300 800,255 870,335 800,415 800,370 110,370"
             fill="none"
             stroke="#6b7280"
             strokeWidth="12"
@@ -107,7 +107,7 @@ export function PageOneMainlineInterrupt() {
         </g>
       </svg>
 
-      <div className="carousel-page-one-phone absolute z-20 text-5xl sm:text-6xl" style={{ left: "49.2%", top: "40%" }}>
+      <div className="carousel-page-one-phone absolute z-20 text-5xl sm:text-5xl" style={{ left: "49.2%", top: "35%" }}>
         📞
       </div>
 

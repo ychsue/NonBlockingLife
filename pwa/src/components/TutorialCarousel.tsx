@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { PageOneMainlineInterrupt } from "./carousel/PageOneMainlineInterrupt";
+import { PageTwoBackToMainline } from "./carousel/PageTwoBackToMainline";
 
 interface TutorialCarouselProps {
   onClose: () => void;
@@ -199,6 +200,10 @@ export function TutorialCarousel({
       return <PageOneMainlineInterrupt />;
     }
 
+    if (index === 1) {
+      return <PageTwoBackToMainline />;
+    }
+
     return (
       <div className="space-y-4 text-center">
         {slide.visual.scene.map((line) => (
@@ -253,6 +258,8 @@ export function TutorialCarousel({
                   <p className="text-center text-xs text-slate-500 sm:text-sm">
                     {index === 0
                       ? "第一頁已先做成 SVG + CSS MVP，後面頁面再依序補上動畫。"
+                      : index === 1
+                        ? "第二頁先做成兩次打岔再回到主線的 MVP，後續可以再加到三次循環。"
                       : "這一格會在下一階段逐頁補上 SVG 與 CSS 動畫。"}
                   </p>
                 </div>
