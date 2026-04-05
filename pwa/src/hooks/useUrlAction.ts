@@ -93,6 +93,9 @@ export function useUrlAction(options: UseUrlActionOptions) {
         if (key === "nextRun" || key === "createdAt" || key === "updatedAt") {
           // 修复时区偏移中的空格 (e.g., "2026-03-10T10:00:00 08:00" → "2026-03-10T10:00:00+08:00")
           fixedValue = fixedValue.replace(/T(\d{2}:\d{2}:\d{2})\s+(\d{2}:\d{2})/, "T$1+$2");
+        } else {
+          // decodeURIComponent 會將 + 解析成空格，因此需要先將 + 替换回 %2B 再解码
+          fixedValue = decodeURIComponent(fixedValue.replace(/\+/g, "%2B"));
         }
 
         // 嘗試解析數字
