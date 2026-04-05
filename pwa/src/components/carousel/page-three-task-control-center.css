@@ -1,0 +1,428 @@
+.carousel-page-three-stage {
+  isolation: isolate;
+}
+
+.carousel-page-three-svg {
+  overflow: visible;
+}
+
+.carousel-page-three-shell,
+.carousel-page-three-hub-shell,
+.carousel-page-three-inbox-shell,
+.carousel-page-three-source-base,
+.carousel-page-three-bin,
+.carousel-page-three-hub-glow {
+  opacity: 0;
+  animation: carousel-page-three-fade-in 0.45s ease-out forwards;
+}
+
+.carousel-page-three-hub-shell {
+  animation-delay: 0.18s;
+}
+
+.carousel-page-three-inbox-shell {
+  animation-delay: 0.24s;
+}
+
+.carousel-page-three-bin {
+  animation-delay: 0.32s;
+}
+
+.carousel-page-three-hub-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation:
+    carousel-page-three-fade-in 0.45s ease-out 0.18s forwards,
+    carousel-page-three-hub-pulse 1.4s ease-in-out 1.7s 2;
+}
+
+.carousel-page-three-card {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.carousel-page-three-card-one {
+  animation: carousel-page-three-card-in 0.42s ease-out 0.55s forwards;
+}
+
+.carousel-page-three-card-two {
+  animation: carousel-page-three-card-in 0.42s ease-out 0.82s forwards;
+}
+
+.carousel-page-three-card-three {
+  animation: carousel-page-three-card-in 0.42s ease-out 1.09s forwards;
+}
+
+.carousel-page-three-card-selection {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: carousel-page-three-selection 0.5s ease-out 1.45s forwards;
+}
+
+.carousel-page-three-query-beam,
+.carousel-page-three-sort-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+}
+
+.carousel-page-three-query-beam {
+  animation: carousel-page-three-line-draw 0.38s linear 1.62s forwards;
+}
+
+.carousel-page-three-sort-path-one {
+  animation: carousel-page-three-line-draw 0.45s linear 3.6s forwards;
+}
+
+.carousel-page-three-sort-path-two {
+  animation: carousel-page-three-line-draw 0.42s linear 3.95s forwards;
+}
+
+.carousel-page-three-sort-path-three {
+  animation: carousel-page-three-line-draw 0.42s linear 4.3s forwards;
+}
+
+.carousel-page-three-source-fly {
+  position: absolute;
+  z-index: 20;
+  font-size: clamp(1rem, 4.8vw, 2rem);
+  line-height: 1;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.84);
+  will-change: left, top, transform, opacity;
+}
+
+.carousel-page-three-source-fly-one {
+  left: 89%;
+  top: 17.8%;
+  animation: carousel-page-three-source-fly-one 0.8s ease-out 2s forwards;
+}
+
+.carousel-page-three-source-fly-two {
+  left: 91.4%;
+  top: 30.2%;
+  animation: carousel-page-three-source-fly-two 0.8s ease-out 2.35s forwards;
+}
+
+.carousel-page-three-source-fly-three {
+  left: 88.4%;
+  top: 42.8%;
+  animation: carousel-page-three-source-fly-three 0.8s ease-out 2.7s forwards;
+}
+
+.carousel-page-three-source-fly-four {
+  left: 91.8%;
+  top: 55%;
+  animation: carousel-page-three-source-fly-four 0.8s ease-out 3.05s forwards;
+}
+
+.carousel-page-three-inbox-item {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: left center;
+  transform: scaleX(0.2);
+}
+
+.carousel-page-three-inbox-item-one {
+  animation: carousel-page-three-inbox-fill 0.3s ease-out 2.45s forwards;
+}
+
+.carousel-page-three-inbox-item-two {
+  animation: carousel-page-three-inbox-fill 0.3s ease-out 2.8s forwards;
+}
+
+.carousel-page-three-inbox-item-three {
+  animation: carousel-page-three-inbox-fill 0.3s ease-out 3.15s forwards;
+}
+
+.carousel-page-three-inbox-item-four {
+  animation: carousel-page-three-inbox-fill 0.3s ease-out 3.5s forwards;
+}
+
+.carousel-page-three-token-fly {
+  position: absolute;
+  z-index: 20;
+  left: 79.2%;
+  top: 39.4%;
+  height: 4.1%;
+  border-radius: 999px;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.9);
+  will-change: left, top, transform, opacity;
+}
+
+.carousel-page-three-token-fly-one {
+  width: 10.4%;
+  background: #fef3c7;
+  border: clamp(2px, 0.42vw, 3px) solid #f59e0b;
+  animation: carousel-page-three-token-fly-one 0.78s ease-in-out 3.85s forwards;
+}
+
+.carousel-page-three-token-fly-two {
+  width: 9.9%;
+  background: #e0f2fe;
+  border: clamp(2px, 0.42vw, 3px) solid #0ea5e9;
+  animation: carousel-page-three-token-fly-two 0.78s ease-in-out 4.2s forwards;
+}
+
+.carousel-page-three-token-fly-three {
+  width: 9.2%;
+  background: #dcfce7;
+  border: clamp(2px, 0.42vw, 3px) solid #22c55e;
+  animation: carousel-page-three-token-fly-three 0.78s ease-in-out 4.55s forwards;
+}
+
+.carousel-page-three-bin-one {
+  animation:
+    carousel-page-three-fade-in 0.45s ease-out 0.32s forwards,
+    carousel-page-three-bin-pop 0.45s ease-out 4.42s forwards;
+}
+
+.carousel-page-three-bin-two {
+  animation:
+    carousel-page-three-fade-in 0.45s ease-out 0.32s forwards,
+    carousel-page-three-bin-pop 0.45s ease-out 4.77s forwards;
+}
+
+.carousel-page-three-bin-three {
+  animation:
+    carousel-page-three-fade-in 0.45s ease-out 0.32s forwards,
+    carousel-page-three-bin-pop 0.45s ease-out 5.12s forwards;
+}
+
+@keyframes carousel-page-three-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes carousel-page-three-card-in {
+  from {
+    opacity: 0;
+    transform: translateX(-14px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes carousel-page-three-selection {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes carousel-page-three-line-draw {
+  from {
+    opacity: 1;
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes carousel-page-three-hub-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes carousel-page-three-source-fly-one {
+  0% {
+    opacity: 0;
+    left: 89%;
+    top: 17.8%;
+    transform: translate(-50%, -50%) scale(0.84);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    left: 79%;
+    top: 35.6%;
+    transform: translate(-50%, -50%) scale(0.36);
+  }
+}
+
+@keyframes carousel-page-three-source-fly-two {
+  0% {
+    opacity: 0;
+    left: 91.4%;
+    top: 30.2%;
+    transform: translate(-50%, -50%) scale(0.84);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    left: 79.8%;
+    top: 38.4%;
+    transform: translate(-50%, -50%) scale(0.36);
+  }
+}
+
+@keyframes carousel-page-three-source-fly-three {
+  0% {
+    opacity: 0;
+    left: 88.4%;
+    top: 42.8%;
+    transform: translate(-50%, -50%) scale(0.84);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    left: 79.2%;
+    top: 41.2%;
+    transform: translate(-50%, -50%) scale(0.36);
+  }
+}
+
+@keyframes carousel-page-three-source-fly-four {
+  0% {
+    opacity: 0;
+    left: 91.8%;
+    top: 55%;
+    transform: translate(-50%, -50%) scale(0.84);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    left: 79.8%;
+    top: 44.2%;
+    transform: translate(-50%, -50%) scale(0.36);
+  }
+}
+
+@keyframes carousel-page-three-inbox-fill {
+  from {
+    opacity: 0;
+    transform: scaleX(0.2);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes carousel-page-three-token-fly-one {
+  0% {
+    opacity: 0;
+    left: 79.2%;
+    top: 39.4%;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    left: 27.6%;
+    top: 78.4%;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+}
+
+@keyframes carousel-page-three-token-fly-two {
+  0% {
+    opacity: 0;
+    left: 79.2%;
+    top: 39.4%;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    left: 50%;
+    top: 78.4%;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+}
+
+@keyframes carousel-page-three-token-fly-three {
+  0% {
+    opacity: 0;
+    left: 79.2%;
+    top: 39.4%;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    left: 72.9%;
+    top: 78.4%;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+}
+
+@keyframes carousel-page-three-bin-pop {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

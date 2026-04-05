@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { PageOneMainlineInterrupt } from "./carousel/PageOneMainlineInterrupt";
+import { PageThreeTaskControlCenter } from "./carousel/PageThreeTaskControlCenter";
 import { PageTwoBackToMainline } from "./carousel/PageTwoBackToMainline";
 
 interface TutorialCarouselProps {
@@ -46,24 +47,25 @@ const SLIDES: TutorialSlide[] = [
   },
   {
     eyebrow: "頁 3",
-    title: "搭配 iPhone 捷徑與番茄鐘，讓專注有節奏",
+    title: "這是一個幫你收集、推薦與分流的輕量任務中控中心",
     description:
-      "開始任務時計時 30 分鐘，結束後切到 10 分鐘休息。你只要開始與結束，節奏交給系統處理。",
+      "系統先提出當下適合做的候選項，突發想法則先安全收進 inbox，之後再集中整理到 tasks、resources 或繼續留在 inbox。",
+    helper: "第三頁先做 Query 推薦、Inbox 收集、每日分流三段式的控制台 MVP。",
     visual: {
-      label: "專注節奏",
-      accent: "from-amber-50 via-white to-orange-100",
-      scene: ["📱 + ⏱️", "30 min Focus", "10 min Rest"],
+      label: "中控中心",
+      accent: "from-cyan-50 via-white to-amber-100",
+      scene: ["Query", "Inbox", "Daily Route"],
     },
   },
   {
     eyebrow: "頁 4",
-    title: "想法、任務、微任務、排程與中斷都集中在這裡",
+    title: "開始任務後進入專注，結束後自然切到休息",
     description:
-      "你不需要在多個 App 之間來回切換，收集、安排、開始、被打斷、重新回到主線，都在同一套流程。",
+      "你只要開始與結束，系統就能把 30 分鐘專注與 10 分鐘休息接起來，減少每次重新決定下一步的摩擦。",
     visual: {
-      label: "集中管理",
-      accent: "from-fuchsia-100 via-white to-blue-100",
-      scene: ["📥 Inbox", "📋 Task Pool  ·  🗓️ Scheduled", "⚡ Interrupt  ·  ✅ Micro Tasks"],
+      label: "專注節奏",
+      accent: "from-amber-50 via-white to-orange-100",
+      scene: ["▶ Start", "30 min Focus", "10 min Rest"],
     },
   },
   {
@@ -204,6 +206,10 @@ export function TutorialCarousel({
       return <PageTwoBackToMainline />;
     }
 
+    if (index === 2) {
+      return <PageThreeTaskControlCenter />;
+    }
+
     return (
       <div className="space-y-4 text-center">
         {slide.visual.scene.map((line) => (
@@ -260,6 +266,8 @@ export function TutorialCarousel({
                       ? "第一頁已先做成 SVG + CSS MVP，後面頁面再依序補上動畫。"
                       : index === 1
                         ? "第二頁先做成兩次打岔再回到主線的 MVP，後續可以再加到三次循環。"
+                        : index === 2
+                          ? "第三頁先做成 Query 推薦、Inbox 收集、每日分流的中控中心 MVP。"
                       : "這一格會在下一階段逐頁補上 SVG 與 CSS 動畫。"}
                   </p>
                 </div>
