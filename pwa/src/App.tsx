@@ -56,7 +56,7 @@ export default function App() {
         db.scheduled.count(),
       ]);
 
-      if (!isCancelled && (inboxCount === 0 || taskPoolCount === 0 || scheduledCount === 0)) {
+      if (!isCancelled && (/*inboxCount === 0 ||*/ taskPoolCount === 0 || scheduledCount === 0)) {
         setShowTutorial(true);
       }
     };

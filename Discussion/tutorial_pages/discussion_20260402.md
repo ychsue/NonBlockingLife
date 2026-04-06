@@ -26,8 +26,8 @@
 - [page-02-back-to-mainline.md](page-02-back-to-mainline.md)：頁 2 回到人生主線
 - [page-03-task-control-center.md](page-03-task-control-center.md)：頁 3 輕量任務中控中心
 - [page-04-focus-rhythm.md](page-04-focus-rhythm.md)：頁 4 專注節奏與番茄鐘
-- page-05-google-sheets-sync.md：頁 5 Google Sheets 同步
-- page-06-first-setup.md：頁 6 初次開始使用
+- [page-05-google-sheets-sync.md](page-05-google-sheets-sync.md)：頁 5 Google Sheets 同步
+- [page-06-first-setup.md](page-06-first-setup.md)：頁 6 初次開始使用
 - 延伸版
 - page-07-log-trace.md：Log 與回顧
 - page-08-iphone-shortcuts.md：iPhone 捷徑與鎖屏操作
@@ -98,6 +98,8 @@
 - 頁5:
   * Google Sheets 備份、同步與分析
   * 先講安心感與資料可攜，不要一開始塞太多同步技術細節
+  * 使用者自己建立 Google Sheets 與 GAS 是合理的，因為這也代表資料掌握權在使用者手上
+  * 實際設定流程交給另外拍的教學影片，輪播只先負責傳達價值
 
 - 頁6:
   * 開始使用前請先新增 TaskPool 與 Scheduled

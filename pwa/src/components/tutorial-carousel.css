@@ -1,0 +1,41 @@
+.tutorial-carousel-enter {
+  animation-duration: 0.34s;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+.tutorial-carousel-enter-forward {
+  animation-name: tutorial-carousel-slide-in-forward;
+}
+
+.tutorial-carousel-enter-backward {
+  animation-name: tutorial-carousel-slide-in-backward;
+}
+
+.tutorial-carousel-text-enter {
+  animation-duration: 0.38s;
+}
+
+@keyframes tutorial-carousel-slide-in-forward {
+  from {
+    opacity: 0;
+    transform: translateX(24px) translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes tutorial-carousel-slide-in-backward {
+  from {
+    opacity: 0;
+    transform: translateX(-24px) translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}

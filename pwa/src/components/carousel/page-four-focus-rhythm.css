@@ -1,0 +1,240 @@
+.carousel-page-four-stage {
+  isolation: isolate;
+}
+
+.carousel-page-four-svg {
+  overflow: visible;
+}
+
+.carousel-page-four-bg-shell,
+.carousel-page-four-task-card,
+.carousel-page-four-clock-shell,
+.carousel-page-four-rest-card,
+.carousel-page-four-phone-hint,
+.carousel-page-four-top-track {
+  opacity: 0;
+  animation: carousel-page-four-fade-in 0.48s ease-out forwards;
+}
+
+.carousel-page-four-top-track {
+  animation-delay: 0.08s;
+}
+
+.carousel-page-four-task-card {
+  animation-delay: 0.18s;
+}
+
+.carousel-page-four-clock-shell {
+  animation-delay: 0.28s;
+}
+
+.carousel-page-four-rest-card {
+  animation-delay: 3.4s;
+}
+
+.carousel-page-four-phone-hint {
+  animation-delay: 4.3s;
+}
+
+.carousel-page-four-top-progress,
+.carousel-page-four-focus-ring,
+.carousel-page-four-rest-ring {
+  stroke-dasharray: 0 100;
+}
+
+.carousel-page-four-top-progress {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: carousel-page-four-track-fill 3.8s linear 0.55s forwards;
+}
+
+.carousel-page-four-focus-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(-90deg);
+  stroke-linecap: round;
+  animation: carousel-page-four-focus-ring 2s linear 0.7s forwards;
+}
+
+.carousel-page-four-rest-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(-90deg);
+  stroke-linecap: round;
+  animation: carousel-page-four-rest-ring 1.5s linear 3.2s forwards;
+}
+
+.carousel-page-four-node,
+.carousel-page-four-start-pill,
+.carousel-page-four-focus-sheen,
+.carousel-page-four-end-check,
+.carousel-page-four-label,
+.carousel-page-four-subtitle {
+  opacity: 0;
+}
+
+.carousel-page-four-node-start {
+  animation: carousel-page-four-node-pop 0.45s ease-out 0.35s forwards;
+}
+
+.carousel-page-four-node-focus {
+  animation: carousel-page-four-node-pop 0.45s ease-out 0.75s forwards;
+}
+
+.carousel-page-four-node-end {
+  animation: carousel-page-four-node-pop 0.45s ease-out 2.8s forwards;
+}
+
+.carousel-page-four-node-rest {
+  animation: carousel-page-four-node-pop 0.45s ease-out 3.4s forwards;
+}
+
+.carousel-page-four-start-pill {
+  animation: carousel-page-four-pill-pop 0.5s ease-out 0.45s forwards;
+}
+
+.carousel-page-four-focus-sheen {
+  animation: carousel-page-four-focus-sheen 2.1s ease-in-out 0.7s forwards;
+}
+
+.carousel-page-four-end-check {
+  animation: carousel-page-four-check-pop 0.5s ease-out 2.9s forwards;
+}
+
+.carousel-page-four-label-focus,
+.carousel-page-four-subtitle-focus {
+  animation: carousel-page-four-focus-label 2.6s linear 0.7s forwards;
+}
+
+.carousel-page-four-label-rest,
+.carousel-page-four-subtitle-rest {
+  animation: carousel-page-four-rest-label 2s linear 3.2s forwards;
+}
+
+@keyframes carousel-page-four-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes carousel-page-four-node-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes carousel-page-four-pill-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.9);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes carousel-page-four-track-fill {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes carousel-page-four-focus-ring {
+  0% {
+    stroke-dasharray: 0 100;
+  }
+
+  100% {
+    stroke-dasharray: 68 100;
+  }
+}
+
+@keyframes carousel-page-four-rest-ring {
+  0% {
+    opacity: 0;
+    stroke-dasharray: 0 100;
+  }
+
+  8% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    stroke-dasharray: 24 100;
+  }
+}
+
+@keyframes carousel-page-four-focus-sheen {
+  0% {
+    opacity: 0.22;
+    transform: translateX(-180px);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(220px);
+  }
+}
+
+@keyframes carousel-page-four-check-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  75% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes carousel-page-four-focus-label {
+  0%,
+  82% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes carousel-page-four-rest-label {
+  0%,
+  10% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}

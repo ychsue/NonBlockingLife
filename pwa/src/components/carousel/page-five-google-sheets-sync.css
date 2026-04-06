@@ -1,0 +1,227 @@
+.carousel-page-five-stage {
+  isolation: isolate;
+}
+
+.carousel-page-five-svg {
+  overflow: visible;
+}
+
+.carousel-page-five-bg-shell,
+.carousel-page-five-label-shell,
+.carousel-page-five-bridge-shell,
+.carousel-page-five-sheet-shell,
+.carousel-page-five-note-shell {
+  opacity: 0;
+  animation: carousel-page-five-fade-in 0.48s ease-out forwards;
+}
+
+.carousel-page-five-label-shell {
+  animation-delay: 0.08s;
+}
+
+.carousel-page-five-bridge-shell {
+  animation-delay: 0.35s;
+}
+
+.carousel-page-five-sheet-shell {
+  animation-delay: 0.18s;
+}
+
+.carousel-page-five-note-shell {
+  animation-delay: 3.6s;
+}
+
+.carousel-page-five-local-card {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.carousel-page-five-local-card-one {
+  animation: carousel-page-five-card-in 0.42s ease-out 0.2s forwards;
+}
+
+.carousel-page-five-local-card-two {
+  animation: carousel-page-five-card-in 0.42s ease-out 0.45s forwards;
+}
+
+.carousel-page-five-local-card-three {
+  animation: carousel-page-five-card-in 0.42s ease-out 0.7s forwards;
+}
+
+.carousel-page-five-bridge-progress {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: carousel-page-five-bridge-draw 1.5s linear 0.95s forwards;
+}
+
+.carousel-page-five-bridge-node {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: carousel-page-five-bridge-pulse 1.2s ease-in-out 1.25s 2;
+}
+
+.carousel-page-five-sheet-row,
+.carousel-page-five-pill {
+  opacity: 0;
+}
+
+.carousel-page-five-sheet-row-one {
+  animation: carousel-page-five-row-in 0.35s ease-out 2.2s forwards;
+}
+
+.carousel-page-five-sheet-row-two {
+  animation: carousel-page-five-row-in 0.35s ease-out 2.55s forwards;
+}
+
+.carousel-page-five-sheet-row-three {
+  animation: carousel-page-five-row-in 0.35s ease-out 2.9s forwards;
+}
+
+.carousel-page-five-pill-one {
+  animation: carousel-page-five-pill-in 0.35s ease-out 2.5s forwards;
+}
+
+.carousel-page-five-pill-two {
+  animation: carousel-page-five-pill-in 0.35s ease-out 2.9s forwards;
+}
+
+.carousel-page-five-pill-three {
+  animation: carousel-page-five-pill-in 0.35s ease-out 3.3s forwards;
+}
+
+.carousel-page-five-token {
+  position: absolute;
+  z-index: 20;
+  left: 31%;
+  top: 47.6%;
+  height: 2.1rem;
+  border-radius: 999px;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.92);
+}
+
+.carousel-page-five-token-one {
+  width: 4.8rem;
+  background: #bbf7d0;
+  border: clamp(2px, 0.42vw, 3px) solid #22c55e;
+  animation: carousel-page-five-token-one 1.3s ease-in-out 1.15s forwards;
+}
+
+.carousel-page-five-token-two {
+  width: 4.2rem;
+  background: #dbeafe;
+  border: clamp(2px, 0.42vw, 3px) solid #0ea5e9;
+  animation: carousel-page-five-token-two 1.3s ease-in-out 1.55s forwards;
+}
+
+@keyframes carousel-page-five-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes carousel-page-five-card-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes carousel-page-five-bridge-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes carousel-page-five-bridge-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes carousel-page-five-row-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0.2);
+    transform-origin: left center;
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+}
+
+@keyframes carousel-page-five-pill-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.92);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes carousel-page-five-token-one {
+  0% {
+    opacity: 0;
+    left: 31%;
+    top: 47.6%;
+    transform: translate(-50%, -50%) scale(0.92);
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    left: 73.3%;
+    top: 38.8%;
+    transform: translate(-50%, -50%) scale(0.7);
+  }
+}
+
+@keyframes carousel-page-five-token-two {
+  0% {
+    opacity: 0;
+    left: 31%;
+    top: 47.6%;
+    transform: translate(-50%, -50%) scale(0.92);
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    left: 73.3%;
+    top: 46.8%;
+    transform: translate(-50%, -50%) scale(0.7);
+  }
+}

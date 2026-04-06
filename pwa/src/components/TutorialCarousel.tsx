@@ -1,7 +1,11 @@
 import { useRef, useState } from "react";
+import { PageFiveGoogleSheetsSync } from "./carousel/PageFiveGoogleSheetsSync";
 import { PageOneMainlineInterrupt } from "./carousel/PageOneMainlineInterrupt";
+import { PageFourFocusRhythm } from "./carousel/PageFourFocusRhythm";
+import { PageSixFirstSetup } from "./carousel/PageSixFirstSetup";
 import { PageThreeTaskControlCenter } from "./carousel/PageThreeTaskControlCenter";
 import { PageTwoBackToMainline } from "./carousel/PageTwoBackToMainline";
+import "./tutorial-carousel.css";
 
 interface TutorialCarouselProps {
   onClose: () => void;
@@ -27,7 +31,8 @@ const SLIDES: TutorialSlide[] = [
     title: "忙了一整天，卻總覺得主線一直被打斷？",
     description:
       "很多時間不是沒做事，而是被電話、雜事、臨時念頭與娛樂切碎，最後回頭看，真正重要的事並沒有往前推進。",
-    helper: "第一版先用 SVG 與 CSS 做出主線被電話打斷、一路分流到混亂終點的 MVP 動畫。",
+    helper:
+      "第一版先用 SVG 與 CSS 做出主線被電話打斷、一路分流到混亂終點的 MVP 動畫。",
     visual: {
       label: "主線被打斷",
       accent: "from-amber-100 via-white to-rose-100",
@@ -62,6 +67,7 @@ const SLIDES: TutorialSlide[] = [
     title: "開始任務後進入專注，結束後自然切到休息",
     description:
       "你只要開始與結束，系統就能把 30 分鐘專注與 10 分鐘休息接起來，減少每次重新決定下一步的摩擦。",
+    helper: "第四頁先做 Start、Focus 30、End、Rest 10 的節奏切換 MVP。",
     visual: {
       label: "專注節奏",
       accent: "from-amber-50 via-white to-orange-100",
@@ -70,69 +76,28 @@ const SLIDES: TutorialSlide[] = [
   },
   {
     eyebrow: "頁 5",
-    title: "多看任務清單，就更容易回到當下該做的事",
+    title: "資料可以同步到你自己的 Google Sheets，更安心也更可攜",
     description:
-      "一頁條列你現在該處理的事，減少猶豫與分心，看到清單就能重新對齊今天的主線。",
+      "資料不會被鎖在 App 裡。你可以同步到自己的 Google Sheets，方便備份、跨裝置延續，以及之後自行分析。",
+    helper:
+      "第五頁先做本地資料、同步橋接、自己的 Google Sheet 三段式安心感 MVP。",
     visual: {
-      label: "當下清單",
-      accent: "from-emerald-100 via-white to-cyan-100",
-      scene: ["☑️ 先做什麼", "☑️ 接著做什麼", "☑️ 現在不要做什麼"],
+      label: "同步與安心感",
+      accent: "from-emerald-50 via-white to-lime-100",
+      scene: ["Local Data", "Sync Bridge", "Your Google Sheet"],
     },
   },
   {
     eyebrow: "頁 6",
-    title: "每個動作都會寫進 Log，方便日後回顧",
-    description:
-      "開始、結束、中斷與切換都能留下紀錄，未來不只是查詢，也能拿來分析自己的節奏與盲點。",
-    visual: {
-      label: "可追蹤紀錄",
-      accent: "from-slate-100 via-white to-zinc-100",
-      scene: ["🧾 Start", "🧾 End", "🧾 Interrupt · Review"],
-    },
-  },
-  {
-    eyebrow: "頁 7",
-    title: "你可以同步到自己的 Google Sheets",
-    description:
-      "資料可備份、跨裝置同步，也能直接用 Sheets、AI 或其他工具分析自己的 Log 與工作節奏。",
-    visual: {
-      label: "同步與備份",
-      accent: "from-green-100 via-white to-lime-100",
-      scene: ["💻 Local-first", "☁️ Sync to Sheets", "📊 Analyze your logs"],
-    },
-  },
-  {
-    eyebrow: "頁 8",
     title: "開始前，先在 Task Pool 與 Scheduled 各新增一筆資料",
     description:
-      "只要兩個表都不是空的，這個首頁教學就不會再自動跳出。先建立你近期要推進的主線與排程。",
-    helper: "這一版先提供快速跳轉，之後可以再加上更明確的引導動畫。",
+      "完成這兩步後，這個首頁教學就不會再自動跳出。先建立你的主線任務與排程，再正式開始使用。",
+    helper:
+      "第六頁先做 Task Pool、Scheduled、Ready to Start 的收尾與引導 MVP。",
     visual: {
       label: "先放進主線",
       accent: "from-blue-100 via-white to-indigo-100",
       scene: ["1. 📋 新增 Task Pool", "2. 🗓️ 新增 Scheduled", "3. 開始使用"],
-    },
-  },
-  {
-    eyebrow: "頁 9",
-    title: "iPhone 用戶可以搭配捷徑實現一鍵新增與專注計時",
-    description:
-      "在 iOS 上，你可以用捷徑實現從鎖屏一鍵新增任務、開始番茄鐘，甚至是被打斷時的快速記錄，讓手機成為真正的生產力工具。",
-    visual: {
-      label: "iPhone 捷徑",
-      accent: "from-pink-100 via-white to-red-100",
-      scene: ["📱 Lock Screen", "➕ Add Inbox", "⏱️ Start Focus"],
-    },
-  },
-  {
-    eyebrow: "頁 10",
-    title: "這是 open source 專案，歡迎一起參與開發",
-    description:
-      "如果這套方法對你有幫助，你也可以一起改進流程、文件、同步、UI 與分析功能。",
-    visual: {
-      label: "開放協作",
-      accent: "from-orange-100 via-white to-pink-100",
-      scene: ["🛠️ Improve", "🧠 Discuss", "🌍 Share"],
     },
   },
 ];
@@ -143,14 +108,26 @@ export function TutorialCarousel({
   onOpenScheduled,
 }: TutorialCarouselProps) {
   const [index, setIndex] = useState(0);
+  const [transitionDirection, setTransitionDirection] = useState<
+    "forward" | "backward"
+  >("forward");
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
   const slide = SLIDES[index];
   const isLastSlide = index === SLIDES.length - 1;
-  const isSetupSlide = index === 7;
+  const isSetupSlide = index === 5;
+
+  const goToSlide = (nextIndex: number) => {
+    if (nextIndex === index) {
+      return;
+    }
+
+    setTransitionDirection(nextIndex > index ? "forward" : "backward");
+    setIndex(nextIndex);
+  };
 
   const goToPrevious = () => {
-    setIndex((current) => Math.max(0, current - 1));
+    goToSlide(Math.max(0, index - 1));
   };
 
   const goToNext = () => {
@@ -159,7 +136,7 @@ export function TutorialCarousel({
       return;
     }
 
-    setIndex((current) => Math.min(SLIDES.length - 1, current + 1));
+    goToSlide(Math.min(SLIDES.length - 1, index + 1));
   };
 
   const handleTouchStart = (event: React.TouchEvent<HTMLElement>) => {
@@ -210,6 +187,18 @@ export function TutorialCarousel({
       return <PageThreeTaskControlCenter />;
     }
 
+    if (index === 3) {
+      return <PageFourFocusRhythm />;
+    }
+
+    if (index === 4) {
+      return <PageFiveGoogleSheetsSync />;
+    }
+
+    if (index === 5) {
+      return <PageSixFirstSetup />;
+    }
+
     return (
       <div className="space-y-4 text-center">
         {slide.visual.scene.map((line) => (
@@ -252,29 +241,47 @@ export function TutorialCarousel({
 
           <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-8 sm:py-8">
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] lg:items-center">
-              <div className={`relative aspect-square overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-br ${slide.visual.accent} p-6 shadow-inner sm:p-8`}>
+              <div
+                className={`relative aspect-square overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-br ${slide.visual.accent} p-6 shadow-inner sm:p-8`}
+              >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.92),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.7),transparent_34%)]" />
-                <div className="relative flex h-full flex-col justify-between rounded-[22px] border border-white/70 bg-white/70 p-5 text-slate-800 shadow-lg backdrop-blur-sm sm:p-6">
+                <div
+                  key={`visual-${index}`}
+                  className={`tutorial-carousel-enter tutorial-carousel-enter-${transitionDirection} relative flex h-full flex-col justify-between rounded-[22px] border border-white/70 bg-white/70 p-5 text-slate-800 shadow-lg backdrop-blur-sm sm:p-6`}
+                >
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
                       {slide.visual.label}
                     </p>
                   </div>
                   {renderVisual()}
-                  <p className="text-center text-xs text-slate-500 sm:text-sm">
-                    {index === 0
-                      ? "第一頁已先做成 SVG + CSS MVP，後面頁面再依序補上動畫。"
-                      : index === 1
-                        ? "第二頁先做成兩次打岔再回到主線的 MVP，後續可以再加到三次循環。"
-                        : index === 2
-                          ? "第三頁先做成 Query 推薦、Inbox 收集、每日分流的中控中心 MVP。"
-                      : "這一格會在下一階段逐頁補上 SVG 與 CSS 動畫。"}
-                  </p>
+                  {import.meta.env.DEV && (
+                    <p className="text-center text-xs text-slate-500 sm:text-sm">
+                      {index === 0
+                        ? "第一頁已先做成 SVG + CSS MVP，後面頁面再依序補上動畫。"
+                        : index === 1
+                          ? "第二頁先做成兩次打岔再回到主線的 MVP，後續可以再加到三次循環。"
+                          : index === 2
+                            ? "第三頁先做成 Query 推薦、Inbox 收集、每日分流的中控中心 MVP。"
+                            : index === 3
+                              ? "第四頁先做成開始、專注、結束、休息的節奏切換 MVP。"
+                              : index === 4
+                                ? "第五頁先做成本地資料、同步橋接、自己的 Google Sheet 的安心感 MVP。"
+                                : index === 5
+                                  ? "第六頁先做成 Task Pool、Scheduled、Ready to Start 的收尾與引導 MVP。"
+                                  : "這一格會在下一階段逐頁補上 SVG 與 CSS 動畫。"}
+                    </p>
+                  )}
                 </div>
               </div>
 
-              <div className="flex flex-col justify-center">
-                <p className="text-sm font-semibold text-sky-700">{slide.eyebrow}</p>
+              <div
+                key={`text-${index}`}
+                className={`tutorial-carousel-enter tutorial-carousel-text-enter tutorial-carousel-enter-${transitionDirection} flex flex-col justify-center`}
+              >
+                <p className="text-sm font-semibold text-sky-700">
+                  {slide.eyebrow}
+                </p>
                 <h3 className="mt-2 text-3xl font-bold leading-tight text-slate-900 sm:text-4xl">
                   {slide.title}
                 </h3>
@@ -317,9 +324,11 @@ export function TutorialCarousel({
                     key={item.title}
                     type="button"
                     aria-label={`前往${item.eyebrow}`}
-                    onClick={() => setIndex(slideIndex)}
+                    onClick={() => goToSlide(slideIndex)}
                     className={`h-2.5 rounded-full transition ${
-                      slideIndex === index ? "w-8 bg-slate-900" : "w-2.5 bg-slate-300 hover:bg-slate-400"
+                      slideIndex === index
+                        ? "w-8 bg-slate-900"
+                        : "w-2.5 bg-slate-300 hover:bg-slate-400"
                     }`}
                   />
                 ))}
