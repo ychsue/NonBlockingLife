@@ -343,6 +343,7 @@ export function SelectionCacheTable() {
       setStartNote("");
       setRecordDuration("");
       setWarning("");
+      await handleRefreshCandidates();
     } catch (err) {
       console.error("Failed to record task event:", err);
     }
