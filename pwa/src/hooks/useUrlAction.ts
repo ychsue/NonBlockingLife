@@ -40,7 +40,14 @@ export function useUrlAction(options: UseUrlActionOptions) {
   useEffect(() => {
     if (isHandlingRef.current) return;
 
-    const params = new URLSearchParams(window.location.search);
+    const rawQuery = window.location.search;
+    let queryString = rawQuery;
+    if (rawQuery.includes('web+nbl')) {
+      // 兼容 protocol handler 的 URL 格式：web+nbl://?sheet=inbox&action=add&title=Buy%20milk
+      const protocolPrefix = 'web+nbl://';
+      queryString = rawQuery.replace('?','').replace(protocolPrefix, '');
+    }
+    const params = new URLSearchParams(queryString);
     const sheet = params.get("sheet") as SheetName | null;
     const action = params.get("action");
 
