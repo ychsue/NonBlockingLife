@@ -4,10 +4,15 @@ import { useAppStore } from "../store/appStore";
 import Utils from "../../../gas/src/Utils";
 import { interruptTask } from "../utils/taskFlow";
 
-export type SheetName = "inbox" | "scheduled" | "task_pool" | "micro_tasks" | "resource";
+export type SheetName =
+  | "inbox"
+  | "scheduled"
+  | "task_pool"
+  | "micro_tasks"
+  | "resource";
 
 interface UseUrlActionOptions {
-  onNavigate: (sheet: SheetName|"selection_cache") => void;
+  onNavigate: (sheet: SheetName | "selection_cache") => void;
   onSuccess?: (message: string) => void;
   onError?: (message: string) => void;
   clientId?: string;
@@ -42,10 +47,10 @@ export function useUrlAction(options: UseUrlActionOptions) {
 
     const rawQuery = window.location.search;
     let queryString = rawQuery;
-    if (rawQuery.includes('web+nbl')) {
+    if (rawQuery.includes("web+nbl")) {
       // 兼容 protocol handler 的 URL 格式：web+nbl://?sheet=inbox&action=add&title=Buy%20milk
-      const protocolPrefix = 'web+nbl://';
-      queryString = rawQuery.replace('?','').replace(protocolPrefix, '');
+      const protocolPrefix = encodeURIComponent("web+nbl://");
+      queryString = rawQuery.replace("?", "").replace(protocolPrefix, "");
     }
     const params = new URLSearchParams(queryString);
     const sheet = params.get("sheet") as SheetName | null;
@@ -62,12 +67,8 @@ export function useUrlAction(options: UseUrlActionOptions) {
 
     if (action === "query") {
       onNavigate("selection_cache"); // 自動切到 Selection Cache 頁籤
-        // 清除 URL（避免重複新增）
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname,
-        );
+      // 清除 URL（避免重複新增）
+      window.history.replaceState({}, document.title, window.location.pathname);
       return;
     }
 
@@ -99,7 +100,10 @@ export function useUrlAction(options: UseUrlActionOptions) {
         let fixedValue = value;
         if (key === "nextRun" || key === "createdAt" || key === "updatedAt") {
           // 修复时区偏移中的空格 (e.g., "2026-03-10T10:00:00 08:00" → "2026-03-10T10:00:00+08:00")
-          fixedValue = fixedValue.replace(/T(\d{2}:\d{2}:\d{2})\s+(\d{2}:\d{2})/, "T$1+$2");
+          fixedValue = fixedValue.replace(
+            /T(\d{2}:\d{2}:\d{2})\s+(\d{2}:\d{2})/,
+            "T$1+$2",
+          );
         } else {
           // decodeURIComponent 會將 + 解析成空格，因此需要先將 + 替换回 %2B 再解码
           fixedValue = decodeURIComponent(fixedValue.replace(/\+/g, "%2B"));
@@ -140,12 +144,11 @@ export function useUrlAction(options: UseUrlActionOptions) {
           scheduled: "Scheduled",
           task_pool: "Task Pool",
           micro_tasks: "Micro Tasks",
-          resource: "Resource"
+          resource: "Resource",
         };
         onSuccess?.(
           `✅ 已新增到 ${sheetLabel[sheet]}: ${patch.title || recordId}`,
         );
-
       })
       .catch((err) => {
         const errorMsg = err instanceof Error ? err.message : String(err);
