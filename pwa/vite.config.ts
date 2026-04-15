@@ -28,7 +28,7 @@ export default defineConfig(({ command }) => ({
         protocol_handlers: [
           {
             protocol: 'web+nbl',
-            url: '/NonBlockingLife/index.html'
+            url: '/NonBlockingLife/?%s'
           }
         ],
         icons: [
