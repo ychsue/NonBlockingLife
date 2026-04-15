@@ -46,10 +46,10 @@ export function useUrlAction(options: UseUrlActionOptions) {
     if (isHandlingRef.current) return;
 
     const rawQuery = window.location.search;
+    const protocolPrefix = encodeURIComponent("web+nbl://");
     let queryString = rawQuery;
-    if (rawQuery.includes("web+nbl")) {
+    if (rawQuery.includes(protocolPrefix)) {
       // 兼容 protocol handler 的 URL 格式：web+nbl://?sheet=inbox&action=add&title=Buy%20milk
-      const protocolPrefix = encodeURIComponent("web+nbl://");
       queryString = rawQuery.replace("?", "").replace(protocolPrefix, "");
     }
     const params = new URLSearchParams(queryString);
