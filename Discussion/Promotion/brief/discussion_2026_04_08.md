@@ -18,6 +18,10 @@
 - 開始使用前，只要先在 Task Pool 跟 Scheduled 各新增一筆資料，就能在推薦頁面看到它們。
 - 最後我會示範一下，怎麼用 iPhone 捷徑快速呼叫 query 與 inbox。
 
+打開候選任務清單。
+快速紀錄想法。
+刪除一個條目。
+
 ### 英文版：
 
 - Do you ever finish a full day of work and still feel like the things that matter did not really move forward?
@@ -37,6 +41,10 @@
 - Before you begin, just add one item to Task Pool and one item to Scheduled, and they will appear in the recommended view.
 - At the end, I will show a quick real iPhone demo of using shortcuts to call query and inbox.
 
+Open the task list.
+Quickly jot down ideas.
+Delete an entry.
+
 ## 簡潔意見
 
 - 這樣拍是好的，主體先用 carousel 做乾淨、可控的敘事，最後再補一小段 iPhone 實機，會比一開始就全程拍實機更穩，也更容易剪出節奏。
@@ -44,3 +52,117 @@
 - 1:1 可以先做，但若目標包含 IG Reels，之後最好再補一版 9:16；因為 carousel 本身就接近逐頁敘事，很適合日後直接改成直式節奏。
 - 影片主線建議維持 3 段：痛點、NBL 的運作方式、實機證明。這樣觀眾比較容易在短時間內理解你不是在賣功能，而是在解決「被打斷後回不去主線」這個問題。
 - 如果片長要更精簡，優先保留第 1、3、4、6 頁，再加最後的 iPhone 實機，因為這幾段最直接構成問題、方法、使用門檻與真實感。
+
+---
+
+## 標題與發布文案建議
+
+### YouTube
+
+**中文頻道**
+
+| 優先 | 標題（≤ 60 字元） | 說明 |
+|------|-----------------|------|
+| ★★★ | 忙了一天什麼都沒前進？Non-Blocking Life 幫你找回主線 | 痛點開頭，直接點 app 名，SEO 友善 |
+| ★★★ | 被打斷後怎麼回到正軌？我做了這個工具 | 問題式，引發共鳴，帶入開發者視角 |
+| ★★☆ | 輕量任務中控中心：Non-Blocking Life 介紹 | 功能型，適合已知 GTD / PKM 觀眾 |
+| ★★☆ | 30 分鐘專注、10 分鐘休息，靠系統幫你接起節奏 | 具體數字，容易記 |
+
+**推薦首選**：「忙了一天什麼都沒前進？Non-Blocking Life 幫你找回主線」
+
+**英文頻道**
+
+| 優先 | 標題（≤ 60 字元） | 說明 |
+|------|-----------------|------|
+| ★★★ | Busy All Day but Nothing Moved? Meet Non-Blocking Life | 痛點 + app 名，節奏乾淨 |
+| ★★★ | How I Stop Losing My Main Track After Every Interruption | 問題式，帶第一人稱親切感 |
+| ★★☆ | Non-Blocking Life — A Lightweight Task Control Center | 功能型，適合 productivity 社群 |
+| ★★☆ | Focus 30 min, Rest 10 min — Let the System Decide the Rhythm | 具體數字，吸引 time-blocking 受眾 |
+
+**推薦首選**：「Busy All Day but Nothing Moved? Meet Non-Blocking Life」
+
+---
+
+**YouTube 說明欄（Description）範本**
+
+```md
+你是否也常常忙了一整天，卻還是覺得真正重要的事沒有前進？
+
+Non-Blocking Life 是一個輕量的任務中控中心，幫你在混亂裡重新看見現在最適合做的事。
+
+✦ 推薦任務，一鍵回到任務流
+✦ Inbox 捷徑，隨時快速記錄
+✦ 30 分鐘專注 → 10 分鐘休息，節奏自動接起
+✦ 可選同步到 Google Sheets 備份分析
+
+▶ 立即試用：[https://ychsue.github.io/NonBlockingLife/]
+
+---
+
+Do you finish a full day of work and still feel like nothing really moved forward?
+
+Non-Blocking Life is a lightweight task control center that helps you return to what matters most right now.
+
+✦ Recommended tasks — re-enter your flow instantly
+✦ Inbox shortcut — capture ideas without stopping
+✦ 30-min focus → 10-min rest, rhythm runs itself
+✦ Optional Google Sheets sync for backup and analysis
+
+▶ Try it now: [https://ychsue.github.io/NonBlockingLife/]
+
+#productivity #focusapp #taskmanagement #GTD #NonBlockingLife #iPhone捷徑 #專注力
+```
+
+---
+
+### IG Reels
+
+**中文**
+
+| 優先 | 標題 / 首行文案 | 說明 |
+|------|----------------|------|
+| ★★★ | 忙了一整天，主線卻沒動過？ | 短問句，第一眼就抓住 |
+| ★★★ | 被打斷後你怎麼回去的？ | 反問，引發自我對照 |
+| ★★☆ | 30 分專注 + 10 分休息，讓系統幫你接節奏 | 具體，適合已有時間管理意識的受眾 |
+
+**IG 文案範本（中文）**
+
+```md
+忙了一整天，主線卻沒動過？
+
+不是你不努力，是被打斷後太難回去了。
+
+Non-Blocking Life 幫你：
+→ 隨時看到現在最該做什麼
+→ 用 iPhone 捷徑快速記錄靈感
+→ 30 分鐘專注、10 分鐘休息，節奏自己接
+
+連結在 bio ↑
+
+#NonBlockingLife #專注力 #時間管理 #任務管理 #生產力工具 #iPhone捷徑 #GTD #效率
+```
+
+**English**
+
+```md
+Busy all day. Nothing moved forward.
+
+It's not laziness — it's that interruptions make it hard to get back on track.
+
+Non-Blocking Life helps you:
+→ Always see what makes the most sense right now
+→ Capture ideas instantly with an iPhone shortcut
+→ Focus 30 min, rest 10 min — rhythm on autopilot
+
+Link in bio ↑
+
+#NonBlockingLife #productivity #focusapp #taskmanagement #GTD #iPhoneShortcuts #deepwork #minimalist
+```
+
+---
+
+### 縮圖（Thumbnail）文字建議
+
+- 中文：**「忙了一天，主線沒動」**（大字）+ Non-Blocking Life logo／截圖
+- 英文：**"Busy All Day. Nothing Moved."**（大字）+ app 截圖
+- 視覺風格建議：深色背景、白色大字、右側放一張 app 推薦頁截圖，避免花俏元素干擾訊息傳遞。

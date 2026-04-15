@@ -25,6 +25,12 @@ export default defineConfig(({ command }) => ({
         background_color: '#0f172a',
         theme_color: '#0f172a',
         orientation: 'portrait-primary',
+        protocol_handlers: [
+          {
+            protocol: 'web+nbl',
+            url: '/NonBlockingLife/index.html'
+          }
+        ],
         icons: [
           {
             src: 'icons/icon-180.png',

@@ -12,6 +12,7 @@ const SHORTCUTS = [
     name: 'QueryOptions',
     url: 'https://www.icloud.com/shortcuts/ce9e7a05926244d2aca8eec11860a000',
     purpose: '由NBL取得候選任務清單',
+    api: '?action=query',
   },
   {
     name: 'NBL_Timer',
@@ -22,16 +23,19 @@ const SHORTCUTS = [
     name: 'NBL Interrupt',
     url: 'https://www.icloud.com/shortcuts/dc4620410baf4df6aec49dec77ebad5b',
     purpose: '遇到打岔時一鍵切換中斷流程',
+    api: '?action=interrupt',
   },
   {
     name: 'NBL Inbox',
     url: 'https://www.icloud.com/shortcuts/49028b49cdf1441b9d938830948c02dc',
     purpose: '快速把想法丟進 NBL Inbox',
+    api: '?sheet=inbox&action=add&title={title}&url={url}',
   },
   {
     name: 'NBL Scheduled',
     url: 'https://www.icloud.com/shortcuts/d45e5661b79946ac98274caa14852e7a',
     purpose: '快速把想法丟進 NBL Scheduled',
+    api: '?sheet=scheduled&action=add&title={title}&note={note}nextRun={nextRun}&url={url}',
   },
   {
     name: 'Apple Clock (時鐘)',
@@ -163,6 +167,7 @@ export function GuidePage() {
               <div>
                 <p className="font-medium text-gray-800">{shortcut.name}</p>
                 <p className="text-sm text-gray-600">{shortcut.purpose}</p>
+                {shortcut.api && (<a href={'/' + shortcut.api} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-sm">API 範例</a>)}
               </div>
               <a
                 href={shortcut.url}
