@@ -50,7 +50,14 @@ export function useUrlAction(options: UseUrlActionOptions) {
     let queryString = rawQuery;
     if (rawQuery.includes(protocolPrefix)) {
       // 兼容 protocol handler 的 URL 格式：web+nbl://?sheet=inbox&action=add&title=Buy%20milk
-      queryString = rawQuery.replace("?", "").replace(protocolPrefix, "");
+      queryString = rawQuery
+        .replace("?", "")
+        .replace(protocolPrefix, "")
+        .replace(/%3D/g, "=")
+        .replace(/%26/g, "&");
+      if (queryString.endsWith(encodeURIComponent("/"))) {
+        queryString = queryString.slice(0, -encodeURIComponent("/").length);
+      }
     }
     const params = new URLSearchParams(queryString);
     const sheet = params.get("sheet") as SheetName | null;
