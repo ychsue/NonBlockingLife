@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-04-17] 修正Delete 操作與自動同步的體驗
+
+請見 [discussion_20260417.md](Discussion\discussion_20260417.md#2026-04-17-修正紀錄)
+
 ## [2026-04-15] 準備發布簡介影片，順便給桌機們多個 protocol: `web+nbl://`
 
 記得，整個 %s 會被 `web+nbl://[您加的字串]`取代，

@@ -9,7 +9,7 @@
  */
 
 const CONFIG = {
-  VERSION: '2.0.0',
+  VERSION: '2.1.0',
   TABLE_SHEETS: {
     task_pool: 'NBL_TaskPool',
     scheduled: 'NBL_Scheduled',
@@ -260,10 +260,15 @@ function processOperation(operation) {
 
   if (type === 'delete') {
     if (rowIndex > 0) {
-      writeRowByTable(sheet, table, rowIndex, recordId, data, ts, true, operationId, deviceId)
+      const existingData = readExistingData(sheet, table, rowIndex)
+      const preservedData = mergePayload(existingData, data)
+      writeRowByTable(sheet, table, rowIndex, recordId, preservedData, ts, true, operationId, deviceId)
       return { action: 'deleted', table: table, recordId: recordId }
     }
 
+    if (Object.keys(data).length === 0) {
+      return { action: 'skipped', reason: 'empty data tombstone', table: table, recordId: recordId }
+    }
     writeRowByTable(sheet, table, -1, recordId, data, ts, true, operationId, deviceId)
     return { action: 'deleted', table: table, recordId: recordId, createdTombstone: true }
   }

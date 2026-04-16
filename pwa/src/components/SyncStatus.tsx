@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { db } from "../db/index";
 import { SetupWizard } from "./SetupWizard";
+import { Toast } from "./Toast";
 import {
   SyncManager,
   getStoredGasUrl,
@@ -27,6 +28,20 @@ export function SyncStatus({
   const [showSetupWizard, setShowSetupWizard] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [includeLogOnReset, setIncludeLogOnReset] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+
+  // 用於 idle 偵測：記錄最後一次 pendingCount 變化的時間
+  const lastPendingChangeRef = useRef<number>(0);
+  const syncStatusRef = useRef(syncStatus);
+  const managerRef = useRef<SyncManager | null>(null);
+
+  useEffect(() => {
+    syncStatusRef.current = syncStatus;
+  }, [syncStatus]);
+
+  useEffect(() => {
+    managerRef.current = manager;
+  }, [manager]);
 
   // 初始化：檢查 GAS URL，初始化 SyncManager
   useEffect(() => {
@@ -43,14 +58,49 @@ export function SyncStatus({
     }
   }, [gasUrl]);
 
-  // 更新待同步計數
+  // 更新待同步計數，並在 >= 20 且 idle 3 秒後自動同步
   useEffect(() => {
+    const AUTO_SYNC_THRESHOLD = 20;
+    const IDLE_DELAY_MS = 3000;
+
     const updatePendingCount = async () => {
       const count = await db.change_log
         .where("status")
         .equals("pending")
         .count();
-      setPendingCount(count);
+      setPendingCount((prev) => {
+        if (count !== prev) lastPendingChangeRef.current = Date.now();
+        return count;
+      });
+
+      // 自動同步：筆數 >= 20 且距上次變化 >= 3 秒且目前不在 syncing 且已設定 GAS URL
+      if (
+        count >= AUTO_SYNC_THRESHOLD &&
+        Date.now() - lastPendingChangeRef.current >= IDLE_DELAY_MS &&
+        syncStatusRef.current !== "syncing" &&
+        getStoredGasUrl() &&
+        managerRef.current
+      ) {
+        setSyncStatus("syncing");
+        setMessage(`⏳ 待同步已達 ${count} 筆，自動同步中...`);
+        setToastMessage(`⏳ 待同步已達 ${count} 筆，自動同步中...`);
+        managerRef.current.sync().then((result) => {
+          if (result.status === "success") {
+            setSyncStatus("idle");
+            setLastSyncTime(Date.now());
+            setMessage(`✅ ${result.message}`);
+            setPendingCount(0);
+          } else {
+            setSyncStatus("error");
+            setMessage(`❌ ${result.message}`);
+          }
+          setTimeout(() => setMessage(""), 3000);
+        }).catch((err) => {
+          setSyncStatus("error");
+          setMessage(`❌ 自動同步失敗: ${String(err)}`);
+          setTimeout(() => setMessage(""), 3000);
+        });
+      }
     };
 
     updatePendingCount();
@@ -67,6 +117,29 @@ export function SyncStatus({
 
     logChangeLog();
   }, [showUrlInput]);
+
+  // Page Visibility：離開前補送 pending 操作
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState !== "hidden") return;
+      if (!getStoredGasUrl()) return;
+      if (syncStatusRef.current === "syncing") return;
+      if (!managerRef.current) return;
+
+      const count = await db.change_log
+        .where("status")
+        .equals("pending")
+        .count();
+      if (count === 0) return;
+
+      // 不更新 UI（使用者已離開），靜默送出
+      managerRef.current.sync().catch(() => {/* 離開前盡力而為，失敗不處理 */});
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
 
   // 處理 GAS URL 配置
   const handleSetGasUrl = async (url: string) => {
@@ -350,6 +423,14 @@ export function SyncStatus({
             </div>
           </div>
         </div>
+      )}
+
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          duration={4000}
+          onClose={() => setToastMessage("")}
+        />
       )}
     </>
   );
