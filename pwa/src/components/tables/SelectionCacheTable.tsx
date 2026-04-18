@@ -224,6 +224,7 @@ export function SelectionCacheTable() {
           score: c.score,
           source: c.source,
           totalMinsInPool: totalMinsPool,
+          url: c.url,
         }));
 
         if (cacheItems.length > 0) {
@@ -409,10 +410,26 @@ export function SelectionCacheTable() {
             titleClassName =
               score < 10 ? "bg-gray-300 line-through" : titleClassName;
           }
+          const url = info.row.original.url;
+          const hasUrl = url && url !== "None" && url !== "";
 
           return (
-            <span className={titleClassName + " px-2 py-1 rounded w-full"}>
-              {info.getValue()}
+            <span className="flex items-center gap-1">
+              <span className={titleClassName + " px-2 py-1 rounded"}>
+                {info.getValue()}
+              </span>
+              {hasUrl && (
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-base hover:opacity-70"
+                  title={url}
+                >
+                  🔗
+                </a>
+              )}
             </span>
           );
         },

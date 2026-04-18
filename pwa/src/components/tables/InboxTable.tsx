@@ -329,12 +329,15 @@ export function InboxTable() {
           const value = info.getValue() ?? "";
 
           return (
-            <input
-              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 min-w-3xs"
+            <textarea
+              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 min-w-3xs resize-none overflow-hidden"
               value={value}
-              onChange={(event) =>
-                updateLocalRow(taskId, { title: event.target.value })
-              }
+              rows={1}
+              onChange={(event) => {
+                event.target.style.height = "auto";
+                event.target.style.height = event.target.scrollHeight + "px";
+                updateLocalRow(taskId, { title: event.target.value });
+              }}
               onBlur={(event) =>
                 saveUpdate(taskId, { title: event.target.value })
               }

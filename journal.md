@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-04-18] 實驗在 DESKTOP 的狀態改善 Inbox 裡面的 title 的顯示，與加上超連結給candidates 裡面的項目
+
 ## [2026-04-17] 修正Delete 操作與自動同步的體驗
 
 請見 [discussion_20260417.md](Discussion\discussion_20260417.md#2026-04-17-修正紀錄)

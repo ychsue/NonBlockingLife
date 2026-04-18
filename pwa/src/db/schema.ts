@@ -68,6 +68,7 @@ export interface SelectionCacheItem {
   score?: number
   source?: string
   totalMinsInPool?: number
+  url?: string
 }
 
 export interface MicroTaskItem {

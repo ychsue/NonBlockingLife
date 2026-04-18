@@ -5,6 +5,7 @@ export interface Candidate {
   title: string
   score: number
   source: string
+  url?: string
 }
 
 export interface CalculateCandidatesResult {
@@ -140,6 +141,7 @@ export function calculateCandidates(
         title: `${title} (剩餘配額: ${remainingMins}m)`,
         score: Math.max(0, score),
         source: 'Task_Pool',
+        url: task.url || undefined,
       })
     }
 
@@ -170,6 +172,7 @@ export function calculateCandidates(
         title,
         score,
         source: 'Scheduled',
+        url: task.url || undefined,
       })
     }
   })
@@ -187,6 +190,7 @@ export function calculateCandidates(
         title,
         score,
         source: 'Micro_Tasks',
+        url: task.url || undefined,
       })
     }
   })
