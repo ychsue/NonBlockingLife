@@ -6,6 +6,8 @@ export interface Candidate {
   score: number
   source: string
   url?: string
+  deadline?: number
+  usedTodayCount?: number
 }
 
 export interface CalculateCandidatesResult {
@@ -95,6 +97,7 @@ export function calculateCandidates(
       const taskId = task.taskId
       const title = task.title || '未命名任務'
       let spentToday = task.spentTodayMins || 0
+      let usedTodayCount = task.usedTodayCount || 0
       const dailyLimit = task.dailyLimitMins || 999
       const priority = task.priority || 1
       const lastRunDate = task.lastRunDate
@@ -118,6 +121,9 @@ export function calculateCandidates(
             resetPoolTaskIds.push(taskId)
             spentToday = 0
           }
+          if (lastDateStr !== nowDateStr) {
+            usedTodayCount = 0
+          }
 
           const daysSince = Math.floor(
             (now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
@@ -136,12 +142,31 @@ export function calculateCandidates(
         score -= 20 // 快滿了，稍微降低
       }
 
+      // 4. Deadline 加權：越接近或逾期，分越高
+      const deadline = task.deadline
+      if (deadline) {
+        const deadlineDate = new Date(deadline)
+        const daysUntil = (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+        if (daysUntil < 0) {
+          // 逾期：每多一天加 20 分，上限 +500
+          score += Math.min(100 + Math.floor(Math.abs(daysUntil)) * 20, 500)
+        } else if (daysUntil <= 3) {
+          score += 80
+        } else if (daysUntil <= 7) {
+          score += 40
+        } else if (daysUntil <= 14) {
+          score += 15
+        }
+      }
+
       candidates.push({
         taskId,
         title: `${title} (剩餘配額: ${remainingMins}m)`,
         score: Math.max(0, score),
         source: 'Task_Pool',
         url: task.url || undefined,
+        deadline: task.deadline,
+        usedTodayCount,
       })
     }
 
@@ -183,7 +208,23 @@ export function calculateCandidates(
     if (status === 'PENDING') {
       const taskId = task.taskId
       const title = task.title || '未命名微任務'
-      const score = 30 // 固定分數
+      let score = 30 // 固定基礎分
+
+      // Deadline 加權
+      const deadline = task.deadline
+      if (deadline) {
+        const deadlineDate = new Date(deadline)
+        const daysUntil = (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+        if (daysUntil < 0) {
+          score += Math.min(100 + Math.floor(Math.abs(daysUntil)) * 20, 500)
+        } else if (daysUntil <= 3) {
+          score += 80
+        } else if (daysUntil <= 7) {
+          score += 40
+        } else if (daysUntil <= 14) {
+          score += 15
+        }
+      }
 
       candidates.push({
         taskId,
@@ -191,6 +232,7 @@ export function calculateCandidates(
         score,
         source: 'Micro_Tasks',
         url: task.url || undefined,
+        deadline: task.deadline,
       })
     }
   })

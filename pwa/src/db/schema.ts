@@ -37,6 +37,7 @@ export interface TaskPoolItem {
   focusTime?: number
   project?: string
   spentTodayMins?: number
+  usedTodayCount?: number
   dailyLimitMins?: number
   priority?: number
   lastRunDate?: number
@@ -44,6 +45,7 @@ export interface TaskPoolItem {
   updatedAt?: number
   note?: string
   url?: string
+  deadline?: number
 }
 
 export interface ScheduledItem {
@@ -60,6 +62,7 @@ export interface ScheduledItem {
   nextRun?: number
   updatedAt?: number
   url?: string
+  deadline?: number
 }
 
 export interface SelectionCacheItem {
@@ -69,6 +72,8 @@ export interface SelectionCacheItem {
   source?: string
   totalMinsInPool?: number
   url?: string
+  deadline?: number
+  usedTodayCount?: number
 }
 
 export interface MicroTaskItem {
@@ -79,6 +84,7 @@ export interface MicroTaskItem {
   lastRunDate?: number
   updatedAt?: number
   url?: string
+  deadline?: number
 }
 
 export type ChangeLogStatus = 'pending' | 'synced' | 'failed'

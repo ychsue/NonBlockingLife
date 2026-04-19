@@ -6,7 +6,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { applyChange, db } from "../../db/index";
-import type { Dashboard, SelectionCacheItem } from "../../db/schema";
+import type { Dashboard, SelectionCacheItem, ScheduledItem } from "../../db/schema";
 import {
   calculateCandidates,
   minutesToTimeString,
@@ -56,6 +56,7 @@ export function SelectionCacheTable() {
   const loadRunningTask = useAppStore((state) => state.loadRunningTask);
 
   const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
+  const setPendingEditIntent = useAppStore((state) => state.setPendingEditIntent)
 
 
   // 本地狀態（非持久化）
@@ -68,6 +69,7 @@ export function SelectionCacheTable() {
   const recordDialogRef = useRef<HTMLDialogElement | null>(null);
   const [takeTime, setTakeTime] = useState("");
   const [showRecordDialog, setShowRecordDialog] = useState(false);
+  const [conflictScheduled, setConflictScheduled] = useState<ScheduledItem[]>([]);
 
   const updateTakeTime = useCallback((task: Dashboard | null) => {
     if (!task?.startAt) {
@@ -225,12 +227,26 @@ export function SelectionCacheTable() {
           source: c.source,
           totalMinsInPool: totalMinsPool,
           url: c.url,
+          deadline: c.deadline,
+          usedTodayCount: c.usedTodayCount,
         }));
 
         if (cacheItems.length > 0) {
           await db.selection_cache.bulkAdd(cacheItems);
         }
       });
+
+      // 7. 偵測 Scheduled 衝突： WAITING/PENDING 且 nextRun > deadline
+      const now = Date.now();
+      const conflicts = scheduledData.filter(
+        (t) =>
+          (t.status === 'WAITING' || t.status === 'PENDING') &&
+          t.nextRun != null &&
+          t.deadline != null &&
+          t.nextRun > t.deadline &&
+          t.deadline < now // 到期才展示，請使用者修改
+      );
+      setConflictScheduled(conflicts);
 
       // 6. 重新加載顯示
       await loadCandidates();
@@ -413,11 +429,59 @@ export function SelectionCacheTable() {
           const url = info.row.original.url;
           const hasUrl = url && url !== "None" && url !== "";
 
+          // Deadline badge
+          const deadline = info.row.original.deadline;
+          let deadlineBadge: React.ReactNode = null;
+          if (deadline) {
+            const daysUntil = (deadline - Date.now()) / (1000 * 60 * 60 * 24);
+            if (daysUntil < 0) {
+              const days = Math.ceil(Math.abs(daysUntil));
+              titleClassName = "bg-red-600 text-white";
+              deadlineBadge = (
+                <span className="ml-1 px-1.5 py-0.5 rounded text-xs font-bold bg-red-700 text-white whitespace-nowrap">
+                  🔴 逾期 {days} 天
+                </span>
+              );
+            } else if (daysUntil < 1) {
+              titleClassName = "bg-orange-400 text-white";
+              deadlineBadge = (
+                <span className="ml-1 px-1.5 py-0.5 rounded text-xs font-bold bg-orange-500 text-white whitespace-nowrap">
+                  🟠 今天到期
+                </span>
+              );
+            } else if (daysUntil <= 3) {
+              if (titleClassName === "bg-white-900") titleClassName = "bg-orange-200";
+              const days = Math.ceil(daysUntil);
+              deadlineBadge = (
+                <span className="ml-1 px-1.5 py-0.5 rounded text-xs font-semibold bg-yellow-200 text-yellow-800 whitespace-nowrap">
+                  🟡 {days} 天後
+                </span>
+              );
+            } else if (daysUntil <= 7) {
+              const days = Math.ceil(daysUntil);
+              deadlineBadge = (
+                <span className="ml-1 px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-500 whitespace-nowrap">
+                  {days} 天後
+                </span>
+              );
+            }
+          }
+
+          const usedTodayCount = info.row.original.usedTodayCount;
+          const usedTodayBadge =
+            info.row.original.source === "Task_Pool" && usedTodayCount != null && usedTodayCount > 0 ? (
+              <span className="ml-1 px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 whitespace-nowrap">
+                今日 {usedTodayCount} 次
+              </span>
+            ) : null;
+
           return (
             <span className="flex items-center gap-1">
               <span className={titleClassName + " px-2 py-1 rounded"}>
                 {info.getValue()}
               </span>
+              {deadlineBadge}
+              {usedTodayBadge}
               {hasUrl && (
                 <a
                   href={url}
@@ -518,6 +582,52 @@ export function SelectionCacheTable() {
           ⚡ {isMobile ? "" : "中斷任務"}
         </button>
       </div>
+
+      {/* Scheduled 衝突區塊 */}
+      {conflictScheduled.length > 0 && (
+        <div className="mb-4 border border-amber-300 rounded-lg bg-amber-50">
+          <div className="px-4 py-2 bg-amber-100 rounded-t-lg flex items-center gap-2">
+            <span className="text-amber-700 font-semibold text-sm">
+              ⚠️ {conflictScheduled.length} 個 Scheduled 任務的排程時間晚於截止日
+            </span>
+            <span className="text-xs text-amber-600">(點擊條目前往編輯)</span>
+          </div>
+          <ul className="divide-y divide-amber-200">
+            {conflictScheduled.map((t) => {
+              const nextRunStr = t.nextRun
+                ? new Date(t.nextRun).toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                : '?';
+              const deadlineStr = t.deadline
+                ? new Date(t.deadline).toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' })
+                : '?';
+              return (
+                <li
+                  key={t.taskId}
+                  onClick={() => {
+                    setPendingEditIntent({ sheet: 'scheduled', taskId: t.taskId });
+                    setCurrentSheet('scheduled');
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setPendingEditIntent({ sheet: 'scheduled', taskId: t.taskId });
+                      setCurrentSheet('scheduled');
+                    }
+                  }}
+                  className="px-4 py-2 flex items-center gap-2 text-sm cursor-pointer hover:bg-amber-100 transition-colors"
+                >
+                  <span className="font-medium text-amber-900">{t.title || t.taskId}</span>
+                  <span className="text-amber-600 text-xs">
+                    排程 {nextRunStr} &gt; 截止 {deadlineStr}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
 
       {/* 表格 */}
       {rows.length === 0 ? (

@@ -182,6 +182,7 @@ export function ScheduledTable() {
       nextRun: data.nextRun ? parseFromDateTimeLocal(data.nextRun) : undefined,
       note: data.note,
       url: data.url,
+      deadline: data.deadline ? parseFromDateTimeLocal(data.deadline) : undefined,
     }
 
     // 立刻更新本地状态
@@ -494,6 +495,30 @@ export function ScheduledTable() {
           )
         },
       }),
+      columnHelper.accessor('deadline', {
+        header: 'Deadline',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const rawValue = info.getValue()
+          const value = rawValue ? formatToDateTimeLocal(rawValue) : ''
+
+          return (
+            <input
+              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-xs"
+              type="datetime-local"
+              value={value}
+              onChange={(event) => {
+                const nextValue = parseFromDateTimeLocal(event.target.value)
+                updateLocalRow(taskId, { deadline: nextValue })
+              }}
+              onBlur={(event) => {
+                const nextValue = event.target.value ? parseFromDateTimeLocal(event.target.value) : undefined
+                saveUpdate(taskId, { deadline: nextValue })
+              }}
+            />
+          )
+        },
+      }),
       columnHelper.accessor('nextRun', {
         header: 'Next Run',
         cell: (info) => {
@@ -612,12 +637,11 @@ export function ScheduledTable() {
         <div className="text-center text-gray-500">No matching items.</div>
       ) : isMobile ? (
         // 移動視圖 - 卡片
-        <>
-          <div className="grid grid-cols-1 gap-3">
-            {filteredRows.map((item) => (
-              <TableCard
-                key={item.taskId}
-                item={item}
+        <div className="grid grid-cols-1 gap-3">
+          {filteredRows.map((item) => (
+            <TableCard
+              key={item.taskId}
+              item={item}
                 fields={[
                   { label: 'Title', value: item.title || '(empty)' },
                   { label: 'Status', value: item.status },
@@ -638,80 +662,6 @@ export function ScheduledTable() {
               />
             ))}
           </div>
-
-          <EditDialog
-            isOpen={!!editingItem}
-            title="編輯排程任務"
-            item={editingItem}
-            fields={[
-              {
-                name: 'title',
-                label: 'Title',
-                type: 'text' as FieldType,
-                placeholder: '輸入任務標題',
-              },
-              {
-                name: 'status',
-                label: 'Status',
-                type: 'select' as FieldType,
-                options: [
-                  { label: 'WAITING', value: 'WAITING' },
-                  { label: 'PENDING', value: 'PENDING' },
-                  { label: 'DONE', value: 'DONE' },
-                ],
-              },
-              {
-                name: 'cronExpr',
-                label: 'Cron Expression',
-                type: 'text' as FieldType,
-                placeholder: '例: 0 9 * * *',
-              },
-              {
-                name: 'focusTime',
-                label: 'Focus Time (mins)',
-                type: 'number' as FieldType,
-              },
-              {
-                name: 'remindBefore',
-                label: 'Remind Before',
-                type: 'text' as FieldType,
-              },
-              {
-                name: 'remindAfter',
-                label: 'Remind After',
-                type: 'text' as FieldType,
-              },
-              {
-                name: 'callback',
-                label: 'Callback',
-                type: 'text' as FieldType,
-              },
-              {
-                name: 'lastRun',
-                label: 'Last Run',
-                type: 'datetime' as FieldType,
-              },
-              {
-                name: 'nextRun',
-                label: 'Next Run',
-                type: 'datetime' as FieldType,
-              },
-              {
-                name: 'note',
-                label: 'Note',
-                type: 'text' as FieldType,
-              },
-              {
-                name: 'url',
-                label: 'URL',
-                type: 'text' as FieldType,
-                placeholder: 'https://...',
-              },
-            ]}
-            onSave={handleEditSave}
-            onClose={() => setEditingItem(null)}
-          />
-        </>
       ) : (
         // 桌面視圖 - 表格
         <div className="overflow-x-auto border rounded-lg">
@@ -752,6 +702,84 @@ export function ScheduledTable() {
           </table>
         </div>
       )}
+
+      <EditDialog
+        isOpen={!!editingItem}
+        title="編輯排程任務"
+        item={editingItem}
+        fields={[
+          {
+            name: 'title',
+            label: 'Title',
+            type: 'text' as FieldType,
+            placeholder: '輸入任務標題',
+          },
+          {
+            name: 'status',
+            label: 'Status',
+            type: 'select' as FieldType,
+            options: [
+              { label: 'WAITING', value: 'WAITING' },
+              { label: 'PENDING', value: 'PENDING' },
+              { label: 'DONE', value: 'DONE' },
+            ],
+          },
+          {
+            name: 'cronExpr',
+            label: 'Cron Expression',
+            type: 'text' as FieldType,
+            placeholder: '例: 0 9 * * *',
+          },
+          {
+            name: 'focusTime',
+            label: 'Focus Time (mins)',
+            type: 'number' as FieldType,
+          },
+          {
+            name: 'remindBefore',
+            label: 'Remind Before',
+            type: 'text' as FieldType,
+          },
+          {
+            name: 'remindAfter',
+            label: 'Remind After',
+            type: 'text' as FieldType,
+          },
+          {
+            name: 'callback',
+            label: 'Callback',
+            type: 'text' as FieldType,
+          },
+          {
+            name: 'lastRun',
+            label: 'Last Run',
+            type: 'datetime' as FieldType,
+          },
+          {
+            name: 'nextRun',
+            label: 'Next Run',
+            type: 'datetime' as FieldType,
+          },
+          {
+            name: 'note',
+            label: 'Note',
+            type: 'text' as FieldType,
+          },
+          {
+            name: 'url',
+            label: 'URL',
+            type: 'text' as FieldType,
+            placeholder: 'https://...',
+          },
+          {
+            name: 'deadline',
+            label: 'Deadline',
+            type: 'datetime' as FieldType,
+          },
+        ]}
+        onSave={handleEditSave}
+        onClose={() => setEditingItem(null)}
+      />
 
       <TableHelpDialog
         isOpen={showHelp}

@@ -76,6 +76,23 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
     clientId: DEV_CLIENT_ID,
   });
 
+  // 如果是 Task_Pool 來源，累加今日使用次數
+  if (source === 'Task_Pool') {
+    const poolTask = await db.task_pool.get(candidate.taskId);
+    if (poolTask) {
+      const lastRun = poolTask.lastRunDate ? new Date(poolTask.lastRunDate) : null;
+      const isToday = lastRun && !isNaN(lastRun.getTime()) && lastRun.toDateString() === new Date(now).toDateString();
+      const prevCount = isToday ? (poolTask.usedTodayCount || 0) : 0;
+      await applyChange({
+        table: "task_pool",
+        recordId: candidate.taskId,
+        op: "update",
+        patch: { usedTodayCount: prevCount + 1 },
+        clientId: DEV_CLIENT_ID,
+      });
+    }
+  }
+
   await applyChange({
     table: "log",
     recordId: `log_${candidate.taskId}_${now}`,

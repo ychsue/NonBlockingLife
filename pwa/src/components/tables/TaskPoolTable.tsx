@@ -182,6 +182,7 @@ export function TaskPoolTable() {
       lastRunDate: data.lastRunDate ? parseFromDateTimeLocal(data.lastRunDate) : undefined,
       note: data.note,
       url: data.url,
+      deadline: data.deadline ? parseFromDateTimeLocal(data.deadline) : undefined,
     }
 
     // 立刻更新本地状态
@@ -430,6 +431,30 @@ export function TaskPoolTable() {
           )
         },
       }),
+      columnHelper.accessor('deadline', {
+        header: 'Deadline',
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const rawValue = info.getValue()
+          const value = rawValue ? formatToDateTimeLocal(rawValue) : ''
+
+          return (
+            <input
+              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-xs"
+              type="datetime-local"
+              value={value}
+              onChange={(event) => {
+                const nextValue = parseFromDateTimeLocal(event.target.value)
+                updateLocalRow(taskId, { deadline: nextValue })
+              }}
+              onBlur={(event) => {
+                const nextValue = event.target.value ? parseFromDateTimeLocal(event.target.value) : undefined
+                saveUpdate(taskId, { deadline: nextValue })
+              }}
+            />
+          )
+        },
+      }),
       columnHelper.display({
         id: 'actions',
         header: 'Actions',
@@ -525,9 +550,8 @@ export function TaskPoolTable() {
         <div className="text-center text-gray-500">No matching items.</div>
       ) : isMobile ? (
         // 移動視圖 - 卡片
-        <>
-          <div className="grid grid-cols-1 gap-3">
-            {filteredRows.map((item) => (
+        <div className="grid grid-cols-1 gap-3">
+          {filteredRows.map((item) => (
               <TableCard
                 key={item.taskId}
                 item={item}
@@ -552,74 +576,7 @@ export function TaskPoolTable() {
                 onDelete={(item) => deleteRow(item.taskId)}
               />
             ))}
-          </div>
-
-          <EditDialog
-            isOpen={!!editingItem}
-            title="編輯 Task Pool 項目"
-            item={editingItem}
-            fields={[
-              {
-                name: 'title',
-                label: 'Title',
-                type: 'text' as FieldType,
-                placeholder: '輸入任務標題',
-              },
-              {
-                name: 'status',
-                label: 'Status',
-                type: 'select' as FieldType,
-                options: [
-                  { label: 'Pending', value: 'PENDING' },
-                  { label: 'Doing', value: 'DOING' },
-                  { label: 'Done', value: 'DONE' },
-                ],
-              },
-              {
-                name: 'project',
-                label: 'Project',
-                type: 'text' as FieldType,
-              },
-              {
-                name: 'focusTime',
-                label: 'Focus Time (mins)',
-                type: 'number' as FieldType,
-              },
-              {
-                name: 'priority',
-                label: 'Priority',
-                type: 'number' as FieldType,
-              },
-              {
-                name: 'dailyLimitMins',
-                label: 'Daily Limit (mins)',
-                type: 'number' as FieldType,
-              },
-              {
-                name: 'spentTodayMins',
-                label: 'Spent Today (mins)',
-                type: 'number' as FieldType,
-              },
-              {
-                name: 'lastRunDate',
-                label: 'Last Run',
-                type: 'datetime' as FieldType,
-              },
-              {
-                name: 'note',
-                label: 'Note',
-                type: 'text' as FieldType,
-              },
-              {
-                name: 'url',
-                label: 'URL',
-                type: 'text' as FieldType,
-              },
-            ]}
-            onSave={handleEditSave}
-            onClose={() => setEditingItem(null)}
-          />
-        </>
+        </div>
       ) : (
         // 桌面視圖 - 表格
         <div className="overflow-x-auto border rounded-lg">
@@ -660,6 +617,77 @@ export function TaskPoolTable() {
           </table>
         </div>
       )}
+
+      <EditDialog
+        isOpen={!!editingItem}
+        title="編輯 Task Pool 項目"
+        item={editingItem}
+        fields={[
+          {
+            name: 'title',
+            label: 'Title',
+            type: 'text' as FieldType,
+            placeholder: '輸入任務標題',
+          },
+          {
+            name: 'status',
+            label: 'Status',
+            type: 'select' as FieldType,
+            options: [
+              { label: 'Pending', value: 'PENDING' },
+              { label: 'Doing', value: 'DOING' },
+              { label: 'Done', value: 'DONE' },
+            ],
+          },
+          {
+            name: 'project',
+            label: 'Project',
+            type: 'text' as FieldType,
+          },
+          {
+            name: 'focusTime',
+            label: 'Focus Time (mins)',
+            type: 'number' as FieldType,
+          },
+          {
+            name: 'priority',
+            label: 'Priority',
+            type: 'number' as FieldType,
+          },
+          {
+            name: 'dailyLimitMins',
+            label: 'Daily Limit (mins)',
+            type: 'number' as FieldType,
+          },
+          {
+            name: 'spentTodayMins',
+            label: 'Spent Today (mins)',
+            type: 'number' as FieldType,
+          },
+          {
+            name: 'lastRunDate',
+            label: 'Last Run',
+            type: 'datetime' as FieldType,
+          },
+          {
+            name: 'note',
+            label: 'Note',
+            type: 'text' as FieldType,
+          },
+          {
+            name: 'url',
+            label: 'URL',
+            type: 'text' as FieldType,
+          },
+          {
+            name: 'deadline',
+            label: 'Deadline',
+            type: 'datetime' as FieldType,
+          },
+        ]}
+        onSave={handleEditSave}
+        onClose={() => setEditingItem(null)}
+      />
 
       <TableHelpDialog
         isOpen={showHelp}

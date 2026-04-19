@@ -30,6 +30,7 @@ export function TableCard<T extends { taskId?: string | number; url?: string }>(
   const SWIPE_TRIGGER = 70
   const CONFIRM_WINDOW_MS = 3000
   const itemUrl = isUsableUrl(item.url) ? item.url.trim() : null
+  const [isTouch] = useState(() => window.matchMedia('(hover: none) and (pointer: coarse)').matches)
 
   useEffect(() => {
     return () => {
@@ -167,6 +168,32 @@ export function TableCard<T extends { taskId?: string | number; url?: string }>(
 
         {pendingDeleteConfirm && (
           <div className="mt-3 text-xs text-red-600 text-right">再左滑一次以確認刪除</div>
+        )}
+
+        {!isTouch && (
+          <div className="mt-3 flex justify-end gap-2">
+            <button
+              onClick={() => { cancelDeleteConfirmation(); onEdit(item) }}
+              className="px-3 py-1 text-xs font-medium rounded bg-blue-500 text-white hover:bg-blue-600"
+            >
+              編輯
+            </button>
+            <button
+              onClick={() => {
+                if (pendingDeleteConfirm) {
+                  cancelDeleteConfirmation()
+                  onDelete(item)
+                } else {
+                  beginDeleteConfirmation()
+                }
+              }}
+              className={`px-3 py-1 text-xs font-medium rounded text-white ${
+                pendingDeleteConfirm ? 'bg-red-600 hover:bg-red-700' : 'bg-red-400 hover:bg-red-500'
+              }`}
+            >
+              {pendingDeleteConfirm ? '確認刪除' : '刪除'}
+            </button>
+          </div>
         )}
       </div>
     </div>

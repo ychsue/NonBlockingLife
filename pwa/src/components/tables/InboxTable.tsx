@@ -489,9 +489,8 @@ export function InboxTable() {
         <div className="text-center text-gray-500">No items yet.</div>
       ) : isMobile ? (
         // 移動視圖 - 卡片
-        <>
-          <div className="grid grid-cols-1 gap-3">
-            {rows.map((item) => (
+        <div className="grid grid-cols-1 gap-3">
+          {rows.map((item) => (
               <TableCard
                 key={item.taskId}
                 item={item}
@@ -508,59 +507,7 @@ export function InboxTable() {
                 onDelete={(item) => deleteRow(item.taskId)}
               />
             ))}
-          </div>
-
-          <EditDialog
-            isOpen={!!editingItem}
-            title="編輯 Inbox 項目"
-            item={editingItem}
-            fields={[
-              {
-                name: "title",
-                label: "Title",
-                type: "text" as FieldType,
-                placeholder: "輸入任務標題",
-              },
-              {
-                name: "receivedAt",
-                label: "Received At",
-                type: "datetime" as FieldType,
-              },
-              {
-                name: "url",
-                label: "URL",
-                type: "text" as FieldType,
-                placeholder: "https://...",
-              },
-            ]}
-            onSave={handleEditSave}
-            onClose={() => setEditingItem(null)}
-            footerLeft={
-              editingItem ? (
-                <div className="flex items-center gap-2">
-                  <select
-                    defaultValue=""
-                    disabled={movingTaskId === editingItem.taskId}
-                    onChange={(event) => {
-                      const target = event.target.value as MoveTargetSheet;
-                      if (!target) return;
-                      event.currentTarget.value = "";
-                      void moveRow(editingItem, target);
-                    }}
-                    className="px-2 py-1 text-xs border rounded bg-white focus:outline-none focus:border-blue-500 disabled:opacity-50"
-                  >
-                    <option value="">Move...</option>
-                    {MOVE_TARGET_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ) : null
-            }
-          />
-        </>
+        </div>
       ) : (
         // 桌面視圖 - 表格
         <div className="overflow-x-auto border rounded-lg">
@@ -601,6 +548,57 @@ export function InboxTable() {
           </table>
         </div>
       )}
+
+      <EditDialog
+        isOpen={!!editingItem}
+        title="編輯 Inbox 項目"
+        item={editingItem}
+        fields={[
+          {
+            name: "title",
+            label: "Title",
+            type: "text" as FieldType,
+            placeholder: "輸入任務標題",
+          },
+          {
+            name: "receivedAt",
+            label: "Received At",
+            type: "datetime" as FieldType,
+          },
+          {
+            name: "url",
+            label: "URL",
+            type: "text" as FieldType,
+            placeholder: "https://...",
+          },
+        ]}
+        onSave={handleEditSave}
+        onClose={() => setEditingItem(null)}
+        footerLeft={
+          editingItem ? (
+            <div className="flex items-center gap-2">
+              <select
+                defaultValue=""
+                disabled={movingTaskId === editingItem.taskId}
+                onChange={(event) => {
+                  const target = event.target.value as MoveTargetSheet;
+                  if (!target) return;
+                  event.currentTarget.value = "";
+                  void moveRow(editingItem, target);
+                }}
+                className="px-2 py-1 text-xs border rounded bg-white focus:outline-none focus:border-blue-500 disabled:opacity-50"
+              >
+                <option value="">Move...</option>
+                {MOVE_TARGET_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null
+        }
+      />
 
       <TableHelpDialog
         isOpen={showHelp}

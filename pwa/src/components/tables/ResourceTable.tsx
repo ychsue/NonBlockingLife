@@ -369,9 +369,8 @@ export function ResourceTable() {
         </div>
       ) : isMobile ? (
         // 移動視圖 - 卡片
-        <>
-          <div className="grid grid-cols-1 gap-3">
-            {filteredRows.map((item) => (
+        <div className="grid grid-cols-1 gap-3">
+          {filteredRows.map((item) => (
               <TableCard
                 key={item.taskId}
                 item={item}
@@ -385,47 +384,7 @@ export function ResourceTable() {
                 onDelete={(item)=> deleteRow(item.taskId)}
                 />
             ))}
-          </div>
-
-          <EditDialog
-            isOpen={!!editingItem}
-            title="編輯資源"
-            item={editingItem}
-            fields={[
-              {
-                name: 'title',
-                label: 'Title',
-                type: 'text' as FieldType,
-                placeholder: '輸入資源標題',
-              },
-              {
-                name: 'category',
-                label: 'Category',
-                type: 'text' as FieldType,
-                placeholder: '例如: Tutorial, Reference',
-              },
-              {
-                name: 'receivedAt',
-                label: 'Received At',
-                type: 'datetime' as FieldType,
-              },
-              {
-                name: 'url',
-                label: 'URL',
-                type: 'text' as FieldType,
-                placeholder: 'https://...',
-              },
-              {
-                name: 'note',
-                label: 'Note',
-                type: 'text' as FieldType,
-                placeholder: '添加備註',
-              },
-            ]}
-            onSave={handleEditSave}
-            onClose={() => setEditingItem(null)}
-          />
-        </>
+        </div>
       ) : (
         // 桌面視圖 - 表格
         <div className="overflow-x-auto border rounded-lg">
@@ -468,6 +427,45 @@ export function ResourceTable() {
           </table>
         </div>
       )}
+
+      <EditDialog
+        isOpen={!!editingItem}
+        title="編輯資源"
+        item={editingItem}
+        fields={[
+          {
+            name: 'title',
+            label: 'Title',
+            type: 'text' as FieldType,
+            placeholder: '輸入資源標題',
+          },
+          {
+            name: 'category',
+            label: 'Category',
+            type: 'text' as FieldType,
+            placeholder: '例如: Tutorial, Reference',
+          },
+          {
+            name: 'receivedAt',
+            label: 'Received At',
+            type: 'datetime' as FieldType,
+          },
+          {
+            name: 'url',
+            label: 'URL',
+            type: 'text' as FieldType,
+            placeholder: 'https://...',
+          },
+          {
+            name: 'note',
+            label: 'Note',
+            type: 'text' as FieldType,
+            placeholder: '添加備註',
+          },
+        ]}
+        onSave={handleEditSave}
+        onClose={() => setEditingItem(null)}
+      />
 
       <TableHelpDialog
         isOpen={showHelp}
