@@ -117,11 +117,9 @@ export function calculateCandidates(
           // 如果 lastDate 不是今天，而 spentToday 已經有值，這表示需要歸零
           const lastDateStr = lastDate.toDateString()
           const nowDateStr = now.toDateString()
-          if (lastDateStr !== nowDateStr && spentToday > 0) {
+          if (lastDateStr !== nowDateStr && (spentToday > 0 || usedTodayCount > 0)) {
             resetPoolTaskIds.push(taskId)
             spentToday = 0
-          }
-          if (lastDateStr !== nowDateStr) {
             usedTodayCount = 0
           }
 

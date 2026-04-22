@@ -211,7 +211,7 @@ export function SelectionCacheTable() {
             table: "task_pool",
             recordId: taskId,
             op: "update",
-            patch: { spentTodayMins: 0 },
+            patch: { spentTodayMins: 0, usedTodayCount: 0 },
             clientId: DEV_CLIENT_ID,
           });
         }

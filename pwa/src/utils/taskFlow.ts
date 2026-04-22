@@ -385,6 +385,7 @@ async function updateTaskPoolAfterRecord(
   const todayStr = new Date(now).toDateString();
   let spentToday = task.spentTodayMins || 0;
   let totalSpent = task.totalSpentMins || 0;
+  let usedTodayCount = task.usedTodayCount || 0;
 
   if (
     !lastRun ||
@@ -392,10 +393,12 @@ async function updateTaskPoolAfterRecord(
     lastRun.toDateString() !== todayStr
   ) {
     spentToday = 0;
+    usedTodayCount = 0;
   }
 
   spentToday += duration;
   totalSpent += duration;
+  usedTodayCount += 1;
 
   await applyChange({
     table: "task_pool",
@@ -404,6 +407,7 @@ async function updateTaskPoolAfterRecord(
     patch: {
       spentTodayMins: spentToday,
       totalSpentMins: totalSpent,
+      usedTodayCount: usedTodayCount,
       lastRunDate: now,
     },
     clientId: DEV_CLIENT_ID,
