@@ -48,3 +48,22 @@ export function useT() {
     return str
   }
 }
+
+/**
+ * Non-hook translation function for use outside React components.
+ * Reads the current locale directly from the Zustand store state.
+ */
+export function getT() {
+  const locale = useAppStore.getState().locale
+  const map = translations[locale] ?? translations['zh-TW']
+
+  return function t(key: TranslationKey, vars?: Record<string, string | number>): string {
+    let str: string = map[key] ?? key
+    if (vars) {
+      for (const [k, v] of Object.entries(vars)) {
+        str = str.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v))
+      }
+    }
+    return str
+  }
+}

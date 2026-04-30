@@ -285,6 +285,16 @@ export const zhTW: TranslationMap = {
   'table.log.col.duration':         '時長（分）',
   'table.log.col.notes':            '備註',
 
+  // ── candidateUtils ───────────────────────────────────────────
+  'task.unnamed':          '未命名任務',
+  'task.unnamedScheduled': '未命名排程',
+  'task.unnamedMicro':     '未命名微任務',
+  'task.remainingQuota':   '(剩餘配額: {mins}m)',
+  'task.overdue':          '過時',
+  'task.timeRemaining':    '還有',
+  'time.hoursMinutes':     '{h} 小時 {m} 分鐘',
+  'time.minutesOnly':      '{m} 分鐘',
+
   // ── Language toggle (shows the OTHER language label) ──────────
   'lang.toggle': 'EN',
 }

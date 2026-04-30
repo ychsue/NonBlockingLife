@@ -261,5 +261,15 @@ export const ja: TranslationMap = {
   'table.log.col.duration': '時間（分）',
   'table.log.col.notes': 'メモ',
 
+  // ── candidateUtils ───────────────────────────────────────────
+  'task.unnamed':          '無名タスク',
+  'task.unnamedScheduled': '無名スケジュール',
+  'task.unnamedMicro':     '無名マイクロタスク',
+  'task.remainingQuota':   '(残り: {mins}m)',
+  'task.overdue':          '超過',
+  'task.timeRemaining':    'あと',
+  'time.hoursMinutes':     '{h} 時間 {m} 分',
+  'time.minutesOnly':      '{m} 分',
+
   'lang.toggle': 'EN',
 }

@@ -1,4 +1,5 @@
 import type { TaskPoolItem, ScheduledItem, MicroTaskItem } from '../db/schema'
+import { getT } from '../i18n'
 
 export interface Candidate {
   taskId: string
@@ -57,9 +58,13 @@ export function parseToMinutes(takesTime?: string | number): number | null {
  * 分鐘數轉人類可讀的時間字串
  */
 export function minutesToTimeString(totalMinutes: number): string {
+  const t = getT()
   const hours = Math.floor(totalMinutes / 60)
   const minutes = Math.floor(totalMinutes % 60)
-  return `${hours > 0 ? hours + ' 小時 ' : ''}${minutes} 分鐘`
+  if (hours > 0) {
+    return t('time.hoursMinutes', { h: hours, m: minutes })
+  }
+  return t('time.minutesOnly', { m: minutes })
 }
 
 /**
@@ -84,6 +89,7 @@ export function calculateCandidates(
   scheduled: ScheduledItem[],
   microTasks: MicroTaskItem[]
 ): CalculateCandidatesResult {
+  const t = getT()
   const candidates: Candidate[] = []
   const resetPoolTaskIds: string[] = []
   let totalMinsPool = 0
@@ -95,7 +101,7 @@ export function calculateCandidates(
     const status = task.status
     if (status === 'PENDING') {
       const taskId = task.taskId
-      const title = task.title || '未命名任務'
+      const title = task.title || t('task.unnamed')
       let spentToday = task.spentTodayMins || 0
       let usedTodayCount = task.usedTodayCount || 0
       const dailyLimit = task.dailyLimitMins || 999
@@ -159,7 +165,7 @@ export function calculateCandidates(
 
       candidates.push({
         taskId,
-        title: `${title} (剩餘配額: ${remainingMins}m)`,
+        title: `${title} ${t('task.remainingQuota', { mins: remainingMins })}`,
         score: Math.max(0, score),
         source: 'Task_Pool',
         url: task.url || undefined,
@@ -178,7 +184,7 @@ export function calculateCandidates(
     const status = task.status
     if (status === 'PENDING') {
       const taskId = task.taskId
-      let title = task.title || '未命名排程'
+      let title = task.title || t('task.unnamedScheduled')
       const nextRunTime = task.nextRun
       let score = 50 // Scheduled 基礎分較低
 
@@ -186,7 +192,7 @@ export function calculateCandidates(
         const nextRunDate = new Date(nextRunTime)
         const diffMins = (nextRunDate.getTime() - now.getTime()) / 60000
         const timeStr = minutesToTimeString(Math.abs(diffMins))
-        title = `${title} : ${diffMins < 0 ? '過時' : '還有'}${timeStr}`
+        title = `${title} : ${diffMins < 0 ? t('task.overdue') : t('task.timeRemaining')}${timeStr}`
         score = diffMins < 0 ? 500 : Math.max(50, 200 - diffMins)
       }
 
@@ -205,7 +211,7 @@ export function calculateCandidates(
     const status = task.status
     if (status === 'PENDING') {
       const taskId = task.taskId
-      const title = task.title || '未命名微任務'
+      const title = task.title || t('task.unnamedMicro')
       let score = 30 // 固定基礎分
 
       // Deadline 加權

@@ -282,6 +282,16 @@ export const en = {
   'table.log.col.duration':         'Duration (m)',
   'table.log.col.notes':            'Notes',
 
+  // ── candidateUtils ───────────────────────────────────────────
+  'task.unnamed':          'Unnamed Task',
+  'task.unnamedScheduled': 'Unnamed Schedule',
+  'task.unnamedMicro':     'Unnamed Micro Task',
+  'task.remainingQuota':   '(Remaining: {mins}m)',
+  'task.overdue':          'Overdue ',
+  'task.timeRemaining':    'In',
+  'time.hoursMinutes':     '{h}h {m}min',
+  'time.minutesOnly':      '{m}min',
+
   // ── Language toggle (shows the OTHER language label) ──────────
   'lang.toggle': '中文',
 } as const
