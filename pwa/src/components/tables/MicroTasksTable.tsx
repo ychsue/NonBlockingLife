@@ -53,15 +53,15 @@ export function MicroTasksTable() {
   const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
   const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
   const text = {
-    subtitle: t('micro.subtitle'),
+    subtitle: t('table.micro.subtitle'),
     help: t('table.help'),
-    searchPlaceholder: t('micro.searchPlaceholder'),
-    hideDone: t('micro.hideDone'),
+    searchPlaceholder: t('table.micro.searchPlaceholder'),
+    hideDone: t('table.micro.hideDone'),
     open: t('table.open'),
-    editTitle: t('micro.editTitle'),
-    titlePlaceholder: t('micro.titlePlaceholder'),
+    editTitle: t('table.micro.editTitle'),
+    titlePlaceholder: t('table.micro.titlePlaceholder'),
     loading: t('table.loading'),
-    helpTitle: t('micro.helpTitle'),
+    helpTitle: t('table.micro.helpTitle'),
   }
 
   // 初始載入（不自動更新）
@@ -174,13 +174,13 @@ export function MicroTasksTable() {
   const columns = useMemo(
     () => [
       columnHelper.accessor('taskId', {
-        header: 'Task ID',
+        header: t('table.micro.col.taskId'),
         cell: (info) => (
           <span className="text-xs text-gray-500">{info.getValue()}</span>
         ),
       }),
       columnHelper.accessor('title', {
-        header: 'Title',
+        header: t('table.micro.col.title'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -200,7 +200,7 @@ export function MicroTasksTable() {
         },
       }),
       columnHelper.accessor('status', {
-        header: 'Status',
+        header: t('table.micro.col.status'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -224,7 +224,7 @@ export function MicroTasksTable() {
         },
       }),
       columnHelper.accessor('focusTime', {
-        header: 'Focus Time',
+        header: t('table.micro.col.focusTime'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue()
@@ -249,7 +249,7 @@ export function MicroTasksTable() {
         },
       }),
       columnHelper.accessor('url', {
-        header: 'URL',
+        header: t('table.micro.col.url'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -282,7 +282,7 @@ export function MicroTasksTable() {
         },
       }),
       columnHelper.accessor('deadline', {
-        header: 'Deadline',
+        header: t('table.micro.col.deadline'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const rawValue = info.getValue()
@@ -307,18 +307,18 @@ export function MicroTasksTable() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: 'Actions',
+        header: t('table.micro.col.actions'),
         cell: (info) => (
           <button
             onClick={() => deleteRow(info.row.original.taskId)}
             className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
           >
-            Delete
+            {t('table.micro.col.delete')}
           </button>
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const searchFiltered = useSearchFilter(
@@ -471,13 +471,13 @@ export function MicroTasksTable() {
         fields={[
           {
             name: 'title',
-            label: 'Title',
+            label: t('table.micro.field.title'),
             type: 'text' as FieldType,
             placeholder: text.titlePlaceholder,
           },
           {
             name: 'status',
-            label: 'Status',
+            label: t('table.micro.field.status'),
             type: 'select' as FieldType,
             options: [
               { label: 'Pending', value: 'PENDING' },
@@ -487,23 +487,23 @@ export function MicroTasksTable() {
           },
           {
             name: 'focusTime',
-            label: 'Focus Time (mins)',
+            label: t('table.micro.field.focusTime'),
             type: 'number' as FieldType,
           },
           {
             name: 'lastRunDate',
-            label: 'Last Run',
+            label: t('table.micro.field.lastRun'),
             type: 'datetime' as FieldType,
           },
           {
             name: 'url',
-            label: 'URL',
+            label: t('table.micro.field.url'),
             type: 'text' as FieldType,
             placeholder: 'https://...',
           },
           {
             name: 'deadline',
-            label: 'Deadline',
+            label: t('table.micro.field.deadline'),
             type: 'datetime' as FieldType,
           },
         ]}

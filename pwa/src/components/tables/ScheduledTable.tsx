@@ -60,16 +60,16 @@ export function ScheduledTable() {
   const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
   const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
   const text = {
-    subtitle: t('scheduled.subtitle'),
+    subtitle: t('table.scheduled.subtitle'),
     help: t('table.help'),
-    searchPlaceholder: t('scheduled.searchPlaceholder'),
-    hideDone: t('scheduled.hideDone'),
+    searchPlaceholder: t('table.scheduled.searchPlaceholder'),
+    hideDone: t('table.scheduled.hideDone'),
     open: t('table.open'),
     loading: t('table.loading'),
-    editTitle: t('scheduled.editTitle'),
-    titlePlaceholder: t('scheduled.titlePlaceholder'),
-    cronPlaceholder: t('scheduled.cronPlaceholder'),
-    helpTitle: t('scheduled.helpTitle'),
+    editTitle: t('table.scheduled.editTitle'),
+    titlePlaceholder: t('table.scheduled.titlePlaceholder'),
+    cronPlaceholder: t('table.scheduled.cronPlaceholder'),
+    helpTitle: t('table.scheduled.helpTitle'),
   }
 
   // 初始載入（不自動更新）
@@ -209,13 +209,13 @@ export function ScheduledTable() {
   const columns = useMemo(
     () => [
       columnHelper.accessor('taskId', {
-        header: 'Task ID',
+        header: t('table.scheduled.col.taskId'),
         cell: (info) => (
           <span className="text-xs text-gray-500">{info.getValue()}</span>
         ),
       }),
       columnHelper.accessor('title', {
-        header: 'Title',
+        header: t('table.scheduled.col.title'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -235,7 +235,7 @@ export function ScheduledTable() {
         },
       }),
       columnHelper.accessor('status', {
-        header: 'Status',
+        header: t('table.scheduled.col.status'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -259,7 +259,7 @@ export function ScheduledTable() {
         },
       }),
       columnHelper.accessor('focusTime', {
-        header: 'Focus Time',
+        header: t('table.scheduled.col.focusTime'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue()
@@ -284,7 +284,7 @@ export function ScheduledTable() {
         },
       }),
       columnHelper.accessor('cronExpr', {
-        header: t('scheduled.cronHeader'),
+        header: t('table.scheduled.cronHeader'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const fullValue = info.getValue() ?? ''
@@ -349,7 +349,7 @@ export function ScheduledTable() {
                 style={{ minWidth: '1rem', width: inputWidth(minute) }}
                 value={minute}
                 placeholder="0"
-                title={t('scheduled.cronMinute')}
+                title={t('table.scheduled.cronMinute')}
                 onChange={(e) => updateCronPart(0, e.target.value)}
                 onBlur={(e) => saveCronPart(0, e.target.value)}
               />
@@ -358,7 +358,7 @@ export function ScheduledTable() {
                 style={{ minWidth: '1rem', width: inputWidth(hour) }}
                 value={hour}
                 placeholder="9"
-                title={t('scheduled.cronHour')}
+                title={t('table.scheduled.cronHour')}
                 onChange={(e) => updateCronPart(1, e.target.value)}
                 onBlur={(e) => saveCronPart(1, e.target.value)}
               />
@@ -367,7 +367,7 @@ export function ScheduledTable() {
                 style={{ minWidth: '1rem', width: inputWidth(day) }}
                 value={day}
                 placeholder="*"
-                title={t('scheduled.cronDay')}
+                title={t('table.scheduled.cronDay')}
                 onChange={(e) => updateCronPart(2, e.target.value)}
                 onBlur={(e) => saveCronPart(2, e.target.value)}
               />
@@ -376,7 +376,7 @@ export function ScheduledTable() {
                 style={{ minWidth: '1rem', width: inputWidth(month) }}
                 value={month}
                 placeholder="*"
-                title={t('scheduled.cronMonth')}
+                title={t('table.scheduled.cronMonth')}
                 onChange={(e) => updateCronPart(3, e.target.value)}
                 onBlur={(e) => saveCronPart(3, e.target.value)}
               />
@@ -385,7 +385,7 @@ export function ScheduledTable() {
                 style={{ minWidth: '1rem', width: inputWidth(weekday) }}
                 value={weekday}
                 placeholder="*"
-                title={t('scheduled.cronWeekday')}
+                title={t('table.scheduled.cronWeekday')}
                 onChange={(e) => updateCronPart(4, e.target.value)}
                 onBlur={(e) => saveCronPart(4, e.target.value)}
               />
@@ -394,7 +394,7 @@ export function ScheduledTable() {
         },
       }),
       columnHelper.accessor('remindBefore', {
-        header: 'Remind Before',
+        header: t('table.scheduled.col.remindBefore'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -415,7 +415,7 @@ export function ScheduledTable() {
         },
       }),
       columnHelper.accessor('remindAfter', {
-        header: 'Remind After',
+        header: t('table.scheduled.col.remindAfter'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -436,7 +436,7 @@ export function ScheduledTable() {
         },
       }),
       columnHelper.accessor('callback', {
-        header: 'Callback',
+        header: t('table.scheduled.col.callback'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -457,7 +457,7 @@ export function ScheduledTable() {
         },
       }),
       columnHelper.accessor('note', {
-        header: 'Note',
+        header: t('table.scheduled.col.note'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -477,7 +477,7 @@ export function ScheduledTable() {
         },
       }),
       columnHelper.accessor('url', {
-        header: 'URL',
+        header: t('table.scheduled.col.url'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -510,7 +510,7 @@ export function ScheduledTable() {
         },
       }),
       columnHelper.accessor('deadline', {
-        header: 'Deadline',
+        header: t('table.scheduled.col.deadline'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const rawValue = info.getValue()
@@ -534,7 +534,7 @@ export function ScheduledTable() {
         },
       }),
       columnHelper.accessor('nextRun', {
-        header: 'Next Run',
+        header: t('table.scheduled.col.nextRun'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const rawValue = info.getValue()
@@ -559,18 +559,18 @@ export function ScheduledTable() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: 'Actions',
+        header: t('table.scheduled.col.actions'),
         cell: (info) => (
           <button
             onClick={() => deleteRow(info.row.original.taskId)}
             className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
           >
-            Delete
+            {t('table.scheduled.col.delete')}
           </button>
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const searchFiltered = useSearchFilter(
@@ -724,13 +724,13 @@ export function ScheduledTable() {
         fields={[
           {
             name: 'title',
-            label: 'Title',
+            label: t('table.scheduled.field.title'),
             type: 'text' as FieldType,
             placeholder: text.titlePlaceholder,
           },
           {
             name: 'status',
-            label: 'Status',
+            label: t('table.scheduled.field.status'),
             type: 'select' as FieldType,
             options: [
               { label: 'WAITING', value: 'WAITING' },
@@ -740,54 +740,54 @@ export function ScheduledTable() {
           },
           {
             name: 'cronExpr',
-            label: 'Cron Expression',
+            label: t('table.scheduled.field.cronExpr'),
             type: 'text' as FieldType,
             placeholder: text.cronPlaceholder,
           },
           {
             name: 'focusTime',
-            label: 'Focus Time (mins)',
+            label: t('table.scheduled.field.focusTime'),
             type: 'number' as FieldType,
           },
           {
             name: 'remindBefore',
-            label: 'Remind Before',
+            label: t('table.scheduled.field.remindBefore'),
             type: 'text' as FieldType,
           },
           {
             name: 'remindAfter',
-            label: 'Remind After',
+            label: t('table.scheduled.field.remindAfter'),
             type: 'text' as FieldType,
           },
           {
             name: 'callback',
-            label: 'Callback',
+            label: t('table.scheduled.field.callback'),
             type: 'text' as FieldType,
           },
           {
             name: 'lastRun',
-            label: 'Last Run',
+            label: t('table.scheduled.field.lastRun'),
             type: 'datetime' as FieldType,
           },
           {
             name: 'nextRun',
-            label: 'Next Run',
+            label: t('table.scheduled.field.nextRun'),
             type: 'datetime' as FieldType,
           },
           {
             name: 'note',
-            label: 'Note',
+            label: t('table.scheduled.field.note'),
             type: 'text' as FieldType,
           },
           {
             name: 'url',
-            label: 'URL',
+            label: t('table.scheduled.field.url'),
             type: 'text' as FieldType,
             placeholder: 'https://...',
           },
           {
             name: 'deadline',
-            label: 'Deadline',
+            label: t('table.scheduled.field.deadline'),
             type: 'datetime' as FieldType,
           },
         ]}

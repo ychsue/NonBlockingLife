@@ -59,15 +59,15 @@ export function TaskPoolTable() {
   const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
   const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
   const text = {
-    subtitle: t('taskPool.subtitle'),
+    subtitle: t('table.taskPool.subtitle'),
     help: t('table.help'),
-    searchPlaceholder: t('taskPool.searchPlaceholder'),
-    hideDone: t('taskPool.hideDone'),
+    searchPlaceholder: t('table.taskPool.searchPlaceholder'),
+    hideDone: t('table.taskPool.hideDone'),
     open: t('table.open'),
     loading: t('table.loading'),
-    editTitle: t('taskPool.editTitle'),
-    titlePlaceholder: t('taskPool.titlePlaceholder'),
-    helpTitle: t('taskPool.helpTitle'),
+    editTitle: t('table.taskPool.editTitle'),
+    titlePlaceholder: t('table.taskPool.titlePlaceholder'),
+    helpTitle: t('table.taskPool.helpTitle'),
   }
 
   // 初始載入（不自動更新）
@@ -208,13 +208,13 @@ export function TaskPoolTable() {
   const columns = useMemo(
     () => [
       columnHelper.accessor('taskId', {
-        header: 'Task ID',
+        header: t('table.taskPool.col.taskId'),
         cell: (info) => (
           <span className="text-xs text-gray-500">{info.getValue()}</span>
         ),
       }),
       columnHelper.accessor('title', {
-        header: 'Title',
+        header: t('table.taskPool.col.title'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -234,7 +234,7 @@ export function TaskPoolTable() {
         },
       }),
       columnHelper.accessor('status', {
-        header: 'Status',
+        header: t('table.taskPool.col.status'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -258,7 +258,7 @@ export function TaskPoolTable() {
         },
       }),
       columnHelper.accessor('focusTime', {
-        header: 'Focus Time',
+        header: t('table.taskPool.col.focusTime'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue()
@@ -283,7 +283,7 @@ export function TaskPoolTable() {
         },
       }),
       columnHelper.accessor('project', {
-        header: 'Project',
+        header: t('table.taskPool.col.project'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -303,7 +303,7 @@ export function TaskPoolTable() {
         },
       }),
       columnHelper.accessor('priority', {
-        header: 'Priority',
+        header: t('table.taskPool.col.priority'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? 0
@@ -324,7 +324,7 @@ export function TaskPoolTable() {
         },
       }),
       columnHelper.accessor('dailyLimitMins', {
-        header: 'Daily Limit',
+        header: t('table.taskPool.col.dailyLimit'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? 0
@@ -346,7 +346,7 @@ export function TaskPoolTable() {
         },
       }),
       columnHelper.accessor('spentTodayMins', {
-        header: 'Spent Today',
+        header: t('table.taskPool.col.spentToday'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? 0
@@ -368,7 +368,7 @@ export function TaskPoolTable() {
         },
       }),
       columnHelper.accessor('lastRunDate', {
-        header: 'Last Run',
+        header: t('table.taskPool.col.lastRun'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const rawValue = info.getValue()
@@ -392,7 +392,7 @@ export function TaskPoolTable() {
         },
       }),
       columnHelper.accessor('note', {
-        header: 'Note',
+        header: t('table.taskPool.col.note'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -412,7 +412,7 @@ export function TaskPoolTable() {
         },
       }),
       columnHelper.accessor('url', {
-        header: 'URL',
+        header: t('table.taskPool.col.url'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -445,7 +445,7 @@ export function TaskPoolTable() {
         },
       }),
       columnHelper.accessor('deadline', {
-        header: 'Deadline',
+        header: t('table.taskPool.col.deadline'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const rawValue = info.getValue()
@@ -470,18 +470,18 @@ export function TaskPoolTable() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: 'Actions',
+        header: t('table.taskPool.col.actions'),
         cell: (info) => (
           <button
             onClick={() => deleteRow(info.row.original.taskId)}
             className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
           >
-            Delete
+            {t('table.taskPool.col.delete')}
           </button>
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const searchFiltered = useSearchFilter(
@@ -638,13 +638,13 @@ export function TaskPoolTable() {
         fields={[
           {
             name: 'title',
-            label: 'Title',
+            label: t('table.taskPool.field.title'),
             type: 'text' as FieldType,
             placeholder: text.titlePlaceholder,
           },
           {
             name: 'status',
-            label: 'Status',
+            label: t('table.taskPool.field.status'),
             type: 'select' as FieldType,
             options: [
               { label: 'Pending', value: 'PENDING' },
@@ -654,47 +654,47 @@ export function TaskPoolTable() {
           },
           {
             name: 'project',
-            label: 'Project',
+            label: t('table.taskPool.field.project'),
             type: 'text' as FieldType,
           },
           {
             name: 'focusTime',
-            label: 'Focus Time (mins)',
+            label: t('table.taskPool.field.focusTime'),
             type: 'number' as FieldType,
           },
           {
             name: 'priority',
-            label: 'Priority',
+            label: t('table.taskPool.field.priority'),
             type: 'number' as FieldType,
           },
           {
             name: 'dailyLimitMins',
-            label: 'Daily Limit (mins)',
+            label: t('table.taskPool.field.dailyLimit'),
             type: 'number' as FieldType,
           },
           {
             name: 'spentTodayMins',
-            label: 'Spent Today (mins)',
+            label: t('table.taskPool.field.spentToday'),
             type: 'number' as FieldType,
           },
           {
             name: 'lastRunDate',
-            label: 'Last Run',
+            label: t('table.taskPool.field.lastRun'),
             type: 'datetime' as FieldType,
           },
           {
             name: 'note',
-            label: 'Note',
+            label: t('table.taskPool.field.note'),
             type: 'text' as FieldType,
           },
           {
             name: 'url',
-            label: 'URL',
+            label: t('table.taskPool.field.url'),
             type: 'text' as FieldType,
           },
           {
             name: 'deadline',
-            label: 'Deadline',
+            label: t('table.taskPool.field.deadline'),
             type: 'datetime' as FieldType,
           },
         ]}

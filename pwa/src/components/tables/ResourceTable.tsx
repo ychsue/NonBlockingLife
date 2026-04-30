@@ -55,16 +55,16 @@ export function ResourceTable() {
   const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
   const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
   const text = {
-    subtitle: t('resource.subtitle'),
+    subtitle: t('table.resource.subtitle'),
     help: t('table.help'),
-    searchPlaceholder: t('resource.searchPlaceholder'),
+    searchPlaceholder: t('table.resource.searchPlaceholder'),
     open: t('table.open'),
-    editTitle: t('resource.editTitle'),
-    titlePlaceholder: t('resource.titlePlaceholder'),
-    categoryPlaceholder: t('resource.categoryPlaceholder'),
-    notePlaceholder: t('resource.notePlaceholder'),
+    editTitle: t('table.resource.editTitle'),
+    titlePlaceholder: t('table.resource.titlePlaceholder'),
+    categoryPlaceholder: t('table.resource.categoryPlaceholder'),
+    notePlaceholder: t('table.resource.notePlaceholder'),
     loading: t('table.loading'),
-    helpTitle: t('resource.helpTitle'),
+    helpTitle: t('table.resource.helpTitle'),
   }
 
   // 初始載入
@@ -181,13 +181,13 @@ export function ResourceTable() {
   const columns = useMemo(
     () => [
       columnHelper.accessor('taskId', {
-        header: 'Resource ID',
+        header: t('table.resource.col.resourceId'),
         cell: (info) => (
           <span className="text-xs text-gray-500">{info.getValue()}</span>
         ),
       }),
       columnHelper.accessor('title', {
-        header: 'Title',
+        header: t('table.resource.col.title'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -207,7 +207,7 @@ export function ResourceTable() {
         },
       }),
       columnHelper.accessor('category', {
-        header: 'Category',
+        header: t('table.resource.col.category'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -228,7 +228,7 @@ export function ResourceTable() {
         },
       }),
       columnHelper.accessor('receivedAt', {
-        header: 'Received',
+        header: t('table.resource.col.received'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const rawValue = info.getValue()
@@ -252,7 +252,7 @@ export function ResourceTable() {
         },
       }),
       columnHelper.accessor('note', {
-        header: 'Note',
+        header: t('table.resource.col.note'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -273,7 +273,7 @@ export function ResourceTable() {
         },
       }),
       columnHelper.accessor('url', {
-        header: 'URL',
+        header: t('table.resource.col.url'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const value = info.getValue() ?? ''
@@ -307,18 +307,18 @@ export function ResourceTable() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: 'Actions',
+        header: t('table.resource.col.actions'),
         cell: (info) => (
           <button
             onClick={() => deleteRow(info.row.original.taskId)}
             className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
           >
-            Delete
+            {t('table.resource.col.delete')}
           </button>
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -379,7 +379,7 @@ export function ResourceTable() {
         <div className="text-center text-gray-500">{text.loading}</div>
       ) : filteredRows.length === 0 ? (
         <div className="text-center text-gray-500">
-          {rows.length === 0 ? t('resource.empty') : t('resource.noMatch')}
+          {rows.length === 0 ? t('table.resource.empty') : t('table.resource.noMatch')}
         </div>
       ) : isMobile ? (
         // 移動視圖 - 卡片
@@ -449,30 +449,30 @@ export function ResourceTable() {
         fields={[
           {
             name: 'title',
-            label: 'Title',
+            label: t('table.resource.field.title'),
             type: 'text' as FieldType,
             placeholder: text.titlePlaceholder,
           },
           {
             name: 'category',
-            label: 'Category',
+            label: t('table.resource.field.category'),
             type: 'text' as FieldType,
             placeholder: text.categoryPlaceholder,
           },
           {
             name: 'receivedAt',
-            label: 'Received At',
+            label: t('table.resource.field.receivedAt'),
             type: 'datetime' as FieldType,
           },
           {
             name: 'url',
-            label: 'URL',
+            label: t('table.resource.field.url'),
             type: 'text' as FieldType,
             placeholder: 'https://...',
           },
           {
             name: 'note',
-            label: 'Note',
+            label: t('table.resource.field.note'),
             type: 'text' as FieldType,
             placeholder: text.notePlaceholder,
           },

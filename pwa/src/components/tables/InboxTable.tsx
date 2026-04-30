@@ -140,15 +140,15 @@ export function InboxTable() {
   const showGlobalToast = useAppStore((state) => state.showGlobalToast);
   const clearGlobalToast = useAppStore((state) => state.clearGlobalToast);
   const text = {
-    subtitle: t("inbox.subtitle"),
+    subtitle: t("table.inbox.subtitle"),
     help: t("table.help"),
     open: t("table.open"),
     loading: t("table.loading"),
-    empty: t("inbox.empty"),
-    editTitle: t("inbox.editTitle"),
-    titlePlaceholder: t("inbox.titlePlaceholder"),
-    movePlaceholder: t("inbox.movePlaceholder"),
-    helpTitle: t("inbox.helpTitle"),
+    empty: t("table.inbox.empty"),
+    editTitle: t("table.inbox.editTitle"),
+    titlePlaceholder: t("table.inbox.titlePlaceholder"),
+    movePlaceholder: t("table.inbox.movePlaceholder"),
+    helpTitle: t("table.inbox.helpTitle"),
   };
 
   // 初始載入（不自動更新）
@@ -271,7 +271,7 @@ export function InboxTable() {
         MOVE_TARGET_OPTIONS.find((option) => option.value === target)?.label ??
         target;
       showGlobalToast({
-        message: t("inbox.movedTo", { target: targetLabel }),
+        message: t("table.inbox.movedTo", { target: targetLabel }),
         duration: 3000,
         actionLabel: "Undo",
         onAction: () => {
@@ -303,7 +303,7 @@ export function InboxTable() {
 
               useAppStore.getState().setCurrentSheet("inbox");
               useAppStore.getState().showGlobalToast({
-                message: t("inbox.moveRestored"),
+                message: t("table.inbox.moveRestored"),
                 duration: 1800,
               });
             } catch (undoErr) {
@@ -311,7 +311,7 @@ export function InboxTable() {
                 undoErr instanceof Error ? undoErr.message : String(undoErr);
               console.error("Failed to undo move:", undoErr);
               useAppStore.getState().showGlobalToast({
-                message: t("inbox.undoFailed", { msg: undoMsg }),
+                message: t("table.inbox.undoFailed", { msg: undoMsg }),
                 duration: 3000,
               });
             }
@@ -321,7 +321,7 @@ export function InboxTable() {
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
       console.error("Failed to move inbox row:", err);
-      setMoveError(t("inbox.moveFailed", { msg: errorMsg }));
+      setMoveError(t("table.inbox.moveFailed", { msg: errorMsg }));
     } finally {
       setMovingTaskId(null);
     }
@@ -330,13 +330,13 @@ export function InboxTable() {
   const columns = useMemo(
     () => [
       columnHelper.accessor("taskId", {
-        header: "Task ID",
+        header: t("table.inbox.col.taskId"),
         cell: (info) => (
           <span className="text-xs text-gray-500">{info.getValue()}</span>
         ),
       }),
       columnHelper.accessor("title", {
-        header: "Title",
+        header: t("table.inbox.col.title"),
         cell: (info) => {
           const taskId = info.row.original.taskId;
           const value = info.getValue() ?? "";
@@ -359,7 +359,7 @@ export function InboxTable() {
         },
       }),
       columnHelper.accessor("receivedAt", {
-        header: "Received At",
+        header: t("table.inbox.col.receivedAt"),
         cell: (info) => {
           const taskId = info.row.original.taskId;
           const rawValue = info.getValue();
@@ -383,7 +383,7 @@ export function InboxTable() {
         },
       }),
       columnHelper.accessor("url", {
-        header: "URL",
+        header: t("table.inbox.col.url"),
         cell: (info) => {
           const taskId = info.row.original.taskId;
           const value = info.getValue() ?? "";
@@ -417,7 +417,7 @@ export function InboxTable() {
       }),
       columnHelper.display({
         id: "actions",
-        header: "Actions",
+        header: t("table.inbox.col.actions"),
         cell: (info) => {
           const item = info.row.original;
           const isMoving = movingTaskId === item.taskId;
@@ -447,14 +447,14 @@ export function InboxTable() {
                 disabled={isMoving}
                 className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
               >
-                Delete
+                {t("table.inbox.col.delete")}
               </button>
             </div>
           );
         },
       }),
     ],
-    [movingTaskId],
+    [movingTaskId, t],
   );
 
   const table = useReactTable({
@@ -569,18 +569,18 @@ export function InboxTable() {
         fields={[
           {
             name: "title",
-            label: "Title",
+            label: t("table.inbox.field.title"),
             type: "text" as FieldType,
             placeholder: text.titlePlaceholder,
           },
           {
             name: "receivedAt",
-            label: "Received At",
+            label: t("table.inbox.field.receivedAt"),
             type: "datetime" as FieldType,
           },
           {
             name: "url",
-            label: "URL",
+            label: t("table.inbox.field.url"),
             type: "text" as FieldType,
             placeholder: "https://...",
           },

@@ -22,28 +22,28 @@ export function LogTable() {
   const [searchText, setSearchText] = useState('')
   const text = {
     loading: t('table.loading'),
-    total: t('log.total', { n: rows.length }),
-    clearing: t('log.clearing'),
-    clearBtn: t('log.clearBtn'),
-    recent: t('log.recent'),
-    search: t('log.search'),
-    searchPlaceholder: t('log.searchPlaceholder'),
-    clearSearch: t('log.clearSearch'),
-    empty: t('log.empty'),
+    total: t('table.log.total', { n: rows.length }),
+    clearing: t('table.log.clearing'),
+    clearBtn: t('table.log.clearBtn'),
+    recent: t('table.log.recent'),
+    search: t('table.log.search'),
+    searchPlaceholder: t('table.log.searchPlaceholder'),
+    clearSearch: t('table.log.clearSearch'),
+    empty: t('table.log.empty'),
   }
 
   const handleClearChangelog = async () => {
-    if (!confirm(t('log.confirmClear'))) {
+    if (!confirm(t('table.log.confirmClear'))) {
       return
     }
     
     setClearing(true)
     try {
       const count = await clearLogTableChanges()
-      alert(t('log.clearedCount', { count }))
+      alert(t('table.log.clearedCount', { count }))
     } catch (err) {
       console.error('Failed to clear log changes:', err)
-      alert(t('log.clearFailed'))
+      alert(t('table.log.clearFailed'))
     } finally {
       setClearing(false)
     }
@@ -95,7 +95,7 @@ export function LogTable() {
   const columns = useMemo(
     () => [
       columnHelper.accessor('timestamp', {
-        header: 'Time',
+        header: t('table.log.col.time'),
         cell: (info) => {
           const value = info.getValue()
           if (!value) return ''
@@ -103,32 +103,32 @@ export function LogTable() {
         },
       }),
       columnHelper.accessor('taskId', {
-        header: 'Task ID',
+        header: t('table.log.col.taskId'),
         cell: (info) => (
           <span className="text-xs text-gray-500">{info.getValue()}</span>
         ),
       }),
       columnHelper.accessor('title', {
-        header: 'Title',
+        header: t('table.log.col.title'),
       }),
       columnHelper.accessor('action', {
-        header: 'Action',
+        header: t('table.log.col.action'),
         cell: (info) => (
           <span className="font-semibold">{info.getValue()}</span>
         ),
       }),
       columnHelper.accessor('category', {
-        header: 'Source',
+        header: t('table.log.col.source'),
       }),
       columnHelper.accessor('duration', {
-        header: 'Duration (m)',
+        header: t('table.log.col.duration'),
         cell: (info) => (info.getValue() ?? ''),
       }),
       columnHelper.accessor('notes', {
-        header: 'Notes',
+        header: t('table.log.col.notes'),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -163,12 +163,12 @@ export function LogTable() {
               onChange={(e) => setDaysFilter(Number(e.target.value))}
               className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value={1}>{t('log.dayOption', { n: 1 })}</option>
-              <option value={3}>{t('log.dayOption', { n: 3 })}</option>
-              <option value={7}>{t('log.dayOption', { n: 7 })}</option>
-              <option value={14}>{t('log.dayOption', { n: 14 })}</option>
-              <option value={30}>{t('log.dayOption', { n: 30 })}</option>
-              <option value={90}>{t('log.dayOption', { n: 90 })}</option>
+              <option value={1}>{t('table.log.dayOption', { n: 1 })}</option>
+              <option value={3}>{t('table.log.dayOption', { n: 3 })}</option>
+              <option value={7}>{t('table.log.dayOption', { n: 7 })}</option>
+              <option value={14}>{t('table.log.dayOption', { n: 14 })}</option>
+              <option value={30}>{t('table.log.dayOption', { n: 30 })}</option>
+              <option value={90}>{t('table.log.dayOption', { n: 90 })}</option>
             </select>
           </div>
           
