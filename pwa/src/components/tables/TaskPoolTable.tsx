@@ -14,6 +14,7 @@ import {
 } from '../../utils/timeUtils'
 import { useResponsiveTable } from '../../hooks/useResponsiveTable'
 import { useAppStore } from '../../store/appStore'
+import { useT } from '../../i18n'
 import { TableCard } from '../TableCard'
 import { EditDialog, type FieldType } from '../EditDialog'
 import { TableHelpDialog } from '../TableHelpDialog'
@@ -42,6 +43,7 @@ function createNewTaskPoolRow(taskId?: string, title?: string, note?: string, ur
 }
 
 export function TaskPoolTable() {
+  const t = useT()
   const [rows, setRows] = useState<TaskPoolItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showHelp, setShowHelp] = useState(false)
@@ -56,6 +58,17 @@ export function TaskPoolTable() {
   const currentSheet = useAppStore((state) => state.currentSheet)
   const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
   const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
+  const text = {
+    subtitle: t('taskPool.subtitle'),
+    help: t('table.help'),
+    searchPlaceholder: t('taskPool.searchPlaceholder'),
+    hideDone: t('taskPool.hideDone'),
+    open: t('table.open'),
+    loading: t('table.loading'),
+    editTitle: t('taskPool.editTitle'),
+    titlePlaceholder: t('taskPool.titlePlaceholder'),
+    helpTitle: t('taskPool.helpTitle'),
+  }
 
   // 初始載入（不自動更新）
   useEffect(() => {
@@ -424,7 +437,7 @@ export function TaskPoolTable() {
                   rel="noopener noreferrer"
                   className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 whitespace-nowrap"
                 >
-                  開啟
+                  {text.open}
                 </a>
               )}
             </div>
@@ -494,20 +507,20 @@ export function TaskPoolTable() {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-xl font-bold">Task Pool</h2>
-          <p className="text-sm text-gray-600">任務優先序與時間管理</p>
+          <p className="text-sm text-gray-600">{text.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowHelp(true)}
             className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
           >
-            說明
+            {text.help}
           </button>
           <button
             onClick={addRow}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            + Add
+            {t('table.add')}
           </button>
         </div>
       </div>
@@ -518,7 +531,7 @@ export function TaskPoolTable() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="搜尋 Title、Note、Project、URL..."
+          placeholder={text.searchPlaceholder}
           className="flex-1 px-3 py-2 border rounded focus:outline-none focus:border-blue-500"
         />
         <button
@@ -538,16 +551,16 @@ export function TaskPoolTable() {
             onChange={(e) => setHideDone(e.target.checked)}
             className="accent-blue-500"
           />
-          隱藏 Done
+          {text.hideDone}
         </label>
       </div>
 
       {loading ? (
-        <div className="text-center text-gray-500">Loading...</div>
+        <div className="text-center text-gray-500">{text.loading}</div>
       ) : rows.length === 0 ? (
-        <div className="text-center text-gray-500">No items yet.</div>
+        <div className="text-center text-gray-500">{t('table.noItemsYet')}</div>
       ) : filteredRows.length === 0 ? (
-        <div className="text-center text-gray-500">No matching items.</div>
+        <div className="text-center text-gray-500">{t('table.noMatchingItems')}</div>
       ) : isMobile ? (
         // 移動視圖 - 卡片
         <div className="grid grid-cols-1 gap-3">
@@ -556,20 +569,20 @@ export function TaskPoolTable() {
                 key={item.taskId}
                 item={item}
                 fields={[
-                  { label: 'Title', value: item.title || '(empty)' },
-                  { label: 'Status', value: item.status },
+                  { label: t('col.title'), value: item.title || t('table.empty') },
+                  { label: t('card.status'), value: item.status },
                   {
-                    label: 'Focus Time',
-                    value: item.focusTime == null ? '(default 30)' : `${item.focusTime} mins`,
+                    label: t('card.focusTime'),
+                    value: item.focusTime == null ? t('card.default30Mins') : t('card.default30MinsUnit', { n: item.focusTime }),
                   },
-                  { label: 'Priority', value: item.priority },
+                  { label: t('card.priority'), value: item.priority },
                   {
-                    label: 'Daily Limit',
-                    value: `${item.dailyLimitMins} mins`,
+                    label: t('card.dailyLimit'),
+                    value: t('card.default30MinsUnit', { n: item.dailyLimitMins ?? 0 }),
                   },
                   {
-                    label: 'Spent Today',
-                    value: `${item.spentTodayMins} mins`,
+                    label: t('card.spentToday'),
+                    value: t('card.default30MinsUnit', { n: item.spentTodayMins ?? 0 }),
                   },
                 ]}
                 onEdit={setEditingItem}
@@ -620,14 +633,14 @@ export function TaskPoolTable() {
 
       <EditDialog
         isOpen={!!editingItem}
-        title="編輯 Task Pool 項目"
+        title={text.editTitle}
         item={editingItem}
         fields={[
           {
             name: 'title',
             label: 'Title',
             type: 'text' as FieldType,
-            placeholder: '輸入任務標題',
+            placeholder: text.titlePlaceholder,
           },
           {
             name: 'status',
@@ -691,7 +704,7 @@ export function TaskPoolTable() {
 
       <TableHelpDialog
         isOpen={showHelp}
-        title="Task Pool 使用說明"
+        title={text.helpTitle}
         markdown={taskPoolHelpMarkdown}
         onClose={() => setShowHelp(false)}
       />

@@ -14,6 +14,7 @@ import {
 } from "../../utils/timeUtils";
 import { useResponsiveTable } from "../../hooks/useResponsiveTable";
 import { useAppStore } from "../../store/appStore";
+import { useT } from "../../i18n";
 import { TableCard } from "../TableCard";
 import { EditDialog, type FieldType } from "../EditDialog";
 import { TableHelpDialog } from "../TableHelpDialog";
@@ -119,6 +120,7 @@ function createNewInboxRow(): InboxItem {
 }
 
 export function InboxTable() {
+  const t = useT();
   const [rows, setRows] = useState<InboxItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
@@ -137,6 +139,17 @@ export function InboxTable() {
   );
   const showGlobalToast = useAppStore((state) => state.showGlobalToast);
   const clearGlobalToast = useAppStore((state) => state.clearGlobalToast);
+  const text = {
+    subtitle: t("inbox.subtitle"),
+    help: t("table.help"),
+    open: t("table.open"),
+    loading: t("table.loading"),
+    empty: t("inbox.empty"),
+    editTitle: t("inbox.editTitle"),
+    titlePlaceholder: t("inbox.titlePlaceholder"),
+    movePlaceholder: t("inbox.movePlaceholder"),
+    helpTitle: t("inbox.helpTitle"),
+  };
 
   // 初始載入（不自動更新）
   useEffect(() => {
@@ -258,7 +271,7 @@ export function InboxTable() {
         MOVE_TARGET_OPTIONS.find((option) => option.value === target)?.label ??
         target;
       showGlobalToast({
-        message: `已移動到 ${targetLabel}`,
+        message: t("inbox.movedTo", { target: targetLabel }),
         duration: 3000,
         actionLabel: "Undo",
         onAction: () => {
@@ -290,7 +303,7 @@ export function InboxTable() {
 
               useAppStore.getState().setCurrentSheet("inbox");
               useAppStore.getState().showGlobalToast({
-                message: "已復原 Move",
+                message: t("inbox.moveRestored"),
                 duration: 1800,
               });
             } catch (undoErr) {
@@ -298,7 +311,7 @@ export function InboxTable() {
                 undoErr instanceof Error ? undoErr.message : String(undoErr);
               console.error("Failed to undo move:", undoErr);
               useAppStore.getState().showGlobalToast({
-                message: `Undo 失敗：${undoMsg}`,
+                message: t("inbox.undoFailed", { msg: undoMsg }),
                 duration: 3000,
               });
             }
@@ -308,7 +321,7 @@ export function InboxTable() {
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
       console.error("Failed to move inbox row:", err);
-      setMoveError(`Move 失敗：${errorMsg}`);
+      setMoveError(t("inbox.moveFailed", { msg: errorMsg }));
     } finally {
       setMovingTaskId(null);
     }
@@ -395,7 +408,7 @@ export function InboxTable() {
                   rel="noopener noreferrer"
                   className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 whitespace-nowrap"
                 >
-                  開啟
+                  {text.open}
                 </a>
               )}
             </div>
@@ -422,7 +435,7 @@ export function InboxTable() {
                 }}
                 className="px-2 py-1 text-xs border rounded bg-white focus:outline-none focus:border-blue-500 disabled:opacity-50"
               >
-                <option value="">Move...</option>
+                <option value="">{text.movePlaceholder}</option>
                 {MOVE_TARGET_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -459,20 +472,20 @@ export function InboxTable() {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-xl font-bold">Inbox</h2>
-          <p className="text-sm text-gray-600">新增想法與待辦項目</p>
+          <p className="text-sm text-gray-600">{text.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowHelp(true)}
             className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
           >
-            說明
+            {text.help}
           </button>
           <button
             onClick={addRow}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            + Add
+            {t("table.add")}
           </button>
         </div>
       </div>
@@ -484,9 +497,9 @@ export function InboxTable() {
       )}
 
       {loading ? (
-        <div className="text-center text-gray-500">Loading...</div>
+        <div className="text-center text-gray-500">{text.loading}</div>
       ) : rows.length === 0 ? (
-        <div className="text-center text-gray-500">No items yet.</div>
+        <div className="text-center text-gray-500">{text.empty}</div>
       ) : isMobile ? (
         // 移動視圖 - 卡片
         <div className="grid grid-cols-1 gap-3">
@@ -495,12 +508,12 @@ export function InboxTable() {
                 key={item.taskId}
                 item={item}
                 fields={[
-                  { label: "Title", value: item.title || "(empty)" },
+                  { label: t("col.title"), value: item.title || t("table.empty") },
                   {
-                    label: "Received At",
+                    label: t("card.receivedAt"),
                     value: item.receivedAt
                       ? new Date(item.receivedAt).toLocaleString("zh-TW")
-                      : "(未設定)",
+                      : t("table.notSet"),
                   },
                 ]}
                 onEdit={setEditingItem}
@@ -551,14 +564,14 @@ export function InboxTable() {
 
       <EditDialog
         isOpen={!!editingItem}
-        title="編輯 Inbox 項目"
+        title={text.editTitle}
         item={editingItem}
         fields={[
           {
             name: "title",
             label: "Title",
             type: "text" as FieldType,
-            placeholder: "輸入任務標題",
+            placeholder: text.titlePlaceholder,
           },
           {
             name: "receivedAt",
@@ -588,7 +601,7 @@ export function InboxTable() {
                 }}
                 className="px-2 py-1 text-xs border rounded bg-white focus:outline-none focus:border-blue-500 disabled:opacity-50"
               >
-                <option value="">Move...</option>
+                <option value="">{text.movePlaceholder}</option>
                 {MOVE_TARGET_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -602,7 +615,7 @@ export function InboxTable() {
 
       <TableHelpDialog
         isOpen={showHelp}
-        title="Inbox 使用說明"
+        title={text.helpTitle}
         markdown={inboxHelpMarkdown}
         onClose={() => setShowHelp(false)}
       />

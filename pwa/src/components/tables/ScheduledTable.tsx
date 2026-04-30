@@ -14,6 +14,7 @@ import {
 } from '../../utils/timeUtils'
 import { useResponsiveTable } from '../../hooks/useResponsiveTable'
 import { useAppStore } from '../../store/appStore'
+import { useT } from '../../i18n'
 import { TableCard } from '../TableCard'
 import { EditDialog, type FieldType } from '../EditDialog'
 import { TableHelpDialog } from '../TableHelpDialog'
@@ -43,6 +44,7 @@ function createNewScheduledRow(taskId?: string, title?: string): ScheduledItem {
 }
 
 export function ScheduledTable() {
+  const t = useT()
   const [rows, setRows] = useState<ScheduledItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showHelp, setShowHelp] = useState(false)
@@ -57,6 +59,18 @@ export function ScheduledTable() {
   const currentSheet = useAppStore((state) => state.currentSheet)
   const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
   const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
+  const text = {
+    subtitle: t('scheduled.subtitle'),
+    help: t('table.help'),
+    searchPlaceholder: t('scheduled.searchPlaceholder'),
+    hideDone: t('scheduled.hideDone'),
+    open: t('table.open'),
+    loading: t('table.loading'),
+    editTitle: t('scheduled.editTitle'),
+    titlePlaceholder: t('scheduled.titlePlaceholder'),
+    cronPlaceholder: t('scheduled.cronPlaceholder'),
+    helpTitle: t('scheduled.helpTitle'),
+  }
 
   // 初始載入（不自動更新）
   useEffect(() => {
@@ -270,7 +284,7 @@ export function ScheduledTable() {
         },
       }),
       columnHelper.accessor('cronExpr', {
-        header: 'Cron (分 時 日 月 週)',
+        header: t('scheduled.cronHeader'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const fullValue = info.getValue() ?? ''
@@ -335,7 +349,7 @@ export function ScheduledTable() {
                 style={{ minWidth: '1rem', width: inputWidth(minute) }}
                 value={minute}
                 placeholder="0"
-                title="分鐘"
+                title={t('scheduled.cronMinute')}
                 onChange={(e) => updateCronPart(0, e.target.value)}
                 onBlur={(e) => saveCronPart(0, e.target.value)}
               />
@@ -344,7 +358,7 @@ export function ScheduledTable() {
                 style={{ minWidth: '1rem', width: inputWidth(hour) }}
                 value={hour}
                 placeholder="9"
-                title="小時"
+                title={t('scheduled.cronHour')}
                 onChange={(e) => updateCronPart(1, e.target.value)}
                 onBlur={(e) => saveCronPart(1, e.target.value)}
               />
@@ -353,7 +367,7 @@ export function ScheduledTable() {
                 style={{ minWidth: '1rem', width: inputWidth(day) }}
                 value={day}
                 placeholder="*"
-                title="日"
+                title={t('scheduled.cronDay')}
                 onChange={(e) => updateCronPart(2, e.target.value)}
                 onBlur={(e) => saveCronPart(2, e.target.value)}
               />
@@ -362,7 +376,7 @@ export function ScheduledTable() {
                 style={{ minWidth: '1rem', width: inputWidth(month) }}
                 value={month}
                 placeholder="*"
-                title="月"
+                title={t('scheduled.cronMonth')}
                 onChange={(e) => updateCronPart(3, e.target.value)}
                 onBlur={(e) => saveCronPart(3, e.target.value)}
               />
@@ -371,7 +385,7 @@ export function ScheduledTable() {
                 style={{ minWidth: '1rem', width: inputWidth(weekday) }}
                 value={weekday}
                 placeholder="*"
-                title="週"
+                title={t('scheduled.cronWeekday')}
                 onChange={(e) => updateCronPart(4, e.target.value)}
                 onBlur={(e) => saveCronPart(4, e.target.value)}
               />
@@ -488,7 +502,7 @@ export function ScheduledTable() {
                   rel="noopener noreferrer"
                   className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 whitespace-nowrap"
                 >
-                  開啟
+                  {text.open}
                 </a>
               )}
             </div>
@@ -581,20 +595,20 @@ export function ScheduledTable() {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-xl font-bold">Scheduled Tasks</h2>
-          <p className="text-sm text-gray-600">定期執行的任務設定</p>
+          <p className="text-sm text-gray-600">{text.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowHelp(true)}
             className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
           >
-            說明
+            {text.help}
           </button>
           <button
             onClick={() => addRow()}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            + Add
+            {t('table.add')}
           </button>
         </div>
       </div>
@@ -605,7 +619,7 @@ export function ScheduledTable() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="搜尋 Title、Note、Callback、URL..."
+          placeholder={text.searchPlaceholder}
           className="flex-1 px-3 py-2 border rounded focus:outline-none focus:border-blue-500"
         />
         <button
@@ -625,16 +639,16 @@ export function ScheduledTable() {
             onChange={(e) => setHideDone(e.target.checked)}
             className="accent-blue-500"
           />
-          隱藏 Done
+          {text.hideDone}
         </label>
       </div>
 
       {loading ? (
-        <div className="text-center text-gray-500">Loading...</div>
+        <div className="text-center text-gray-500">{text.loading}</div>
       ) : rows.length === 0 ? (
-        <div className="text-center text-gray-500">No items yet.</div>
+        <div className="text-center text-gray-500">{t('table.noItemsYet')}</div>
       ) : filteredRows.length === 0 ? (
-        <div className="text-center text-gray-500">No matching items.</div>
+        <div className="text-center text-gray-500">{t('table.noMatchingItems')}</div>
       ) : isMobile ? (
         // 移動視圖 - 卡片
         <div className="grid grid-cols-1 gap-3">
@@ -643,18 +657,18 @@ export function ScheduledTable() {
               key={item.taskId}
               item={item}
                 fields={[
-                  { label: 'Title', value: item.title || '(empty)' },
-                  { label: 'Status', value: item.status },
+                  { label: t('col.title'), value: item.title || t('table.empty') },
+                  { label: t('card.status'), value: item.status },
                   {
-                    label: 'Focus Time',
-                    value: item.focusTime == null ? '(default 30)' : `${item.focusTime} mins`,
+                    label: t('card.focusTime'),
+                    value: item.focusTime == null ? t('card.default30Mins') : t('card.default30MinsUnit', { n: item.focusTime }),
                   },
-                  { label: 'Cron', value: item.cronExpr },
+                  { label: t('card.cron'), value: item.cronExpr },
                   {
-                    label: 'Next Run',
+                    label: t('card.nextRun'),
                     value: item.nextRun
                       ? new Date(item.nextRun).toLocaleString('zh-TW')
-                      : '(未設定)',
+                      : t('table.notSet'),
                   },
                 ]}
                 onEdit={setEditingItem}
@@ -705,14 +719,14 @@ export function ScheduledTable() {
 
       <EditDialog
         isOpen={!!editingItem}
-        title="編輯排程任務"
+        title={text.editTitle}
         item={editingItem}
         fields={[
           {
             name: 'title',
             label: 'Title',
             type: 'text' as FieldType,
-            placeholder: '輸入任務標題',
+            placeholder: text.titlePlaceholder,
           },
           {
             name: 'status',
@@ -728,7 +742,7 @@ export function ScheduledTable() {
             name: 'cronExpr',
             label: 'Cron Expression',
             type: 'text' as FieldType,
-            placeholder: '例: 0 9 * * *',
+            placeholder: text.cronPlaceholder,
           },
           {
             name: 'focusTime',
@@ -783,7 +797,7 @@ export function ScheduledTable() {
 
       <TableHelpDialog
         isOpen={showHelp}
-        title="Scheduled 使用說明"
+        title={text.helpTitle}
         markdown={scheduledHelpMarkdown}
         onClose={() => setShowHelp(false)}
       />

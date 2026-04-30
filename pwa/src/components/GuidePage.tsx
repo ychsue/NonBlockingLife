@@ -51,6 +51,7 @@ const SHORTCUTS = [
 
 export function GuidePage() {
   const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
+  const locale = useAppStore((state) => state.locale)
   const [timerUrlInput, setTimerUrlInput] = useState(getNblTimerInstallUrl())
   const [saved, setSaved] = useState(false)
   const [showTutorial, setShowTutorial] = useState(false)
@@ -81,6 +82,13 @@ export function GuidePage() {
   return (
     <>
       <section className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+      {locale !== 'zh-TW' && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {locale === 'ja'
+            ? 'このページは主に中国語です。Safari / Chrome のページ翻訳をご利用ください。'
+            : 'This page is primarily written in Chinese. Please use your browser built-in translation (Safari/Chrome Translate).'}
+        </div>
+      )}
       <div className="bg-white border border-gray-200 rounded-lg p-5">
         <h2 className="text-xl font-bold text-gray-800 mb-2">📘 說明頁</h2>
         <p className="text-gray-700 leading-relaxed">

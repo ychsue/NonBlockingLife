@@ -14,6 +14,7 @@ import {
 } from '../../utils/timeUtils'
 import { useResponsiveTable } from '../../hooks/useResponsiveTable'
 import { useAppStore } from '../../store/appStore'
+import { useT } from '../../i18n'
 import { TableCard } from '../TableCard'
 import { EditDialog, type FieldType } from '../EditDialog'
 import { TableHelpDialog } from '../TableHelpDialog'
@@ -36,6 +37,7 @@ function createNewResourceRow(): ResourceItem {
 }
 
 export function ResourceTable() {
+  const t = useT()
   const [rows, setRows] = useState<ResourceItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showHelp, setShowHelp] = useState(false)
@@ -52,6 +54,18 @@ export function ResourceTable() {
   const currentSheet = useAppStore((state) => state.currentSheet)
   const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
   const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
+  const text = {
+    subtitle: t('resource.subtitle'),
+    help: t('table.help'),
+    searchPlaceholder: t('resource.searchPlaceholder'),
+    open: t('table.open'),
+    editTitle: t('resource.editTitle'),
+    titlePlaceholder: t('resource.titlePlaceholder'),
+    categoryPlaceholder: t('resource.categoryPlaceholder'),
+    notePlaceholder: t('resource.notePlaceholder'),
+    loading: t('table.loading'),
+    helpTitle: t('resource.helpTitle'),
+  }
 
   // 初始載入
   useEffect(() => {
@@ -208,7 +222,7 @@ export function ResourceTable() {
               onBlur={(event) =>
                 saveUpdate(taskId, { category: event.target.value })
               }
-              placeholder="e.g., Tutorial, Reference"
+              placeholder={text.categoryPlaceholder}
             />
           )
         },
@@ -253,7 +267,7 @@ export function ResourceTable() {
               onBlur={(event) =>
                 saveUpdate(taskId, { note: event.target.value })
               }
-              placeholder="Additional notes"
+              placeholder={text.notePlaceholder}
             />
           )
         },
@@ -284,7 +298,7 @@ export function ResourceTable() {
                   rel="noopener noreferrer"
                   className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 whitespace-nowrap"
                 >
-                  開啟
+                  {text.open}
                 </a>
               )}
             </div>
@@ -322,20 +336,20 @@ export function ResourceTable() {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-xl font-bold">Resources</h2>
-          <p className="text-sm text-gray-600">外部參考資源庫</p>
+          <p className="text-sm text-gray-600">{text.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowHelp(true)}
             className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
           >
-            說明
+            {text.help}
           </button>
           <button
             onClick={addRow}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            + Add
+            {t('table.add')}
           </button>
         </div>
       </div>
@@ -346,7 +360,7 @@ export function ResourceTable() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="搜尋 Title、Category、Note、URL..."
+          placeholder={text.searchPlaceholder}
           className="flex-1 px-3 py-2 border rounded focus:outline-none focus:border-blue-500"
         />
         <button
@@ -362,10 +376,10 @@ export function ResourceTable() {
       </div>
 
       {loading ? (
-        <div className="text-center text-gray-500">Loading...</div>
+        <div className="text-center text-gray-500">{text.loading}</div>
       ) : filteredRows.length === 0 ? (
         <div className="text-center text-gray-500">
-          {rows.length === 0 ? 'No resources yet.' : 'No matching resources.'}
+          {rows.length === 0 ? t('resource.empty') : t('resource.noMatch')}
         </div>
       ) : isMobile ? (
         // 移動視圖 - 卡片
@@ -375,10 +389,10 @@ export function ResourceTable() {
                 key={item.taskId}
                 item={item}
                 fields={[
-                    {label: 'Title', value: item.title ?? '(Untitled)'},
-                    {label: 'Category', value: item.category ?? '(No category)'},
-                    {label: 'Received', value: item.receivedAt ? new Date(item.receivedAt).toLocaleString() : '(No date)'},
-                    {label: 'Note', value: item.note ?? '(No note)'},
+                  {label: t('col.title'), value: item.title ?? t('card.untitled')},
+                  {label: t('card.category'), value: item.category ?? t('card.noCategory')},
+                  {label: t('card.received'), value: item.receivedAt ? new Date(item.receivedAt).toLocaleString() : t('card.noDate')},
+                  {label: t('card.note'), value: item.note ?? t('card.noNote')},
                 ]}
                 onEdit={setEditingItem}
                 onDelete={(item)=> deleteRow(item.taskId)}
@@ -430,20 +444,20 @@ export function ResourceTable() {
 
       <EditDialog
         isOpen={!!editingItem}
-        title="編輯資源"
+        title={text.editTitle}
         item={editingItem}
         fields={[
           {
             name: 'title',
             label: 'Title',
             type: 'text' as FieldType,
-            placeholder: '輸入資源標題',
+            placeholder: text.titlePlaceholder,
           },
           {
             name: 'category',
             label: 'Category',
             type: 'text' as FieldType,
-            placeholder: '例如: Tutorial, Reference',
+            placeholder: text.categoryPlaceholder,
           },
           {
             name: 'receivedAt',
@@ -460,7 +474,7 @@ export function ResourceTable() {
             name: 'note',
             label: 'Note',
             type: 'text' as FieldType,
-            placeholder: '添加備註',
+            placeholder: text.notePlaceholder,
           },
         ]}
         onSave={handleEditSave}
@@ -469,7 +483,7 @@ export function ResourceTable() {
 
       <TableHelpDialog
         isOpen={showHelp}
-        title="Resources 使用說明"
+        title={text.helpTitle}
         markdown={resourceHelpMarkdown}
         onClose={() => setShowHelp(false)}
       />

@@ -14,6 +14,7 @@ import {
 } from '../../utils/timeUtils'
 import { useResponsiveTable } from '../../hooks/useResponsiveTable'
 import { useAppStore } from '../../store/appStore'
+import { useT } from '../../i18n'
 import { TableCard } from '../TableCard'
 import { EditDialog, type FieldType } from '../EditDialog'
 import { TableHelpDialog } from '../TableHelpDialog'
@@ -36,6 +37,7 @@ function createNewMicroTaskRow(): MicroTaskItem {
 }
 
 export function MicroTasksTable() {
+  const t = useT()
   const [rows, setRows] = useState<MicroTaskItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showHelp, setShowHelp] = useState(false)
@@ -50,6 +52,17 @@ export function MicroTasksTable() {
   const currentSheet = useAppStore((state) => state.currentSheet)
   const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
   const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
+  const text = {
+    subtitle: t('micro.subtitle'),
+    help: t('table.help'),
+    searchPlaceholder: t('micro.searchPlaceholder'),
+    hideDone: t('micro.hideDone'),
+    open: t('table.open'),
+    editTitle: t('micro.editTitle'),
+    titlePlaceholder: t('micro.titlePlaceholder'),
+    loading: t('table.loading'),
+    helpTitle: t('micro.helpTitle'),
+  }
 
   // 初始載入（不自動更新）
   useEffect(() => {
@@ -261,7 +274,7 @@ export function MicroTasksTable() {
                   rel="noopener noreferrer"
                   className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 whitespace-nowrap"
                 >
-                  開啟
+                  {text.open}
                 </a>
               )}
             </div>
@@ -330,20 +343,20 @@ export function MicroTasksTable() {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-xl font-bold">Micro Tasks</h2>
-          <p className="text-sm text-gray-600">小型任務快速完成</p>
+          <p className="text-sm text-gray-600">{text.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowHelp(true)}
             className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
           >
-            說明
+            {text.help}
           </button>
           <button
             onClick={addRow}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            + Add
+            {t('table.add')}
           </button>
         </div>
       </div>
@@ -354,7 +367,7 @@ export function MicroTasksTable() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="搜尋 Title、URL..."
+          placeholder={text.searchPlaceholder}
           className="flex-1 px-3 py-2 border rounded focus:outline-none focus:border-blue-500"
         />
         <button
@@ -374,16 +387,16 @@ export function MicroTasksTable() {
             onChange={(e) => setHideDone(e.target.checked)}
             className="accent-blue-500"
           />
-          隱藏 Done
+          {text.hideDone}
         </label>
       </div>
 
       {loading ? (
-        <div className="text-center text-gray-500">Loading...</div>
+        <div className="text-center text-gray-500">{text.loading}</div>
       ) : rows.length === 0 ? (
-        <div className="text-center text-gray-500">No items yet.</div>
+        <div className="text-center text-gray-500">{t('table.noItemsYet')}</div>
       ) : filteredRows.length === 0 ? (
-        <div className="text-center text-gray-500">No matching items.</div>
+        <div className="text-center text-gray-500">{t('table.noMatchingItems')}</div>
       ) : isMobile ? (
         // 移動視圖 - 卡片
         <div className="grid grid-cols-1 gap-3">
@@ -392,17 +405,17 @@ export function MicroTasksTable() {
                 key={item.taskId}
                 item={item}
                 fields={[
-                  { label: 'Title', value: item.title || '(empty)' },
-                  { label: 'Status', value: item.status },
+                  { label: t('col.title'), value: item.title || t('table.empty') },
+                  { label: t('card.status'), value: item.status },
                   {
-                    label: 'Focus Time',
-                    value: item.focusTime == null ? '(default 30)' : `${item.focusTime} mins`,
+                    label: t('card.focusTime'),
+                    value: item.focusTime == null ? t('card.default30Mins') : t('card.default30MinsUnit', { n: item.focusTime }),
                   },
                   {
-                    label: 'Last Run',
+                    label: t('card.lastRun'),
                     value: item.lastRunDate
                       ? new Date(item.lastRunDate).toLocaleString('zh-TW')
-                      : '(未執行)',
+                      : t('table.notRun'),
                   },
                 ]}
                 onEdit={setEditingItem}
@@ -453,14 +466,14 @@ export function MicroTasksTable() {
 
       <EditDialog
         isOpen={!!editingItem}
-        title="編輯微任務"
+        title={text.editTitle}
         item={editingItem}
         fields={[
           {
             name: 'title',
             label: 'Title',
             type: 'text' as FieldType,
-            placeholder: '輸入任務標題',
+            placeholder: text.titlePlaceholder,
           },
           {
             name: 'status',
@@ -500,7 +513,7 @@ export function MicroTasksTable() {
 
       <TableHelpDialog
         isOpen={showHelp}
-        title="Micro Tasks 使用說明"
+        title={text.helpTitle}
         markdown={microTasksHelpMarkdown}
         onClose={() => setShowHelp(false)}
       />

@@ -28,11 +28,24 @@ export default function App() {
   const clearGlobalToast = useAppStore((state) => state.clearGlobalToast);
   const runningTask = useAppStore((state) => state.runningTask);
   const loadRunningTask = useAppStore((state) => state.loadRunningTask);
+  const locale = useAppStore((state) => state.locale);
+  const setLocale = useAppStore((state) => state.setLocale);
   
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const { isMobile } = useResponsiveTable();
+
+  const nextLocale =
+    locale === "zh-TW" ? "en" : locale === "en" ? "ja" : "zh-TW";
+  const localeLabelMap = {
+    "zh-TW": "中文",
+    en: "EN",
+    ja: "日本語",
+  } as const;
+  const currentLocaleLabel = localeLabelMap[locale];
+  const nextLocaleLabel =
+    localeLabelMap[nextLocale];
 
   useEffect(() => {
     // 初始加载时获取当前正在运行的任务
@@ -174,11 +187,25 @@ export default function App() {
               <button
                 onClick={() => setCurrentSheet("selection_cache")}
                 className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg text-xl leading-none"
-                aria-label="跳轉到 Selection Cache"
+                aria-label="Go to Selection Cache"
               >
                 📝
               </button>
             )}
+            {/* Language toggle */}
+            <button
+              onClick={() => setLocale(nextLocale)}
+              className="px-2 py-1 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100"
+              aria-label={`Switch language, current ${currentLocaleLabel}, next ${nextLocaleLabel}`}
+              title={`Current: ${currentLocaleLabel} / Next: ${nextLocaleLabel}`}
+            >
+              <span className="grid grid-cols-[auto_auto] gap-x-2 leading-tight text-left">
+                <span className="text-[10px] text-gray-500">Now</span>
+                <span>{currentLocaleLabel}</span>
+                <span className="text-[10px] text-gray-500">Next</span>
+                <span>{nextLocaleLabel}</span>
+              </span>
+            </button>
             {/* 手機漢堡選單按鈕 */}
             {isMobile && (
               <button

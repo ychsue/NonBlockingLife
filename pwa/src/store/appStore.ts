@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import type { SheetName } from '../hooks/useUrlAction'
 import { Dashboard, db } from '../db/schema'
+import type { SupportedLocale } from '../i18n'
+import { getInitialLocale } from '../i18n'
 
 export interface GlobalToast {
   id: number
@@ -45,6 +47,10 @@ interface AppState {
   runningTask: Dashboard | null
   setRunningTask: (task: Dashboard | null) => void
   loadRunningTask: () => Promise<void>
+
+  // i18n
+  locale: SupportedLocale
+  setLocale: (locale: SupportedLocale) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -81,5 +87,11 @@ export const useAppStore = create<AppState>((set) => ({
     const rows = await db.dashboard.toArray();
     const current = rows[0] ?? null;
     set({ runningTask: current });
+  },
+
+  locale: getInitialLocale(),
+  setLocale: (locale) => {
+    localStorage.setItem('nbl_locale', locale)
+    set({ locale })
   },
 }))

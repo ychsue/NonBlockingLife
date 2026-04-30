@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode, type TouchEvent } from 'react'
+import { useT } from '../i18n'
 
 interface TableCardProps<T> {
   item: T
@@ -20,6 +21,7 @@ export function TableCard<T extends { taskId?: string | number; url?: string }>(
   onEdit,
   onDelete,
 }: TableCardProps<T>) {
+  const t = useT()
   const [offsetX, setOffsetX] = useState(0)
   const [pendingDeleteConfirm, setPendingDeleteConfirm] = useState(false)
   const startRef = useRef<{ x: number; y: number } | null>(null)
@@ -125,10 +127,10 @@ export function TableCard<T extends { taskId?: string | number; url?: string }>(
     >
       <div className="absolute inset-0 flex text-white text-sm font-semibold">
         <div className="flex-1 bg-blue-500 flex items-center justify-start pl-4">
-          編輯
+          {t('tableCard.edit')}
         </div>
         <div className="flex-1 bg-red-500 flex items-center justify-end pr-4">
-          刪除
+          {t('tableCard.delete')}
         </div>
       </div>
 
@@ -161,13 +163,13 @@ export function TableCard<T extends { taskId?: string | number; url?: string }>(
               onTouchMove={(event) => event.stopPropagation()}
               onTouchEnd={(event) => event.stopPropagation()}
             >
-              開啟連結
+              {t('tableCard.openLink')}
             </a>
           </div>
         )}
 
         {pendingDeleteConfirm && (
-          <div className="mt-3 text-xs text-red-600 text-right">再左滑一次以確認刪除</div>
+          <div className="mt-3 text-xs text-red-600 text-right">{t('tableCard.swipeDeleteConfirm')}</div>
         )}
 
         {!isTouch && (
@@ -176,7 +178,7 @@ export function TableCard<T extends { taskId?: string | number; url?: string }>(
               onClick={() => { cancelDeleteConfirmation(); onEdit(item) }}
               className="px-3 py-1 text-xs font-medium rounded bg-blue-500 text-white hover:bg-blue-600"
             >
-              編輯
+              {t('tableCard.edit')}
             </button>
             <button
               onClick={() => {
@@ -191,7 +193,7 @@ export function TableCard<T extends { taskId?: string | number; url?: string }>(
                 pendingDeleteConfirm ? 'bg-red-600 hover:bg-red-700' : 'bg-red-400 hover:bg-red-500'
               }`}
             >
-              {pendingDeleteConfirm ? '確認刪除' : '刪除'}
+              {pendingDeleteConfirm ? t('tableCard.confirmDelete') : t('tableCard.delete')}
             </button>
           </div>
         )}

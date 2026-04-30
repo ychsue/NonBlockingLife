@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-04-30] 第一波多國語修正
+
 ## [2026-04-22] 修正 usedTodayCount 沒有在 SelectionCache 裡面被更新的問題
 
 ## [2026-04-19] 加入 deadline 的功能，並且在 SelectionCache 裡面根據 deadline 與剩餘時間來顯示不同的顏色與排序

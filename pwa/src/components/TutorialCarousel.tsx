@@ -5,6 +5,7 @@ import { PageFourFocusRhythm } from "./carousel/PageFourFocusRhythm";
 import { PageSixFirstSetup } from "./carousel/PageSixFirstSetup";
 import { PageThreeTaskControlCenter } from "./carousel/PageThreeTaskControlCenter";
 import { PageTwoBackToMainline } from "./carousel/PageTwoBackToMainline";
+import { useAppStore } from "../store/appStore";
 import "./tutorial-carousel.css";
 
 interface TutorialCarouselProps {
@@ -107,6 +108,7 @@ export function TutorialCarousel({
   onOpenTaskPool,
   onOpenScheduled,
 }: TutorialCarouselProps) {
+  const locale = useAppStore((state) => state.locale);
   const [index, setIndex] = useState(0);
   const [transitionDirection, setTransitionDirection] = useState<
     "forward" | "backward"
@@ -229,6 +231,13 @@ export function TutorialCarousel({
               <h2 className="mt-1 text-lg font-bold text-slate-900 sm:text-xl">
                 首次使用教學
               </h2>
+              {locale !== "zh-TW" && (
+                <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                  {locale === "ja"
+                    ? "このチュートリアル本文は中国語です。ブラウザ翻訳を有効にしてください。"
+                    : "This tutorial text is in Chinese. Please use browser translation."}
+                </p>
+              )}
             </div>
             <button
               type="button"

@@ -8,6 +8,7 @@ import {
   saveGasUrl,
   type SyncResult,
 } from "../utils/syncUtils";
+import { useT } from "../i18n";
 
 interface SyncStatusProps {
   syncStatus?: "idle" | "syncing" | "error";
@@ -29,6 +30,7 @@ export function SyncStatus({
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [includeLogOnReset, setIncludeLogOnReset] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const t = useT();
 
   // 用於 idle 偵測：記錄最後一次 pendingCount 變化的時間
   const lastPendingChangeRef = useRef<number>(0);
@@ -412,13 +414,13 @@ export function SyncStatus({
                 onClick={() => setShowResetConfirm(false)}
                 className="px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-50"
               >
-                取消
+                {t('sync.cancel')}
               </button>
               <button
                 onClick={handleResetAndPull}
                 className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
               >
-                確認還原{includeLogOnReset ? "（含 Log）" : ""}
+                {includeLogOnReset ? t('sync.confirmRestoreWithLog') : t('sync.confirmRestore')}
               </button>
             </div>
           </div>

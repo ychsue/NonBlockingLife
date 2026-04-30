@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { formatToDateTimeLocal } from '../utils/timeUtils'
+import { useT } from '../i18n'
 
 export type FieldType = 'text' | 'number' | 'datetime' | 'select'
 
@@ -34,6 +35,7 @@ export function EditDialog<T>({
   onClose,
   footerLeft,
 }: EditDialogProps<T>) {
+  const t = useT()
   const [formData, setFormData] = useState<Record<string, any>>({})
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -65,7 +67,7 @@ export function EditDialog<T>({
       await onSave(formData)
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '保存失敗')
+      setError(err instanceof Error ? err.message : t('dialog.saveFailed'))
     } finally {
       setIsSaving(false)
     }
@@ -92,7 +94,7 @@ export function EditDialog<T>({
                   onChange={(e) => handleChange(field.name, e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">選擇 {field.label}</option>
+                  <option value="">{t('dialog.select')} {field.label}</option>
                   {field.options?.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
@@ -140,14 +142,14 @@ export function EditDialog<T>({
               disabled={isSaving}
               className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50"
             >
-              取消
+              {t('dialog.cancel')}
             </button>
             <button
               onClick={handleSave}
               disabled={isSaving}
               className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors disabled:opacity-50"
             >
-              {isSaving ? '保存中...' : '保存'}
+              {isSaving ? t('dialog.saving') : t('dialog.save')}
             </button>
           </div>
         </div>

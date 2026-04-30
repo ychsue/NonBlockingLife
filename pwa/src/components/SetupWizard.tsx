@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import gasCode from "../gas/程式碼.js?raw";
+import { useT } from "../i18n";
 
 interface SetupWizardProps {
   isModal?: boolean;
@@ -10,8 +11,14 @@ interface SetupWizardProps {
 }
 
 export function SetupWizard({ isModal = false, onComplete, onClose }: SetupWizardProps) {
+  const t = useT();
   const [step, setStep] = useState(1);
   const [gasUrl, setGasUrl] = useState('');
+
+  const handleCopyGASCode = () => {
+    navigator.clipboard.writeText(gasCode);
+    alert(`✅ ${t('setup.codeCopied')}`);
+  };
   
   const handleComplete = async () => {
     if (onComplete) {
@@ -26,7 +33,7 @@ export function SetupWizard({ isModal = false, onComplete, onClose }: SetupWizar
   const handleSaveAndTest = async () => {
     // 驗證 URL 格式
     if (!gasUrl || !gasUrl.includes('script.google.com')) {
-      alert('❌ 請輸入有效的 GAS Web App URL');
+      alert(`❌ ${t('setup.invalidGasUrl')}`);
       return;
     }
 
@@ -46,7 +53,7 @@ export function SetupWizard({ isModal = false, onComplete, onClose }: SetupWizar
         }
       }
     } catch (e) {
-      alert('❌ 連接失敗，請檢查 URL 是否正確');
+      alert(`❌ ${t('setup.connectFailed')}`);
     }
   };
 
@@ -80,7 +87,7 @@ export function SetupWizard({ isModal = false, onComplete, onClose }: SetupWizar
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-3">
             <h3 className="font-semibold text-purple-900">步驟 3: 貼上同步程式碼</h3>
             <button 
-              onClick={() => copyGASCode()}
+              onClick={handleCopyGASCode}
               className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
             >
               📋 複製 Apps Script 代碼
@@ -174,9 +181,4 @@ export function SetupWizard({ isModal = false, onComplete, onClose }: SetupWizar
   }
 
   return content;
-}
-
-function copyGASCode() {
-  navigator.clipboard.writeText(gasCode);
-  alert('✅ 完整的 Apps Script 代碼已複製到剪貼板！現在請到 Google Sheets 中打開 Apps Script 編輯器並貼上。');
 }

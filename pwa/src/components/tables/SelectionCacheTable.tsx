@@ -24,6 +24,7 @@ import { useAppStore } from "../../store/appStore";
 import { TableHelpDialog } from "../TableHelpDialog";
 import selectionCacheHelpMarkdown from "./SelectionCacheHelp.md?raw";
 import { useResponsiveTable } from "../../hooks/useResponsiveTable";
+import { useT } from "../../i18n";
 
 const DEV_CLIENT_ID = "dev-selection-cache";
 const columnHelper = createColumnHelper<SelectionCacheItem>();
@@ -58,6 +59,7 @@ export function SelectionCacheTable() {
   const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
   const setPendingEditIntent = useAppStore((state) => state.setPendingEditIntent)
 
+  const t = useT()
 
   // 本地狀態（非持久化）
   const [startNote, setStartNote] = useState("");
@@ -260,7 +262,7 @@ export function SelectionCacheTable() {
   // 點擊任務行，開啟"開始任務"對話框
   const handleRowClick = (taskId: string) => {
     if (runningTask) {
-      setWarning("請先結束目前任務後再開始新的任務。");
+      setWarning(t('candidates.warnAlreadyRunning'));
       return;
     }
     setEditingCandidate(taskId);
@@ -408,11 +410,11 @@ export function SelectionCacheTable() {
   const columns = useMemo(
     () => [
       columnHelper.accessor("taskId", {
-        header: "任務 ID",
+        header: t('col.taskId'),
         size: 90,
       }),
       columnHelper.accessor("title", {
-        header: "任務標題",
+        header: t('col.title'),
         size: 300,
         cell: (info) => {
           const score = info.row.original.score ?? 0;
@@ -439,14 +441,14 @@ export function SelectionCacheTable() {
               titleClassName = "bg-red-600 text-white";
               deadlineBadge = (
                 <span className="ml-1 px-1.5 py-0.5 rounded text-xs font-bold bg-red-700 text-white whitespace-nowrap">
-                  🔴 逾期 {days} 天
+                  🔴 {t('badge.overdue', { n: days })}
                 </span>
               );
             } else if (daysUntil < 1) {
               titleClassName = "bg-orange-400 text-white";
               deadlineBadge = (
                 <span className="ml-1 px-1.5 py-0.5 rounded text-xs font-bold bg-orange-500 text-white whitespace-nowrap">
-                  🟠 今天到期
+                  🟠 {t('badge.dueToday')}
                 </span>
               );
             } else if (daysUntil <= 3) {
@@ -454,14 +456,14 @@ export function SelectionCacheTable() {
               const days = Math.ceil(daysUntil);
               deadlineBadge = (
                 <span className="ml-1 px-1.5 py-0.5 rounded text-xs font-semibold bg-yellow-200 text-yellow-800 whitespace-nowrap">
-                  🟡 {days} 天後
+                  🟡 {t('badge.dueDays', { n: days })}
                 </span>
               );
             } else if (daysUntil <= 7) {
               const days = Math.ceil(daysUntil);
               deadlineBadge = (
                 <span className="ml-1 px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-500 whitespace-nowrap">
-                  {days} 天後
+                  {t('badge.dueDays', { n: days })}
                 </span>
               );
             }
@@ -471,7 +473,7 @@ export function SelectionCacheTable() {
           const usedTodayBadge =
             info.row.original.source === "Task_Pool" && usedTodayCount != null && usedTodayCount > 0 ? (
               <span className="ml-1 px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 whitespace-nowrap">
-                今日 {usedTodayCount} 次
+                {t('badge.todayCount', { n: usedTodayCount })}
               </span>
             ) : null;
 
@@ -499,7 +501,7 @@ export function SelectionCacheTable() {
         },
       }),
       columnHelper.accessor("score", {
-        header: "評分",
+        header: t('col.score'),
         size: 70,
         cell: (info) => (
           <span className="font-semibold text-blue-600">
@@ -508,12 +510,12 @@ export function SelectionCacheTable() {
         ),
       }),
       columnHelper.accessor("source", {
-        header: "來源",
+        header: t('col.source'),
         size: 100,
         cell: (info) => {
           const source = info.getValue();
           if (typeof source !== "string") {
-            return <span>未知</span>;
+            return <span>{t('col.unknown')}</span>;
           }
           const emoji: Record<string, string> = {
             Task_Pool: "🎯",
@@ -542,7 +544,7 @@ export function SelectionCacheTable() {
   });
 
   if (loading) {
-    return <div className="p-4 text-center text-gray-500">載入中...</div>;
+    return <div className="p-4 text-center text-gray-500">{t('candidates.loading')}</div>;
   }
 
   return (
@@ -554,7 +556,7 @@ export function SelectionCacheTable() {
           disabled={refreshing}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
         >
-          {refreshing ? "刷新中..." : "🔄 刷新候選"}
+          {refreshing ? t('candidates.refreshing') : `🔄 ${t('candidates.refresh')}`}
         </button>
         {isMobile ? (
           <button
@@ -568,18 +570,18 @@ export function SelectionCacheTable() {
             onClick={() => setShowHelp(true)}
             className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
           >
-            說明
+            {t('candidates.help')}
           </button>
         )}
         <span className="text-sm text-gray-600">
-          共 {rows.length} 個候選任務
+          {t('candidates.count', { n: rows.length })}
         </span>
         {warning && <span className="text-sm text-red-600">{warning}</span>}
         <button
           onClick={handleInterrupt}
           className="flex-1 px-4 py-2 border border-amber-300 text-amber-800 rounded hover:bg-amber-100"
         >
-          ⚡ {isMobile ? "" : "中斷任務"}
+          ⚡ {isMobile ? "" : t('candidates.interrupt')}
         </button>
       </div>
 
@@ -588,9 +590,9 @@ export function SelectionCacheTable() {
         <div className="mb-4 border border-amber-300 rounded-lg bg-amber-50">
           <div className="px-4 py-2 bg-amber-100 rounded-t-lg flex items-center gap-2">
             <span className="text-amber-700 font-semibold text-sm">
-              ⚠️ {conflictScheduled.length} 個 Scheduled 任務的排程時間晚於截止日
+              ⚠️ {t('conflict.warning', { n: conflictScheduled.length })}
             </span>
-            <span className="text-xs text-amber-600">(點擊條目前往編輯)</span>
+            <span className="text-xs text-amber-600">{t('conflict.hint')}</span>
           </div>
           <ul className="divide-y divide-amber-200">
             {conflictScheduled.map((t) => {
@@ -632,7 +634,7 @@ export function SelectionCacheTable() {
       {/* 表格 */}
       {rows.length === 0 ? (
         <div className="p-4 text-center text-gray-500">
-          暫無候選任務，請點擊「刷新候選」按鈕
+          {t('candidates.empty')}
         </div>
       ) : (
         <div className="overflow-x-auto border border-gray-200 rounded">
@@ -710,17 +712,17 @@ export function SelectionCacheTable() {
             >
               {isInterruptMode ? "⚠️" : "⏳"}
             </span>
-            <h2 className="text-lg font-bold mb-4 text-amber-900">結束任務</h2>
+            <h2 className="text-lg font-bold mb-4 text-amber-900">{t('endTask.title')}</h2>
             <span className="ml-auto">
               {/* 擺到右邊 */}
-              {runningTask && takeTime ? `已執行 ${takeTime}` : ""}
+              {runningTask && takeTime ? t('endTask.elapsed', { time: takeTime }) : ""}
             </span>
           </div>
 
           {runningTask ? (
             <>
               <div className="text-sm text-amber-900 font-semibold">
-                目前執行中：{runningTask.taskId}
+                {t('endTask.nowRunning')}{runningTask.taskId}
                 {runningTask.title ? ` - ${runningTask.title}` : ""}
               </div>
               <div className="mt-3">
@@ -728,7 +730,7 @@ export function SelectionCacheTable() {
                   htmlFor="note_end"
                   className="block text-sm font-semibold mb-1 text-amber-900"
                 >
-                  結束備註 (選填)
+                  {t('endTask.noteLabel')}
                 </label>
                 <textarea
                   id="note_end"
@@ -736,7 +738,7 @@ export function SelectionCacheTable() {
                   onChange={(e) => setEndNote(e.target.value)}
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:border-amber-500"
                   rows={3}
-                  placeholder="輸入結束任務的備註..."
+                  placeholder={t('endTask.notePlaceholder')}
                 />
               </div>
               <div className="flex gap-2 mt-6">
@@ -744,7 +746,7 @@ export function SelectionCacheTable() {
                   onClick={handleConfirmEnd}
                   className="flex-1 px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
                 >
-                  結束任務
+                  {t('endTask.confirmBtn')}
                 </button>
                 <button
                   onClick={() => {
@@ -763,7 +765,7 @@ export function SelectionCacheTable() {
               </div>
             </>
           ) : (
-            <div className="text-sm text-gray-500">目前沒有執行中的任務</div>
+            <div className="text-sm text-gray-500">{t('endTask.noTask')}</div>
           )}
         </div>
       </dialog>
@@ -779,7 +781,7 @@ export function SelectionCacheTable() {
           <div className="flex items-center mb-4">
             {/* icon shows wanted to run selected task */}
             <span className="text-green-500 text-2xl mr-2">🚀</span>
-            <h2 className="text-lg font-bold mb-4">開始任務</h2>
+            <h2 className="text-lg font-bold mb-4">{t('startTask.title')}</h2>
           </div>
 
           <div className="space-y-4">
@@ -788,7 +790,7 @@ export function SelectionCacheTable() {
                 htmlFor="task_id_start"
                 className="block text-sm font-semibold mb-1"
               >
-                任務 ID
+                {t('startTask.taskId')}
               </label>
               <input
                 type="text"
@@ -804,7 +806,7 @@ export function SelectionCacheTable() {
                 htmlFor="title_start"
                 className="block text-sm font-semibold mb-1"
               >
-                任務標題
+                {t('startTask.taskTitle')}
               </label>
               <input
                 type="text"
@@ -822,7 +824,7 @@ export function SelectionCacheTable() {
                 htmlFor="note_start"
                 className="block text-sm font-semibold mb-1"
               >
-                備註 (選填)
+                {t('startTask.noteLabel')}
               </label>
               <textarea
                 id="note_start"
@@ -830,7 +832,7 @@ export function SelectionCacheTable() {
                 onChange={(e) => setStartNote(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
                 rows={3}
-                placeholder="輸入開始該任務的備註..."
+                placeholder={t('startTask.notePlaceholder')}
               />
             </div>
           </div>
@@ -843,19 +845,19 @@ export function SelectionCacheTable() {
               }}
               className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
             >
-              取消
+              {t('startTask.cancelBtn')}
             </button>
             <button
               onClick={handleRecordOnly}
               className="flex-1 px-4 py-2 border border-indigo-300 text-indigo-700 rounded hover:bg-indigo-50"
             >
-              只記錄
+              {t('startTask.logOnlyBtn')}
             </button>
             <button
               onClick={handleConfirmStart}
               className="flex-1 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
             >
-              開始任務
+              {t('startTask.confirmBtn')}
             </button>
           </div>
         </div>
@@ -869,12 +871,12 @@ export function SelectionCacheTable() {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex items-center mb-4">
             <span className="text-indigo-500 text-2xl mr-2">📝</span>
-            <h2 className="text-lg font-bold">只記錄事件</h2>
+            <h2 className="text-lg font-bold">{t('recordOnly.title')}</h2>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold mb-1">任務</label>
+              <label className="block text-sm font-semibold mb-1">{t('recordOnly.task')}</label>
               <div className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 text-sm">
                 {editingCandidate || "-"}
                 {editingCandidate
@@ -888,7 +890,7 @@ export function SelectionCacheTable() {
                 htmlFor="duration_record_only"
                 className="block text-sm font-semibold mb-1"
               >
-                補記時長 (分鐘, 選填)
+                {t('recordOnly.durationLabel')}
               </label>
               <input
                 type="number"
@@ -908,7 +910,7 @@ export function SelectionCacheTable() {
                 htmlFor="note_record_only"
                 className="block text-sm font-semibold mb-1"
               >
-                備註 (選填)
+                {t('recordOnly.noteLabel')}
               </label>
               <textarea
                 id="note_record_only"
@@ -926,13 +928,13 @@ export function SelectionCacheTable() {
               onClick={handleCancelRecordDialog}
               className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
             >
-              返回
+              {t('recordOnly.backBtn')}
             </button>
             <button
               onClick={handleConfirmRecordOnly}
               className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
             >
-              確認記錄
+              {t('recordOnly.confirmBtn')}
             </button>
           </div>
         </div>
