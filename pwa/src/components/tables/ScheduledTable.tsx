@@ -20,9 +20,17 @@ import { EditDialog, type FieldType } from '../EditDialog'
 import { TableHelpDialog } from '../TableHelpDialog'
 import scheduledHelpMarkdown from './ScheduledHelp.md?raw'
 import { useSearchFilter, useHideDone } from '../../hooks/useSearchFilter'
+import { buildCronExpr, getCronParts, getUpcomingOccurrences } from '../../utils/cronUtils'
 
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<ScheduledItem>()
+
+interface CronPreviewState {
+  taskId: string
+  title: string
+  cronExpr: string
+  runs: number[]
+}
 
 function createNewScheduledRow(taskId?: string, title?: string): ScheduledItem {
   taskId = taskId || Utils.generateId('S')
@@ -48,6 +56,7 @@ export function ScheduledTable() {
   const [rows, setRows] = useState<ScheduledItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showHelp, setShowHelp] = useState(false)
+  const [cronPreview, setCronPreview] = useState<CronPreviewState | null>(null)
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     taskId: false,
   })
@@ -206,6 +215,15 @@ export function ScheduledTable() {
     setEditingItem(null)
   }
 
+  const openCronPreview = (item: ScheduledItem, cronExpr: string) => {
+    setCronPreview({
+      taskId: item.taskId,
+      title: item.title ?? '',
+      cronExpr,
+      runs: getUpcomingOccurrences(cronExpr),
+    })
+  }
+
   const columns = useMemo(
     () => [
       columnHelper.accessor('taskId', {
@@ -288,8 +306,8 @@ export function ScheduledTable() {
         cell: (info) => {
           const taskId = info.row.original.taskId
           const fullValue = info.getValue() ?? ''
-          const parts = fullValue.split(' ')
-          const [minute = '', hour = '', day = '', month = '', weekday = ''] = parts
+          const [minute, hour, day, month, weekday] = getCronParts(fullValue)
+          const parts = [minute, hour, day, month, weekday]
           const currentNextRun = info.row.original.nextRun
 
           const updateCronPart = (index: number, newValue: string) => {
@@ -313,16 +331,15 @@ export function ScheduledTable() {
             return `${length + 1}ch`
           }
 
-          const buildCronExpr = () => {
-            const safeParts = [minute, hour, day, month, weekday].map((part) =>
-              part.trim() ? part.trim() : '*'
-            )
-            return safeParts.join(' ')
+          const composeCronExpr = () => {
+            return buildCronExpr(parts)
           }
+
+          const previewCronExpr = composeCronExpr()
 
           const maybeAutoFillNextRun = () => {
             if (currentNextRun != null) return
-            const cronExpr = buildCronExpr()
+            const cronExpr = previewCronExpr
             const nextRunDate = Utils.getNextOccurrence(cronExpr, new Date())
             if (!nextRunDate) return
             const nextRun = nextRunDate.getTime()
@@ -340,7 +357,7 @@ export function ScheduledTable() {
 
           return (
             <div
-              className="flex flex-wrap gap-1"
+              className="flex flex-wrap items-center gap-1"
               style={{ minWidth: '10rem' }}
               onBlur={handleCronGroupBlur}
             >
@@ -389,6 +406,14 @@ export function ScheduledTable() {
                 onChange={(e) => updateCronPart(4, e.target.value)}
                 onBlur={(e) => saveCronPart(4, e.target.value)}
               />
+              <button
+                type="button"
+                className="px-2 py-1 border border-gray-300 rounded text-xs whitespace-nowrap hover:bg-gray-100"
+                onClick={() => openCronPreview(info.row.original, previewCronExpr)}
+                title={t('table.scheduled.previewButton')}
+              >
+                {t('table.scheduled.previewButton')}
+              </button>
             </div>
           )
         },
@@ -741,7 +766,7 @@ export function ScheduledTable() {
           {
             name: 'cronExpr',
             label: t('table.scheduled.field.cronExpr'),
-            type: 'text' as FieldType,
+            type: 'cron' as FieldType,
             placeholder: text.cronPlaceholder,
           },
           {
@@ -801,6 +826,54 @@ export function ScheduledTable() {
         markdown={scheduledHelpMarkdown}
         onClose={() => setShowHelp(false)}
       />
+
+      {cronPreview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setCronPreview(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-lg bg-white p-5 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-4 flex items-start gap-3">
+              <div>
+                <h3 className="text-lg font-bold">{t('table.scheduled.previewTitle')}</h3>
+                <p className="text-sm text-gray-600">
+                  {cronPreview.title || cronPreview.taskId}
+                </p>
+                <p className="mt-1 font-mono text-xs text-gray-500">{cronPreview.cronExpr}</p>
+              </div>
+              <button
+                type="button"
+                className="ml-auto px-3 py-1 border border-gray-300 rounded hover:bg-gray-100"
+                onClick={() => setCronPreview(null)}
+              >
+                {t('dialog.cancel')}
+              </button>
+            </div>
+
+            {cronPreview.runs.length === 0 ? (
+              <p className="text-sm text-red-600">
+                {t('table.scheduled.previewEmpty')}
+              </p>
+            ) : (
+              <div>
+                <p className="mb-3 text-sm text-gray-600">
+                  {t('table.scheduled.previewCount', { n: cronPreview.runs.length })}
+                </p>
+                <ol className="max-h-[60vh] list-decimal space-y-2 overflow-y-auto pl-5 text-sm text-gray-800">
+                  {cronPreview.runs.map((run) => (
+                    <li key={run}>
+                      {new Date(run).toLocaleString()}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
