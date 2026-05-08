@@ -25,9 +25,17 @@ import { TableHelpDialog } from "../TableHelpDialog";
 import selectionCacheHelpMarkdown from "./SelectionCacheHelp.md?raw";
 import { useResponsiveTable } from "../../hooks/useResponsiveTable";
 import { useT } from "../../i18n";
+import type { SheetName } from "../../hooks/useUrlAction";
 
 const DEV_CLIENT_ID = "dev-selection-cache";
 const columnHelper = createColumnHelper<SelectionCacheItem>();
+
+function mapSourceToSheet(source?: string): SheetName | null {
+  if (source === "Task_Pool") return "task_pool";
+  if (source === "Scheduled") return "scheduled";
+  if (source === "Micro_Tasks") return "micro_tasks";
+  return null;
+}
 
 export function SelectionCacheTable() {
   const [rows, setRows] = useState<SelectionCacheItem[]>([]);
@@ -407,6 +415,17 @@ export function SelectionCacheTable() {
     }
   };
 
+  const handleJumpToSourceEditor = useCallback(
+    (item: SelectionCacheItem) => {
+      const sourceSheet = mapSourceToSheet(item.source);
+      if (!sourceSheet) return;
+
+      setPendingEditIntent({ sheet: sourceSheet, taskId: item.taskId });
+      setCurrentSheet(sourceSheet);
+    },
+    [setCurrentSheet, setPendingEditIntent],
+  );
+
   const columns = useMemo(
     () => [
       columnHelper.accessor("taskId", {
@@ -517,20 +536,32 @@ export function SelectionCacheTable() {
           if (typeof source !== "string") {
             return <span>{t('col.unknown')}</span>;
           }
+          const item = info.row.original;
+          const sourceSheet = mapSourceToSheet(source);
+          const canJump = !!sourceSheet;
           const emoji: Record<string, string> = {
             Task_Pool: "🎯",
             Scheduled: "🔔",
             Micro_Tasks: "⚡",
           };
           return (
-            <span>
+            <button
+              type="button"
+              disabled={!canJump}
+              onClick={(event) => {
+                event.stopPropagation();
+                handleJumpToSourceEditor(item);
+              }}
+              className="inline-flex items-center gap-1 rounded px-1 py-0.5 hover:bg-blue-100 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              title={canJump ? `前往 ${source}: ${item.taskId} 編輯頁` : source}
+            >
               {emoji[source] || "📝"} {source}
-            </span>
+            </button>
           );
         },
       }),
     ],
-    [],
+    [handleJumpToSourceEditor, t],
   );
 
   const table = useReactTable({

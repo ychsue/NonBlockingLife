@@ -297,7 +297,91 @@ pwa/src/i18n/
 
 ---
 
-## [2026/04/30] ychsue 非常感謝，下一步請把「目前還沒語系化的少量訊息」一次補齊（例如部分 alert、toast 與少量欄位提示），把 UI 文案做到更完整一致。
+## [2026/05/07] ychsue 英文影片已經拍完，現在要放到 YouTube，可以幫我加上標題、說明等，謝謝。可以加在 #file:discussion_en_part.md 後面，謝謝。
 
-還有， #sym:TableCard 還沒多國語化。
-此外，有個疑問，為何不把 tasks 等 table 的多國語也用 t() 管理呢？是有甚麼考量嗎？
+## [2026/05/07] GitHub Copilot 的建議
+
+太好了，恭喜英文版拍攝完成。下面是可直接上傳用的 YouTube 英文素材包，你可以先用「完整版」，再依需求微調。
+
+**Title 候選（英文）**
+
+1. NonBlockingLife: A Practical Way to Recover Focus After Interruptions
+2. One Brain, One Thread | NonBlockingLife Full Introduction
+3. Stop Letting Task Lists Become Mental Overhead (NonBlockingLife)
+4. How I Track Real Work Time and Return to the Mainline | NonBlockingLife
+
+建議首選：
+NonBlockingLife: A Practical Way to Recover Focus After Interruptions
+
+---
+
+**Description（可直接貼）**
+
+```text
+If your tasks are scattered across apps and devices, getting back to your main work can feel harder than the work itself.
+
+In this video, I introduce NonBlockingLife, a lightweight control center for tasks and ideas built around one simple rule:
+One brain, one thread.
+
+Instead of replacing every specialized app, NonBlockingLife helps you quickly decide what to do now, capture interruptions, and return to your mainline with less mental friction.
+
+What this video covers:
+- The core problem: task fragmentation and interruption recovery
+- The single-thread principle for focused work sessions
+- Two interruption types: idea capture (Inbox) and immediate interrupts
+- Task flow: Inbox -> Scheduled / Task Pool / Micro Tasks / Resource
+- Time visibility through task start/end logs
+- Local-first workflow with optional sync to your own Google Drive
+- Integrations via API actions (interrupt, query, add), iPhone Shortcuts, PWA, and web+nbl URL schema
+
+Project links:
+- GitHub: <YOUR_GITHUB_REPO_URL>
+- Guide pages: <YOUR_GUIDE_PAGE_URL>
+- iPhone Shortcuts: <YOUR_SHORTCUTS_URL>
+
+If you find this useful, feel free to open an issue, share feedback, or contribute.
+
+#NonBlockingLife #Productivity #TaskManagement #Focus #GTD #Pomodoro #PWA #OpenSource
+```
+
+---
+
+**Chapters（時間填好即可）**
+
+```text
+00:00 Intro
+00:20 The Real Problem: Scattered Tasks and Interruptions
+01:10 Core Principle: One Brain, One Thread
+02:05 Interruption Type A: Capture Ideas into Inbox
+03:00 Interruption Type B: Immediate Interrupt as a Task
+03:45 Task Flow and Time Visibility
+04:35 Local-First + Google Drive Sync
+05:10 API Integrations, iPhone Shortcuts, PWA, web+nbl
+05:45 Open Source and How to Contribute
+```
+
+---
+
+**Tags（YouTube 後台可貼）**
+
+```text
+NonBlockingLife, productivity, task management, focus, deep work, interruption management, inbox workflow, GTD, pomodoro, time tracking, local first, google drive sync, pwa, opensource
+```
+
+---
+
+**置頂留言（可選）**
+
+```text
+Quick links:
+- GitHub: <YOUR_GITHUB_REPO_URL>
+- Guide pages: <YOUR_GUIDE_PAGE_URL>
+- Shortcuts: <YOUR_SHORTCUTS_URL>
+
+If you have questions about workflow setup (Inbox / Scheduled / Task Pool / Micro Tasks), leave a comment and I can make a focused follow-up video.
+```
+
+如果你要，我下一步可以再幫你補兩個版本：
+
+1. 偏「技術社群」SEO 的標題與說明版本
+2. 偏「一般生產力觀眾」點擊率導向版本

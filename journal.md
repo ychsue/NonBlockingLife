@@ -1,5 +1,17 @@
 # Journal
 
+## [2026-05-08] 加入影片連結與SelectionCache 的條目的的source 欄位按了會跳到該任務的編輯頁面
+
+[x] 我已經在YouTube 拍了兩支影片，英文的為 NonBlockingLife: A Practical Way to Recover Focus After Interruptions，中文的為 NonBlockingLife｜別讓清單管理成為負擔：把大腦當單執行緒，我想在 GuidePage裡面加上超連結
+[x] 希望SelectionCache 的條目的的source 欄位按了會跳到該任務的編輯頁面，這樣就可以更快地修改該任務了！可參考 [InboxTable.tsx](pwa\src\components\tables\InboxTable.tsx) 的
+
+```tsx
+      setPendingEditIntent({ sheet: target, taskId: payload.taskId });
+      setCurrentSheet(target);
+```
+
+的作法，或者您有更好的做法呢？謝謝。
+
 ## [2026-05-02] 加入 CronExpr 的預覽功能，讓使用者在編輯 CronExpr 的時候，可以直接看到未來幾次的執行時間，這樣就可以更直觀地確認自己的 CronExpr 是否符合預期了！
 
 ## [2026-04-30] 第一波多國語修正(zh-TW / en / ja) 已完成，請測試看看

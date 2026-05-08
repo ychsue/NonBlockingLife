@@ -49,6 +49,25 @@ const SHORTCUTS = [
   }
 ]
 
+const VIDEO_RESOURCES = [
+  {
+    title: 'NonBlockingLife: A Practical Way to Recover Focus After Interruptions',
+    language: 'English',
+    type: 'Concept Intro',
+    url: 'https://youtu.be/UTtDZrytIbc',
+    description:
+      '介紹 Non-Blocking Life 的核心思路，示範面對中斷時，如何快速回到主線任務。',
+  },
+  {
+    title: 'NonBlockingLife｜別讓清單管理成為負擔：把大腦當單執行緒',
+    language: '中文',
+    type: '概念介紹',
+    url: 'https://youtu.be/NueGZACV7zw',
+    description:
+      '用中文說明為什麼「任務管理不應該打斷生活」，以及如何建立可持續的日常流程。',
+  },
+]
+
 export function GuidePage() {
   const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
   const locale = useAppStore((state) => state.locale)
@@ -78,6 +97,14 @@ export function GuidePage() {
     },
     [setCurrentSheet]
   )
+
+  function isVideoForCurrentLocale(video: typeof VIDEO_RESOURCES[number]) {
+    if (locale === 'zh-TW') {
+      return video.language === '中文'
+    } else {
+      return video.language === 'English'
+    }
+  }
 
   return (
     <>
@@ -118,6 +145,62 @@ export function GuidePage() {
           <p className="text-sm text-gray-500">
             可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。
           </p>
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">🎬 介紹影片與使用案例</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。
+            </p>
+          </div>
+          <a
+            href="https://www.youtube.com/@young-chunghsue4363"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center text-sm font-medium text-red-600 hover:underline"
+          >
+            前往 YouTube 頻道
+          </a>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {VIDEO_RESOURCES.filter((video) => isVideoForCurrentLocale(video)).map((video) => (
+            <article
+              key={video.url}
+              className="rounded-lg border border-gray-200 bg-gray-50 p-4 flex h-full flex-col"
+            >
+              <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
+                <span className="rounded-full bg-blue-100 px-2 py-1 font-medium text-blue-700">
+                  {video.language}
+                </span>
+                <span className="rounded-full bg-emerald-100 px-2 py-1 font-medium text-emerald-700">
+                  {video.type}
+                </span>
+              </div>
+              <h4 className="text-base font-semibold text-gray-900 leading-snug">{video.title}</h4>
+              <p className="mt-2 text-sm text-gray-600 leading-relaxed flex-1">{video.description}</p>
+              <a
+                href={video.url}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
+              >
+                觀看影片
+              </a>
+            </article>
+          ))}
+        </div>
+
+        <div className="mt-4 rounded-md border border-dashed border-gray-300 bg-white p-4 text-sm text-gray-700">
+          <p className="font-medium text-gray-800">接下來預計補上的案例方向</p>
+          <ul className="mt-2 list-disc pl-5 space-y-1">
+            <li>實際操作如何設定自己的Google Sheets 同步</li>
+            <li>如何透過Task Pool 戒除不想要的習慣</li>
+            <li>如何透過 Scheduled 提醒自己定時做某件事，比如早晚的養生操</li>
+          </ul>
         </div>
       </div>
 
