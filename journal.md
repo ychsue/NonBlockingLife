@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-05-09] 加入 export 與 import 的功能，並且支援 JSON 與 Markdown table 兩種格式
+
 ## [2026-05-08] 加入影片連結與SelectionCache 的條目的的source 欄位按了會跳到該任務的編輯頁面
 
 [x] 我已經在YouTube 拍了兩支影片，英文的為 NonBlockingLife: A Practical Way to Recover Focus After Interruptions，中文的為 NonBlockingLife｜別讓清單管理成為負擔：把大腦當單執行緒，我想在 GuidePage裡面加上超連結

@@ -222,6 +222,85 @@ export function GuidePage() {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">📦 資料匯出與匯入</h3>
+        <p className="text-gray-700 text-sm mb-4">
+          NBL 支援把本地資料匯出成 JSON 或 Markdown table 備份，也可從備份檔案匯入資料。這對跨設備遷移、備份、AI 分析或 Excel 檢視都很有幫助。
+        </p>
+
+        <div className="space-y-4">
+          {/* 匯出說明 */}
+          <div className="rounded-md bg-blue-50 border border-blue-200 p-3">
+            <h4 className="font-semibold text-blue-900 text-sm mb-2">📤 匯出備份</h4>
+            <ol className="list-decimal pl-5 space-y-1 text-sm text-blue-800">
+              <li>點擊同步狀態列右方的 <strong>📤 按鈕</strong></li>
+              <li>可選擇輸出 JSON 或 Markdown table，會下載 <code className="bg-white px-1 rounded">nbl-backup-YYYY-MM-DD.json</code> 或 <code className="bg-white px-1 rounded">nbl-backup-YYYY-MM-DD.md</code></li>
+              <li>兩種格式都包含 6 張表：Task Pool / Scheduled / Micro Tasks / Inbox / Resource / Log</li>
+            </ol>
+            <p className="text-xs text-blue-700 mt-2">
+              💡 提示：JSON 適合程式處理與 Power Query；Markdown table 可直接閱讀，且用 <code className="bg-white px-1 rounded">## 📊 table_name</code> 分段，適合 AI 與人工檢查
+            </p>
+          </div>
+
+          {/* 匯入說明 */}
+          <div className="rounded-md bg-green-50 border border-green-200 p-3">
+            <h4 className="font-semibold text-green-900 text-sm mb-2">📥 匯入資料</h4>
+            <ol className="list-decimal pl-5 space-y-1 text-sm text-green-800">
+              <li>點擊同步狀態列右方的 <strong>📥 按鈕</strong></li>
+              <li>選擇要匯入的 JSON 或 Markdown table 備份檔案</li>
+              <li>確認 modal 提醒有無未同步的變更</li>
+              <li>確認後開始匯入，相同 ID 的記錄會被覆蓋，其他本地資料保留</li>
+              <li>結果 modal 會顯示各表匯入筆數與任何跳過的記錄</li>
+            </ol>
+            <p className="text-xs text-green-700 mt-2">
+              ⚠️ 提醒：匯入會用 upsert（更新或插入）模式，相同 ID 會被覆蓋，但不會刪除其他記錄
+            </p>
+          </div>
+
+          {/* Excel 整合說明 */}
+          <div className="rounded-md bg-amber-50 border border-amber-200 p-3">
+            <h4 className="font-semibold text-amber-900 text-sm mb-2">📊 在 Excel 檢視資料</h4>
+            <p className="text-sm text-amber-800 mb-2">可先匯出 JSON 或 Markdown table；思考中：</p>
+            {/* <ol className="list-decimal pl-5 space-y-1 text-sm text-amber-800">
+              <li><strong>Power Query 方式</strong>（適合進階使用者）：
+                <ul className="list-disc pl-5 mt-1 space-y-0.5">
+                  <li>Excel → <strong>資料</strong> → <strong>取得資料</strong> → <strong>自檔案</strong> → <strong>自 JSON</strong></li>
+                  <li>選擇匯出的 JSON 檔案，Power Query 會自動解析 6 張表</li>
+                  <li>但需手動為每張表設定查詢，首次建議使用提供的範例 Excel 檔</li>
+                </ul>
+              </li>
+              <li><strong>Google Sheets 方式</strong>（推薦，最簡單）：
+                <ul className="list-disc pl-5 mt-1 space-y-0.5">
+                  <li>用文字編輯器打開 JSON，複製其中一個表的陣列（如 <code className="bg-white px-0.5 rounded text-xs">"task_pool": [...]</code>）</li>
+                  <li>開啟 <a href="https://sheets.google.com" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Google Sheets</a> → 新增試算表</li>
+                  <li>在儲存格 A1 貼上陣列 JSON，Google Sheets 自動解析成表格</li>
+                  <li>為其他表重複步驟（task_pool / scheduled / micro_tasks / inbox / resource / log）</li>
+                  <li>可在 Google Sheets 中編輯後，再複製欄位值回成 JSON 格式以匯入 PWA</li>
+                </ul>
+              </li>
+              <li><strong>Excel 複製貼上方式</strong>（替代方案）：
+                <ul className="list-disc pl-5 mt-1 space-y-0.5">
+                  <li>複製 JSON 中一個表的陣列部分</li>
+                  <li>貼到 Excel，選擇「從 JSON 轉換」或直接作為文字</li>
+                  <li>手動調整格式（功能有限，不太推薦）</li>
+                </ul>
+              </li>
+            </ol> */}
+          </div>
+
+          {/* 常見情境 */}
+          <div className="rounded-md bg-purple-50 border border-purple-200 p-3">
+            <h4 className="font-semibold text-purple-900 text-sm mb-2">🎯 常見使用情境</h4>
+            <ul className="space-y-1 text-sm text-purple-800 list-disc pl-5">
+              {/* <li><strong>在 Excel 中修改後匯入</strong>：export JSON → 在 Excel 中編輯 → 存回 JSON → 用 📥 匯入</li> */}
+              <li><strong>跨裝置遷移</strong>：新裝置先 export 空備份確認格式 → 從舊裝置 export → 在新裝置 import</li>
+              <li><strong>AI 分析</strong>：export Markdown table → 貼給 Gemini/Copilot/Claude 做分析或摘要（保留 <code className="bg-white px-1 rounded">## 📊 table_name</code> 區塊）</li>
+              <li><strong>完整備份</strong>：定期 export JSON 與 Markdown table 各一份，兼顧系統還原與人工可讀</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-5">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">🔄 同步說明（v2.0）</h3>
         <ul className="space-y-2 text-gray-700 list-disc pl-5">
           <li>

@@ -8,6 +8,12 @@ import {
   saveGasUrl,
   type SyncResult,
 } from "../utils/syncUtils";
+import {
+  exportDB,
+  importDB,
+  type ExportFormat,
+  type ImportResult,
+} from "../utils/exportImportUtils";
 import { useT } from "../i18n";
 
 interface SyncStatusProps {
@@ -30,6 +36,11 @@ export function SyncStatus({
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [includeLogOnReset, setIncludeLogOnReset] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
+  const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [showExportConfirm, setShowExportConfirm] = useState(false);
+  const importFileRef = useRef<HTMLInputElement>(null);
   const t = useT();
 
   // 用於 idle 偵測：記錄最後一次 pendingCount 變化的時間
@@ -245,6 +256,49 @@ export function SyncStatus({
     setTimeout(() => setMessage(""), 3000);
   };
 
+  // 處理匯出
+  const handleExport = async (format: ExportFormat) => {
+    setShowExportConfirm(false);
+    try {
+      await exportDB({ format });
+      setMessage(`✅ 已匯出 ${format.toUpperCase()} 備份檔案`);
+      setTimeout(() => setMessage(""), 3000);
+    } catch (error) {
+      setMessage(`❌ 匯出失敗: ${String(error)}`);
+      setTimeout(() => setMessage(""), 3000);
+    }
+  };
+
+  // 處理匯入：選檔後先確認
+  const handleImportFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPendingImportFile(file);
+    setShowImportConfirm(true);
+    // 清空 input 以便同一檔案可再次選取
+    e.target.value = "";
+  };
+
+  const handleConfirmImport = async () => {
+    if (!pendingImportFile) return;
+    setShowImportConfirm(false);
+    setMessage("⏳ 匯入中...");
+    try {
+      const result = await importDB(pendingImportFile);
+      setImportResult(result);
+      if (result.status === "success") {
+        setMessage("✅ 匯入完成");
+      } else {
+        setMessage(`❌ ${result.message}`);
+      }
+      setTimeout(() => setMessage(""), 3000);
+    } catch (error) {
+      setMessage(`❌ 匯入失敗: ${String(error)}`);
+      setTimeout(() => setMessage(""), 3000);
+    }
+    setPendingImportFile(null);
+  };
+
   // 格式化最後同步時間
   const formatLastSyncTime = (): string => {
     if (!lastSyncTime) return "";
@@ -353,6 +407,30 @@ export function SyncStatus({
           ☁️
         </button>
 
+        <button
+          onClick={() => setShowExportConfirm(true)}
+          title="匯出本地資料（JSON / Markdown）"
+          className="px-2 py-1 text-xs text-gray-500 hover:text-blue-500 hover:underline"
+        >
+          📤
+        </button>
+
+        <button
+          onClick={() => importFileRef.current?.click()}
+          title="從 JSON / MD 備份檔匯入資料（同 ID 會覆蓋）"
+          className="px-2 py-1 text-xs text-gray-500 hover:text-green-500 hover:underline"
+        >
+          📥
+        </button>
+
+        <input
+          ref={importFileRef}
+          type="file"
+          accept=".json,.md,application/json,text/markdown,text/plain"
+          className="hidden"
+          onChange={handleImportFileChange}
+        />
+
         {message && (
           <span
             className={`ml-2 text-xs ${
@@ -421,6 +499,119 @@ export function SyncStatus({
                 className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
               >
                 {includeLogOnReset ? t('sync.confirmRestoreWithLog') : t('sync.confirmRestore')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 匯出格式選擇 modal */}
+      {showExportConfirm && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-2xl">
+            <h3 className="text-lg font-bold text-blue-700 mb-3">📤 匯出格式</h3>
+            <p className="text-gray-700 text-sm mb-4">
+              請選擇匯出格式：JSON（最穩定）或 Markdown 表格（AI/人類友善）。
+            </p>
+            <div className="grid grid-cols-1 gap-2 mb-3">
+              <button
+                onClick={() => handleExport("json")}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                匯出 JSON
+              </button>
+              <button
+                onClick={() => handleExport("mdtable")}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              >
+                匯出 Markdown
+              </button>
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowExportConfirm(false)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 匯入確認 modal */}
+      {showImportConfirm && pendingImportFile && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-2xl">
+            <h3 className="text-lg font-bold text-green-700 mb-3">📥 匯入備份資料</h3>
+            <p className="text-gray-700 text-sm mb-2">
+              即將匯入：<span className="font-mono text-xs bg-gray-100 px-1 rounded">{pendingImportFile.name}</span>
+            </p>
+            <p className="text-gray-600 text-sm mb-4">
+              相同 ID 的記錄將被覆蓋，其餘本地資料不受影響。
+            </p>
+            {pendingCount > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded p-2 mb-3 text-xs text-amber-700">
+                ⚠️ 目前有 <strong>{pendingCount}</strong> 筆尚未同步的變更，匯入後不影響這些待同步項目。
+              </div>
+            )}
+            <p className="text-gray-400 text-xs mb-4">此操作不可復原。</p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => { setShowImportConfirm(false); setPendingImportFile(null); }}
+                className="px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-50"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleConfirmImport}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                確認匯入
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 匯入結果 modal */}
+      {importResult && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-2xl">
+            <h3 className={`text-lg font-bold mb-3 ${
+              importResult.status === "success" ? "text-green-700" : "text-red-600"
+            }`}>
+              {importResult.status === "success" ? "✅ 匯入完成" : "❌ 匯入失敗"}
+            </h3>
+            <p className="text-gray-700 text-sm mb-3">{importResult.message}</p>
+            {importResult.counts && (
+              <ul className="text-xs text-gray-600 mb-3 space-y-0.5">
+                {Object.entries(importResult.counts).map(([table, count]) => (
+                  <li key={table} className="flex justify-between">
+                    <span className="font-mono">{table}</span>
+                    <span className="text-gray-500">{count} 筆</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {importResult.warnings && importResult.warnings.length > 0 && (
+              <details className="mb-3">
+                <summary className="text-xs text-amber-600 cursor-pointer">
+                  ⚠️ {importResult.warnings.length} 筆已跳過（點開查看詳情）
+                </summary>
+                <ul className="mt-1 text-xs text-gray-500 max-h-28 overflow-y-auto space-y-0.5">
+                  {importResult.warnings.map((w, i) => (
+                    <li key={i}>{w}</li>
+                  ))}
+                </ul>
+              </details>
+            )}
+            <div className="flex justify-end">
+              <button
+                onClick={() => setImportResult(null)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              >
+                關閉
               </button>
             </div>
           </div>
