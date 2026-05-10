@@ -326,110 +326,103 @@ export function SyncStatus({
     error: "Sync Error",
   };
 
-  // 顯示 GAS URL 輸入框
-  if (showUrlInput) {
-    return (
-      <>
-        <div className="flex items-center gap-2 text-sm">
-          <input
-            type="text"
-            placeholder="粘貼 GAS Web App URL..."
-            defaultValue={gasUrl}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleSetGasUrl((e.target as HTMLInputElement).value);
-              }
-            }}
-            className="w-80 px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500"
-          />
-          <button
-            onClick={(e) => {
-              const input = (e.target as HTMLElement)
-                .previousElementSibling as HTMLInputElement;
-              handleSetGasUrl(input.value);
-            }}
-            className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
-          >
-            設置
-          </button>
-        </div>
-        {showSetupWizard && (
-          <SetupWizard
-            isModal={true}
-            onComplete={handleSetupComplete}
-            onClose={() => setShowSetupWizard(false)}
-          />
-        )}
-      </>
-    );
-  }
+  const UrlInputView = () => (
+    <div className="flex items-center gap-2 text-sm">
+      <input
+        type="text"
+        placeholder="粘貼 GAS Web App URL..."
+        defaultValue={gasUrl}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            handleSetGasUrl((e.target as HTMLInputElement).value);
+          }
+        }}
+        className="w-80 px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500"
+      />
+      <button
+        onClick={(e) => {
+          const input = (e.target as HTMLElement)
+            .previousElementSibling as HTMLInputElement;
+          handleSetGasUrl(input.value);
+        }}
+        className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+      >
+        設置
+      </button>
+    </div>
+  );
+
+  const StatusView = () => (
+    <div className="flex items-center gap-2 text-sm text-gray-600">
+      <span>{statusIcon[syncStatus]}</span>
+      <span>{statusText[syncStatus]}</span>
+
+      {lastSyncTime && (
+        <span className="text-xs text-gray-400">({formatLastSyncTime()})</span>
+      )}
+
+      <button
+        onClick={handleSync}
+        disabled={syncStatus === "syncing"}
+        title={gasUrl ? "同步本地變更到 Google Sheets" : "未配置 GAS URL"}
+        className={`ml-4 px-3 py-1 rounded text-xs font-medium transition-colors ${
+          syncStatus === "syncing"
+            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+            : "bg-blue-500 text-white hover:bg-blue-600 active:scale-95"
+        }`}
+      >
+        {syncStatus === "syncing" ? "⏳" : "💾"} 同步
+      </button>
+
+      <button
+        onClick={() => setShowUrlInput(true)}
+        title="重新配置 GAS URL"
+        className="px-2 py-1 text-xs text-gray-500 hover:text-blue-500 hover:underline"
+      >
+        ⚙️
+      </button>
+
+      <button
+        onClick={() => {
+          setIncludeLogOnReset(false);
+          setShowResetConfirm(true);
+        }}
+        title="從 Google Sheets 還原所有資料（清空本地後重新拉取）"
+        className="px-2 py-1 text-xs text-gray-500 hover:text-orange-500 hover:underline"
+      >
+        ☁️
+      </button>
+    </div>
+  );
 
   // 正常顯示：狀態 + 同步按鈕
   return (
     <>
-      <div className="flex items-center gap-2 text-sm text-gray-600">
-        <span>{statusIcon[syncStatus]}</span>
-        <span>{statusText[syncStatus]}</span>
+      {showUrlInput ? <UrlInputView /> : <StatusView />}
 
-        {lastSyncTime && (
-          <span className="text-xs text-gray-400">({formatLastSyncTime()})</span>
-        )}
+      <button
+        onClick={() => setShowExportConfirm(true)}
+        title="匯出本地資料（JSON / Markdown）"
+        className="px-2 py-1 text-xs text-gray-500 hover:text-blue-500 hover:underline"
+      >
+        📤
+      </button>
 
-        <button
-          onClick={handleSync}
-          disabled={syncStatus === "syncing"}
-          title={gasUrl ? "同步本地變更到 Google Sheets" : "未配置 GAS URL"}
-          className={`ml-4 px-3 py-1 rounded text-xs font-medium transition-colors ${
-            syncStatus === "syncing"
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-blue-500 text-white hover:bg-blue-600 active:scale-95"
-          }`}
-        >
-          {syncStatus === "syncing" ? "⏳" : "💾"} 同步
-        </button>
+      <button
+        onClick={() => importFileRef.current?.click()}
+        title="從 JSON / MD 備份檔匯入資料（同 ID 會覆蓋）"
+        className="px-2 py-1 text-xs text-gray-500 hover:text-green-500 hover:underline"
+      >
+        📥
+      </button>
 
-        <button
-          onClick={() => setShowUrlInput(true)}
-          title="重新配置 GAS URL"
-          className="px-2 py-1 text-xs text-gray-500 hover:text-blue-500 hover:underline"
-        >
-          ⚙️
-        </button>
-
-        <button
-          onClick={() => {
-            setIncludeLogOnReset(false);
-            setShowResetConfirm(true);
-          }}
-          title="從 Google Sheets 還原所有資料（清空本地後重新拉取）"
-          className="px-2 py-1 text-xs text-gray-500 hover:text-orange-500 hover:underline"
-        >
-          ☁️
-        </button>
-
-        <button
-          onClick={() => setShowExportConfirm(true)}
-          title="匯出本地資料（JSON / Markdown）"
-          className="px-2 py-1 text-xs text-gray-500 hover:text-blue-500 hover:underline"
-        >
-          📤
-        </button>
-
-        <button
-          onClick={() => importFileRef.current?.click()}
-          title="從 JSON / MD 備份檔匯入資料（同 ID 會覆蓋）"
-          className="px-2 py-1 text-xs text-gray-500 hover:text-green-500 hover:underline"
-        >
-          📥
-        </button>
-
-        <input
-          ref={importFileRef}
-          type="file"
-          accept=".json,.md,application/json,text/markdown,text/plain"
-          className="hidden"
-          onChange={handleImportFileChange}
-        />
+      <input
+        ref={importFileRef}
+        type="file"
+        accept=".json,.md,application/json,text/markdown,text/plain"
+        className="hidden"
+        onChange={handleImportFileChange}
+      />
 
         {message && (
           <span
@@ -444,7 +437,7 @@ export function SyncStatus({
             {message}
           </span>
         )}
-      </div>
+      
       {showSetupWizard && (
         <SetupWizard
           isModal={true}

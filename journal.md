@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-05-10] 準備開拍 sync_tutorial 的影片了，為此修改了 SyncStatus 的 UI 與文案，讓他更適合用來教學了！
+
 ## [2026-05-09] 加入 export 與 import 的功能，並且支援 JSON 與 Markdown table 兩種格式
 
 ## [2026-05-08] 加入影片連結與SelectionCache 的條目的的source 欄位按了會跳到該任務的編輯頁面
