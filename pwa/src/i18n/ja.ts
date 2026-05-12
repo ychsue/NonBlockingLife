@@ -207,6 +207,7 @@ export const ja: TranslationMap = {
   'table.scheduled.editTitle': 'スケジュールタスクを編集',
   'table.scheduled.titlePlaceholder': 'タスク名を入力',
   'table.scheduled.cronPlaceholder': '例: 0 9 * * *',
+    'table.scheduled.searchMode': '検索モード',
   'table.scheduled.helpTitle': 'Scheduled ヘルプ',
   'table.scheduled.cronHeader': 'Cron (分 時 日 月 週)',
   'table.scheduled.previewTitle': '次回実行プレビュー',
@@ -243,6 +244,13 @@ export const ja: TranslationMap = {
   'table.scheduled.field.note': 'メモ',
   'table.scheduled.field.url': 'URL',
   'table.scheduled.field.deadline': '期限',
+    // sort options
+    'table.scheduled.sortLabel': '並べ替え',
+    'table.scheduled.sort.none': 'デフォルト',
+    'table.scheduled.sort.lastRunAsc': '最後の処理：古い順',
+    'table.scheduled.sort.lastRunDesc': '最後の処理：新しい順',
+    'table.scheduled.sort.nextRunAsc': '次の処理：最も早い',
+    'table.scheduled.sort.nextRunDesc': '次の処理：最も遅い',
 
   // ── Log ──────────────────────────────────────────────────────
   'table.log.confirmClear': 'Log 関連の change_log 記録をすべて削除してもよろしいですか？',

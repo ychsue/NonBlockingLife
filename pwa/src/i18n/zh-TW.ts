@@ -225,6 +225,7 @@ export const zhTW: TranslationMap = {
   'table.scheduled.subtitle':           '定期執行的任務設定',
   'table.scheduled.searchPlaceholder':  '搜尋 Title、Note、Callback、URL...',
   'table.scheduled.hideDone':           '隱藏 Done',
+    'table.scheduled.searchMode':        '搜尋模式',
   'table.scheduled.editTitle':          '編輯排程任務',
   'table.scheduled.titlePlaceholder':   '輸入任務標題',
   'table.scheduled.cronPlaceholder':    '例: 0 9 * * *',
@@ -266,6 +267,13 @@ export const zhTW: TranslationMap = {
   'table.scheduled.field.note':         '備註',
   'table.scheduled.field.url':          'URL',
   'table.scheduled.field.deadline':     '截止時間',
+  // sort options
+  'table.scheduled.sortLabel':          '排序',
+  'table.scheduled.sort.none':          '預設',
+  'table.scheduled.sort.lastRunAsc':    '最久前處理',
+  'table.scheduled.sort.lastRunDesc':   '最近處理',
+  'table.scheduled.sort.nextRunAsc':    '最早要處理',
+  'table.scheduled.sort.nextRunDesc':   '最晚要處理',
 
   // ── Log ──────────────────────────────────────────────────────
   'table.log.confirmClear':         '確定要清除所有 Log 相關的 change_log 記錄嗎？',

@@ -3,7 +3,9 @@ import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
   useReactTable,
+  type SortingState,
 } from '@tanstack/react-table'
 import { applyChange, db } from '../../db/index'
 import type { ScheduledItem } from '../../db/schema'
@@ -60,11 +62,14 @@ export function ScheduledTable() {
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     taskId: false,
   })
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [sortMode, setSortMode] = useState<'none' | 'lastRunAsc' | 'lastRunDesc' | 'nextRunAsc' | 'nextRunDesc'>('none')
   const { isMobile } = useResponsiveTable()
   const [editingItem, setEditingItem] = useState<ScheduledItem | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [isOrMode, setIsOrMode] = useState(true)
-  const [hideDone, setHideDone] = useState(false)
+  const [hideDone, setHideDone] = useState(true)
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
   const currentSheet = useAppStore((state) => state.currentSheet)
   const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
   const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
@@ -79,7 +84,29 @@ export function ScheduledTable() {
     titlePlaceholder: t('table.scheduled.titlePlaceholder'),
     cronPlaceholder: t('table.scheduled.cronPlaceholder'),
     helpTitle: t('table.scheduled.helpTitle'),
+    sortLabel: t('table.scheduled.sortLabel'),
+    searchMode: t('table.scheduled.searchMode'),
   }
+
+  // 根据 sortMode 更新 sorting 状态
+  useEffect(() => {
+    switch (sortMode) {
+      case 'lastRunAsc':
+        setSorting([{ id: 'lastRun', desc: false }])
+        break
+      case 'lastRunDesc':
+        setSorting([{ id: 'lastRun', desc: true }])
+        break
+      case 'nextRunAsc':
+        setSorting([{ id: 'nextRun', desc: false }])
+        break
+      case 'nextRunDesc':
+        setSorting([{ id: 'nextRun', desc: true }])
+        break
+      default:
+        setSorting([])
+    }
+  }, [sortMode])
 
   // 初始載入（不自動更新）
   useEffect(() => {
@@ -560,6 +587,7 @@ export function ScheduledTable() {
       }),
       columnHelper.accessor('nextRun', {
         header: t('table.scheduled.col.nextRun'),
+        sortingFn: 'datetime',
         cell: (info) => {
           const taskId = info.row.original.taskId
           const rawValue = info.getValue()
@@ -581,6 +609,13 @@ export function ScheduledTable() {
             />
           )
         },
+      }),
+      // Hidden column for lastRun sorting
+      columnHelper.accessor('lastRun', {
+        id: 'lastRun',
+        header: () => null,
+        cell: () => null,
+        sortingFn: 'datetime',
       }),
       columnHelper.display({
         id: 'actions',
@@ -609,10 +644,28 @@ export function ScheduledTable() {
     data: filteredRows,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     state: {
       columnVisibility,
+      sorting,
     },
     onColumnVisibilityChange: setColumnVisibility,
+    onSortingChange: setSorting,
+    // Custom sorting for datetime fields (lastRun, nextRun)
+    // Undefined values should appear first
+    sortingFns: {
+      datetime: (rowA, rowB, columnId) => {
+        const a = rowA.getValue<number | undefined>(columnId)
+        const b = rowB.getValue<number | undefined>(columnId)
+        
+        // Undefined values go first
+        if (a === undefined && b === undefined) return 0
+        if (a === undefined) return -1
+        if (b === undefined) return 1
+        
+        return a - b
+      },
+    },
   })
 
   return (
@@ -638,35 +691,114 @@ export function ScheduledTable() {
         </div>
       </div>
 
-      {/* 搜尋欄 */}
-      <div className="mb-4 flex gap-2">
+      {/* 搜尋欄與過濾器 */}
+      <div className="mb-4 flex gap-2 flex-wrap">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={text.searchPlaceholder}
-          className="flex-1 px-3 py-2 border rounded focus:outline-none focus:border-blue-500"
+          className={`px-3 py-2 border rounded focus:outline-none focus:border-blue-500 ${isMobile ? 'flex-1 min-w-0' : 'flex-1'}`}
         />
-        <button
-          onClick={() => setIsOrMode(!isOrMode)}
-          className={`px-3 py-2 rounded ${
-            isOrMode
-              ? 'bg-blue-500 text-white hover:bg-blue-600'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          {isOrMode ? 'OR' : 'AND'}
-        </button>
-        <label className="flex items-center gap-1 px-3 py-2 border rounded cursor-pointer select-none text-sm text-gray-700 hover:bg-gray-50">
-          <input
-            type="checkbox"
-            checked={hideDone}
-            onChange={(e) => setHideDone(e.target.checked)}
-            className="accent-blue-500"
-          />
-          {text.hideDone}
-        </label>
+
+        {!isMobile && (
+          <>
+            <button
+              onClick={() => setIsOrMode(!isOrMode)}
+              className={`px-3 py-2 rounded ${
+                isOrMode
+                  ? 'bg-blue-500 text-white hover:bg-blue-600'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {isOrMode ? 'OR' : 'AND'}
+            </button>
+            <label className="flex items-center gap-1 px-3 py-2 border rounded cursor-pointer select-none text-sm text-gray-700 hover:bg-gray-50">
+              <input
+                type="checkbox"
+                checked={hideDone}
+                onChange={(e) => setHideDone(e.target.checked)}
+                className="accent-blue-500"
+              />
+              {text.hideDone}
+            </label>
+          </>
+        )}
+
+        {isMobile && (
+          <button
+            onClick={() => setShowMobileFilters((prev) => !prev)}
+            className="px-3 py-2 border rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
+            title="Toggle filters"
+          >
+            {showMobileFilters ? 'Hide Filters' : 'Show Filters'}
+          </button>
+        )}
       </div>
+
+      {/* 桌面版排序選項 */}
+      {!isMobile && (
+        <div className="mb-4 flex gap-2 items-center">
+          <label className="text-sm text-gray-700 font-semibold">{text.sortLabel}:</label>
+          <select
+            value={sortMode}
+            onChange={(e) => setSortMode(e.target.value as typeof sortMode)}
+            className="px-3 py-2 border rounded focus:outline-none focus:border-blue-500 text-sm"
+          >
+            <option value="none">{t('table.scheduled.sort.none')}</option>
+            <option value="lastRunAsc">{t('table.scheduled.sort.lastRunAsc')}</option>
+            <option value="lastRunDesc">{t('table.scheduled.sort.lastRunDesc')}</option>
+            <option value="nextRunAsc">{t('table.scheduled.sort.nextRunAsc')}</option>
+            <option value="nextRunDesc">{t('table.scheduled.sort.nextRunDesc')}</option>
+          </select>
+        </div>
+      )}
+
+      {/* 手機版過濾面板 */}
+      {isMobile && showMobileFilters && (
+        <div className="mb-4 rounded-lg border bg-gray-50 p-3">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-semibold text-gray-700">{text.searchMode}:</label>
+              <button
+                onClick={() => setIsOrMode(!isOrMode)}
+                className={`px-3 py-1 rounded text-sm ${
+                  isOrMode
+                    ? 'bg-blue-500 text-white hover:bg-blue-600'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {isOrMode ? 'OR' : 'AND'}
+              </button>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-gray-700">{text.sortLabel}:</label>
+              <select
+                value={sortMode}
+                onChange={(e) => setSortMode(e.target.value as typeof sortMode)}
+                className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-sm"
+              >
+                <option value="none">{t('table.scheduled.sort.none')}</option>
+                <option value="lastRunAsc">{t('table.scheduled.sort.lastRunAsc')}</option>
+                <option value="lastRunDesc">{t('table.scheduled.sort.lastRunDesc')}</option>
+                <option value="nextRunAsc">{t('table.scheduled.sort.nextRunAsc')}</option>
+                <option value="nextRunDesc">{t('table.scheduled.sort.nextRunDesc')}</option>
+              </select>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={hideDone}
+                onChange={(e) => setHideDone(e.target.checked)}
+                className="accent-blue-500"
+              />
+              {text.hideDone}
+            </label>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center text-gray-500">{text.loading}</div>
@@ -677,7 +809,9 @@ export function ScheduledTable() {
       ) : isMobile ? (
         // 移動視圖 - 卡片
         <div className="grid grid-cols-1 gap-3">
-          {filteredRows.map((item) => (
+          {table.getRowModel().rows.map((row) => {
+            const item = row.original
+            return (
             <TableCard
               key={item.taskId}
               item={item}
@@ -699,7 +833,8 @@ export function ScheduledTable() {
                 onEdit={setEditingItem}
                 onDelete={(item) => deleteRow(item.taskId)}
               />
-            ))}
+            )
+          })}
           </div>
       ) : (
         // 桌面視圖 - 表格

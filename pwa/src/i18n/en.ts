@@ -222,6 +222,7 @@ export const en = {
   'table.scheduled.subtitle':           'Recurring task settings',
   'table.scheduled.searchPlaceholder':  'Search Title, Note, Callback, URL...',
   'table.scheduled.hideDone':           'Hide Done',
+    'table.scheduled.searchMode':        'Search Mode',
   'table.scheduled.editTitle':          'Edit Scheduled Task',
   'table.scheduled.titlePlaceholder':   'Enter task title',
   'table.scheduled.cronPlaceholder':    'e.g., 0 9 * * *',
@@ -263,6 +264,13 @@ export const en = {
   'table.scheduled.field.note':         'Note',
   'table.scheduled.field.url':          'URL',
   'table.scheduled.field.deadline':     'Deadline',
+  // sort options
+  'table.scheduled.sortLabel':          'Sort By',
+  'table.scheduled.sort.none':          'Default',
+  'table.scheduled.sort.lastRunAsc':    'Oldest processed',
+  'table.scheduled.sort.lastRunDesc':   'Most recently processed',
+  'table.scheduled.sort.nextRunAsc':    'Earliest to be processed',
+  'table.scheduled.sort.nextRunDesc':   'Latest to be processed',
 
   // ── Log ──────────────────────────────────────────────────────
   'table.log.confirmClear':         'Are you sure you want to clear all change_log records related to Log?',

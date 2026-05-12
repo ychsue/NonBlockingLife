@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-05-12] 加入照lastRun 與 nextRun 來排序的功能了，這樣就可以更快地找到未來該處理的排程任務了！
+
 ## [2026-05-10] 準備開拍 sync_tutorial 的影片了，為此修改了 SyncStatus 的 UI 與文案，讓他更適合用來教學了！
 
 ## [2026-05-09] 加入 export 與 import 的功能，並且支援 JSON 與 Markdown table 兩種格式
