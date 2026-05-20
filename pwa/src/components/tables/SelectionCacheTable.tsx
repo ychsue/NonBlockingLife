@@ -78,6 +78,7 @@ export function SelectionCacheTable() {
   const endDialogRef = useRef<HTMLDialogElement | null>(null);
   const recordDialogRef = useRef<HTMLDialogElement | null>(null);
   const [takeTime, setTakeTime] = useState("");
+  const [jumpToSourceChecked, setJumpToSourceChecked] = useState(false);
   const [showRecordDialog, setShowRecordDialog] = useState(false);
   const [conflictScheduled, setConflictScheduled] = useState<ScheduledItem[]>([]);
 
@@ -389,6 +390,12 @@ export function SelectionCacheTable() {
       setIsInterruptMode(false);
       await loadRunningTask();
       await handleRefreshCandidates();
+
+      // 若有勾選「結束後跳轉來源」
+      if (jumpToSourceChecked && runningTask) {
+        handleJumpToSourceEditor(runningTask);
+        setJumpToSourceChecked(false); // 重置
+      }
     } catch (err) {
       console.error("Failed to end task:", err);
     }
@@ -771,6 +778,19 @@ export function SelectionCacheTable() {
                   rows={3}
                   placeholder={t('endTask.notePlaceholder')}
                 />
+              </div>
+              {/* 新增 checkbox */}
+              <div className="mt-3 flex items-center">
+                <input
+                  id="jumpToSource"
+                  type="checkbox"
+                  checked={jumpToSourceChecked}
+                  onChange={e => setJumpToSourceChecked(e.target.checked)}
+                  className="mr-2"
+                />
+                <label htmlFor="jumpToSource" className="text-sm text-amber-900 select-none cursor-pointer">
+                  結束後自動跳轉到來源條目
+                </label>
               </div>
               <div className="flex gap-2 mt-6">
                 <button

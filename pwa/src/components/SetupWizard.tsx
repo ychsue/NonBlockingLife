@@ -90,10 +90,10 @@ export function SetupWizard({ isModal = false, onComplete, onClose }: SetupWizar
               onClick={handleCopyGASCode}
               className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
             >
-              📋 複製 Apps Script 代碼
+              📋 複製 Apps Script 程式碼
             </button>
             <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700 ml-2">
-              <li>在 Apps Script 編輯器中貼上剛才複製的代碼</li>
+              <li>在 Apps Script 編輯器中貼上剛才複製的程式碼</li>
               <li>儲存（Ctrl+S）</li>
             </ol>
           </div>
