@@ -43,6 +43,7 @@ export const en = {
   'endTask.notePlaceholder':'Enter end note...',
   'endTask.confirmBtn':     'End Task',
   'endTask.noTask':         'No task in progress',
+  'endTask.jumpToSource':   'Jump to source item after ending',
 
   // ── Start Task dialog ─────────────────────────────────────────
   'startTask.title':           'Start Task',

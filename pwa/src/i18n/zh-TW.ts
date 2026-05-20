@@ -46,6 +46,7 @@ export const zhTW: TranslationMap = {
   'endTask.notePlaceholder': '輸入結束任務的備註...',
   'endTask.confirmBtn':      '結束任務',
   'endTask.noTask':          '目前沒有執行中的任務',
+  'endTask.jumpToSource':    '結束後自動跳轉到來源條目',
 
   // ── Start Task dialog ─────────────────────────────────────────
   'startTask.title':           '開始任務',

@@ -40,6 +40,7 @@ export const ja: TranslationMap = {
   'endTask.notePlaceholder': '終了メモを入力...',
   'endTask.confirmBtn': '終了する',
   'endTask.noTask': '実行中のタスクはありません',
+  'endTask.jumpToSource': '終了後にソース項目へジャンプ',
 
   'startTask.title': 'タスク開始',
   'startTask.taskId': 'タスク ID',

@@ -789,7 +789,8 @@ export function SelectionCacheTable() {
                   className="mr-2"
                 />
                 <label htmlFor="jumpToSource" className="text-sm text-amber-900 select-none cursor-pointer">
-                  結束後自動跳轉到來源條目
+                  {/* 結束後自動跳轉到來源條目 */}
+                  {t('endTask.jumpToSource')}
                 </label>
               </div>
               <div className="flex gap-2 mt-6">
