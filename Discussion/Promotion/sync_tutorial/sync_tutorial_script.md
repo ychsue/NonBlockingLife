@@ -113,13 +113,14 @@
 **時間戳記：**
 
 - 00:00 簡介與概覽
-- 00:30 軟體介面展示
-- 01:15 第一步：建立 Google Sheets
-- 02:00 第二步：設定 Google Apps Script
-- 03:30 第三步與第四步：部署 Web 應用程式
-- 04:45 iPhone 同步設置
-- 05:30 資料管理功能（覆蓋、匯出、匯入）
-- 06:00 功能說明與結語
+- 00:16 軟體介面展示
+- 01:11 第一步：建立 Google Sheets
+- 01:50 第二步：設定 Google Apps Script
+- 03:09 第三步與第四步：部署 Web 應用程式
+- 05:00 iPhone 同步設置
+- 05:20 資料管理功能（覆蓋）
+- 05:52 資料匯出與匯入
+- 06:43 結語
 
 ### 標籤（Tags）
 
@@ -340,13 +341,14 @@ Anyone who wants to keep NonBlockingLife data synced across multiple devices.
 **Timestamps:**
 
 - 00:00 Intro
-- 00:30 Interface overview
-- 01:15 Step 1: Create Google Sheets
-- 02:00 Step 2: Configure Google Apps Script
-- 03:30 Step 3 and 4: Deploy as Web App
-- 04:45 iPhone setup
-- 05:30 Data tools: overwrite, export, import
-- 06:00 Wrap-up
+- 00:17 Interface overview
+- 01:16 Step 1: Create Google Sheets
+- 01:58 Step 2: Configure Google Apps Script
+- 03:24 Step 3 and 4: Deploy as Web App
+- 05:15 iPhone setup
+- 05:26 Data tools: overwrite
+- 06:05 Data export/import
+- 07:03 Wrap-up
 
 ### Tags
 
