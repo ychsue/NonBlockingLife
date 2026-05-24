@@ -185,7 +185,12 @@ export function SelectionCacheTable() {
       setLoading(true);
       const data = await db.selection_cache.toArray();
       // 按得分降序排列
-      const sorted = data.sort((a, b) => (b.score || 0) - (a.score || 0));
+      const sorted = data.sort((a, b) => {
+        const aInterrupted = a.status === 'INTERRUPTED' ? 1 : 0;
+        const bInterrupted = b.status === 'INTERRUPTED' ? 1 : 0;
+        if (bInterrupted !== aInterrupted) return bInterrupted - aInterrupted;
+        return (b.score || 0) - (a.score || 0);
+      });
       setRows(sorted);
     } catch (err) {
       console.error("Failed to load selection cache:", err);
@@ -236,6 +241,7 @@ export function SelectionCacheTable() {
           title: c.title,
           score: c.score,
           source: c.source,
+          status: c.status,
           totalMinsInPool: totalMinsPool,
           url: c.url,
           deadline: c.deadline,
@@ -710,6 +716,10 @@ export function SelectionCacheTable() {
                     }
                   }}
                   className={`border-b border-gray-200 transition-colors transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-1 ${
+                    row.original.status === 'INTERRUPTED'
+                      ? "bg-amber-50 border-l-4 border-l-amber-400"
+                      : ""
+                  } ${
                     runningTask
                       ? "opacity-60 cursor-not-allowed"
                       : "hover:bg-blue-50 hover:shadow-sm cursor-pointer active:scale-95 active:bg-blue-100"

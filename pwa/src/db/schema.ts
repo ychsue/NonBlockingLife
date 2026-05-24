@@ -70,6 +70,7 @@ export interface SelectionCacheItem {
   title?: string
   score?: number
   source?: string
+  status?: string
   totalMinsInPool?: number
   url?: string
   deadline?: number
