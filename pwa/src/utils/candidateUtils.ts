@@ -6,6 +6,7 @@ export interface Candidate {
   title: string
   score: number
   source: string
+  status?: string
   url?: string
   deadline?: number
   usedTodayCount?: number
@@ -99,7 +100,7 @@ export function calculateCandidates(
   // ===== Task_Pool 處理 =====
   pool.forEach((task) => {
     const status = task.status
-    if (status === 'PENDING') {
+    if (status === 'PENDING' || status === 'INTERRUPTED') {
       const taskId = task.taskId
       const title = task.title || t('task.unnamed')
       let spentToday = task.spentTodayMins || 0
@@ -168,6 +169,7 @@ export function calculateCandidates(
         title: `${title} ${t('task.remainingQuota', { mins: remainingMins })}`,
         score: Math.max(0, score),
         source: 'Task_Pool',
+        status,
         url: task.url || undefined,
         deadline: task.deadline,
         usedTodayCount,
@@ -182,7 +184,7 @@ export function calculateCandidates(
   // ===== Scheduled Tasks 處理 =====
   scheduled.forEach((task) => {
     const status = task.status
-    if (status === 'PENDING') {
+    if (status === 'PENDING' || status === 'INTERRUPTED') {
       const taskId = task.taskId
       let title = task.title || t('task.unnamedScheduled')
       const nextRunTime = task.nextRun
@@ -201,6 +203,7 @@ export function calculateCandidates(
         title,
         score,
         source: 'Scheduled',
+        status,
         url: task.url || undefined,
       })
     }
@@ -209,7 +212,7 @@ export function calculateCandidates(
   // ===== Micro_Tasks 處理 =====
   microTasks.forEach((task) => {
     const status = task.status
-    if (status === 'PENDING') {
+    if (status === 'PENDING' || status === 'INTERRUPTED') {
       const taskId = task.taskId
       const title = task.title || t('task.unnamedMicro')
       let score = 30 // 固定基礎分
@@ -235,6 +238,7 @@ export function calculateCandidates(
         title,
         score,
         source: 'Micro_Tasks',
+        status,
         url: task.url || undefined,
         deadline: task.deadline,
       })

@@ -197,6 +197,7 @@ export async function endTask(endNote: string, isInterrupt = false) {
     now,
     duration,
     mode: "end",
+    isInterrupt,
   });
   timerMinutes = sourceUpdateResult.timerMinutes ?? timerMinutes;
 
@@ -241,8 +242,9 @@ async function applySourceCompletionUpdates(params: {
   now: number;
   duration?: number;
   mode: "end" | "record";
+  isInterrupt?: boolean;
 }): Promise<{ timerMinutes?: number }> {
-  const { source, taskId, now, duration = 0, mode } = params;
+  const { source, taskId, now, duration = 0, mode, isInterrupt = false } = params;
 
   if (source === "Task_Pool") {
     if (mode === "record") {
@@ -253,13 +255,23 @@ async function applySourceCompletionUpdates(params: {
     }
 
     const task = await db.task_pool.get(taskId);
-    await updateTaskPoolAfterEnd(task, now, duration);
+    await updateTaskPoolAfterEnd(task, now, duration, isInterrupt);
     return {};
   }
 
   if (source === "Scheduled") {
     const task = await db.scheduled.get(taskId);
-    await updateScheduledAfterEnd(task, now);
+    if (isInterrupt) {
+      await applyChange({
+        table: "scheduled",
+        recordId: taskId,
+        op: "update",
+        patch: { status: "INTERRUPTED", lastRun: now },
+        clientId: DEV_CLIENT_ID,
+      });
+    } else {
+      await updateScheduledAfterEnd(task, now);
+    }
     return {
       timerMinutes: parseToMinutes(task?.remindAfter) ?? undefined,
     };
@@ -271,7 +283,7 @@ async function applySourceCompletionUpdates(params: {
       recordId: taskId,
       op: "update",
       patch: {
-        status: "DONE",
+        status: isInterrupt ? "INTERRUPTED" : "DONE",
         lastRunDate: now,
       },
       clientId: DEV_CLIENT_ID,
@@ -340,6 +352,7 @@ async function updateTaskPoolAfterEnd(
   task: TaskPoolItem | undefined,
   now: number,
   duration: number,
+  isInterrupt = false,
 ) {
   if (!task) return;
 
@@ -364,7 +377,7 @@ async function updateTaskPoolAfterEnd(
     recordId: task.taskId,
     op: "update",
     patch: {
-      status: "PENDING",
+      status: isInterrupt ? "INTERRUPTED" : "PENDING",
       spentTodayMins: spentToday,
       totalSpentMins: totalSpent,
       lastRunDate: now,
