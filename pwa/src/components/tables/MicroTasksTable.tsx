@@ -219,6 +219,7 @@ export function MicroTasksTable() {
               <option value="PENDING">PENDING</option>
               <option value="DOING">DOING</option>
               <option value="DONE">DONE</option>
+              <option value="INTERRUPTED">INTERRUPTED</option>
             </select>
           )
         },
@@ -483,6 +484,7 @@ export function MicroTasksTable() {
               { label: 'Pending', value: 'PENDING' },
               { label: 'Doing', value: 'DOING' },
               { label: 'Done', value: 'DONE' },
+              { label: 'Interrupted', value: 'INTERRUPTED' },
             ],
           },
           {

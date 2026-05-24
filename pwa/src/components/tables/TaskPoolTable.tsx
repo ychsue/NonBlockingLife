@@ -253,6 +253,7 @@ export function TaskPoolTable() {
               <option value="PENDING">PENDING</option>
               <option value="DOING">DOING</option>
               <option value="DONE">DONE</option>
+              <option value="INTERRUPTED">INTERRUPTED</option>
             </select>
           )
         },
@@ -650,6 +651,7 @@ export function TaskPoolTable() {
               { label: 'Pending', value: 'PENDING' },
               { label: 'Doing', value: 'DOING' },
               { label: 'Done', value: 'DONE' },
+              { label: 'Interrupted', value: 'INTERRUPTED' },
             ],
           },
           {

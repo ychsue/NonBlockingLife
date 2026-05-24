@@ -299,6 +299,7 @@ export function ScheduledTable() {
               <option value="WAITING">WAITING</option>
               <option value="PENDING">PENDING</option>
               <option value="DONE">DONE</option>
+              <option value="INTERRUPTED">INTERRUPTED</option>
             </select>
           )
         },
@@ -896,6 +897,7 @@ export function ScheduledTable() {
               { label: 'WAITING', value: 'WAITING' },
               { label: 'PENDING', value: 'PENDING' },
               { label: 'DONE', value: 'DONE' },
+              { label: 'INTERRUPTED', value: 'INTERRUPTED' },
             ],
           },
           {
