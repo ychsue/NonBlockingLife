@@ -160,17 +160,21 @@ export function setAutomateConfig(
  * Flow 收到後，VARIABLES 裡的 key 直接成為 flow 內的變數。
  */
 export function buildAutomateIntentUrl(config: AutomateConfig): string {
-  const action = "net.nbl.timer.ACTION";
+  // 呼叫 Automate 官方對外的啟動 Action
+  const action = "net.llamalab.automate.intent.action.START";
+  const pkg = "net.llamalab.automate";
   
-  // 1. 將變數轉為安全字串編碼
+  // 傳入您在手機上建立的 Flow 名稱 (必須完全一致)
+  const flowExtra = `S.net.llamalab.automate.intent.extra.FLOW_NAME=${encodeURIComponent(config.flowName)}`;
+  
+  // 直接傳入變數
   const varStarted = `S.started=${encodeURIComponent(config.started ? "true" : "false")}`;
   const varMinutes = `S.timerMinutes=${encodeURIComponent(config.timerMinutes.toString())}`;
   const varTitle = `S.taskTitle=${encodeURIComponent(config.taskTitle ?? "")}`;
 
-  // 2. 關鍵修正：必須在網址結尾加上廣播的旗標 (launchFlags=0x10000000 代表新任務)
-  // 並且明確指定 action
-  return `intent://#Intent;action=${encodeURIComponent(action)};${varStarted};${varMinutes};${varTitle};launchFlags=0x10000000;end`;
-}/**
+  return `intent://#Intent;action=${action};package=${pkg};${flowExtra};${varStarted};${varMinutes};${varTitle};end`;
+}
+/**
  * 觸發 Android Automate flow
  */
 export function triggerAutomateFlow(
