@@ -2,6 +2,8 @@
 
 ## [2026-05-26] 加入 Android intent for Automate 的部分，現在要上去測試看看能不能順利啟動 Automate 的流程了！
 
+原本的 [NBL_Timer.flo](android\NBL_Timer.flo) 不能用，得手動輸入，還有，新版的可能不吃JSON字串，所以，得改
+
 ## [2026-05-23] status 多一個 INTERRUPTED 的狀態，當被 interrupt 的 task 結束時，就把他的 status 設為 INTERRUPTED，然後在 SelectionCache 裡面抓候選任務的時候，若有 INTERRUPTED 的，就把他放在最上面，並且給他一個特別的樣式，這樣就可以讓使用者一眼就看到被中斷的任務了！這樣的改動其實不大，但會讓整個流程更順暢，也更符合使用者的期待了！
 
 ## [2026-05-23] 完成客戶基本資料的GAS程式

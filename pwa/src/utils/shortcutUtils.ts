@@ -160,18 +160,21 @@ export function setAutomateConfig(
  * Flow 收到後，VARIABLES 裡的 key 直接成為 flow 內的變數。
  */
 export function buildAutomateIntentUrl(config: AutomateConfig): string {
-  const variables = JSON.stringify({
-    started: config.started,
-    timerMinutes: config.timerMinutes,
-    taskTitle: config.taskTitle ?? "",
-  });
-
   const action = "net.llamalab.automate.intent.action.START";
   const pkg = "net.llamalab.automate";
+  
+  // 1. 指定要啟動的 Flow 名稱
   const flowExtra = `S.net.llamalab.automate.intent.extra.FLOW_NAME=${encodeURIComponent(config.flowName)}`;
-  const varsExtra = `S.net.llamalab.automate.intent.extra.VARIABLES=${encodeURIComponent(variables)}`;
+  
+  // 2. 將變數直接拆解為獨立的 Extra 傳入，不要打包成單一 JSON 字串
+  // 使用符合 Automate 規範的獨立命名空間（例如用變數名本身，或加字首）
+  // 這裡直接對應到 Flow beginning 的引數名稱
+  const varStarted = `S.started=${encodeURIComponent(config.started ? "true" : "false")}`;
+  const varMinutes = `S.timerMinutes=${encodeURIComponent(config.timerMinutes.toString())}`;
+  const varTitle = `S.taskTitle=${encodeURIComponent(config.taskTitle ?? "")}`;
 
-  return `intent://#Intent;action=${action};package=${pkg};${flowExtra};${varsExtra};end`;
+  // 組合標準 Android Intent 網址
+  return `intent://#Intent;action=${action};package=${pkg};${flowExtra};${varStarted};${varMinutes};${varTitle};end`;
 }
 
 /**
