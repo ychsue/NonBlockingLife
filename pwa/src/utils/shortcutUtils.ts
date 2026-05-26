@@ -160,19 +160,17 @@ export function setAutomateConfig(
  * Flow 收到後，VARIABLES 裡的 key 直接成為 flow 內的變數。
  */
 export function buildAutomateIntentUrl(config: AutomateConfig): string {
-  // 1. 改用廣播的 Action（自訂一個 unique 的 action 名稱，例如 net.nbl.timer.ACTION）
   const action = "net.nbl.timer.ACTION";
   
-  // 2. 將變數直接拆解為獨立的 Extra 傳入
+  // 1. 將變數轉為安全字串編碼
   const varStarted = `S.started=${encodeURIComponent(config.started ? "true" : "false")}`;
   const varMinutes = `S.timerMinutes=${encodeURIComponent(config.timerMinutes.toString())}`;
   const varTitle = `S.taskTitle=${encodeURIComponent(config.taskTitle ?? "")}`;
 
-  // 組合標準 Android Broadcast Intent 網址
-  // 注意：這裡移除了 package，改用廣播機制，Automate 的廣播接收器會去監聽這個 Action
-  return `intent://#Intent;action=${action};${varStarted};${varMinutes};${varTitle};end`;
-}
-/**
+  // 2. 關鍵修正：必須在網址結尾加上廣播的旗標 (launchFlags=0x10000000 代表新任務)
+  // 並且明確指定 action
+  return `intent://#Intent;action=${encodeURIComponent(action)};${varStarted};${varMinutes};${varTitle};launchFlags=0x10000000;end`;
+}/**
  * 觸發 Android Automate flow
  */
 export function triggerAutomateFlow(
