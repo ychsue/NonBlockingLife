@@ -160,28 +160,21 @@ export function setAutomateConfig(
  * Flow 收到後，VARIABLES 裡的 key 直接成為 flow 內的變數。
  */
 export function buildAutomateIntentUrl(config: AutomateConfig): string {
-  const action = "net.llamalab.automate.intent.action.START";
-  const pkg = "net.llamalab.automate";
-  
-  // 1. 指定要啟動的 Flow 名稱（必須與手機上的一模一樣）
-  const flowExtra = `S.net.llamalab.automate.intent.extra.FLOW_NAME=${encodeURIComponent(config.flowName)}`;
-  
-  // 2. 打包要傳過去的任務資料物件
+  // 1. 打包要傳過去的任務資料物件
   const payloadObj = {
     started: config.started ? "true" : "false",
     timerMinutes: config.timerMinutes.toString(),
     taskTitle: config.taskTitle ?? ""
   };
   
-  const jsonString = JSON.stringify(payloadObj);
+  // 2. 將物件轉為 JSON 字串並進行網址編碼
+  const payloadJson = encodeURIComponent(JSON.stringify(payloadObj));
   
-  // 3. 雙重保險：新版通常看 PAYLOAD，舊版或過渡版看 VARIABLES
-  // 我們同時把這兩個 Extra 加上去，確保不論如何都能被 Flow beginning 的 Payload 欄位撈到
-  const payloadExtra = `S.net.llamalab.automate.intent.extra.PAYLOAD=${encodeURIComponent(jsonString)}`;
-  const variablesExtra = `S.net.llamalab.automate.intent.extra.VARIABLES=${encodeURIComponent(jsonString)}`;
+  // 3. 確保您的 Flow 名稱與手機上完全一致（例如您的 Flow 叫 NBL Timer）
+  const encodedFlowName = encodeURIComponent(config.flowName);
 
-  // 4. 組合 Intent URL
-  return `intent://#Intent;action=${action};package=${pkg};${flowExtra};${payloadExtra};${variablesExtra};end`;
+  // 4. 使用官方標準 URL Scheme，並將整包資料透過 payload 參數傳過去
+  return `llamalab-automate://flow/${encodedFlowName}/start?payload=${payloadJson}`;
 }
 /**
  * 觸發 Android Automate flow
