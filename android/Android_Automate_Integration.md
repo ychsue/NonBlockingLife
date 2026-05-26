@@ -194,3 +194,19 @@ export function buildAutomateIntentUrl(config: AutomateConfig): string {
 ## 💡 總結大局觀
 
 調整後的流程完全繞開了舊版容易失敗的 JSON 格式，改走 Android 最經典的 **「Intent Extra 直傳 -> Flow 引數直接接收」** 機制。在畫布上連線時，請確保從 `Flow beginning` 的 `OK` 連到 `Expression true?`，之後分流成兩路（一路走計時、一路走取消），最後各自接回圓形的 `Flow end` 即可！
+
+## [2026-05-26] Gemini 回答修改 02
+
+export function buildAutomateIntentUrl(config: AutomateConfig): string {
+  // 1. 改用廣播的 Action（自訂一個 unique 的 action 名稱，例如 net.nbl.timer.ACTION）
+  const action = "net.nbl.timer.ACTION";
+  
+  // 2. 將變數直接拆解為獨立的 Extra 傳入
+  const varStarted = `S.started=${encodeURIComponent(config.started ? "true" : "false")}`;
+  const varMinutes = `S.timerMinutes=${encodeURIComponent(config.timerMinutes.toString())}`;
+  const varTitle = `S.taskTitle=${encodeURIComponent(config.taskTitle ?? "")}`;
+
+  // 組合標準 Android Broadcast Intent 網址
+  // 注意：這裡移除了 package，改用廣播機制，Automate 的廣播接收器會去監聽這個 Action
+  return `intent://#Intent;action=${action};${varStarted};${varMinutes};${varTitle};end`;
+}
