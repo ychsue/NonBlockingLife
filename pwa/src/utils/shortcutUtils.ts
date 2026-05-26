@@ -1,5 +1,5 @@
 /**
- * iOS Shortcut 相关工具函数
+ * iOS Shortcut 及 Android Automate 相關工具函數
  */
 
 /**
@@ -93,30 +93,134 @@ export function isValidICloudShortcutUrl(url: string): boolean {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Android Automate (LlamaLab) 相關設定
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
- * 触发 iOS Shortcut 来启动计时器
+ * Android Automate flow 的啟動參數
+ */
+export interface AutomateConfig {
+  /** Automate 中建立的 flow 名稱（需與 .flo 檔匹配） */
+  flowName: string;
+  /** true = 開始計時，false = 結束計時（取消通知） */
+  started: boolean;
+  taskTitle?: string;
+  timerMinutes: number;
+}
+
+const DEFAULT_START_AUTOMATE_CONFIG: AutomateConfig = {
+  flowName: "NBL_Timer",
+  started: true,
+  timerMinutes: 30,
+};
+
+const DEFAULT_END_AUTOMATE_CONFIG: AutomateConfig = {
+  flowName: "NBL_Timer",
+  started: false,
+  timerMinutes: 10,
+};
+
+export function getAutomateConfig(sType: "start" | "end"): AutomateConfig {
+  try {
+    const stored = localStorage.getItem("nbl_automate_config");
+    if (sType === "start") {
+      return stored
+        ? { ...DEFAULT_START_AUTOMATE_CONFIG, ...JSON.parse(stored) }
+        : DEFAULT_START_AUTOMATE_CONFIG;
+    } else {
+      return stored
+        ? { ...DEFAULT_END_AUTOMATE_CONFIG, ...JSON.parse(stored) }
+        : DEFAULT_END_AUTOMATE_CONFIG;
+    }
+  } catch {
+    return sType === "start"
+      ? DEFAULT_START_AUTOMATE_CONFIG
+      : DEFAULT_END_AUTOMATE_CONFIG;
+  }
+}
+
+export function setAutomateConfig(
+  config: Partial<AutomateConfig>,
+  sType: "start" | "end",
+): void {
+  const current = getAutomateConfig(sType);
+  const updated = { ...current, ...config };
+  localStorage.setItem("nbl_automate_config", JSON.stringify(updated));
+}
+
+/**
+ * 建構觸發 Automate flow 的 Android intent URL。
+ *
+ * 使用 Automate 的 start-by-name 機制：
+ *   action  = net.llamalab.automate.intent.action.START
+ *   package = net.llamalab.automate
+ *   extras  = FLOW_NAME (String) + VARIABLES (JSON String)
+ *
+ * Flow 收到後，VARIABLES 裡的 key 直接成為 flow 內的變數。
+ */
+export function buildAutomateIntentUrl(config: AutomateConfig): string {
+  const variables = JSON.stringify({
+    started: config.started,
+    timerMinutes: config.timerMinutes,
+    taskTitle: config.taskTitle ?? "",
+  });
+
+  const action = "net.llamalab.automate.intent.action.START";
+  const pkg = "net.llamalab.automate";
+  const flowExtra = `S.net.llamalab.automate.intent.extra.FLOW_NAME=${encodeURIComponent(config.flowName)}`;
+  const varsExtra = `S.net.llamalab.automate.intent.extra.VARIABLES=${encodeURIComponent(variables)}`;
+
+  return `intent://#Intent;action=${action};package=${pkg};${flowExtra};${varsExtra};end`;
+}
+
+/**
+ * 觸發 Android Automate flow
+ */
+export function triggerAutomateFlow(
+  taskTitle: string,
+  config: AutomateConfig,
+): boolean {
+  try {
+    const fullConfig = { ...config, taskTitle };
+    const intentUrl = buildAutomateIntentUrl(fullConfig);
+    window.location.href = intentUrl;
+    console.log(
+      `✅ Triggered Automate flow: ${config.flowName} with task: ${taskTitle} (started=${config.started})`,
+    );
+    return true;
+  } catch (error) {
+    console.error("Failed to trigger Automate flow:", error);
+    return false;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 統一入口
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * 触发 iOS Shortcut / Android Automate / Windows 計時器
  * @param taskTitle 任务标题
  * @param taskId 任务ID
- * @param config Shortcut 配置
+ * @param config Shortcut 配置（iOS/Windows 用）
+ * @param automateConfig Automate 配置（Android 用），若不傳則從 localStorage 讀取
  * @returns 是否成功触发
  */
 export function triggerShortcutTimer(
   taskTitle: string,
   taskId: string,
   config: ShortcutConfig,
+  automateConfig?: AutomateConfig,
 ): boolean {
   config = { ...config, taskTitle };
   const deviceType = getDeviceType();
 
-  if (["Shortcuts"].includes(deviceType)) {
+  if (deviceType === "Shortcuts") {
     try {
-      // 构建 Shortcut URL
       // 格式: shortcuts://run-shortcut?name=<shortcut_name>&input=<input_value>
       const shortcutUrl = `shortcuts://run-shortcut?name=${encodeURIComponent(config.shortcutName)}&input=${encodeURIComponent(JSON.stringify(config))}`;
-
-      // 打开 shortcut
       window.location.href = shortcutUrl;
-
       console.log(
         `✅ Triggered shortcut: ${config.shortcutName} with task: ${taskTitle} (${config.timerMinutes} mins)`,
       );
@@ -125,7 +229,10 @@ export function triggerShortcutTimer(
       console.error("Failed to trigger shortcut:", error);
       return false;
     }
-  } else if (["Windows"].includes(deviceType)) {
+  } else if (deviceType === "Android") {
+    const aConfig = automateConfig ?? getAutomateConfig(config.started ? "start" : "end");
+    return triggerAutomateFlow(taskTitle, { ...aConfig, taskTitle });
+  } else if (deviceType === "Windows") {
     // 用ms-clock 協定來觸發 Windows 時鐘 app 的計時器功能
     try {
       const shortcutUrl = `ms-clock:timer?duration=${config.timerMinutes * 60}&title=${encodeURIComponent(taskTitle)}`;
@@ -140,7 +247,7 @@ export function triggerShortcutTimer(
     }
   } else {
     console.warn(
-      "⚠️ Current device does not support Shortcuts. Cannot trigger shortcut timer.",
+      "⚠️ Current device does not support automation. Cannot trigger timer.",
     );
     return false;
   }

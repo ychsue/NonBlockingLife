@@ -1,0 +1,75 @@
+{
+  "description": "NBL Timer\nTriggered by NonBlockingLife web app via intent.\n\nVariables injected by caller (VARIABLES extra):\n  started      : Boolean  – true = start timer, false = cancel\n  timerMinutes : Number   – duration in minutes\n  taskTitle    : String   – display name of the task\n\nNotification ID 1001 is used so a 'cancel' run can dismiss the ongoing notification.",
+  "blocks": [
+    {
+      "index": 0,
+      "type": "FlowStart",
+      "position": { "x": 280, "y": 12 },
+      "comment": "Entry – called by intent from NBL web app"
+    },
+    {
+      "index": 1,
+      "type": "IfExpression",
+      "position": { "x": 280, "y": 124 },
+      "expression": "started"
+    },
+    {
+      "index": 2,
+      "type": "NotificationPost",
+      "position": { "x": 100, "y": 236 },
+      "title": "▶ " & taskTitle,
+      "text": "Timer running · " & timerMinutes & " min",
+      "notification_id": 1001,
+      "ongoing": true,
+      "vibrate": false,
+      "sound": false
+    },
+    {
+      "index": 3,
+      "type": "Delay",
+      "position": { "x": 100, "y": 348 },
+      "milliseconds": timerMinutes * 60000
+    },
+    {
+      "index": 4,
+      "type": "NotificationPost",
+      "position": { "x": 100, "y": 460 },
+      "title": "✅ " & taskTitle & " done",
+      "text": timerMinutes & " min timer finished",
+      "notification_id": 1001,
+      "ongoing": false,
+      "vibrate": true,
+      "sound": true
+    },
+    {
+      "index": 5,
+      "type": "FlowEnd",
+      "position": { "x": 100, "y": 572 }
+    },
+    {
+      "index": 6,
+      "type": "NotificationCancel",
+      "position": { "x": 460, "y": 236 },
+      "notification_id": 1001
+    },
+    {
+      "index": 7,
+      "type": "FlowEnd",
+      "position": { "x": 460, "y": 348 }
+    }
+  ],
+  "connections": [
+    { "from": 0, "connector": "a", "to": 1 },
+    { "from": 1, "connector": "true",  "to": 2 },
+    { "from": 1, "connector": "false", "to": 6 },
+    { "from": 2, "connector": "a", "to": 3 },
+    { "from": 3, "connector": "a", "to": 4 },
+    { "from": 4, "connector": "a", "to": 5 },
+    { "from": 6, "connector": "a", "to": 7 }
+  ],
+  "variables": [
+    { "name": "started",      "type": "Boolean", "value": true  },
+    { "name": "timerMinutes", "type": "Number",  "value": 30    },
+    { "name": "taskTitle",    "type": "String",  "value": "Task" }
+  ]
+}
