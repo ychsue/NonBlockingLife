@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-05-31] 加入sync 的影片連結
+
 ## [2026-05-26] 加入 Android intent for Automate 的部分，現在要上去測試看看能不能順利啟動 Automate 的流程了！
 
 原本的 [NBL_Timer.flo](android\NBL_Timer.flo) 不能用，得手動輸入，還有，新版的可能不吃JSON字串，所以，得改

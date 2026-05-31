@@ -3,6 +3,7 @@
 import { useState } from "react";
 import gasCode from "../gas/程式碼.js?raw";
 import { useT } from "../i18n";
+import { useAppStore } from "../store/appStore";
 
 interface SetupWizardProps {
   isModal?: boolean;
@@ -12,8 +13,20 @@ interface SetupWizardProps {
 
 export function SetupWizard({ isModal = false, onComplete, onClose }: SetupWizardProps) {
   const t = useT();
+  const locale = useAppStore((state) => state.locale);
   const [step, setStep] = useState(1);
   const [gasUrl, setGasUrl] = useState('');
+
+  const syncTutorialVideo =
+    locale === 'zh-TW'
+      ? {
+          title: '中文解說：NBL Sync 設定教學',
+          url: 'https://www.youtube.com/watch?v=qjv0mCWWOkE',
+        }
+      : {
+          title: 'English Walkthrough: NBL Sync Setup',
+          url: 'https://www.youtube.com/watch?v=ENxoDT85VfM',
+        };
 
   const handleCopyGASCode = () => {
     navigator.clipboard.writeText(gasCode);
@@ -64,6 +77,19 @@ export function SetupWizard({ isModal = false, onComplete, onClose }: SetupWizar
           <div>
             <h2 className="text-2xl font-bold mb-2">🚀 首次同步設置</h2>
             <p className="text-gray-600">4 步完成設置，您的數據將存儲在您自己的 Google Drive</p>
+          </div>
+
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-2">
+            <h3 className="font-semibold text-red-900">🎬 Sync 設定影片</h3>
+            <p className="text-sm text-red-800">建議先看 1 次影片，照著做會更快完成設定。</p>
+            <a
+              href={syncTutorialVideo.url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
+            >
+              觀看 YouTube：{syncTutorialVideo.title}
+            </a>
           </div>
           
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
