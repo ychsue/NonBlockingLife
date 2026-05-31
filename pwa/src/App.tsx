@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useUrlAction, SheetName } from "./hooks/useUrlAction";
 import { useAppStore } from "./store/appStore";
 import { useResponsiveTable } from "./hooks/useResponsiveTable";
@@ -21,6 +21,7 @@ type AllPages = SheetName | "selection_cache" | "log" | "guide";
 
 export default function App() {
   const TUTORIAL_SESSION_KEY = "nbl-home-tutorial-dismissed";
+  const BASE_TITLE = "Non-Blocking Life";
   const currentSheet = useAppStore((state) => state.currentSheet);
   const setCurrentSheet = useAppStore((state) => state.setCurrentSheet);
   const [toast, setToast] = useState("");
@@ -34,6 +35,8 @@ export default function App() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const defaultTitleRef = useRef(BASE_TITLE);
+  const previousRunningTaskIdRef = useRef<string | null>(null);
   const { isMobile } = useResponsiveTable();
 
   const nextLocale =
@@ -51,6 +54,77 @@ export default function App() {
     // 初始加载时获取当前正在运行的任务
     loadRunningTask();
   }, [loadRunningTask]);
+
+  useEffect(() => {
+    defaultTitleRef.current = document.title || BASE_TITLE;
+  }, [BASE_TITLE]);
+
+  useEffect(() => {
+    type BadgeNavigator = Navigator & {
+      setAppBadge?: (contents?: number) => Promise<void>;
+      clearAppBadge?: () => Promise<void>;
+    };
+
+    const nav = navigator as BadgeNavigator;
+    const notify = (title: string, body: string) => {
+      if (Notification.permission !== "granted") return;
+      if (!document.hidden) return;
+      new Notification(title, { body, tag: "nbl-running-task" });
+    };
+
+    if (!runningTask) {
+      document.title = defaultTitleRef.current;
+      if (nav.clearAppBadge) {
+        void nav.clearAppBadge().catch(() => undefined);
+      }
+
+      if (previousRunningTaskIdRef.current) {
+        notify(
+          locale === "zh-TW" ? "工作已結束" : locale === "ja" ? "作業が終了しました" : "Work session ended",
+          locale === "zh-TW"
+            ? "Non-Blocking Life 已離開工作中狀態。"
+            : locale === "ja"
+              ? "Non-Blocking Life は作業中ステータスを終了しました。"
+              : "Non-Blocking Life is no longer in running mode.",
+        );
+      }
+
+      previousRunningTaskIdRef.current = null;
+      return;
+    }
+
+    const updateRunningTitle = () => {
+      const elapsedMinutes = runningTask.startAt
+        ? Math.max(0, Math.floor((Date.now() - runningTask.startAt) / 60000))
+        : 0;
+      const taskLabel = runningTask.title || runningTask.taskId;
+      document.title = `⏳ ${elapsedMinutes}m ${taskLabel}`;
+    };
+
+    updateRunningTitle();
+    const intervalId = window.setInterval(updateRunningTitle, 30000);
+
+    if (nav.setAppBadge) {
+      void nav.setAppBadge(1).catch(() => undefined);
+    }
+
+    if (previousRunningTaskIdRef.current !== runningTask.taskId) {
+      notify(
+        locale === "zh-TW" ? "工作進行中" : locale === "ja" ? "作業中" : "Work session running",
+        locale === "zh-TW"
+          ? `${runningTask.taskId} 已開始，保持專注。`
+          : locale === "ja"
+            ? `${runningTask.taskId} を開始しました。`
+            : `${runningTask.taskId} has started. Stay focused.`,
+      );
+    }
+
+    previousRunningTaskIdRef.current = runningTask.taskId;
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [runningTask, locale]);
 
   useEffect(() => {
     let isCancelled = false;
