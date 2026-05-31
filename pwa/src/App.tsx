@@ -21,11 +21,13 @@ type AllPages = SheetName | "selection_cache" | "log" | "guide";
 
 export default function App() {
   const TUTORIAL_SESSION_KEY = "nbl-home-tutorial-dismissed";
+  const NOTIFICATION_NUDGE_SESSION_KEY = "nbl-notification-nudge-dismissed";
   const BASE_TITLE = "Non-Blocking Life";
   const currentSheet = useAppStore((state) => state.currentSheet);
   const setCurrentSheet = useAppStore((state) => state.setCurrentSheet);
   const [toast, setToast] = useState("");
   const globalToast = useAppStore((state) => state.globalToast);
+  const showGlobalToast = useAppStore((state) => state.showGlobalToast);
   const clearGlobalToast = useAppStore((state) => state.clearGlobalToast);
   const runningTask = useAppStore((state) => state.runningTask);
   const loadRunningTask = useAppStore((state) => state.loadRunningTask);
@@ -67,6 +69,7 @@ export default function App() {
 
     const nav = navigator as BadgeNavigator;
     const notify = (title: string, body: string) => {
+      if (typeof Notification === "undefined") return;
       if (Notification.permission !== "granted") return;
       if (!document.hidden) return;
       new Notification(title, { body, tag: "nbl-running-task" });
@@ -125,6 +128,27 @@ export default function App() {
       window.clearInterval(intervalId);
     };
   }, [runningTask, locale]);
+
+  useEffect(() => {
+    if (!runningTask) return;
+    if (typeof Notification === "undefined") return;
+    if (Notification.permission !== "default") return;
+    if (sessionStorage.getItem(NOTIFICATION_NUDGE_SESSION_KEY) === "1") return;
+
+    sessionStorage.setItem(NOTIFICATION_NUDGE_SESSION_KEY, "1");
+    showGlobalToast({
+      message:
+        locale === "zh-TW"
+          ? "可在說明頁啟用背景通知，開始/結束工作時會有提醒。"
+          : locale === "ja"
+            ? "ガイドページで通知を有効にすると、作業の開始/終了を通知できます。"
+            : "Enable background notifications in Guide to get start/end work alerts.",
+      duration: 7000,
+      actionLabel:
+        locale === "zh-TW" ? "前往啟用" : locale === "ja" ? "有効化する" : "Enable",
+      onAction: () => setCurrentSheet("guide"),
+    });
+  }, [runningTask, locale, setCurrentSheet, showGlobalToast, NOTIFICATION_NUDGE_SESSION_KEY]);
 
   useEffect(() => {
     let isCancelled = false;

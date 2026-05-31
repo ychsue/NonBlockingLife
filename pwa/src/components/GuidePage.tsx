@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { TutorialCarousel } from './TutorialCarousel'
 import { useAppStore } from '../store/appStore'
 import {
@@ -74,6 +74,18 @@ export function GuidePage() {
   const [timerUrlInput, setTimerUrlInput] = useState(getNblTimerInstallUrl())
   const [saved, setSaved] = useState(false)
   const [showTutorial, setShowTutorial] = useState(false)
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>(
+    'unsupported'
+  )
+  const [requestingPermission, setRequestingPermission] = useState(false)
+
+  useEffect(() => {
+    if (typeof Notification === 'undefined') {
+      setNotificationPermission('unsupported')
+      return
+    }
+    setNotificationPermission(Notification.permission)
+  }, [])
 
   const canInstallNblTimer = useMemo(
     () => isValidICloudShortcutUrl(timerUrlInput),
@@ -97,6 +109,21 @@ export function GuidePage() {
     },
     [setCurrentSheet]
   )
+
+  const handleRequestNotificationPermission = async () => {
+    if (typeof Notification === 'undefined') {
+      setNotificationPermission('unsupported')
+      return
+    }
+
+    setRequestingPermission(true)
+    try {
+      const permission = await Notification.requestPermission()
+      setNotificationPermission(permission)
+    } finally {
+      setRequestingPermission(false)
+    }
+  }
 
   function isVideoForCurrentLocale(video: typeof VIDEO_RESOURCES[number]) {
     if (locale === 'zh-TW') {
@@ -145,6 +172,40 @@ export function GuidePage() {
           <p className="text-sm text-gray-500">
             可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。
           </p>
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">🔔 背景提醒（可選）</h3>
+        <p className="text-sm text-gray-700 leading-relaxed">
+          啟用後，當你切到其他視窗時，NBL 可在「開始工作 / 結束工作」時顯示系統通知。
+        </p>
+
+        <div className="mt-3">
+          {notificationPermission === 'unsupported' && (
+            <p className="text-sm text-amber-700">此瀏覽器目前不支援 Web Notification。</p>
+          )}
+
+          {notificationPermission === 'granted' && (
+            <p className="text-sm text-green-700">已啟用通知權限。背景時可收到工作狀態提醒。</p>
+          )}
+
+          {notificationPermission === 'denied' && (
+            <p className="text-sm text-amber-700">
+              已封鎖通知。請到瀏覽器網站權限設定將 Notifications 改為 Allow。
+            </p>
+          )}
+
+          {notificationPermission === 'default' && (
+            <button
+              type="button"
+              onClick={handleRequestNotificationPermission}
+              disabled={requestingPermission}
+              className="inline-flex items-center justify-center rounded-md bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {requestingPermission ? '請稍候...' : '啟用背景通知'}
+            </button>
+          )}
         </div>
       </div>
 

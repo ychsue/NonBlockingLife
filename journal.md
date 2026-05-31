@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-05-31] 加入可切換Notification 的Permission的功能了
+
 ## [2026-05-31] 試著加上 badge 與 document title 的提示了，還有，通知的部分
 
 ## [2026-05-31] 加入sync 的影片連結
