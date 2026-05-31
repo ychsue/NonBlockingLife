@@ -71,7 +71,7 @@ export default function App() {
     const notify = (title: string, body: string) => {
       if (typeof Notification === "undefined") return;
       if (Notification.permission !== "granted") return;
-      if (!document.hidden) return;
+      // if (!document.hidden) return;
       new Notification(title, { body, tag: "nbl-running-task" });
     };
 
