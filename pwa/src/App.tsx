@@ -266,11 +266,12 @@ export default function App() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
-     {/* 當runningTask存在時，背景變成閃爍的顏色，順便多一個iconbutton可以跳到SelectionCacheTable */}
-      <div className={`border-b border-gray-200 sticky top-0 z-40 ${runningTask ? "bg-yellow-100 animate-pulse" : "bg-white"}`}>
-        <header className="border-b border-gray-200 sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div>
+      <div
+        className={`sticky top-0 z-40 border-b border-gray-200 ${runningTask ? "bg-amber-50/95 backdrop-blur-sm" : "bg-white"}`}
+      >
+        <header className="border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-3">
+            <div className="min-w-0">
               <h1 className="text-2xl font-bold text-gray-800">
                 📱 Non-Blocking Life
               </h1>
@@ -281,39 +282,56 @@ export default function App() {
                 {!isMobile && <SyncStatus />}
               </div>
             </div>
-            {runningTask && (
+            <div className="flex items-center gap-2 ml-auto">
+              {runningTask && (
+                <div className="flex items-center gap-2 rounded-full border border-amber-200 bg-white/90 px-3 py-1.5 text-sm text-amber-900 shadow-sm">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500" />
+                  </span>
+                  <span className="font-medium">
+                    {runningTask.title || runningTask.taskId}
+                  </span>
+                  <span className="hidden sm:inline text-amber-700/80">
+                    {runningTask.startAt
+                      ? `${Math.max(0, Math.floor((Date.now() - runningTask.startAt) / 60000))}m`
+                      : "Running"}
+                  </span>
+                  <button
+                    onClick={() => setCurrentSheet("selection_cache")}
+                    className="ml-1 rounded-full p-1.5 text-amber-700 hover:bg-amber-100"
+                    aria-label="Go to Selection Cache"
+                    title="Go to Selection Cache"
+                  >
+                    📝
+                  </button>
+                </div>
+              )}
+              {/* Language toggle */}
               <button
-                onClick={() => setCurrentSheet("selection_cache")}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg text-xl leading-none"
-                aria-label="Go to Selection Cache"
+                onClick={() => setLocale(nextLocale)}
+                className="px-2 py-1 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100"
+                aria-label={`Switch language, current ${currentLocaleLabel}, next ${nextLocaleLabel}`}
+                title={`Current: ${currentLocaleLabel} / Next: ${nextLocaleLabel}`}
               >
-                📝
+                <span className="grid grid-cols-[auto_auto] gap-x-2 leading-tight text-left">
+                  <span className="text-[10px] text-gray-500">Now</span>
+                  <span>{currentLocaleLabel}</span>
+                  <span className="text-[10px] text-gray-500">Next</span>
+                  <span>{nextLocaleLabel}</span>
+                </span>
               </button>
-            )}
-            {/* Language toggle */}
-            <button
-              onClick={() => setLocale(nextLocale)}
-              className="px-2 py-1 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100"
-              aria-label={`Switch language, current ${currentLocaleLabel}, next ${nextLocaleLabel}`}
-              title={`Current: ${currentLocaleLabel} / Next: ${nextLocaleLabel}`}
-            >
-              <span className="grid grid-cols-[auto_auto] gap-x-2 leading-tight text-left">
-                <span className="text-[10px] text-gray-500">Now</span>
-                <span>{currentLocaleLabel}</span>
-                <span className="text-[10px] text-gray-500">Next</span>
-                <span>{nextLocaleLabel}</span>
-              </span>
-            </button>
-            {/* 手機漢堡選單按鈕 */}
-            {isMobile && (
-              <button
-                onClick={() => setShowMobileMenu(!showMobileMenu)}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg text-xl leading-none"
-                aria-label="選單"
-              >
-                {showMobileMenu ? "✕" : "☰"}
-              </button>
-            )}
+              {/* 手機漢堡選單按鈕 */}
+              {isMobile && (
+                <button
+                  onClick={() => setShowMobileMenu(!showMobileMenu)}
+                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg text-xl leading-none"
+                  aria-label="選單"
+                >
+                  {showMobileMenu ? "✕" : "☰"}
+                </button>
+              )}
+            </div>
           </div>
         </header>
 
