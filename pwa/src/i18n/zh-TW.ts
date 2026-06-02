@@ -93,6 +93,8 @@ export const zhTW: TranslationMap = {
   'table.empty':              '(空白)',
   'table.notSet':             '(未設定)',
   'table.notRun':             '(未執行)',
+  'table.quickStart':         '直接開始',
+  'table.quickSwitch':        '中斷並切換',
 
   // ── Table card labels ────────────────────────────────────────
   'card.receivedAt':          '接收時間',

@@ -293,7 +293,10 @@ async function applySourceCompletionUpdates(params: {
   return {};
 }
 
-export async function interruptTask(endNote: string) {
+export async function interruptTask(
+  endNote: string,
+  targetTask?: SelectionCacheItem,
+) {
   const running = await getRunningTask();
 
   // 如果有正在執行的任務，先結束它
@@ -304,7 +307,22 @@ export async function interruptTask(endNote: string) {
     }
   }
 
-  // 無論是否有舊任務，都啟動中斷任務
+  // 若有指定目標任務，先中斷目前任務，再直接切換啟動目標任務
+  if (targetTask) {
+    const switched = await startTask(targetTask, endNote);
+    if (switched.status !== "success") {
+      return switched;
+    }
+
+    const nextRunning = await getRunningTask();
+    return {
+      status: "success",
+      message: "已中斷並切換到指定任務",
+      payload: nextRunning,
+    };
+  }
+
+  // 無論是否有舊任務，都啟動系統中斷任務
   const now = Date.now();
   const interruptId = "SYS_INT";
   const interruptTitle = "[中斷] 處理突發狀況";
@@ -418,6 +436,7 @@ async function updateTaskPoolAfterRecord(
     recordId: taskId,
     op: "update",
     patch: {
+      status: "PENDING",
       spentTodayMins: spentToday,
       totalSpentMins: totalSpent,
       usedTodayCount: usedTodayCount,

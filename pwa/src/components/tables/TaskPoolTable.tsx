@@ -6,7 +6,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import { applyChange, db } from '../../db/index'
-import type { TaskPoolItem } from '../../db/schema'
+import type { TaskPoolItem, SelectionCacheItem } from '../../db/schema'
 import Utils from '../../../../gas/src/Utils'
 import {
   formatToDateTimeLocal,
@@ -20,6 +20,7 @@ import { EditDialog, type FieldType } from '../EditDialog'
 import { TableHelpDialog } from '../TableHelpDialog'
 import taskPoolHelpMarkdown from './TaskPoolHelper.md?raw'
 import { useSearchFilter, useHideDone } from '../../hooks/useSearchFilter'
+import { interruptTask } from '../../utils/taskFlow'
 
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<TaskPoolItem>()
@@ -58,6 +59,8 @@ export function TaskPoolTable() {
   const currentSheet = useAppStore((state) => state.currentSheet)
   const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
   const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
+  const runningTask = useAppStore((state) => state.runningTask)
+  const loadRunningTask = useAppStore((state) => state.loadRunningTask)
   const text = {
     subtitle: t('table.taskPool.subtitle'),
     help: t('table.help'),
@@ -179,6 +182,24 @@ export function TaskPoolTable() {
       patch: {} as Record<string, unknown>,
       clientId: DEV_CLIENT_ID,
     }).catch((err) => console.error('Failed to delete row:', err))
+  }
+
+  const toSelectionCandidate = (item: TaskPoolItem): SelectionCacheItem => ({
+    taskId: item.taskId,
+    title: item.title,
+    source: 'Task_Pool',
+    status: item.status,
+    url: item.url,
+    deadline: item.deadline,
+  })
+
+  const handleInterruptOrStart = async (item: TaskPoolItem) => {
+    const result = await interruptTask('', toSelectionCandidate(item))
+    if (result.status !== 'success') {
+      console.error('Failed to interrupt/start from task pool:', result.message)
+      return
+    }
+    await loadRunningTask()
   }
 
   const handleEditSave = async (data: Record<string, any>) => {
@@ -473,16 +494,24 @@ export function TaskPoolTable() {
         id: 'actions',
         header: t('table.taskPool.col.actions'),
         cell: (info) => (
-          <button
-            onClick={() => deleteRow(info.row.original.taskId)}
-            className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-          >
-            {t('table.taskPool.col.delete')}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleInterruptOrStart(info.row.original)}
+              className="px-2 py-1 text-xs bg-amber-500 text-white rounded hover:bg-amber-600 whitespace-nowrap"
+            >
+              {runningTask ? t('table.quickSwitch') : t('table.quickStart')}
+            </button>
+            <button
+              onClick={() => deleteRow(info.row.original.taskId)}
+              className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              {t('table.taskPool.col.delete')}
+            </button>
+          </div>
         ),
       }),
     ],
-    [t]
+    [t, runningTask]
   )
 
   const searchFiltered = useSearchFilter(
@@ -588,6 +617,10 @@ export function TaskPoolTable() {
                 ]}
                 onEdit={setEditingItem}
                 onDelete={(item) => deleteRow(item.taskId)}
+                quickAction={{
+                  label: runningTask ? t('table.quickSwitch') : t('table.quickStart'),
+                  onClick: handleInterruptOrStart,
+                }}
               />
             ))}
         </div>

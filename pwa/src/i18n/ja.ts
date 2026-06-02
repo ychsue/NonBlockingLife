@@ -81,6 +81,8 @@ export const ja: TranslationMap = {
   'table.empty': '(空)',
   'table.notSet': '(未設定)',
   'table.notRun': '(未実行)',
+  'table.quickStart': '今すぐ開始',
+  'table.quickSwitch': '中断して開始',
 
   'card.receivedAt': '受信日時',
   'card.lastRun': '最終実行',

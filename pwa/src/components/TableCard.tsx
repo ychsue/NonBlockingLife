@@ -9,6 +9,10 @@ interface TableCardProps<T> {
   }>
   onEdit: (item: T) => void
   onDelete: (item: T) => void
+  quickAction?: {
+    label: string
+    onClick: (item: T) => void
+  }
 }
 
 function isUsableUrl(value: unknown): value is string {
@@ -20,6 +24,7 @@ export function TableCard<T extends { taskId?: string | number; url?: string }>(
   fields,
   onEdit,
   onDelete,
+  quickAction,
 }: TableCardProps<T>) {
   const t = useT()
   const [offsetX, setOffsetX] = useState(0)
@@ -165,6 +170,22 @@ export function TableCard<T extends { taskId?: string | number; url?: string }>(
             >
               {t('tableCard.openLink')}
             </a>
+          </div>
+        )}
+
+        {quickAction && (
+          <div className="mt-3 flex justify-end">
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation()
+                cancelDeleteConfirmation()
+                quickAction.onClick(item)
+              }}
+              className="px-3 py-1.5 text-xs font-medium rounded bg-amber-500 text-white hover:bg-amber-600"
+            >
+              {quickAction.label}
+            </button>
           </div>
         )}
 

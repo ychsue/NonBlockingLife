@@ -8,7 +8,7 @@ import {
   type SortingState,
 } from '@tanstack/react-table'
 import { applyChange, db } from '../../db/index'
-import type { ScheduledItem } from '../../db/schema'
+import type { ScheduledItem, SelectionCacheItem } from '../../db/schema'
 import Utils from '../../../../gas/src/Utils'
 import {
   formatToDateTimeLocal,
@@ -23,6 +23,7 @@ import { TableHelpDialog } from '../TableHelpDialog'
 import scheduledHelpMarkdown from './ScheduledHelp.md?raw'
 import { useSearchFilter, useHideDone } from '../../hooks/useSearchFilter'
 import { buildCronExpr, getCronParts, getUpcomingOccurrences } from '../../utils/cronUtils'
+import { interruptTask } from '../../utils/taskFlow'
 
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<ScheduledItem>()
@@ -73,6 +74,8 @@ export function ScheduledTable() {
   const currentSheet = useAppStore((state) => state.currentSheet)
   const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
   const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
+  const runningTask = useAppStore((state) => state.runningTask)
+  const loadRunningTask = useAppStore((state) => state.loadRunningTask)
   const text = {
     subtitle: t('table.scheduled.subtitle'),
     help: t('table.help'),
@@ -215,6 +218,24 @@ export function ScheduledTable() {
       patch: {} as Record<string, unknown>,
       clientId: DEV_CLIENT_ID,
     }).catch((err) => console.error('Failed to delete row:', err))
+  }
+
+  const toSelectionCandidate = (item: ScheduledItem): SelectionCacheItem => ({
+    taskId: item.taskId,
+    title: item.title,
+    source: 'Scheduled',
+    status: item.status,
+    url: item.url,
+    deadline: item.deadline,
+  })
+
+  const handleInterruptOrStart = async (item: ScheduledItem) => {
+    const result = await interruptTask('', toSelectionCandidate(item))
+    if (result.status !== 'success') {
+      console.error('Failed to interrupt/start from scheduled:', result.message)
+      return
+    }
+    await loadRunningTask()
   }
 
   const handleEditSave = async (data: Record<string, any>) => {
@@ -622,16 +643,24 @@ export function ScheduledTable() {
         id: 'actions',
         header: t('table.scheduled.col.actions'),
         cell: (info) => (
-          <button
-            onClick={() => deleteRow(info.row.original.taskId)}
-            className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-          >
-            {t('table.scheduled.col.delete')}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleInterruptOrStart(info.row.original)}
+              className="px-2 py-1 text-xs bg-amber-500 text-white rounded hover:bg-amber-600 whitespace-nowrap"
+            >
+              {runningTask ? t('table.quickSwitch') : t('table.quickStart')}
+            </button>
+            <button
+              onClick={() => deleteRow(info.row.original.taskId)}
+              className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              {t('table.scheduled.col.delete')}
+            </button>
+          </div>
         ),
       }),
     ],
-    [t]
+    [t, runningTask]
   )
 
   const searchFiltered = useSearchFilter(
@@ -833,6 +862,10 @@ export function ScheduledTable() {
                 ]}
                 onEdit={setEditingItem}
                 onDelete={(item) => deleteRow(item.taskId)}
+                quickAction={{
+                  label: runningTask ? t('table.quickSwitch') : t('table.quickStart'),
+                  onClick: handleInterruptOrStart,
+                }}
               />
             )
           })}

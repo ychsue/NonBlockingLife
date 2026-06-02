@@ -90,6 +90,8 @@ export const en = {
   'table.empty':              '(empty)',
   'table.notSet':             '(not set)',
   'table.notRun':             '(not run yet)',
+  'table.quickStart':         'Start Now',
+  'table.quickSwitch':        'Interrupt + Start',
 
   // ── Table card labels ────────────────────────────────────────
   'card.receivedAt':          'Received At',
