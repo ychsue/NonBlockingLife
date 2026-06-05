@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { TutorialCarousel } from './TutorialCarousel'
-import { useAppStore } from '../store/appStore'
+import { useAppStore, type StartupPreference } from '../store/appStore'
 import {
   getNblTimerInstallUrl,
   isValidICloudShortcutUrl,
@@ -71,6 +71,8 @@ const VIDEO_RESOURCES = [
 export function GuidePage() {
   const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
   const locale = useAppStore((state) => state.locale)
+  const startupPreference = useAppStore((state) => state.startupPreference)
+  const setStartupPreference = useAppStore((state) => state.setStartupPreference)
   const [timerUrlInput, setTimerUrlInput] = useState(getNblTimerInstallUrl())
   const [saved, setSaved] = useState(false)
   const [showTutorial, setShowTutorial] = useState(false)
@@ -132,6 +134,31 @@ export function GuidePage() {
       return video.language === 'English'
     }
   }
+
+  function getStartupOptionLabel(option: StartupPreference) {
+    if (locale === 'ja') {
+      if (option === 'guide') return 'ガイドページ'
+      if (option === 'selection_cache') return 'Selection Cache'
+      return '前回のページ'
+    }
+
+    if (locale === 'en') {
+      if (option === 'guide') return 'Guide Page'
+      if (option === 'selection_cache') return 'Selection Cache'
+      return 'Last Visited Page'
+    }
+
+    if (option === 'guide') return '說明頁'
+    if (option === 'selection_cache') return 'Selection Cache 任務控制中心'
+    return '上次停留頁面'
+  }
+
+  const startupDescription =
+    locale === 'ja'
+      ? 'URL で開いた場合は URL の遷移が優先されます。'
+      : locale === 'en'
+        ? 'If opened from a URL action, URL navigation still takes priority.'
+        : '若由 iPhone Shortcut 或 URL action 開啟，仍會優先執行該導頁。'
 
   return (
     <>
@@ -207,6 +234,42 @@ export function GuidePage() {
             </button>
           )}
         </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">
+          {locale === 'ja' ? '🏁 起動時の表示ページ' : locale === 'en' ? '🏁 Startup Default Page' : '🏁 啟動預設頁面'}
+        </h3>
+        <p className="text-sm text-gray-700 leading-relaxed">
+          {locale === 'ja'
+            ? 'アプリを開いたとき、または更新後に最初に表示するページを選択します。'
+            : locale === 'en'
+              ? 'Choose which page opens first when you launch or refresh the app.'
+              : '設定每次打開 App 或重新整理後，最先顯示的頁面。'}
+        </p>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          {(['guide', 'selection_cache', 'last_visited'] as StartupPreference[]).map((option) => {
+            const active = startupPreference === option
+            return (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setStartupPreference(option)}
+                className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                  active
+                    ? 'border-sky-600 bg-sky-50 text-sky-700'
+                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+                aria-pressed={active}
+              >
+                {getStartupOptionLabel(option)}
+              </button>
+            )
+          })}
+        </div>
+
+        <p className="mt-3 text-xs text-gray-500">{startupDescription}</p>
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg p-5">

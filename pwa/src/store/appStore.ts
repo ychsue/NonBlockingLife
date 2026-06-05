@@ -4,6 +4,51 @@ import { Dashboard, db } from '../db/schema'
 import type { SupportedLocale } from '../i18n'
 import { getInitialLocale } from '../i18n'
 
+type AppSheet = SheetName | 'selection_cache' | 'log' | 'guide'
+export type StartupPreference = 'guide' | 'selection_cache' | 'last_visited'
+
+const STARTUP_PREFERENCE_KEY = 'nbl_startup_preference'
+const LAST_VISITED_SHEET_KEY = 'nbl_last_visited_sheet'
+
+function isAppSheet(value: string | null): value is AppSheet {
+  return value === 'inbox'
+    || value === 'scheduled'
+    || value === 'task_pool'
+    || value === 'micro_tasks'
+    || value === 'resource'
+    || value === 'selection_cache'
+    || value === 'log'
+    || value === 'guide'
+}
+
+function getInitialStartupPreference(): StartupPreference {
+  const stored = localStorage.getItem(STARTUP_PREFERENCE_KEY)
+  if (stored === 'guide' || stored === 'selection_cache' || stored === 'last_visited') {
+    return stored
+  }
+  return 'guide'
+}
+
+function getLastVisitedSheet(): AppSheet | null {
+  const stored = localStorage.getItem(LAST_VISITED_SHEET_KEY)
+  if (isAppSheet(stored)) return stored
+  return null
+}
+
+function getInitialCurrentSheet(): AppSheet {
+  const startupPreference = getInitialStartupPreference()
+
+  if (startupPreference === 'selection_cache') {
+    return 'selection_cache'
+  }
+
+  if (startupPreference === 'last_visited') {
+    return getLastVisitedSheet() ?? 'guide'
+  }
+
+  return 'guide'
+}
+
 export interface GlobalToast {
   id: number
   message: string
@@ -14,8 +59,12 @@ export interface GlobalToast {
 
 interface AppState {
   // 当前选中的页签
-  currentSheet: SheetName | 'selection_cache' | 'log' | 'guide'
-  setCurrentSheet: (sheet: SheetName | 'selection_cache' | 'log' | 'guide') => void
+  currentSheet: AppSheet
+  setCurrentSheet: (sheet: AppSheet) => void
+
+  // 啟動偏好
+  startupPreference: StartupPreference
+  setStartupPreference: (preference: StartupPreference) => void
 
   // Selection Cache 对话框状态
   showStartDialog: boolean
@@ -54,8 +103,17 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  currentSheet: 'guide',
-  setCurrentSheet: (sheet) => set({ currentSheet: sheet }),
+  currentSheet: getInitialCurrentSheet(),
+  setCurrentSheet: (sheet) => {
+    localStorage.setItem(LAST_VISITED_SHEET_KEY, sheet)
+    set({ currentSheet: sheet })
+  },
+
+  startupPreference: getInitialStartupPreference(),
+  setStartupPreference: (preference) => {
+    localStorage.setItem(STARTUP_PREFERENCE_KEY, preference)
+    set({ startupPreference: preference })
+  },
 
   showStartDialog: false,
   setShowStartDialog: (show) => set({ showStartDialog: show }),
