@@ -60,15 +60,135 @@ function parseToMinutes(takesTime) {
   return minute;
 }
 
+/**
+ * 解析「每 n 單位」的簡化排程語法。
+ * 支援: "every 30m", "@every 2h", "3d", "1M", "1w"
+ * @param {string} expr
+ * @returns {{value:number, unit:string}|null}
+ */
+function parseEveryIntervalExpr(expr) {
+  if (typeof expr !== "string") return null;
+
+  const normalized = expr.trim();
+  const withPrefix = normalized.match(/^(?:@every|every)\s+(\d+)\s*([mhdMw])$/);
+  const shorthand = normalized.match(/^(\d+)\s*([mhdMw])$/);
+  const match = withPrefix || shorthand;
+  if (!match) return null;
+
+  const value = parseInt(match[1], 10);
+  const unit = match[2];
+  if (!Number.isFinite(value) || value <= 0) return null;
+
+  return { value, unit };
+}
+
+/**
+ * 依據間隔語法，從 baseDate 往後推下一次執行時間。
+ * @param {Date} baseDate
+ * @param {{value:number, unit:string}} interval
+ * @returns {Date|null}
+ */
+function getNextOccurrenceByInterval(baseDate, interval) {
+  const next = new Date(baseDate);
+  if (isNaN(next.getTime())) return null;
+
+  switch (interval.unit) {
+    case "m":
+      next.setMinutes(next.getMinutes() + interval.value);
+      return next;
+    case "h":
+      next.setHours(next.getHours() + interval.value);
+      return next;
+    case "d":
+      next.setDate(next.getDate() + interval.value);
+      return next;
+    case "w":
+      next.setDate(next.getDate() + interval.value * 7);
+      return next;
+    case "M":
+      next.setMonth(next.getMonth() + interval.value);
+      return next;
+    default:
+      return null;
+  }
+}
+
+/**
+ * 將五欄 cron 中的 rN 語法轉譯成一般 cron list。
+ * 例如 baseDate 在 5 月、月份欄為 r3，會轉為 5,8,11。
+ * @param {string} cronExpr
+ * @param {Date} baseDate
+ * @returns {string}
+ */
+function resolveRelativeCronExpr(cronExpr, baseDate) {
+  if (typeof cronExpr !== "string") return cronExpr;
+
+  const parts = cronExpr.trim().split(/\s+/);
+  if (parts.length !== 5) return cronExpr;
+
+  const ranges = [
+    { min: 0, max: 59 }, // minute
+    { min: 0, max: 23 }, // hour
+    { min: 1, max: 31 }, // day of month
+    { min: 1, max: 12 }, // month
+    { min: 0, max: 6 }, // day of week
+  ];
+
+  const anchors = [
+    baseDate.getMinutes(),
+    baseDate.getHours(),
+    baseDate.getDate(),
+    baseDate.getMonth() + 1,
+    baseDate.getDay(),
+  ];
+
+  let changed = false;
+  const resolved = parts.map((part, index) => {
+    const match = part.match(/^r(\d+)$/i);
+    if (!match) return part;
+
+    const step = parseInt(match[1], 10);
+    if (!Number.isFinite(step) || step <= 0) {
+      return part;
+    }
+
+    const { min, max } = ranges[index];
+    let anchor = anchors[index];
+    if (anchor < min || anchor > max) {
+      anchor = min;
+    }
+
+    const values = [];
+    for (let value = anchor; value <= max; value += step) {
+      values.push(String(value));
+    }
+
+    changed = true;
+    return values.join(",");
+  });
+
+  return changed ? resolved.join(" ") : cronExpr;
+}
+
 /** * 根據 cron 表達式取得下一次執行時間
  * @param {string} cronExpr
  * @param {Date} [ baseDate=new Date() ]
  * @returns {Date|null} 下一次執行時間，無法解析則回傳 null
  */
 function getNextOccurrence(cronExpr, baseDate = new Date()) {
+  const base = new Date(baseDate);
+  if (isNaN(base.getTime())) return null;
+
+  const interval = parseEveryIntervalExpr(cronExpr);
+  if (interval) {
+    return getNextOccurrenceByInterval(base, interval);
+  }
+
+  const resolvedCronExpr = resolveRelativeCronExpr(cronExpr, base);
+
   try {
-    const cron = new Cron(cronExpr, { legacyMode: false });
-    return cron.nextRun(baseDate);
+    const cron = new Cron(resolvedCronExpr, { legacyMode: false });
+    return cron.nextRun(base);
   } catch (e) {
     return null;
   }

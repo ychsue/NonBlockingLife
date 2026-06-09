@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-06-09] 讓cronExpr 能夠設定 related 的方式來決定下一次的 NextRun 的時間了
+
+[Utils.js](gas\src\Utils.js)的 `parseEveryIntervalExpr` 等函數在做這件事
+
 ## [2026-06-05] 讓使用者可以設定預設的頁面了
 
 說明在 [discussion_20260605_default_page.md](Discussion\discussion_20260605_default_page.md#2026-06-05-預設開啟頁面討論紀錄) 裡面，總之，現在在 GuidePage 裡面有一個啟動偏好設定，讓使用者可以選擇啟動時要先開哪一頁了！選項有 `guide`、`selection_cache` 與 `last_visited` 三種，分別對應說明頁、建議頁與上次停留的頁面。這樣就可以讓使用者更快地進入他們想要的頁面了！
