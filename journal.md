@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-06-11] 在 SelectionCacheTable 加了一個避免誤觸Interrupt 的確認，但是偶而會選錯條目的部分還沒查清楚原因。
+
 ## [2026-06-09] 讓cronExpr 能夠設定 related 的方式來決定下一次的 NextRun 的時間了
 
 [Utils.js](gas\src\Utils.js)的 `parseEveryIntervalExpr` 等函數在做這件事

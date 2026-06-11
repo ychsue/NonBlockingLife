@@ -428,6 +428,13 @@ export function SelectionCacheTable() {
     }
   };
 
+  const handleInterruptClick = async () => {
+    const confirmed = window.confirm(!!runningTask ? t('candidates.interruptATask') : t('candidates.justInterrupt'));
+    if (!confirmed) return;
+    await handleInterrupt();
+  };
+
+
   const handleJumpToSourceEditor = useCallback(
     (item: SelectionCacheItem) => {
       const sourceSheet = mapSourceToSheet(item.source);
@@ -622,7 +629,7 @@ export function SelectionCacheTable() {
         </span>
         {warning && <span className="text-sm text-red-600">{warning}</span>}
         <button
-          onClick={handleInterrupt}
+          onClick={handleInterruptClick}
           className="flex-1 px-4 py-2 border border-amber-300 text-amber-800 rounded hover:bg-amber-100"
         >
           ⚡ {isMobile ? "" : t('candidates.interrupt')}
@@ -819,7 +826,7 @@ export function SelectionCacheTable() {
                   📭
                 </button>
                 <button
-                  onClick={handleInterrupt}
+                  onClick={handleInterruptClick}
                   className="flex-1 px-4 py-2 border border-amber-300 text-amber-800 rounded hover:bg-amber-100 transition-colors text-lg"
                 >
                   ⚡

@@ -86,9 +86,9 @@ export function TaskPoolTable() {
           const defaultTasks: TaskPoolItem[] = [
             createNewTaskPoolRow('T0', 'Free(Idle)', '', 'None'),
             createNewTaskPoolRow('Ta', 'Superconductor-like Society', '', 'https://ychsue.github.io/superconductorlike_society'),
-            createNewTaskPoolRow('Tb', 'ActionManifold', '', 'https://github.com/ychsue/ActionManifold'),
-            createNewTaskPoolRow('Tc', 'NonBlockingLife', '', 'https://ychsue.github.io/NonBlockingLife'),
-            createNewTaskPoolRow('Td', 'MyProject', '', 'None'),
+            createNewTaskPoolRow('Tb', t('table.taskPool.defaultTask1'), '', 'None'),
+            createNewTaskPoolRow('Tc', t('table.taskPool.defaultTask2'), '', 'None'),
+            createNewTaskPoolRow('Td', t('table.taskPool.defaultTask3'), '', 'None'),
           ]
           
           // 批量添加到資料庫

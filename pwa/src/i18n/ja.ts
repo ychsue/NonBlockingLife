@@ -18,6 +18,8 @@ export const ja: TranslationMap = {
   'candidates.loading': '読み込み中...',
   'candidates.empty': '候補がありません。更新を押してください。',
   'candidates.warnAlreadyRunning': '先に現在のタスクを終了してください。',
+  'candidates.justInterrupt': '現在実行中のタスクはありません。OK をクリックして割り込みモードに入ります。',
+  'candidates.interruptATask': '現在のタスクを中断して新しいタスクを開始しますか？OK をクリックして中断、またはキャンセルをクリックして保持します。',
 
   'col.taskId': 'タスク ID',
   'col.title': 'タイトル',
@@ -202,6 +204,10 @@ export const ja: TranslationMap = {
   'table.taskPool.field.note': 'メモ',
   'table.taskPool.field.url': 'URL',
   'table.taskPool.field.deadline': '期限',
+  'table.taskPool.defaultTask1':        '⛔ 怒りが10回以上、かつ10分以上続く',
+  'table.taskPool.defaultTask2':        '⛔ エンターテインメントは30分以内',
+  'table.taskPool.defaultTask3':        '🟢 受け入れがたい状況の中で感謝できる点を見つけ、少なくとも3回感謝の意を表す',
+
 
   // ── Scheduled ────────────────────────────────────────────────
   'table.scheduled.subtitle': '定期実行タスク設定',

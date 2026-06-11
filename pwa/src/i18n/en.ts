@@ -17,6 +17,8 @@ export const en = {
   'candidates.loading':    'Loading...',
   'candidates.empty':      'No candidates. Click Refresh to load.',
   'candidates.warnAlreadyRunning': 'Please end the current task first.',
+  'candidates.justInterrupt': 'No task is currently running. Click OK to enter interrupt mode.',
+  'candidates.interruptATask': 'Do you want to interrupt the current task and start a new one? Click OK to interrupt, or Cancel to stay.',
 
   // ── Column headers ───────────────────────────────────────────
   'col.taskId':  'Task ID',
@@ -220,6 +222,9 @@ export const en = {
   'table.taskPool.field.note':          'Note',
   'table.taskPool.field.url':           'URL',
   'table.taskPool.field.deadline':      'Deadline',
+  'table.taskPool.defaultTask1':        '⛔ Anger more than 10 times and more than 10 minutes',
+  'table.taskPool.defaultTask2':        '⛔ Entertainment not exceeding 30 minutes',
+  'table.taskPool.defaultTask3':        '🟢 Try to find points of gratitude in unacceptable situations and express gratitude at least 3 times',
 
   // ── Scheduled ────────────────────────────────────────────────
   'table.scheduled.subtitle':           'Recurring task settings',

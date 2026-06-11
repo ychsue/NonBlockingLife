@@ -138,18 +138,18 @@ export function GuidePage() {
   function getStartupOptionLabel(option: StartupPreference) {
     if (locale === 'ja') {
       if (option === 'guide') return 'ガイドページ'
-      if (option === 'selection_cache') return 'Selection Cache'
+      if (option === 'selection_cache') return '🎯 Candidates'
       return '前回のページ'
     }
 
     if (locale === 'en') {
       if (option === 'guide') return 'Guide Page'
-      if (option === 'selection_cache') return 'Selection Cache'
+      if (option === 'selection_cache') return '🎯 Candidates'
       return 'Last Visited Page'
     }
 
     if (option === 'guide') return '說明頁'
-    if (option === 'selection_cache') return 'Selection Cache 任務控制中心'
+    if (option === 'selection_cache') return '🎯 Candidates 任務控制中心'
     return '上次停留頁面'
   }
 

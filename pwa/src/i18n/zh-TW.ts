@@ -20,6 +20,8 @@ export const zhTW: TranslationMap = {
   'candidates.loading':    '載入中...',
   'candidates.empty':      '暫無候選任務，請點擊「刷新候選」按鈕',
   'candidates.warnAlreadyRunning': '請先結束目前任務後再開始新的任務。',
+  'candidates.justInterrupt': '目前沒有執行中的任務，確定要進入中斷模式嗎？',
+  'candidates.interruptATask': '確定要中斷目前任務並開始新的任務嗎？點擊「確定」以中斷，或點擊「取消」以保留目前任務。',
 
   // ── Column headers ───────────────────────────────────────────
   'col.taskId':  '任務 ID',
@@ -223,6 +225,10 @@ export const zhTW: TranslationMap = {
   'table.taskPool.field.note':          '備註',
   'table.taskPool.field.url':           'URL',
   'table.taskPool.field.deadline':      '截止時間',
+  'table.taskPool.defaultTask1':        '⛔ 發脾氣不超過十次與不超過 10 分鐘',
+  'table.taskPool.defaultTask2':        '⛔ 娛樂不超過 30 分鐘',
+  'table.taskPool.defaultTask3':        '🟢 試著在不能接受的狀態中找到可感恩的點，並且感恩，至少三次',
+
 
   // ── Scheduled ────────────────────────────────────────────────
   'table.scheduled.subtitle':           '定期執行的任務設定',
