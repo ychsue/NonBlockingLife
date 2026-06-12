@@ -312,7 +312,7 @@ export function TaskPoolTable() {
 
           return (
             <input
-              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              className="w-full min-w-20 px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-xs"
               value={value}
               onChange={(event) =>
                 updateLocalRow(taskId, { project: event.target.value })
@@ -421,7 +421,7 @@ export function TaskPoolTable() {
 
           return (
             <input
-              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              className="w-full min-w-40 px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
               value={value}
               onChange={(event) =>
                 updateLocalRow(taskId, { note: event.target.value })

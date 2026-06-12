@@ -517,7 +517,7 @@ export function ScheduledTable() {
 
           return (
             <input
-              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 font-mono text-xs"
+              className="w-full min-w-40 px-2 py-1 border rounded focus:outline-none focus:border-blue-500 font-mono text-xs"
               value={value}
               placeholder="action"
               onChange={(event) =>
@@ -538,7 +538,7 @@ export function ScheduledTable() {
 
           return (
             <input
-              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
+              className="w-full min-w-40 px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
               value={value}
               onChange={(event) =>
                 updateLocalRow(taskId, { note: event.target.value })

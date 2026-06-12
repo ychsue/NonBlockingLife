@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-06-12] 修復 TaskPoolTable 與 ScheduledTable 在桌面形式時有些欄位太扁
+
+多加 `min-w-40` 即可避免
+
 ## [2026-06-11] 在 SelectionCacheTable 加了一個避免誤觸Interrupt 的確認，但是偶而會選錯條目的部分還沒查清楚原因。
 
 ## [2026-06-09] 讓cronExpr 能夠設定 related 的方式來決定下一次的 NextRun 的時間了
