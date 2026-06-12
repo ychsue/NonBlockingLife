@@ -270,8 +270,8 @@ export default function App() {
         className={`sticky top-0 z-40 border-b border-gray-200 ${runningTask ? "bg-amber-50/95 backdrop-blur-sm" : "bg-white"}`}
       >
         <header className="border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-3">
-            <div className="min-w-0">
+          <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center gap-3">
+            <div className="min-w-0 flex flex-col flex-shrink-1">
               <h1 className="text-2xl font-bold text-gray-800">
                 📱 Non-Blocking Life
               </h1>
@@ -282,7 +282,7 @@ export default function App() {
                 {!isMobile && <SyncStatus />}
               </div>
             </div>
-            <div className="flex items-center gap-2 ml-auto">
+            <div className="flex items-center gap-2 ml-auto flex-shrink-0">
               {runningTask && (
                 <div className="flex items-center gap-2 rounded-full border border-amber-200 bg-white/90 px-3 py-1.5 text-sm text-amber-900 shadow-sm">
                   <span className="relative flex h-2.5 w-2.5">
