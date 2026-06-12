@@ -21,6 +21,7 @@ import { TableHelpDialog } from '../TableHelpDialog'
 import microTasksHelpMarkdown from './MicroTasksHelp.md?raw'
 import { useSearchFilter, useHideDone } from '../../hooks/useSearchFilter'
 import { interruptTask } from '../../utils/taskFlow'
+import { shouldOpenRowEdit } from './rowEditUtils'
 
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<MicroTaskItem>()
@@ -482,7 +483,14 @@ export function MicroTasksTable() {
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-b hover:bg-gray-50">
+                <tr
+                  key={row.id}
+                  onClick={(event) => {
+                    if (!shouldOpenRowEdit(event.target)) return
+                    setEditingItem(row.original)
+                  }}
+                  className="border-b hover:bg-gray-50 cursor-pointer"
+                >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-2">
                       {flexRender(

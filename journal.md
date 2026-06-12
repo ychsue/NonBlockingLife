@@ -1,5 +1,11 @@
 # Journal
 
+## [2026-06-12] 修正桌面形式輸入會很容易失去 focus 的問題，原因出在 useT() 每次回傳的函數都是新的
+
+在 [i18n\index.ts](pwa\src\i18n\index.ts) 多給了依據 map 變動的 useCallback 的宣告就好了。
+
+[discussion_20260612_bug_fix.md](Discussion\discussion_20260612_bug_fix.md) 裡面有詳細的解說，謝謝 GPT5.4 mini 的幫忙
+
 ## [2026-06-12] 修復 TaskPoolTable 與 ScheduledTable 在桌面形式時有些欄位太扁
 
 多加 `min-w-40` 即可避免

@@ -20,6 +20,7 @@ import { EditDialog, type FieldType } from '../EditDialog'
 import { TableHelpDialog } from '../TableHelpDialog'
 import { useSearchFilter } from '../../hooks/useSearchFilter'
 import resourceHelpMarkdown from './ResourceHelp.md?raw'
+import { shouldOpenRowEdit } from './rowEditUtils'
 
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<ResourceItem>()
@@ -424,7 +425,10 @@ export function ResourceTable() {
               {table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  onClick={() => setEditingItem(row.original)}
+                  onClick={(event) => {
+                    if (!shouldOpenRowEdit(event.target)) return
+                    setEditingItem(row.original)
+                  }}
                   className="border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
                 >
                   {row.getVisibleCells().map((cell) => (

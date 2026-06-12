@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useAppStore } from '../store/appStore'
 import { en } from './en'
 import { zhTW } from './zh-TW'
@@ -38,7 +39,7 @@ export function useT() {
   const locale = useAppStore((s) => s.locale)
   const map = translations[locale] ?? translations['zh-TW']
 
-  return function t(key: TranslationKey, vars?: Record<string, string | number>): string {
+  return useCallback((key: TranslationKey, vars?: Record<string, string | number>): string => {
     let str: string = map[key] ?? key
     if (vars) {
       for (const [k, v] of Object.entries(vars)) {
@@ -46,7 +47,7 @@ export function useT() {
       }
     }
     return str
-  }
+  }, [map])
 }
 
 /**
