@@ -219,7 +219,6 @@ export function EditDialog<T>({
                   value={formData[field.name] ?? ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
                   onBlur={handleDialogTextFieldInteractionEnd}
-                  onTouchEnd={handleDialogTextFieldInteractionEnd}
                   placeholder={field.placeholder}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"

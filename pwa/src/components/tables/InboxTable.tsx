@@ -357,7 +357,6 @@ export function InboxTable() {
                 handleDialogTextFieldInteractionEnd();
                 saveUpdate(taskId, { title: event.target.value });
               }}
-              onTouchEnd={handleDialogTextFieldInteractionEnd}
             />
           );
         },

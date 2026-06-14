@@ -815,7 +815,6 @@ export function SelectionCacheTable() {
                   value={endNote}
                   onChange={(e) => setEndNote(e.target.value)}
                   onBlur={handleDialogTextFieldInteractionEnd}
-                  onTouchEnd={handleDialogTextFieldInteractionEnd}
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:border-amber-500"
                   rows={3}
                   placeholder={t('endTask.notePlaceholder')}
@@ -932,7 +931,6 @@ export function SelectionCacheTable() {
                 value={startNote}
                 onChange={(e) => setStartNote(e.target.value)}
                 onBlur={handleDialogTextFieldInteractionEnd}
-                onTouchEnd={handleDialogTextFieldInteractionEnd}
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
                 rows={3}
                 placeholder={t('startTask.notePlaceholder')}
@@ -1030,7 +1028,6 @@ export function SelectionCacheTable() {
                 value={startNote}
                 onChange={(e) => setStartNote(e.target.value)}
                 onBlur={handleDialogTextFieldInteractionEnd}
-                onTouchEnd={handleDialogTextFieldInteractionEnd}
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-indigo-500"
                 rows={3}
                 placeholder="可輸入事件備註；仍可相容 JSON（如有舊習慣）。"
