@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback, type TouchEvent } from "react";
 import {
   createColumnHelper,
   flexRender,
@@ -26,6 +26,11 @@ import selectionCacheHelpMarkdown from "./SelectionCacheHelp.md?raw";
 import { useResponsiveTable } from "../../hooks/useResponsiveTable";
 import { useT } from "../../i18n";
 import type { SheetName } from "../../hooks/useUrlAction";
+import {
+  handleDialogActionTouchEnd,
+  handleDialogTextFieldInteractionEnd,
+  resetDialogTextInteractionState,
+} from "../../utils/dialogInteractionUtils";
 
 const DEV_CLIENT_ID = "dev-selection-cache";
 const columnHelper = createColumnHelper<SelectionCacheItem>();
@@ -81,6 +86,14 @@ export function SelectionCacheTable() {
   const [jumpToSourceChecked, setJumpToSourceChecked] = useState(false);
   const [showRecordDialog, setShowRecordDialog] = useState(false);
   const [conflictScheduled, setConflictScheduled] = useState<ScheduledItem[]>([]);
+
+  const handleDialogButtonTouchEnd = useCallback(
+    (event: TouchEvent<HTMLButtonElement>, action: () => void) => {
+      if (event.currentTarget.disabled) return;
+      handleDialogActionTouchEnd(event, action);
+    },
+    [],
+  );
 
   const updateTakeTime = useCallback((task: Dashboard | null) => {
     if (!task?.startAt) {
@@ -169,6 +182,16 @@ export function SelectionCacheTable() {
       dialog.close();
     }
   }, [showRecordDialog]);
+
+  useEffect(() => {
+    if (!showStartDialog && !showEndDialog && !showRecordDialog) {
+      resetDialogTextInteractionState();
+    }
+
+    return () => {
+      resetDialogTextInteractionState();
+    };
+  }, [showStartDialog, showEndDialog, showRecordDialog]);
 
   const handleDialogState = (dialog: HTMLDialogElement) => {
     if (showEndDialog) {
@@ -791,6 +814,8 @@ export function SelectionCacheTable() {
                   id="note_end"
                   value={endNote}
                   onChange={(e) => setEndNote(e.target.value)}
+                  onBlur={handleDialogTextFieldInteractionEnd}
+                  onTouchEnd={handleDialogTextFieldInteractionEnd}
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:border-amber-500"
                   rows={3}
                   placeholder={t('endTask.notePlaceholder')}
@@ -813,6 +838,7 @@ export function SelectionCacheTable() {
               <div className="flex gap-2 mt-6">
                 <button
                   onClick={handleConfirmEnd}
+                  onTouchEnd={(event) => handleDialogButtonTouchEnd(event, handleConfirmEnd)}
                   className="flex-1 px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
                 >
                   {t('endTask.confirmBtn')}
@@ -821,12 +847,18 @@ export function SelectionCacheTable() {
                   onClick={() => {
                     setCurrentSheet("inbox");
                   }}
+                  onTouchEnd={(event) => handleDialogButtonTouchEnd(event, () => {
+                    setCurrentSheet("inbox");
+                  })}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors text-lg"
                 >
                   📭
                 </button>
                 <button
                   onClick={handleInterruptClick}
+                  onTouchEnd={(event) => handleDialogButtonTouchEnd(event, () => {
+                    void handleInterruptClick();
+                  })}
                   className="flex-1 px-4 py-2 border border-amber-300 text-amber-800 rounded hover:bg-amber-100 transition-colors text-lg"
                 >
                   ⚡
@@ -899,6 +931,8 @@ export function SelectionCacheTable() {
                 id="note_start"
                 value={startNote}
                 onChange={(e) => setStartNote(e.target.value)}
+                onBlur={handleDialogTextFieldInteractionEnd}
+                onTouchEnd={handleDialogTextFieldInteractionEnd}
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
                 rows={3}
                 placeholder={t('startTask.notePlaceholder')}
@@ -912,18 +946,28 @@ export function SelectionCacheTable() {
                 setShowStartDialog(false);
                 setRecordDuration("");
               }}
+              onTouchEnd={(event) => handleDialogButtonTouchEnd(event, () => {
+                setShowStartDialog(false);
+                setRecordDuration("");
+              })}
               className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
             >
               {t('startTask.cancelBtn')}
             </button>
             <button
               onClick={handleRecordOnly}
+              onTouchEnd={(event) => handleDialogButtonTouchEnd(event, () => {
+                void handleRecordOnly();
+              })}
               className="flex-1 px-4 py-2 border border-indigo-300 text-indigo-700 rounded hover:bg-indigo-50"
             >
               {t('startTask.logOnlyBtn')}
             </button>
             <button
               onClick={handleConfirmStart}
+              onTouchEnd={(event) => handleDialogButtonTouchEnd(event, () => {
+                void handleConfirmStart();
+              })}
               className="flex-1 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
             >
               {t('startTask.confirmBtn')}
@@ -985,6 +1029,8 @@ export function SelectionCacheTable() {
                 id="note_record_only"
                 value={startNote}
                 onChange={(e) => setStartNote(e.target.value)}
+                onBlur={handleDialogTextFieldInteractionEnd}
+                onTouchEnd={handleDialogTextFieldInteractionEnd}
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-indigo-500"
                 rows={3}
                 placeholder="可輸入事件備註；仍可相容 JSON（如有舊習慣）。"
@@ -995,12 +1041,16 @@ export function SelectionCacheTable() {
           <div className="flex gap-2 mt-6">
             <button
               onClick={handleCancelRecordDialog}
+              onTouchEnd={(event) => handleDialogButtonTouchEnd(event, handleCancelRecordDialog)}
               className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
             >
               {t('recordOnly.backBtn')}
             </button>
             <button
               onClick={handleConfirmRecordOnly}
+              onTouchEnd={(event) => handleDialogButtonTouchEnd(event, () => {
+                void handleConfirmRecordOnly();
+              })}
               className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
             >
               {t('recordOnly.confirmBtn')}

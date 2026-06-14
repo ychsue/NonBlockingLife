@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { formatToDateTimeLocal } from '../utils/timeUtils'
 import { useT } from '../i18n'
 import { buildCronExpr, getCronParts, getUpcomingOccurrences } from '../utils/cronUtils'
+import {
+  handleDialogActionTouchEnd,
+  handleDialogTextFieldInteractionEnd,
+  resetDialogTextInteractionState,
+} from '../utils/dialogInteractionUtils'
 
 export type FieldType = 'text' | 'number' | 'datetime' | 'select' | 'cron'
 
@@ -42,34 +47,6 @@ export function EditDialog<T>({
   const [error, setError] = useState<string | null>(null)
   const [openCronPreviewField, setOpenCronPreviewField] = useState<string | null>(null)
 
-  const clearBrowserSelection = () => {
-    if (typeof window === 'undefined') return
-    window.getSelection()?.removeAllRanges()
-  }
-
-  const blurActiveElement = () => {
-    if (typeof document === 'undefined') return
-    const activeElement = document.activeElement
-    if (activeElement instanceof HTMLElement) {
-      activeElement.blur()
-    }
-  }
-
-  const resetTextInteractionState = () => {
-    clearBrowserSelection()
-    blurActiveElement()
-  }
-
-  const handleButtonTouchEnd = (
-    event: React.TouchEvent<HTMLButtonElement>,
-    action: () => void
-  ) => {
-    event.preventDefault()
-    event.stopPropagation()
-    resetTextInteractionState()
-    action()
-  }
-
   useEffect(() => {
     if (item) {
       const initialData: Record<string, any> = {}
@@ -84,11 +61,11 @@ export function EditDialog<T>({
 
   useEffect(() => {
     if (!isOpen) {
-      resetTextInteractionState()
+      resetDialogTextInteractionState()
     }
 
     return () => {
-      resetTextInteractionState()
+      resetDialogTextInteractionState()
     }
   }, [isOpen])
 
@@ -241,10 +218,8 @@ export function EditDialog<T>({
                   id={field.name}
                   value={formData[field.name] ?? ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
-                  onBlur={() => clearBrowserSelection()}
-                  onTouchEnd={() => {
-                    clearBrowserSelection()
-                  }}
+                  onBlur={handleDialogTextFieldInteractionEnd}
+                  onTouchEnd={handleDialogTextFieldInteractionEnd}
                   placeholder={field.placeholder}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
@@ -259,7 +234,7 @@ export function EditDialog<T>({
           <div className="flex gap-3 justify-end">
             <button
               onClick={onClose}
-              onTouchEnd={(event) => handleButtonTouchEnd(event, onClose)}
+              onTouchEnd={(event) => handleDialogActionTouchEnd(event, onClose)}
               disabled={isSaving}
               className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50"
             >
@@ -267,7 +242,7 @@ export function EditDialog<T>({
             </button>
             <button
               onClick={handleSave}
-              onTouchEnd={(event) => handleButtonTouchEnd(event, handleSave)}
+              onTouchEnd={(event) => handleDialogActionTouchEnd(event, handleSave)}
               disabled={isSaving}
               className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors disabled:opacity-50"
             >

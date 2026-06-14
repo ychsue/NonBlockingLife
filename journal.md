@@ -1,5 +1,7 @@
 # Journal
 
+2026-06-14 補記：已抽出 iPhone 觸控修補 utility（dialogInteractionUtils），並套用到 EditDialog、SelectionCacheTable dialogs 與 InboxTable 的 textarea，降低全選/貼上後按鈕或操作偶發失效。
+
 ## [2026-06-14] 試著修正iPhone 上有時無法EditDialog Save
 
 ## [2026-06-12] 修正桌面形式輸入會很容易失去 focus 的問題，原因出在 useT() 每次回傳的函數都是新的

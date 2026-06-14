@@ -20,6 +20,7 @@ import { EditDialog, type FieldType } from "../EditDialog";
 import { TableHelpDialog } from "../TableHelpDialog";
 import inboxHelpMarkdown from "./InboxHelp.md?raw";
 import { shouldOpenRowEdit } from "./rowEditUtils";
+import { handleDialogTextFieldInteractionEnd } from "../../utils/dialogInteractionUtils";
 
 const DEV_CLIENT_ID = "dev-client";
 const columnHelper = createColumnHelper<InboxItem>();
@@ -352,9 +353,11 @@ export function InboxTable() {
                 event.target.style.height = event.target.scrollHeight + "px";
                 updateLocalRow(taskId, { title: event.target.value });
               }}
-              onBlur={(event) =>
-                saveUpdate(taskId, { title: event.target.value })
-              }
+              onBlur={(event) => {
+                handleDialogTextFieldInteractionEnd();
+                saveUpdate(taskId, { title: event.target.value });
+              }}
+              onTouchEnd={handleDialogTextFieldInteractionEnd}
             />
           );
         },
