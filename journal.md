@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-06-14] 試著修正iPhone 上有時無法EditDialog Save
+
 ## [2026-06-12] 修正桌面形式輸入會很容易失去 focus 的問題，原因出在 useT() 每次回傳的函數都是新的
 
 在 [i18n\index.ts](pwa\src\i18n\index.ts) 多給了依據 map 變動的 useCallback 的宣告就好了。

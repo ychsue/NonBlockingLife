@@ -42,6 +42,34 @@ export function EditDialog<T>({
   const [error, setError] = useState<string | null>(null)
   const [openCronPreviewField, setOpenCronPreviewField] = useState<string | null>(null)
 
+  const clearBrowserSelection = () => {
+    if (typeof window === 'undefined') return
+    window.getSelection()?.removeAllRanges()
+  }
+
+  const blurActiveElement = () => {
+    if (typeof document === 'undefined') return
+    const activeElement = document.activeElement
+    if (activeElement instanceof HTMLElement) {
+      activeElement.blur()
+    }
+  }
+
+  const resetTextInteractionState = () => {
+    clearBrowserSelection()
+    blurActiveElement()
+  }
+
+  const handleButtonTouchEnd = (
+    event: React.TouchEvent<HTMLButtonElement>,
+    action: () => void
+  ) => {
+    event.preventDefault()
+    event.stopPropagation()
+    resetTextInteractionState()
+    action()
+  }
+
   useEffect(() => {
     if (item) {
       const initialData: Record<string, any> = {}
@@ -53,6 +81,16 @@ export function EditDialog<T>({
       setOpenCronPreviewField(null)
     }
   }, [item, fields])
+
+  useEffect(() => {
+    if (!isOpen) {
+      resetTextInteractionState()
+    }
+
+    return () => {
+      resetTextInteractionState()
+    }
+  }, [isOpen])
 
   if (!isOpen || !item) return null
 
@@ -150,8 +188,8 @@ export function EditDialog<T>({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center items-center bg-black/50" onClick={onClose}>
-      <div className="bg-white w-full sm:max-w-md rounded-t-lg sm:rounded-lg p-6 shadow-lg max-h-[90vh] sm:max-h-[80vh] flex flex-col overflow-y-auto overflow-x-hidden" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center items-center bg-black/50 pointer-events-auto" onClick={onClose}>
+      <div className="bg-white w-full sm:max-w-md rounded-t-lg sm:rounded-lg p-6 shadow-lg max-h-[90vh] sm:max-h-[80vh] flex flex-col overflow-y-auto overflow-x-hidden pointer-events-auto" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-lg font-bold mb-4 flex-shrink-0">{title}</h2>
 
         {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded text-sm flex-shrink-0">{error}</div>}
@@ -203,6 +241,10 @@ export function EditDialog<T>({
                   id={field.name}
                   value={formData[field.name] ?? ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
+                  onBlur={() => clearBrowserSelection()}
+                  onTouchEnd={() => {
+                    clearBrowserSelection()
+                  }}
                   placeholder={field.placeholder}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
@@ -217,6 +259,7 @@ export function EditDialog<T>({
           <div className="flex gap-3 justify-end">
             <button
               onClick={onClose}
+              onTouchEnd={(event) => handleButtonTouchEnd(event, onClose)}
               disabled={isSaving}
               className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50"
             >
@@ -224,6 +267,7 @@ export function EditDialog<T>({
             </button>
             <button
               onClick={handleSave}
+              onTouchEnd={(event) => handleButtonTouchEnd(event, handleSave)}
               disabled={isSaving}
               className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors disabled:opacity-50"
             >
