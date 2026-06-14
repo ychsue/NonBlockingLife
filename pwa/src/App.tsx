@@ -270,7 +270,7 @@ export default function App() {
         className={`sticky top-0 z-40 border-b border-gray-200 ${runningTask ? "bg-amber-50/95 backdrop-blur-sm" : "bg-white"}`}
       >
         <header className="border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center gap-3">
+          <div className={`max-w-7xl mx-auto px-4 py-4 flex justify-between items-center gap-3 ${runningTask ? "flex-wrap" : ""}`}>
             <div className="min-w-0 flex flex-col flex-shrink-1">
               <h1 className="text-2xl font-bold text-gray-800">
                 📱 Non-Blocking Life
