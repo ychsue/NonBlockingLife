@@ -11,10 +11,12 @@
 ## [2026-06-15] 實作紀錄
 
 ### 新增元件
+
 - **`InterruptConfirmDialog.tsx`**：⚡ 按下後的三選一確認彈窗（取消 / 立即中斷 / 搜尋並切換任務），以 props 傳入 callback，不需 appStore 狀態。
 - **`TaskSearchDialog.tsx`**：搜尋任務彈窗，支援 Regex；有結果時可選擇單筆後按「編輯」或「執行」；無結果時顯示加入到（Task Pool / Micro Tasks / Scheduled）的 checkbox，勾選後出現「新增並編輯」與「新增並執行」（Scheduled 僅提供「新增並編輯」）。
 
 ### 修改現有檔案
+
 - **`store/appStore.ts`**：新增 `showTaskSearchDialog`、`taskSearchInitQuery` 及其 setter，供 `useUrlAction` 跨模組使用。
 - **`SelectionCacheTable.tsx`**：⚡ 按鈕改為開啟 `InterruptConfirmDialog`（取代原 `window.confirm`）；`handleDialogState` 加入互斥判斷，確保 `InterruptConfirmDialog` 或 `TaskSearchDialog` 出現時 native endDialog 不會同時彈出；底部渲染兩個新 dialog。
 - **`useUrlAction.ts`**：新增 `action=search&query=xxx` URL action，導航到 selection_cache 頁並自動帶入搜尋字串開啟 `TaskSearchDialog`。

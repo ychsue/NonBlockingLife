@@ -1,5 +1,11 @@
 # Journal
 
+## [2026-06-15] AI 幫忙寫了按中斷時，可搜尋 task 的功能
+
+簡述於 [discussion_search_task_page.md](Discussion\discussion_search_task_page.md)，已經用掉 60% 的 GPT5.4 mini
+
+剛剛改用 VSCode AI Agent 模式，還是不習慣，不曉得我要怎麼測試。
+
 2026-06-14 補記：已抽出 iPhone 觸控修補 utility（dialogInteractionUtils），並套用到 EditDialog、SelectionCacheTable dialogs 與 InboxTable 的 textarea，降低全選/貼上後按鈕或操作偶發失效。
 
 ## [2026-06-14] 試著修正iPhone 上有時無法EditDialog Save
