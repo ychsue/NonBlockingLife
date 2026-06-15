@@ -79,6 +79,20 @@ export function useUrlAction(options: UseUrlActionOptions) {
       return;
     }
 
+    // 處理 task 搜尋動作：?action=search&query=xxx
+    if (action === "search") {
+      const searchQuery = params.get("query") || "";
+      onNavigate("selection_cache");
+      queueMicrotask(() => {
+        useAppStore.setState({
+          taskSearchInitQuery: searchQuery,
+          showTaskSearchDialog: true,
+        });
+      });
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+
     // 若沒有參數或 action 不是 'add'，不處理
     if (!sheet || action !== "add") return;
 

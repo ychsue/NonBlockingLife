@@ -1,3 +1,5 @@
+import { InterruptConfirmDialog } from '../InterruptConfirmDialog'
+import { TaskSearchDialog } from '../TaskSearchDialog'
 import { useMemo, useState, useEffect, useRef, useCallback, type TouchEvent } from "react";
 import {
   createColumnHelper,
@@ -71,6 +73,12 @@ export function SelectionCacheTable() {
 
   const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
   const setPendingEditIntent = useAppStore((state) => state.setPendingEditIntent)
+
+  const showTaskSearchDialog = useAppStore((state) => state.showTaskSearchDialog)
+  const setShowTaskSearchDialog = useAppStore((state) => state.setShowTaskSearchDialog)
+  const setTaskSearchInitQuery = useAppStore((state) => state.setTaskSearchInitQuery)
+
+  const [showInterruptConfirmDialog, setShowInterruptConfirmDialog] = useState(false)
 
   const t = useT()
 
@@ -171,7 +179,8 @@ export function SelectionCacheTable() {
       return () => clearTimeout(timer);
     }
     handleDialogState(dialog);
-  }, [showEndDialog, isInterruptMode, endDialogRef.current]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showEndDialog, isInterruptMode, endDialogRef.current, showInterruptConfirmDialog, showTaskSearchDialog]);
 
   useEffect(() => {
     const dialog = recordDialogRef.current;
@@ -194,7 +203,8 @@ export function SelectionCacheTable() {
   }, [showStartDialog, showEndDialog, showRecordDialog]);
 
   const handleDialogState = (dialog: HTMLDialogElement) => {
-    if (showEndDialog) {
+    // Suppress native endDialog while InterruptConfirmDialog or TaskSearchDialog is on top
+    if (showEndDialog && !showInterruptConfirmDialog && !showTaskSearchDialog) {
       if (!dialog.open) {
         dialog.showModal();
       }
@@ -451,10 +461,13 @@ export function SelectionCacheTable() {
     }
   };
 
-  const handleInterruptClick = async () => {
-    const confirmed = window.confirm(!!runningTask ? t('candidates.interruptATask') : t('candidates.justInterrupt'));
-    if (!confirmed) return;
-    await handleInterrupt();
+  const handleInterruptClick = () => {
+    setShowInterruptConfirmDialog(true)
+  };
+
+  const handleOpenTaskSearch = () => {
+    setTaskSearchInitQuery('')
+    setShowTaskSearchDialog(true)
   };
 
 
@@ -855,9 +868,7 @@ export function SelectionCacheTable() {
                 </button>
                 <button
                   onClick={handleInterruptClick}
-                  onTouchEnd={(event) => handleDialogButtonTouchEnd(event, () => {
-                    void handleInterruptClick();
-                  })}
+                  onTouchEnd={(event) => handleDialogButtonTouchEnd(event, handleInterruptClick)}
                   className="flex-1 px-4 py-2 border border-amber-300 text-amber-800 rounded hover:bg-amber-100 transition-colors text-lg"
                 >
                   ⚡
@@ -1062,6 +1073,15 @@ export function SelectionCacheTable() {
         markdown={selectionCacheHelpMarkdown}
         onClose={() => setShowHelp(false)}
       />
+
+      <InterruptConfirmDialog
+        isOpen={showInterruptConfirmDialog}
+        onClose={() => setShowInterruptConfirmDialog(false)}
+        onImmediateInterrupt={handleInterrupt}
+        onTaskSearch={handleOpenTaskSearch}
+      />
+
+      <TaskSearchDialog />
     </div>
   );
 }

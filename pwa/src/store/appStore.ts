@@ -97,6 +97,12 @@ interface AppState {
   setRunningTask: (task: Dashboard | null) => void
   loadRunningTask: () => Promise<void>
 
+  // Task Search dialog (shared with useUrlAction)
+  showTaskSearchDialog: boolean
+  setShowTaskSearchDialog: (show: boolean) => void
+  taskSearchInitQuery: string
+  setTaskSearchInitQuery: (query: string) => void
+
   // i18n
   locale: SupportedLocale
   setLocale: (locale: SupportedLocale) => void
@@ -146,6 +152,11 @@ export const useAppStore = create<AppState>((set) => ({
     const current = rows[0] ?? null;
     set({ runningTask: current });
   },
+
+  showTaskSearchDialog: false,
+  setShowTaskSearchDialog: (show) => set({ showTaskSearchDialog: show }),
+  taskSearchInitQuery: '',
+  setTaskSearchInitQuery: (query) => set({ taskSearchInitQuery: query }),
 
   locale: getInitialLocale(),
   setLocale: (locale) => {

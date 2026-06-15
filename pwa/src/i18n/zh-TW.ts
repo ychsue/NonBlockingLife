@@ -316,6 +316,27 @@ export const zhTW: TranslationMap = {
   'time.hoursMinutes':     '{h} 小時 {m} 分鐘',
   'time.minutesOnly':      '{m} 分鐘',
 
+  // ── InterruptConfirmDialog ────────────────────────────────────
+  'interrupt.confirm.title':     '請選擇操作',
+  'interrupt.confirm.cancel':    '取消',
+  'interrupt.confirm.immediate': '立即中斷',
+  'interrupt.confirm.search':    '搜尋並切換任務',
+
+  // ── TaskSearchDialog ──────────────────────────────────────────
+  'taskSearch.title':              '搜尋並切換任務',
+  'taskSearch.placeholder':        '依標題搜尋（支援 Regex）...',
+  'taskSearch.invalidRegex':       '正規表達式語法錯誤',
+  'taskSearch.noResults':          '沒有符合的任務',
+  'taskSearch.editBtn':            '編輯',
+  'taskSearch.runBtn':             '執行',
+  'taskSearch.addTo':              '新增到',
+  'taskSearch.addAndEdit':         '新增並編輯',
+  'taskSearch.addAndRun':          '新增並執行',
+  'taskSearch.source.taskPool':    'Task Pool',
+  'taskSearch.source.microTasks':  'Micro Tasks',
+  'taskSearch.source.scheduled':   'Scheduled',
+  'taskSearch.adding':             '新增中...',
+
   // ── Language toggle (shows the OTHER language label) ──────────
   'lang.toggle': 'EN',
 }

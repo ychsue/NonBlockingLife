@@ -312,6 +312,27 @@ export const en = {
   'time.hoursMinutes':     '{h}h {m}min',
   'time.minutesOnly':      '{m}min',
 
+  // ── InterruptConfirmDialog ────────────────────────────────────
+  'interrupt.confirm.title':     'What would you like to do?',
+  'interrupt.confirm.cancel':    'Cancel',
+  'interrupt.confirm.immediate': 'Interrupt Now',
+  'interrupt.confirm.search':    'Search & Switch Task',
+
+  // ── TaskSearchDialog ──────────────────────────────────────────
+  'taskSearch.title':              'Search & Switch Task',
+  'taskSearch.placeholder':        'Search by title (Regex supported)...',
+  'taskSearch.invalidRegex':       'Invalid regular expression',
+  'taskSearch.noResults':          'No matching tasks found',
+  'taskSearch.editBtn':            'Edit',
+  'taskSearch.runBtn':             'Run',
+  'taskSearch.addTo':              'Add to',
+  'taskSearch.addAndEdit':         'Add & Edit',
+  'taskSearch.addAndRun':          'Add & Run',
+  'taskSearch.source.taskPool':    'Task Pool',
+  'taskSearch.source.microTasks':  'Micro Tasks',
+  'taskSearch.source.scheduled':   'Scheduled',
+  'taskSearch.adding':             'Adding...',
+
   // ── Language toggle (shows the OTHER language label) ──────────
   'lang.toggle': '中文',
 } as const

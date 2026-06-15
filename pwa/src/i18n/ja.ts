@@ -292,5 +292,26 @@ export const ja: TranslationMap = {
   'time.hoursMinutes':     '{h} 時間 {m} 分',
   'time.minutesOnly':      '{m} 分',
 
+  // ── InterruptConfirmDialog ────────────────────────────────────
+  'interrupt.confirm.title':     '操作を選択してください',
+  'interrupt.confirm.cancel':    'キャンセル',
+  'interrupt.confirm.immediate': '今すぐ割り込み',
+  'interrupt.confirm.search':    'タスクを検索して切り替え',
+
+  // ── TaskSearchDialog ──────────────────────────────────────────
+  'taskSearch.title':              'タスクを検索して切り替え',
+  'taskSearch.placeholder':        'タイトルで検索（Regex対応）...',
+  'taskSearch.invalidRegex':       '正規表現の構文が正しくありません',
+  'taskSearch.noResults':          '一致するタスクが見つかりません',
+  'taskSearch.editBtn':            '編集',
+  'taskSearch.runBtn':             '実行',
+  'taskSearch.addTo':              '追加先',
+  'taskSearch.addAndEdit':         '追加して編集',
+  'taskSearch.addAndRun':          '追加して実行',
+  'taskSearch.source.taskPool':    'Task Pool',
+  'taskSearch.source.microTasks':  'Micro Tasks',
+  'taskSearch.source.scheduled':   'Scheduled',
+  'taskSearch.adding':             '追加中...',
+
   'lang.toggle': 'EN',
 }
