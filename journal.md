@@ -1,5 +1,15 @@
 # Journal
 
+## [2026-06-15] 試驗 twa
+
+1. 提供 [twa-manifest.json](twa/twa-manifest.json)
+2. 執行
+
+``` cmd
+cd twa
+docker run -it --rm -v %cd%:/app -w /app ghcr.io/googlechromelabs/bubblewrap:latest build
+```
+
 ## [2026-06-15] AI 幫忙寫了按中斷時，可搜尋 task 的功能
 
 簡述於 [discussion_search_task_page.md](Discussion\discussion_search_task_page.md)，已經用掉 60% 的 GPT5.4 mini

@@ -1,0 +1,28 @@
+{
+  "packageId": "com.yescirculation.nonblockinglife",
+  "host": "ychsue.github.io",
+  "name": "NonBlockingLife",
+  "launcherName": "NonBlockingLife",
+  "description": "只要您願意在生活中狀態改變時打開 NonBlockingLife看一下，他就會幫助您讓您的生活不會隨便的被雜事、娛樂等所阻塞，讓您能夠專注在重要的事情上。",
+  "startUrl": "/NonBlockingLife/",
+  "scopes": [
+    "/NonBlockingLife/"
+  ],
+  "display": "standalone",
+  "orientation": "any",
+  "themeColor": "#000000",
+  "backgroundColor": "#ffffff",
+  "features": {},
+  "alphaDependencies": false,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "webManifestUrl": "https://ychsue.github.io/NonBlockingLife/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "generatorApp": "bubblewrap",
+  "iconUrls": [
+    "https://ychsue.github.io/NonBlockingLife/icons/icon-192.png",
+    "https://ychsue.github.io/NonBlockingLife/icons/icon-512.png"
+  ]
+}
