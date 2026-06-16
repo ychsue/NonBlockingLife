@@ -7,8 +7,15 @@
 
 ``` cmd
 cd twa
+"C:\Program Files\Android\Android Studio\jbr\bin\keytool" -genkeypair -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000
+"C:\Program Files\Android\Android Studio\jbr\bin\keytool" -list -v -keystore android.keystore -alias android #取其 SHA256 加到 assetlinks.json 裡面
 docker run -it --rm -v %cd%:/app -w /app ghcr.io/googlechromelabs/bubblewrap:latest build
 ```
+
+3. versionName: NBL-1.0.6
+4. [ ] 需要多一個useUrlAction 來處理 share-to-inbox 然後需要判斷 title, text & url
+5. 切換到 Android Studio 打開 twa 目錄
+6. 換到 Android Studio 後，版本太舊，先commit 現在的狀態，然後再更新 Android Studio 到最新版本，最後，再打開 twa 目錄
 
 ## [2026-06-15] AI 幫忙寫了按中斷時，可搜尋 task 的功能
 
