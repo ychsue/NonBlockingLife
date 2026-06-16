@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-06-16] 移轉到新版的gradle + Android Studio，經過一番修改後，可以輸出到手機了
+
 ## [2026-06-15] 試驗 twa
 
 1. 提供 [twa-manifest.json](twa/twa-manifest.json)

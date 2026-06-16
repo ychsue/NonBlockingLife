@@ -51,8 +51,11 @@ def twaManifest = [
 ]
 
 android {
-    compileSdkVersion 36
+    compileSdkVersion 37
     namespace "com.yescirculation.nonblockinglife"
+    buildFeatures {
+        resValues true
+    }
     defaultConfig {
         applicationId "com.yescirculation.nonblockinglife"
         minSdkVersion 21
@@ -153,15 +156,15 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
-    lintOptions {
+    lint {
         checkReleaseBuilds false
     }
 }
 
-task generateShorcutsFile {
+tasks.register('generateShortcutsFile') {
     assert twaManifest.shortcuts.size() < 5, "You can have at most 4 shortcuts."
     twaManifest.shortcuts.eachWithIndex { s, i ->
         assert s.name != null, 'Missing `name` in shortcut #' + i
@@ -196,7 +199,7 @@ task generateShorcutsFile {
     shortcutsFile.text = xmlWriter.toString() + '\n'
 }
 
-preBuild.dependsOn(generateShorcutsFile)
+preBuild.dependsOn(tasks.named('generateShortcutsFile'))
 
 repositories {
     
