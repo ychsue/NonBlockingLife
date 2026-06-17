@@ -31,6 +31,15 @@ export default defineConfig(({ command }) => ({
             url: '/NonBlockingLife/?%s'
           }
         ],
+        share_target: {
+          action: '/NonBlockingLife/share-to-inbox',
+          method: 'GET',
+          params: {
+            title: 'title',
+            text: 'text',
+            url: 'url'
+          }
+        },
         icons: [
           {
             src: 'icons/icon-180.png',

@@ -45,9 +45,26 @@ export function useUrlAction(options: UseUrlActionOptions) {
   useEffect(() => {
     if (isHandlingRef.current) return;
 
+    const clearActionUrl = () => {
+      const currentPath = window.location.pathname;
+      const sharePathPattern = /\/share-to-inbox\/?$/;
+
+      if (sharePathPattern.test(currentPath)) {
+        const basePath = currentPath.replace(sharePathPattern, "") || "/";
+        const targetPath = basePath === "/" ? "/" : `${basePath.replace(/\/+$/, "")}/`;
+        window.history.replaceState({}, document.title, targetPath);
+        return;
+      }
+
+      window.history.replaceState({}, document.title, currentPath);
+    };
+
     const rawQuery = window.location.search;
     const protocolPrefix = encodeURIComponent("web+nbl://");
     let queryString = rawQuery;
+    const isShareToInboxPath = /\/share-to-inbox\/?$/.test(
+      window.location.pathname,
+    );
     if (rawQuery.includes(protocolPrefix)) {
       // 兼容 protocol handler 的 URL 格式：web+nbl://?sheet=inbox&action=add&title=Buy%20milk
       queryString = rawQuery
@@ -60,8 +77,53 @@ export function useUrlAction(options: UseUrlActionOptions) {
       }
     }
     const params = new URLSearchParams(queryString);
+    if (isShareToInboxPath && !params.has("action")) {
+      params.set("action", "share-to-inbox");
+    }
     const sheet = params.get("sheet") as SheetName | null;
     const action = params.get("action");
+
+    if (action === "share-to-inbox") {
+      // Web Share Target 僅支援 title/text/url，非 URL 欄位合併成 title。
+      const shareTitle = (params.get("title") || "").trim();
+      const shareText = (params.get("text") || "").trim();
+      const shareUrl = (params.get("url") || "").trim();
+      const mergedTitle = [shareTitle, shareText].filter(Boolean).join("\n");
+
+      const patch: Record<string, unknown> = {
+        title: mergedTitle || shareUrl || "Shared item",
+        receivedAt: Date.now(),
+      };
+
+      if (shareUrl) {
+        patch.url = shareUrl;
+      }
+
+      const recordId = generateRecordId("inbox", patch);
+      isHandlingRef.current = true;
+
+      applyChange({
+        table: "inbox",
+        recordId,
+        op: "add",
+        patch,
+        clientId,
+      })
+        .then(() => {
+          onNavigate("inbox");
+          onSuccess?.(`✅ 已分享到 Inbox: ${patch.title || recordId}`);
+        })
+        .catch((err) => {
+          const errorMsg = err instanceof Error ? err.message : String(err);
+          console.error("Failed to add from share target:", err);
+          onError?.(`❌ 分享失敗：${errorMsg}`);
+        })
+        .finally(() => {
+          clearActionUrl();
+          isHandlingRef.current = false;
+        });
+      return;
+    }
 
     // 處理中斷動作
     if (action === "interrupt") {
@@ -75,7 +137,7 @@ export function useUrlAction(options: UseUrlActionOptions) {
     if (action === "query") {
       onNavigate("selection_cache"); // 自動切到 Selection Cache 頁籤
       // 清除 URL（避免重複新增）
-      window.history.replaceState({}, document.title, window.location.pathname);
+      clearActionUrl();
       return;
     }
 
@@ -89,7 +151,7 @@ export function useUrlAction(options: UseUrlActionOptions) {
           showTaskSearchDialog: true,
         });
       });
-      window.history.replaceState({}, document.title, window.location.pathname);
+      clearActionUrl();
       return;
     }
 
@@ -109,7 +171,7 @@ export function useUrlAction(options: UseUrlActionOptions) {
     }
 
     // 先清除 URL，避免 StrictMode/重渲染導致同一 action 被重複觸發
-    window.history.replaceState({}, document.title, window.location.pathname);
+    clearActionUrl();
     isHandlingRef.current = true;
 
     // 提取所有參數為 record patch（排除 sheet 和 action）

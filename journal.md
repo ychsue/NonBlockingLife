@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-06-17] 修正 iPhone 上的 TWA 問題，並且加上 `useUrlAction` 來處理 share-to-inbox
+
 ## [2026-06-16] 移轉到新版的gradle + Android Studio，經過一番修改後，可以輸出到手機了
 
 ## [2026-06-15] 試驗 twa
