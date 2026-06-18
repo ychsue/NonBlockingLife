@@ -47,7 +47,9 @@ public class LauncherActivity
         // Get the original launch Url.
         Uri uri = super.getLaunchingUrl();
 
-        
+        if (getIntent() != null && getIntent().getData() != null) {
+            uri = getIntent().getData();
+        }
 
         return uri;
     }

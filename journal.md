@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-06-18] TWA 有兩個 Widgets 可以使用了，但要再調，正在跟Gemini 學習中
+
 ## [2026-06-17] 修正 iPhone 上的 TWA 問題，並且加上 `useUrlAction` 來處理 share-to-inbox
 
 ## [2026-06-16] 移轉到新版的gradle + Android Studio，經過一番修改後，可以輸出到手機了
