@@ -24,7 +24,9 @@
 
     
         <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    
+
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM"/>
+
 
     
 
@@ -163,6 +165,18 @@
 
         <activity android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
             android:configChanges="orientation|screenSize" />
+
+        <activity android:name=".ClockTriggerActivity" android:exported="true">
+            <intent-filter android:label="Clock Router">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https"
+                    android:host="ychsue.github.io"
+                    android:path="/NonBlockingLife/api/trigger-native-clock" />
+            </intent-filter>
+        </activity>
 
         <provider
             android:name="androidx.core.content.FileProvider"

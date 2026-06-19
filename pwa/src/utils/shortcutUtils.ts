@@ -232,8 +232,10 @@ export function triggerShortcutTimer(
       return false;
     }
   } else if (deviceType === "Android") {
-    const aConfig = automateConfig ?? getAutomateConfig(config.started ? "start" : "end");
-    return triggerAutomateFlow(taskTitle, { ...aConfig, taskTitle });
+    window.location.href = "https://ychsue.github.io/NonBlockingLife/api/trigger-native-clock?t=" + new Date().getTime(); // 測試
+    return true;
+    // const aConfig = automateConfig ?? getAutomateConfig(config.started ? "start" : "end");
+    // return triggerAutomateFlow(taskTitle, { ...aConfig, taskTitle });
   } else if (deviceType === "Windows") {
     // 用ms-clock 協定來觸發 Windows 時鐘 app 的計時器功能
     try {

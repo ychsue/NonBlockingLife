@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-06-19] 試著利用 Intent Filter 來攔截一些呼叫，然後改由 JAVA處理，看看能否因此調用 alarm
+
 ## [2026-06-19] 修正 manifest.webmanifest 的一些錯誤看看
 
 ## [2026-06-18] TWA 有兩個 Widgets 可以使用了，但要再調，正在跟Gemini 學習中
