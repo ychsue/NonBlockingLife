@@ -194,7 +194,7 @@
         
             <activity android:name="com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity" />
 
-        <receiver android:name=".QueryWidgetProvider" android:exported="true" android:label="NBL Query">
+        <receiver android:name=".QueryWidgetProvider" android:exported="true" android:label="NBL Query" android:icon="@android:drawable/ic_menu_search">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -202,7 +202,7 @@
                 android:resource="@xml/widget_query_info" />
         </receiver>
 
-        <receiver android:name=".AddInboxWidgetProvider" android:exported="true" android:label="NBL Add Inbox">
+        <receiver android:name=".AddInboxWidgetProvider" android:exported="true" android:label="NBL Add Inbox" android:icon="@android:drawable/ic_input_add">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>

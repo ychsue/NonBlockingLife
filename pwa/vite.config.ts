@@ -34,6 +34,7 @@ export default defineConfig(({ command }) => ({
         share_target: {
           action: '/NonBlockingLife/share-to-inbox',
           method: 'GET',
+          enctype: 'application/x-www-form-urlencoded',
           params: {
             title: 'title',
             text: 'text',
@@ -45,13 +46,13 @@ export default defineConfig(({ command }) => ({
             src: 'icons/icon-180.png',
             sizes: '180x180',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
           },
           {
             src: 'icons/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
           },
           {
             src: 'icons/icon-192.svg',
