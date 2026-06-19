@@ -58,7 +58,7 @@ android {
     }
     defaultConfig {
         applicationId "com.yescirculation.nonblockinglife"
-        minSdkVersion 21
+        minSdkVersion 26
         targetSdkVersion 35
         versionCode 8
         versionName "NBL-1.0.6"

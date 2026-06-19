@@ -166,15 +166,13 @@
         <activity android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
             android:configChanges="orientation|screenSize" />
 
-        <activity android:name=".ClockTriggerActivity" android:exported="true">
+        <activity android:name=".ClockTriggerActivity" android:exported="true"
+        android:launchMode="singleTask">
             <intent-filter android:label="Clock Router">
+                <data android:scheme="nonblockinglife"/>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="https"
-                    android:host="ychsue.github.io"
-                    android:path="/NonBlockingLife/api/trigger-native-clock" />
             </intent-filter>
         </activity>
 

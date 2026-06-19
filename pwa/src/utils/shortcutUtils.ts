@@ -232,7 +232,7 @@ export function triggerShortcutTimer(
       return false;
     }
   } else if (deviceType === "Android") {
-    window.location.href = "https://ychsue.github.io/NonBlockingLife/api/trigger-native-clock?t=" + new Date().getTime(); // 測試
+    window.location.href = "nonblockinglife://show-clock";
     return true;
     // const aConfig = automateConfig ?? getAutomateConfig(config.started ? "start" : "end");
     // return triggerAutomateFlow(taskTitle, { ...aConfig, taskTitle });

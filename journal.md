@@ -1,5 +1,10 @@
 # Journal
 
+## [2026-06-19] 後來改用 Copilot 教的 scheme 的方式來叫出 Clock 來
+
+- [ClockTriggerActivity.java](twa\app\src\main\java\com\yescirculation\nonblockinglife\ClockTriggerActivity.java)
+- [AndroidManifest.xml](twa\app\src\main\AndroidManifest.xml)
+
 ## [2026-06-19] 試著利用 Intent Filter 來攔截一些呼叫，然後改由 JAVA處理，看看能否因此調用 alarm
 
 ## [2026-06-19] 修正 manifest.webmanifest 的一些錯誤看看
