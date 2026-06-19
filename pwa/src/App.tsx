@@ -72,7 +72,22 @@ export default function App() {
       if (typeof Notification === "undefined") return;
       if (Notification.permission !== "granted") return;
       // if (!document.hidden) return;
-      new Notification(title, { body, tag: "nbl-running-task" });
+      try {
+        new Notification(title, { body, tag: "nbl-running-task" });
+      } catch (e) {
+        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+          void navigator.serviceWorker.ready.then((reg) => {
+            reg.showNotification(title, { body, tag: "nbl-running-task" });
+          }).catch((err)=> console.warn("Failed to show notification via service worker:", err)); //不曉得與下面的code是否有差
+          // navigator.serviceWorker.controller.postMessage({
+          //   type: "show-notification",
+          //   title,
+          //   options: { body, tag: "nbl-running-task" },
+          // });
+        } else {
+          console.warn("Unable to show notification:", e);
+        }
+      }
     };
 
     if (!runningTask) {

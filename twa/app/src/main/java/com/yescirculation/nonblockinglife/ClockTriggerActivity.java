@@ -1,6 +1,7 @@
 package com.yescirculation.nonblockinglife;
 
 import android.app.Activity;
+import android.provider.AlarmClock;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -13,7 +14,7 @@ public class ClockTriggerActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         try {
-            Intent clockIntent = new Intent(Intent.ACTION_SHOW_ALARMS);
+            Intent clockIntent = new Intent(AlarmClock.ACTION_SHOW_ALARMS);
             clockIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
             if (clockIntent.resolveActivity(getPackageManager())!=null){
