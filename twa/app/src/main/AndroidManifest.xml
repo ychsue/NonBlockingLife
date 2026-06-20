@@ -128,6 +128,10 @@
             <meta-data android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
                 android:value="@string/fallbackType" />
 
+            <meta-data
+                android:name="android.support.customtabs.trusted.METADATA_SHARE_TARGET"
+                android:value='{"action":"/NonBlockingLife/share-to-inbox","method":"GET","enctype":"application/x-www-form-urlencoded","params":{"title":"title","text":"text","url":"url"}}' />
+
             
 
             
@@ -152,11 +156,15 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https"
                     android:host="@string/hostName"
-                
+                    android:pathPrefix="/NonBlockingLife" />
                 />
             </intent-filter>
 
-            
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
 
             
         </activity>

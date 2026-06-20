@@ -15,6 +15,7 @@
  */
 package com.yescirculation.nonblockinglife;
 
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Build;
@@ -44,13 +45,47 @@ public class LauncherActivity
 
     @Override
     protected Uri getLaunchingUrl() {
-        // Get the original launch Url.
-        Uri uri = super.getLaunchingUrl();
+        Intent intent = getIntent();
 
-        if (getIntent() != null && getIntent().getData() != null) {
-            uri = getIntent().getData();
+        // 1. 處理分享 (Web Share Target 手動實現)
+        if (intent != null && Intent.ACTION_SEND.equals(intent.getAction()) && intent.getType() != null) {
+            if ("text/plain".equals(intent.getType())) {
+                String text = intent.getStringExtra(Intent.EXTRA_TEXT);
+                String title = intent.getStringExtra(Intent.EXTRA_SUBJECT);
+
+                // 當text不是以http開頭的話，需要調整 text 與 title，text原則上由選取的文字再加上http....，而title則是說明來自哪
+                // 所以，title -> text的上半部 + 原title ，而 text -> 原text 下半部，也就是 url 的部分
+                if (text != null && !text.startsWith("http")) {
+                    var index_url = text.indexOf("http");
+                    var url = text.substring(index_url);
+                    var title_upper = text.substring(0, index_url-1);
+                    title = title_upper + ((title!=null && title.length()<10)?"":title);
+                    text = url;
+                }
+
+                // 手動構建目標 URL，確保路徑正確
+                // 注意：這裡的路徑要跟你的 PWA 路由一致
+                Uri.Builder builder = Uri.parse("https://ychsue.github.io/NonBlockingLife/share-to-inbox").buildUpon();
+
+                if (text != null) {
+                    builder.appendQueryParameter("text", text);
+                    // 很多 Android App 會把 URL 放在 text 裡面傳過來
+                    builder.appendQueryParameter("url", text);
+                }
+                if (title != null) {
+                    builder.appendQueryParameter("title", title);
+                }
+
+                return builder.build();
+            }
         }
 
-        return uri;
+        // 2. 處理一般的 Deep Link (例如點擊連結開啟 App)
+        if (intent != null && intent.getData() != null) {
+            return intent.getData();
+        }
+
+        // 3. 預設行為
+        return super.getLaunchingUrl();
     }
 }
