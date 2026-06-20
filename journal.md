@@ -2,6 +2,8 @@
 
 ## [2026-06-20] 試著加上 maskable與拿掉 manifest.icon 裡面的 svg 的部分，因為可能不 support
 
+- 加上 id ，免得 TWA出問題
+
 ## [2026-06-19] 後來改用 Copilot 教的 scheme 的方式來叫出 Clock 來
 
 - [ClockTriggerActivity.java](twa\app\src\main\java\com\yescirculation\nonblockinglife\ClockTriggerActivity.java)

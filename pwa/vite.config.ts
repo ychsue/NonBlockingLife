@@ -16,6 +16,7 @@ export default defineConfig(({ command }) => ({
         "icons/icon-512.svg",
       ],
       manifest: {
+        id: "/NonBlockingLife/",
         name: "NonBlockingLife",
         short_name: "NBL",
         description: "NonBlockingLife local-first task manager",
