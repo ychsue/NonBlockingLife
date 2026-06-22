@@ -33,7 +33,7 @@ export default function App() {
   const loadRunningTask = useAppStore((state) => state.loadRunningTask);
   const locale = useAppStore((state) => state.locale);
   const setLocale = useAppStore((state) => state.setLocale);
-  
+
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
@@ -49,8 +49,7 @@ export default function App() {
     ja: "日本語",
   } as const;
   const currentLocaleLabel = localeLabelMap[locale];
-  const nextLocaleLabel =
-    localeLabelMap[nextLocale];
+  const nextLocaleLabel = localeLabelMap[nextLocale];
 
   useEffect(() => {
     // 初始加载时获取当前正在运行的任务
@@ -76,9 +75,16 @@ export default function App() {
         new Notification(title, { body, tag: "nbl-running-task" });
       } catch (e) {
         if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-          void navigator.serviceWorker.ready.then((reg) => {
-            reg.showNotification(title, { body, tag: "nbl-running-task" });
-          }).catch((err)=> console.warn("Failed to show notification via service worker:", err)); //不曉得與下面的code是否有差
+          void navigator.serviceWorker.ready
+            .then((reg) => {
+              reg.showNotification(title, { body, tag: "nbl-running-task" });
+            })
+            .catch((err) =>
+              console.warn(
+                "Failed to show notification via service worker:",
+                err,
+              ),
+            ); //不曉得與下面的code是否有差
           // navigator.serviceWorker.controller.postMessage({
           //   type: "show-notification",
           //   title,
@@ -98,7 +104,11 @@ export default function App() {
 
       if (previousRunningTaskIdRef.current) {
         notify(
-          locale === "zh-TW" ? "工作已結束" : locale === "ja" ? "作業が終了しました" : "Work session ended",
+          locale === "zh-TW"
+            ? "工作已結束"
+            : locale === "ja"
+              ? "作業が終了しました"
+              : "Work session ended",
           locale === "zh-TW"
             ? "Non-Blocking Life 已離開工作中狀態。"
             : locale === "ja"
@@ -128,7 +138,11 @@ export default function App() {
 
     if (previousRunningTaskIdRef.current !== runningTask.taskId) {
       notify(
-        locale === "zh-TW" ? "工作進行中" : locale === "ja" ? "作業中" : "Work session running",
+        locale === "zh-TW"
+          ? "工作進行中"
+          : locale === "ja"
+            ? "作業中"
+            : "Work session running",
         locale === "zh-TW"
           ? `${runningTask.taskId} 已開始，保持專注。`
           : locale === "ja"
@@ -160,17 +174,28 @@ export default function App() {
             : "Enable background notifications in Guide to get start/end work alerts.",
       duration: 7000,
       actionLabel:
-        locale === "zh-TW" ? "前往啟用" : locale === "ja" ? "有効化する" : "Enable",
+        locale === "zh-TW"
+          ? "前往啟用"
+          : locale === "ja"
+            ? "有効化する"
+            : "Enable",
       onAction: () => setCurrentSheet("guide"),
     });
-  }, [runningTask, locale, setCurrentSheet, showGlobalToast, NOTIFICATION_NUDGE_SESSION_KEY]);
+  }, [
+    runningTask,
+    locale,
+    setCurrentSheet,
+    showGlobalToast,
+    NOTIFICATION_NUDGE_SESSION_KEY,
+  ]);
 
   useEffect(() => {
     let isCancelled = false;
 
     const checkTutorialVisibility = async () => {
       const hasUrlParams = window.location.search.trim().length > 0;
-      const isDismissedInSession = sessionStorage.getItem(TUTORIAL_SESSION_KEY) === "1";
+      const isDismissedInSession =
+        sessionStorage.getItem(TUTORIAL_SESSION_KEY) === "1";
 
       if (hasUrlParams || isDismissedInSession) {
         return;
@@ -182,7 +207,10 @@ export default function App() {
         db.scheduled.count(),
       ]);
 
-      if (!isCancelled && (/*inboxCount === 0 ||*/ taskPoolCount === 0 || scheduledCount === 0)) {
+      if (
+        !isCancelled &&
+        /*inboxCount === 0 ||*/ (taskPoolCount === 0 || scheduledCount === 0)
+      ) {
         setShowTutorial(true);
       }
     };
@@ -285,7 +313,9 @@ export default function App() {
         className={`sticky top-0 z-40 border-b border-gray-200 ${runningTask ? "bg-amber-50/95 backdrop-blur-sm" : "bg-white"}`}
       >
         <header className="border-b border-gray-200">
-          <div className={`max-w-7xl mx-auto px-4 py-4 flex justify-between items-center gap-3 ${runningTask ? "flex-wrap" : ""}`}>
+          <div
+            className={`max-w-7xl mx-auto px-4 py-4 flex justify-between items-center gap-3`}
+          >
             <div className="min-w-0 flex flex-col flex-shrink-1">
               <h1 className="text-2xl font-bold text-gray-800">
                 📱 Non-Blocking Life
@@ -298,30 +328,6 @@ export default function App() {
               </div>
             </div>
             <div className="flex items-center gap-2 ml-auto flex-shrink-0">
-              {runningTask && (
-                <div className="flex items-center gap-2 rounded-full border border-amber-200 bg-white/90 px-3 py-1.5 text-sm text-amber-900 shadow-sm">
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500" />
-                  </span>
-                  <span className="font-medium">
-                    {runningTask.title || runningTask.taskId}
-                  </span>
-                  <span className="hidden sm:inline text-amber-700/80">
-                    {runningTask.startAt
-                      ? `${Math.max(0, Math.floor((Date.now() - runningTask.startAt) / 60000))}m`
-                      : "Running"}
-                  </span>
-                  <button
-                    onClick={() => setCurrentSheet("selection_cache")}
-                    className="ml-1 rounded-full p-1.5 text-amber-700 hover:bg-amber-100"
-                    aria-label="Go to Selection Cache"
-                    title="Go to Selection Cache"
-                  >
-                    📝
-                  </button>
-                </div>
-              )}
               {/* Language toggle */}
               <button
                 onClick={() => setLocale(nextLocale)}
@@ -348,6 +354,30 @@ export default function App() {
               )}
             </div>
           </div>
+          {runningTask && (
+            <div className="flex items-center gap-2 rounded-full border border-amber-200 bg-white/90 px-3 py-1.5 text-sm text-amber-900 shadow-sm">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500" />
+              </span>
+              <span className="font-medium">
+                {runningTask.title || runningTask.taskId}
+              </span>
+              <span className="hidden sm:inline text-amber-700/80">
+                {runningTask.startAt
+                  ? `${Math.max(0, Math.floor((Date.now() - runningTask.startAt) / 60000))}m`
+                  : "Running"}
+              </span>
+              <button
+                onClick={() => setCurrentSheet("selection_cache")}
+                className="ml-1 rounded-full p-1.5 text-amber-700 hover:bg-amber-100"
+                aria-label="Go to Selection Cache"
+                title="Go to Selection Cache"
+              >
+                📝
+              </button>
+            </div>
+          )}
         </header>
 
         {/* 手機選單下拉面板 */}
