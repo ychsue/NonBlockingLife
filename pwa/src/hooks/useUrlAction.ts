@@ -34,6 +34,9 @@ interface UseUrlActionOptions {
  * ?sheet=micro_tasks&action=add&title=Read&url=https%3A%2F%2Fexample.com
  */
 export function useUrlAction(options: UseUrlActionOptions) {
+  const setPendingEditIntent = useAppStore(
+    (state) => state.setPendingEditIntent,
+  );
   const {
     onNavigate,
     onSuccess,
@@ -111,6 +114,12 @@ export function useUrlAction(options: UseUrlActionOptions) {
       })
         .then(() => {
           onNavigate("inbox");
+          if (!!!patch.title) {
+            setPendingEditIntent({
+              sheet: "inbox",
+              taskId: recordId,
+            });
+          }
           onSuccess?.(`✅ 已分享到 Inbox: ${patch.title || recordId}`);
         })
         .catch((err) => {
@@ -220,6 +229,12 @@ export function useUrlAction(options: UseUrlActionOptions) {
       .then(() => {
         // 導航到該頁籤
         onNavigate(sheet);
+          if (!!!patch.title) {
+            setPendingEditIntent({
+              sheet: sheet,
+              taskId: recordId,
+            });
+          }
 
         // 顯示成功提示
         const sheetLabel: Record<SheetName, string> = {

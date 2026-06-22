@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-06-22] 讓 useUrlAction 的 add如果 !!title == false，就會在該sheet 開啟該條目的編輯頁面，所以，改了 InboxTable 與 useUrlAction，這樣，訊息就可以是由此APP來設定了。
+
 ## [2026-06-20] 試著加上 maskable與拿掉 manifest.icon 裡面的 svg 的部分，因為可能不 support
 
 - 加上 id ，免得 TWA出問題

@@ -139,6 +139,12 @@ export function InboxTable() {
   const setPendingEditIntent = useAppStore(
     (state) => state.setPendingEditIntent,
   );
+
+  // 這是因為有可能透過useUrlAction加入 Inbox，所以，需要這兩個
+  const currentSheet = useAppStore((state) => state.currentSheet)
+  const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
+  const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
+  
   const showGlobalToast = useAppStore((state) => state.showGlobalToast);
   const clearGlobalToast = useAppStore((state) => state.clearGlobalToast);
   const text = {
@@ -178,6 +184,18 @@ export function InboxTable() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!pendingEditIntent || pendingEditIntent.sheet !== 'inbox') return
+    if (currentSheet !== 'inbox') return
+
+    const targetRow = rows.find((row) => row.taskId === pendingEditIntent.taskId)
+    if (!targetRow) return
+
+    setEditingItem(targetRow)
+    clearPendingEditIntent()
+  }, [rows, pendingEditIntent, currentSheet, clearPendingEditIntent])
+
 
   const updateLocalRow = (taskId: string, patch: Partial<InboxItem>) => {
     setRows((prev) =>
