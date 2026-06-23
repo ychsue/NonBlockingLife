@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-06-23] 加入 `privacy-policy` 的網頁，好發布到 Google Play 商店了
+
 ## [2026-06-23] 修改 widgets 的顯示效果與2x1的widget的實作，外加修正多個 instance 的問題
 
 1. 首先， `Intent.FLAG_ACTIVITY_CLEAR_TOP` 在 [CombinedWidgetProvider.java](twa\app\src\main\java\com\yescirculation\nonblockinglife\CombinedWidgetProvider.java) 裡面似乎影響不大，因此，我沒有將他放進另外兩個 Provider 裡面。

@@ -492,6 +492,37 @@ export function GuidePage() {
           </li>
         </ul>
       </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">
+          {locale === 'ja' ? '⚖️ 法律 & プライバシー' : locale === 'en' ? '⚖️ Legal & Privacy' : '⚖️ 法律 & 隱私'}
+        </h3>
+        <p className="text-sm text-gray-700 mb-4">
+          {locale === 'ja'
+            ? 'NonBlockingLife のプライバシーポリシーをご確認ください。'
+            : locale === 'en'
+              ? 'Review our privacy policy and terms of service.'
+              : '查看我們的隱私權政策和使用條款。'}
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <a
+            href={locale === 'zh-TW' ? '/NonBlockingLife/privacy-policy-zh-TW.html' : '/NonBlockingLife/privacy-policy-en.html'}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gray-700 text-white text-sm font-medium hover:bg-gray-800"
+          >
+            {locale === 'ja' ? 'プライバシーポリシー' : locale === 'en' ? 'Privacy Policy' : '隱私權政策'}
+          </a>
+          <a
+            href="https://ychsue.github.io/superconductorlike_society/"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50"
+          >
+            {locale === 'ja' ? '超電導のような社会' : locale === 'en' ? 'Superconductor-like Society' : 'Superconductor-like Society'}
+          </a>
+        </div>
+      </div>
       </section>
 
       {showTutorial && (
