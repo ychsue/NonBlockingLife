@@ -1,5 +1,13 @@
 # Journal
 
+## [2026-06-23] 修改 widgets 的顯示效果與2x1的widget的實作，外加修正多個 instance 的問題
+
+1. 首先， `Intent.FLAG_ACTIVITY_CLEAR_TOP` 在 [CombinedWidgetProvider.java](twa\app\src\main\java\com\yescirculation\nonblockinglife\CombinedWidgetProvider.java) 裡面似乎影響不大，因此，我沒有將他放進另外兩個 Provider 裡面。
+2. 在 [CombinedWidgetProvider.java](twa\app\src\main\java\com\yescirculation\nonblockinglife\CombinedWidgetProvider.java) 透過 `R.id.btn_add_inbox` 來指定由哪個2x1的按鈕來觸發 addInbox 的動作
+3. 將 [AndroidManifest.xml](twa\app\src\main\AndroidManifest.xml) 裡面的 `android:alwaysRetainTaskState="true"` 改為 `android:launchMode="singleTask"`與`android:excludeFromRecents="true"`，這樣就可以避免多個 instance 的問題了。
+4. [LanucherActivity.java](twa\app\src\main\java\com\yescirculation\nonblockinglife\LauncherActivity.java) 裡面，透過 `onNewIntent` 來處理新的 Intent，免得出現多個 instance 的問題。
+5. 其他的就是透過 margin 來調整 widget 的顯示效果
+
 ## [2026-06-22] 讓 useUrlAction 的 add如果 !!title == false，就會在該sheet 開啟該條目的編輯頁面，所以，改了 InboxTable 與 useUrlAction，這樣，訊息就可以是由此APP來設定了。
 
 ## [2026-06-20] 試著加上 maskable與拿掉 manifest.icon 裡面的 svg 的部分，因為可能不 support

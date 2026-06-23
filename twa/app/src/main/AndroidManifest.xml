@@ -79,7 +79,8 @@
         
 
         <activity android:name="LauncherActivity"
-            android:alwaysRetainTaskState="true"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
             android:label="@string/launcherName"
             android:exported="true">
             <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL"
@@ -157,7 +158,6 @@
                 <data android:scheme="https"
                     android:host="@string/hostName"
                     android:pathPrefix="/NonBlockingLife" />
-                />
             </intent-filter>
 
             <intent-filter>
@@ -228,6 +228,14 @@
             </intent-filter>
             <meta-data android:name="android.appwidget.provider"
                 android:resource="@xml/widget_add_info" />
+        </receiver>
+
+        <receiver android:name=".CombinedWidgetProvider" android:exported="true" android:label="NBL Quick Tools" android:icon="@mipmap/ic_launcher">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/widget_combined_info" />
         </receiver>
 
 
