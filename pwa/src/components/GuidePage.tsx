@@ -508,7 +508,7 @@ export function GuidePage() {
           <a
             href={locale === 'zh-TW' ? '/NonBlockingLife/privacy-policy-zh-TW.html' : '/NonBlockingLife/privacy-policy-en.html'}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gray-700 text-white text-sm font-medium hover:bg-gray-800"
           >
             {locale === 'ja' ? 'プライバシーポリシー' : locale === 'en' ? 'Privacy Policy' : '隱私權政策'}
@@ -516,7 +516,7 @@ export function GuidePage() {
           <a
             href="https://ychsue.github.io/superconductorlike_society/"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50"
           >
             {locale === 'ja' ? '超電導のような社会' : locale === 'en' ? 'Superconductor-like Society' : 'Superconductor-like Society'}
