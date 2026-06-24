@@ -17,29 +17,14 @@ public class ClockTriggerActivity extends Activity {
         var uri = intent.getData();
         if (uri != null) {
             String host = uri.getHost();
-            if("alarm".equals(host)) {
-                String hourStr = uri.getQueryParameter("hour");
-                String minuteStr = uri.getQueryParameter("minute");
-                if(hourStr == null || minuteStr == null) return;
-
-                int hour = Integer.parseInt(hourStr);
-                int minute = Integer.parseInt(minuteStr);
-                Intent clockIntent = new Intent(AlarmClock.ACTION_SET_ALARM)
-                    .putExtra(AlarmClock.EXTRA_HOUR, hour)
-                    .putExtra(AlarmClock.EXTRA_MINUTES, minute)
-                    .putExtra(AlarmClock.EXTRA_SKIP_UI, true);
-
+            if ("show-clock".equals(host)){
                 try {
+                    Intent clockIntent = new Intent(AlarmClock.ACTION_SHOW_TIMERS);
                     startActivity(clockIntent);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    Toast.makeText(this, "Cannot Open Alarm Clock", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Cannot Open Clock", Toast.LENGTH_SHORT).show();
                 }
-            }
-
-            if ("show-clock".equals(host)){
-                Intent clockIntent = new Intent(AlarmClock.ACTION_SHOW_TIMERS);
-                startActivity(clockIntent);
             }
         }
         finish();

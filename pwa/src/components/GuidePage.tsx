@@ -499,7 +499,7 @@ export function GuidePage() {
         </h3>
         <p className="text-sm text-gray-700 mb-4">
           {locale === 'ja'
-            ? 'NonBlockingLife のプライバシーポリシーをご確認ください。'
+            ? 'NonBlockingLife のプライバシーポリシーと利用規約をご確認ください。'
             : locale === 'en'
               ? 'Review our privacy policy and terms of service.'
               : '查看我們的隱私權政策和使用條款。'}
@@ -512,6 +512,14 @@ export function GuidePage() {
             className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gray-700 text-white text-sm font-medium hover:bg-gray-800"
           >
             {locale === 'ja' ? 'プライバシーポリシー' : locale === 'en' ? 'Privacy Policy' : '隱私權政策'}
+          </a>
+          <a
+            href={locale === 'zh-TW' ? '/NonBlockingLife/terms-zh-TW.html' : '/NonBlockingLife/terms-en.html'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-slate-700 text-white text-sm font-medium hover:bg-slate-800"
+          >
+            {locale === 'ja' ? '利用規約' : locale === 'en' ? 'Terms of Service' : '使用條款'}
           </a>
           <a
             href="https://ychsue.github.io/superconductorlike_society/"

@@ -70,7 +70,7 @@ public class LauncherActivity
                     var index_url = text.indexOf("http");
                     var url = text.substring(index_url);
                     var title_upper = text.substring(0, index_url-1);
-                    title = title_upper + ((title!=null && title.length()<10)?"":title);
+                    title = title_upper + ((title!=null && title.length()>10)?"":title);
                     text = url;
                 }
 
@@ -79,7 +79,7 @@ public class LauncherActivity
                 Uri.Builder builder = Uri.parse("https://ychsue.github.io/NonBlockingLife/share-to-inbox").buildUpon();
 
                 if (text != null) {
-                    builder.appendQueryParameter("text", text);
+//                    builder.appendQueryParameter("text", text);
                     // 很多 Android App 會把 URL 放在 text 裡面傳過來
                     builder.appendQueryParameter("url", text);
                 }
