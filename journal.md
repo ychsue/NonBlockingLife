@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-06-24] 避免被Argue，先把 `alarm` 的設定拿掉，然後，加上 xml_31 裡面 多 android:previewLayout
+
 ## [2026-06-23] 加入 `privacy-policy` 的網頁，好發布到 Google Play 商店了
 
 ## [2026-06-23] 修改 widgets 的顯示效果與2x1的widget的實作，外加修正多個 instance 的問題
