@@ -1,5 +1,19 @@
 # Journal
 
+## [2026-06-25] 終於能夠過assetlinks驗證
+
+有兩個sha256要取得，第一個是play console 上的，得由盾牌那裏進去，找到這個值。
+而第二個則是透過以下指令取得(這是因為我的本機上的是 debug 的公鑰，上play console 時會被他換掉)：
+
+```cmd
+adb devices #取得 device id
+adb -s 10HF8FF3160008A shell pm verify-app-links --re-verify com.yescirculation.nonblockinglife
+adb -s 10HF8FF3160008A shell pm get-app-links com.yescirculation.nonblockinglife
+```
+
+第一次會得到 state....1024，表示失敗，請複製他給的 sha256，然後加到 .well-known/assetlinks.json 裡面，與 play console 給的同在同一個陣列即可。
+然後，要把App由手機移除，甚至重開機，好讓她忘掉 cache，然後再重新安裝，這樣就可以過驗證了。
+
 ## [2026-06-24] 避免被Argue，先把 `alarm` 的設定拿掉，然後，加上 xml_31 裡面 多 android:previewLayout
 
 ## [2026-06-23] 加入 `privacy-policy` 的網頁，好發布到 Google Play 商店了

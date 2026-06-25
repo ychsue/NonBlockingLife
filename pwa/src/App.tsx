@@ -144,10 +144,10 @@ export default function App() {
             ? "作業中"
             : "Work session running",
         locale === "zh-TW"
-          ? `${runningTask.taskId} 已開始，保持專注。`
+          ? `${runningTask.title} 已開始，保持專注。`
           : locale === "ja"
-            ? `${runningTask.taskId} を開始しました。`
-            : `${runningTask.taskId} has started. Stay focused.`,
+            ? `${runningTask.title} を開始しました。`
+            : `${runningTask.title} has started. Stay focused.`,
       );
     }
 
