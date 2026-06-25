@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-06-25] 變成使用 aab的，他變成會閃退，所以，把它改回 `android:launchMode="standard"`
+
 ## [2026-06-25] 終於能夠過assetlinks驗證
 
 有兩個sha256要取得，第一個是play console 上的，得由盾牌那裏進去，找到這個值。
