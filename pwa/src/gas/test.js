@@ -45,3 +45,12 @@ function testDoPost() {
   const response = doPost(e);
   Logger.log(response.getContent());
 }
+
+/**
+ * 測試函數：手動測試 pullChanges
+ */
+function testpullChanges() {
+  let lastSync = 1782431708903;
+  const data = pullChanges(lastSync);
+  Logger.log(data);
+}

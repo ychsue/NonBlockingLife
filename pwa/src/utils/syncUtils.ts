@@ -225,7 +225,8 @@ export class SyncManager {
    */
   async pull(): Promise<{ success: number; error?: string }> {
     try {
-      const url = `${this.gasUrl}?action=pull&lastSync=${this.lastSyncTimestamp}`
+      let lastSync = this.lastSyncTimestamp
+      const url = `${this.gasUrl}?action=pull&lastSync=${lastSync}`
       const response = await fetch(url)
       const result = (await response.json()) as GASResponse
 

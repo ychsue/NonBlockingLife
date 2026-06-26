@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-06-26] 發現 Google Sheets 上面的 updatedDate 由於我傳上去的是 `Date.now()`，這並不能轉為日期格式，因此，若我們擅自將他的格式改為 Date，會導致 `同步` 抓不到
+
+**所以，別亂改 Google Sheets 的儲存格格式**
+
 ## [2026-06-25] 變成使用 aab的，他變成會閃退，所以，把它改回 `android:launchMode="standard"`
 
 ## [2026-06-25] 終於能夠過assetlinks驗證
