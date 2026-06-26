@@ -66,6 +66,12 @@ const VIDEO_RESOURCES = [
     description:
       '用中文說明為什麼「任務管理不應該打斷生活」，以及如何建立可持續的日常流程。',
   },
+  {
+    title: 'Android 版的展示(請幫忙封測)',
+    type: '實際操作',
+    url: 'https://youtube.com/shorts/2UUsPNVpdkE',
+    description: '展示 Android 版的操作流程，請幫忙封測，提供回饋，這樣才能夠在Play商店被公開安裝。',
+  }
 ]
 
 export function GuidePage() {
@@ -128,6 +134,7 @@ export function GuidePage() {
   }
 
   function isVideoForCurrentLocale(video: typeof VIDEO_RESOURCES[number]) {
+    if (!!!video.language) return true; // If no language specified, show for all locales
     if (locale === 'zh-TW') {
       return video.language === '中文'
     } else {
@@ -175,6 +182,9 @@ export function GuidePage() {
         <p className="text-gray-700 leading-relaxed">
           Non-Blocking Life 的目的是把任務管理做成「不打斷主線」的日常系統，讓你在 iPhone
           與 PWA 之間可以快速開始、結束、打岔與回到任務。
+          在 <a href="https://vocus.cc/article/6a3e2565fd89780001a92977" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+          vocus.cc 上的文章
+          </a>有較詳細的解說。
           <br />
           v2.0 已升級為「PWA 本地優先 + GAS 雲端同步」架構，平常在本機快速操作，需要時再同步到 Google Sheets。
           這是
