@@ -26,7 +26,7 @@ import { shouldOpenRowEdit } from './rowEditUtils'
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<TaskPoolItem>()
 
-function createNewTaskPoolRow(taskId?: string, title?: string, note?: string, url?: string): TaskPoolItem {
+function createNewTaskPoolRow(taskId?: string, title?: string, note?: string, url?: string, dailyLimitMins?: number): TaskPoolItem {
   const id = taskId ?? Utils.generateId('T')
   return {
     taskId: id,
@@ -35,7 +35,7 @@ function createNewTaskPoolRow(taskId?: string, title?: string, note?: string, ur
     focusTime: undefined,
     project: '',
     spentTodayMins: 0,
-    dailyLimitMins: 60,
+    dailyLimitMins: dailyLimitMins ?? 60,
     priority: 0,
     lastRunDate: undefined,
     totalSpentMins: 0,
@@ -87,9 +87,9 @@ export function TaskPoolTable() {
           const defaultTasks: TaskPoolItem[] = [
             createNewTaskPoolRow('T0', 'Free(Idle)', '', 'None'),
             createNewTaskPoolRow('Ta', 'Superconductor-like Society', '', 'https://ychsue.github.io/superconductorlike_society'),
-            createNewTaskPoolRow('Tb', t('table.taskPool.defaultTask1'), '', 'None'),
-            createNewTaskPoolRow('Tc', t('table.taskPool.defaultTask2'), '', 'None'),
-            createNewTaskPoolRow('Td', t('table.taskPool.defaultTask3'), '', 'None'),
+            createNewTaskPoolRow('Tb', t('table.taskPool.defaultTask1'), '', 'None', 10),
+            createNewTaskPoolRow('Tc', t('table.taskPool.defaultTask2'), '', 'None', 30),
+            createNewTaskPoolRow('Td', t('table.taskPool.defaultTask3'), '', 'None', 10),
           ]
           
           // 批量添加到資料庫
