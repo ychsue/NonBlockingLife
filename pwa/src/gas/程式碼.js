@@ -9,7 +9,7 @@
  */
 
 const CONFIG = {
-  VERSION: '2.1.0',
+  VERSION: '2.1.1',
   TABLE_SHEETS: {
     task_pool: 'NBL_TaskPool',
     scheduled: 'NBL_Scheduled',
@@ -17,6 +17,7 @@ const CONFIG = {
     inbox: 'NBL_Inbox',
     resource: 'NBL_Resource',
     log: 'NBL_Log',
+    macro: 'NBL_Macro',
   },
 }
 

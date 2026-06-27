@@ -118,6 +118,39 @@ export interface SyncState {
   value?: unknown
 }
 
+export interface MacroItem {
+  taskId: string
+  name: string
+  description?: string
+  commands: string
+  updatedAt?: number
+  createdAt?: number
+}
+
+export type MacroExecutionStatus = 'idle' | 'running' | 'paused' | 'failed' | 'completed' | 'aborted'
+
+export interface MacroExecution {
+  macroId: string
+  status: MacroExecutionStatus
+  commandIndex: number
+  lockOwner?: string
+  lockExpiresAt?: number
+  context?: Record<string, unknown>
+  lastError?: string
+  updatedAt: number
+}
+
+export type AppLogLevel = 'info' | 'warn' | 'error'
+
+export interface AppLogEntry {
+  id: string
+  timestamp: number
+  level: AppLogLevel
+  scope: string
+  message: string
+  payload?: Record<string, unknown>
+}
+
 export class AppDB extends Dexie {
   log!: Table<LogEntry, string>
   dashboard!: Table<Dashboard, string>
@@ -129,6 +162,9 @@ export class AppDB extends Dexie {
   change_log!: Table<ChangeLogEntry, string>
   sync_state!: Table<SyncState, string>
   resource!: Table<ResourceItem, string>
+  macro!: Table<MacroItem, string>
+  macro_execution!: Table<MacroExecution, string>
+  app_log!: Table<AppLogEntry, string>
 
   constructor() {
     super('NonBlockingLife')
@@ -144,6 +180,26 @@ export class AppDB extends Dexie {
       sync_state: 'key',
       resource: 'taskId, category, receivedAt, title'
     })
+
+    this.version(2)
+      .stores({
+        log: 'id, timestamp, taskId, action, state, title',
+        dashboard: 'taskId, systemStatus',
+        inbox: 'taskId, receivedAt, title',
+        task_pool: 'taskId, status, project, priority, lastRunDate, title, note, url',
+        scheduled: 'taskId, status, nextRun, title',
+        selection_cache: 'taskId, score, source, title',
+        micro_tasks: 'taskId, status, lastRunDate, title',
+        change_log: 'id, table, recordId, op, status, createdAt',
+        sync_state: 'key',
+        resource: 'taskId, category, receivedAt, title',
+        macro: 'taskId, name, updatedAt, createdAt',
+        macro_execution: 'macroId, status, lockOwner, lockExpiresAt, updatedAt',
+        app_log: 'id, timestamp, level, scope'
+      })
+      .upgrade(() => {
+        // Reserved for future data backfill if macro-related defaults are needed.
+      })
   }
 }
 

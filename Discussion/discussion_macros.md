@@ -132,3 +132,139 @@
 8. 目前建議結論
    1. 你的方向可行，且架構上與現有系統相容。
    2. 下一步優先做資料層升版與執行器，UI 可沿用 Inbox 互動模式快速完成。
+
+---
+
+## [2026-06-27] GitHub Copilot 的建議 03（實作順序清單：按檔案與函式拆工）
+
+以下是可直接開工的拆工順序。先做資料層與執行器，再接 UI，最後補同步與觀測。
+
+### Stage 0 - 規格凍結（半天）
+
+1. 檔案：`pwa/src/utils/syncUtils.ts`
+   1. 函式/常數：`SYNC_TABLES`
+   2. 動作：確認 Macro 命令可操作的目標表集合（建議先用 `task_pool`, `scheduled`, `micro_tasks`, `inbox`, `resource`；`log` 先不開放）。
+
+2. 新增檔案：`pwa/src/macro/commandRegistry.ts`
+   1. 輸出：`CommandSpec[]`、`allowedAddTables`
+   2. 動作：把 command 白名單、欄位 schema、範例 YAML 放同一份 registry，後續 parser 與 Help 都讀這裡。
+
+### Stage 1 - 資料層升版（1-2 天）
+
+1. 檔案：`pwa/src/db/schema.ts`
+   1. 新增 interface：`MacroItem`, `MacroExecution`, `AppLogEntry`
+   2. 新增 table：`macro`, `macro_execution`, `app_log`
+   3. 動作：Dexie version 升版（v2），保留舊表不動。
+
+2. 檔案：`pwa/src/db/schema.ts`
+   1. 函式：`constructor()`
+   2. 動作：補 migration，確保舊使用者升版後可讀寫新表。
+
+3. 檔案：`pwa/src/db/changeLog.ts`
+   1. 函式：`applyChange()`（或同職責函式）
+   2. 動作：確認 `macro` 走既有 change log 管線；若需要，補 `clientId/deviceId` 與 `updatedAt` 可追溯欄位。
+
+### Stage 2 - GAS 升版（1 天）
+
+1. 檔案：`pwa/src/gas/程式碼.js`
+   1. 函式：初始化/建表流程（create sheet 或 ensure sheets）
+   2. 動作：新增 macro sheet；若不存在就自動建立，欄位與版本號一併初始化。
+
+2. 檔案：`pwa/src/gas/程式碼.js`
+   1. 函式：push/pull 操作分派
+   2. 動作：把 macro 納入同步分派，避免本地有資料但雲端漏同步。
+
+### Stage 3 - Macro 執行器核心（2-3 天）
+
+1. 新增檔案：`pwa/src/macro/parser.ts`
+   1. 函式：`parseMacroYaml()`, `validateCommands()`
+   2. 動作：YAML 解析 + 白名單驗證 + 欄位型別檢查。
+
+2. 新增檔案：`pwa/src/macro/interpolate.ts`
+   1. 函式：`interpolateTemplate()`
+   2. 動作：`{{var}}` 替換只允許 string/number，缺值即報錯。
+
+3. 新增檔案：`pwa/src/macro/executor.ts`
+   1. 函式：`runMacro()`, `runNextCommand()`, `retryCurrent()`, `skipCurrent()`, `abortMacro()`
+   2. 動作：狀態機 `idle/running/failed/completed/aborted`，錯誤時支援 retry/skip/abort。
+
+4. 新增檔案：`pwa/src/macro/lock.ts`
+   1. 函式：`acquireLock()`, `heartbeatLock()`, `releaseLock()`, `reclaimExpiredLock()`
+   2. 動作：Dexie 主鎖 + TTL；localStorage 僅存「上次執行索引提示」。
+
+### Stage 4 - Command 實作（2 天）
+
+1. 新增檔案：`pwa/src/macro/commands/openUrl.ts`
+   1. 函式：`executeOpenUrl()`
+   2. 動作：每步確認才開啟 URL，限制 `http/https`。
+
+2. 新增檔案：`pwa/src/macro/commands/inputDialog.ts`
+   1. 函式：`executeInputDialog()`
+   2. 動作：收集輸入並寫入 execution context。
+
+3. 新增檔案：`pwa/src/macro/commands/addRecord.ts`
+   1. 函式：`executeAddRecord()`
+   2. 動作：統一處理新增資料列。
+
+4. 命令命名決策（你提的 add_{{SYNC_TABLES}}）
+   1. 建議採「主命令 + 別名」：
+      - 主命令：`addRecord`
+      - 參數：`table: inbox | task_pool | scheduled | micro_tasks | resource`
+      - 別名：`add_inbox`, `add_task_pool`, `add_scheduled`, `add_micro_tasks`, `add_resource`
+   2. 理由：
+      - 對使用者可讀性高（別名）
+      - 對程式維護成本低（實際只維護一支 `executeAddRecord()`）
+      - 未來新增表時，只要更新 registry，不必複製多份執行程式
+   3. 備註：`log` 建議先不提供 `add_log`，避免 macro 被濫用造成大量系統噪音。
+
+### Stage 5 - UI（2-3 天）
+
+1. 檔案：`pwa/src/components/TabNavigation.tsx`
+   1. 動作：新增 Macro 頁籤入口。
+
+2. 新增檔案：`pwa/src/components/tables/MacroTable.tsx`
+   1. 動作：桌機 table + 手機卡片，提供 CRUD + Run。
+
+3. 新增檔案：`pwa/src/components/macro/MacroEditor.tsx`
+   1. 動作：name/description/commands（YAML）編輯與即時驗證。
+
+4. 新增檔案：`pwa/src/components/macro/MacroRunnerPanel.tsx`
+   1. 動作：顯示目前步驟、錯誤訊息、retry/skip/abort。
+
+5. 新增檔案：`pwa/src/components/macro/MacroHelp.tsx`
+   1. 動作：從 `commandRegistry.ts` 自動渲染使用說明與範例。
+
+### Stage 6 - 可觀測性與 Debug mode（1-2 天）
+
+1. 新增檔案：`pwa/src/utils/logger.ts`
+   1. 函式：`logInfo()`, `logWarn()`, `logError()`
+   2. 動作：依 debug mode 決定是否寫入 `app_log`。
+
+2. 新增檔案：`pwa/src/components/debug/DebugLogPage.tsx`
+   1. 動作：查看/篩選/清除/匯出錯誤歷史。
+
+3. 檔案：`pwa/src/store/appStore.ts`
+   1. 動作：新增 debug mode 設定與持久化。
+
+### Stage 7 - 測試與驗收（1-2 天）
+
+1. 新增測試：parser/interpolate/executor/lock/logger
+2. 測試重點：
+   1. retry/skip/abort 流程
+   2. 多分頁鎖
+   3. 中斷後恢復
+   4. macro 同步至 GAS
+   5. LWW 衝突覆蓋與可追溯性
+
+### 先做與後做（建議）
+
+1. 先做（可立即上線 MVP）
+   1. Stage 1, 2, 3, 4, 5（核心功能）
+2. 後做（強化）
+   1. Stage 6, 7（觀測與品質）
+
+### 小結：關於 add_{{SYNC_TABLES}}
+
+1. 你的想法很好，能提升可擴充性。
+2. 實作上建議採 `addRecord + add_xxx alias`，兼顧可讀性與維護性。
+3. 白名單來源請直接共用 `SYNC_TABLES`（或從其衍生子集合），避免雙重維護。
