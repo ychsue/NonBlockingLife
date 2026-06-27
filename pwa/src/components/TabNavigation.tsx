@@ -1,7 +1,7 @@
 import { useAppStore } from '../store/appStore'
 import { SheetName } from '../hooks/useUrlAction'
 
-type AllPages = SheetName | 'selection_cache' | 'log' | 'guide'
+type AllPages = SheetName | 'selection_cache' | 'log' | 'guide' | 'macro'
 
 const TABS: { sheet: AllPages; label: string; icon: string }[] = [
   { sheet: 'inbox', label: 'Inbox', icon: '📭' },
@@ -11,6 +11,7 @@ const TABS: { sheet: AllPages; label: string; icon: string }[] = [
   { sheet: 'micro_tasks', label: 'Micro Tasks', icon: '✓' },
   { sheet: 'log', label: 'Log', icon: '🧾' },
   { sheet: 'resource', label: 'Resources', icon: '📚' },
+  { sheet: 'macro', label: 'Macros', icon: '🧩' },
   { sheet: 'guide', label: 'Guide', icon: '📘' },
 ]
 

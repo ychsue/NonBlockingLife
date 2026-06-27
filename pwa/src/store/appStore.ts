@@ -4,7 +4,7 @@ import { Dashboard, db } from '../db/schema'
 import type { SupportedLocale } from '../i18n'
 import { getInitialLocale } from '../i18n'
 
-type AppSheet = SheetName | 'selection_cache' | 'log' | 'guide'
+type AppSheet = SheetName | 'selection_cache' | 'log' | 'guide' | 'macro'
 export type StartupPreference = 'guide' | 'selection_cache' | 'last_visited'
 
 const STARTUP_PREFERENCE_KEY = 'nbl_startup_preference'
@@ -19,6 +19,7 @@ function isAppSheet(value: string | null): value is AppSheet {
     || value === 'selection_cache'
     || value === 'log'
     || value === 'guide'
+    || value === 'macro'
 }
 
 function getInitialStartupPreference(): StartupPreference {

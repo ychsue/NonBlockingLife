@@ -16,8 +16,9 @@ import { TutorialCarousel } from "./components/TutorialCarousel";
 import { db } from "./db/index";
 import "./styles.css";
 import { ResourceTable } from "./components/tables/ResourceTable";
+import { MacroTable } from "./components/tables/MacroTable";
 
-type AllPages = SheetName | "selection_cache" | "log" | "guide";
+type AllPages = SheetName | "selection_cache" | "log" | "guide" | "macro";
 
 export default function App() {
   const TUTORIAL_SESSION_KEY = "nbl-home-tutorial-dismissed";
@@ -268,6 +269,8 @@ export default function App() {
         return <ResourceTable />;
       case "guide":
         return <GuidePage />;
+      case "macro":
+        return <MacroTable />;
       default:
         return <InboxTable />;
     }
@@ -284,6 +287,9 @@ export default function App() {
         db.scheduled,
         db.selection_cache,
         db.micro_tasks,
+        db.macro,
+        db.macro_execution,
+        db.app_log,
         db.change_log,
         db.sync_state,
       ],
@@ -296,6 +302,9 @@ export default function App() {
           db.scheduled.clear(),
           db.selection_cache.clear(),
           db.micro_tasks.clear(),
+          db.macro.clear(),
+          db.macro_execution.clear(),
+          db.app_log.clear(),
           db.change_log.clear(),
           db.sync_state.clear(),
         ]);

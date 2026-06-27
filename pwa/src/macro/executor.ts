@@ -1,8 +1,9 @@
-import { applyChange } from '../db/changeLog'
 import { db, type MacroExecutionStatus } from '../db/schema'
-import { interpolateTemplate, sanitizeHttpUrl } from './interpolate'
 import { acquireLock, heartbeatLock, releaseLock } from './lock'
 import { parseMacroYaml, type ParsedMacroCommand } from './parser'
+import { executeAddRecord } from './commands/addRecord'
+import { executeInputDialog } from './commands/inputDialog'
+import { executeOpenUrl } from './commands/openUrl'
 
 export interface MacroDefinition {
   taskId: string
@@ -24,8 +25,6 @@ export interface RunNextResult {
   message?: string
 }
 
-const RESERVED_COMMAND_FIELDS = new Set(['command', 'iTitle', 'table'])
-
 function buildClientId(): string {
   const existing = localStorage.getItem('device-id')
   if (existing) return existing
@@ -34,30 +33,12 @@ function buildClientId(): string {
   return next
 }
 
-function buildRecordId(table: string): string {
-  return `${table}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-}
-
 function defaultDeps(): Required<MacroExecutorDeps> {
   return {
     async handleInputDialog(command, context) {
-      const fields = Object.entries(command.raw).filter(([key, value]) => {
-        if (RESERVED_COMMAND_FIELDS.has(key)) return false
-        return value !== null && typeof value === 'object'
-      })
-
-      if (fields.length === 0) {
-        throw new Error(`No input field definition found in command at index ${command.index}`)
-      }
-
-      const [key] = fields[0]
-      const promptTitle = typeof command.raw.iTitle === 'string' ? command.raw.iTitle : `Input for ${key}`
-      const input = window.prompt(promptTitle)
-      if (input === null) {
-        throw new Error('Input dialog cancelled by user')
-      }
-
-      return { ...context, [key]: input }
+      throw new Error(
+        `Input dialog handler is not configured for command at index ${command.index}. Provide handleInputDialog via MacroExecutorDeps.`
+      )
     },
 
     async confirmOpenUrl(url, title) {
@@ -108,41 +89,6 @@ export async function initializeExecution(definition: MacroDefinition): Promise<
   })
 }
 
-async function executeAddRecord(
-  command: ParsedMacroCommand,
-  context: Record<string, unknown>,
-  clientId: string
-): Promise<void> {
-  const table = command.addTable
-  if (!table) {
-    throw new Error(`Cannot resolve add target table at index ${command.index}`)
-  }
-
-  const payload: Record<string, unknown> = {}
-  for (const [key, value] of Object.entries(command.raw)) {
-    if (RESERVED_COMMAND_FIELDS.has(key)) continue
-
-    if (typeof value === 'string') {
-      payload[key] = interpolateTemplate(value, context)
-    } else {
-      payload[key] = value
-    }
-  }
-
-  const recordId = typeof payload.taskId === 'string' ? payload.taskId : buildRecordId(table)
-  if (!payload.taskId) {
-    payload.taskId = recordId
-  }
-
-  await applyChange({
-    table,
-    recordId,
-    op: 'add',
-    patch: payload,
-    clientId,
-  })
-}
-
 async function executeOne(
   command: ParsedMacroCommand,
   context: Record<string, unknown>,
@@ -150,20 +96,15 @@ async function executeOne(
   clientId: string
 ): Promise<{ nextContext: Record<string, unknown>; pauseAfter: boolean }> {
   if (command.commandType === 'inputDialog') {
-    const merged = await deps.handleInputDialog(command, context)
+    const merged = await executeInputDialog(command, context, deps.handleInputDialog)
     return { nextContext: merged, pauseAfter: false }
   }
 
   if (command.commandType === 'openUrl') {
-    const rawUrl = String(command.raw.url)
-    const interpolated = interpolateTemplate(rawUrl, context)
-    const safeUrl = sanitizeHttpUrl(interpolated)
-    const ok = await deps.confirmOpenUrl(safeUrl, typeof command.raw.iTitle === 'string' ? command.raw.iTitle : undefined)
-    if (!ok) {
-      throw new Error('User cancelled openUrl')
-    }
-
-    await deps.openUrl(safeUrl)
+    await executeOpenUrl(command, context, {
+      confirmOpenUrl: deps.confirmOpenUrl,
+      openUrl: deps.openUrl,
+    })
     return { nextContext: context, pauseAfter: true }
   }
 
