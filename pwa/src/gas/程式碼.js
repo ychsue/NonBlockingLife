@@ -3,13 +3,14 @@
  *
  * 說明：
  * - 每個本地 table 對應獨立 Google Sheet，避免資料混表
+ * - 用 version 來決定是否滿足目前 package.json 的版本範圍 ~2.2.0 表示版本為 2.2.x 適用，其餘版本不適用
  * - Log 表採用「完全展開」（Fact Table），方便 Gemini/Excel 分析
  * - 其他表提取 taskId（Dimension Table），用於關聯分析
  * - 架構：星型（Star Schema），Log 為中心事實表，其他為維度表
  */
 
 const CONFIG = {
-  VERSION: '2.1.1',
+  VERSION: '~2.2.0',
   TABLE_SHEETS: {
     task_pool: 'NBL_TaskPool',
     scheduled: 'NBL_Scheduled',

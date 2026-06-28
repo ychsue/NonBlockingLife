@@ -4,6 +4,7 @@ import { useState } from "react";
 import gasCode from "../gas/程式碼.js?raw";
 import { useT } from "../i18n";
 import { useAppStore } from "../store/appStore";
+import { satisfies } from "compare-versions";
 
 interface SetupWizardProps {
   isModal?: boolean;
@@ -54,6 +55,12 @@ export function SetupWizard({ isModal = false, onComplete, onClose }: SetupWizar
     try {
       const response = await fetch(gasUrl + '?action=ping');
       const data = await response.json();
+
+      if (!!!satisfies(import.meta.env.__APP_VERSION__,data.version ?? '0.0.0')) {
+        confirm(`⚠️ 版本不匹配(Versions do not match)：前端 ${import.meta.env.__APP_VERSION__}，GAS "${data.version}"。請更新 GAS 腳本。`);
+        setStep(3);
+        return;
+      }
       
       if (data.status === 'ok') {
         // 保存到 localStorage

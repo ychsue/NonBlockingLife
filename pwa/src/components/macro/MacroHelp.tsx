@@ -1,3 +1,4 @@
+import { stringify } from 'yaml'
 import { ADD_TARGET_TABLES, COMMAND_SPECS } from '../../macro/commandRegistry'
 
 export function MacroHelp() {
@@ -18,7 +19,7 @@ export function MacroHelp() {
               <div className="mt-1 text-xs text-gray-600">Required: {spec.requiredFields.join(', ')}</div>
             )}
             <pre className="mt-2 overflow-auto rounded border border-gray-200 bg-white p-2 text-xs">
-              {JSON.stringify(spec.example, null, 2)}
+              {stringify([spec.example])}
             </pre>
           </div>
         ))}

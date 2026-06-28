@@ -16,6 +16,7 @@ import {
 } from '../../macro/executor'
 import type { ParsedMacroCommand } from '../../macro/parser'
 import { interpolateTemplate } from '../../macro/interpolate'
+import { logError, logInfo, logWarn } from '../../utils/logger'
 
 const DEV_CLIENT_ID = 'dev-macro-table'
 const RESERVED_INPUT_KEYS = new Set(['command', 'iTitle', 'table'])
@@ -264,19 +265,24 @@ export function MacroTable() {
 
     try {
       const definition = buildDefinition(item)
+      await logInfo('macro', 'Macro run started', { macroId: item.taskId, mode })
 
       if (mode === 'retry') {
         const result = await retryCurrent(definition, macroDeps)
         setMessage(`Retry result: ${result.status} (index ${result.commandIndex})`)
+        await logInfo('macro', 'Macro retry finished', { macroId: item.taskId, status: result.status, commandIndex: result.commandIndex })
       } else if (mode === 'skip') {
         const result = await skipCurrent(definition)
         setMessage(`Skip result: ${result.status} (index ${result.commandIndex})`)
+        await logWarn('macro', 'Macro command skipped', { macroId: item.taskId, status: result.status, commandIndex: result.commandIndex })
       } else if (mode === 'abort') {
         await abortMacro(definition)
         setMessage('Macro aborted')
+        await logWarn('macro', 'Macro aborted', { macroId: item.taskId })
       } else if (mode === 'continue') {
         const result = await runUntilPauseOrComplete(definition, macroDeps)
         setMessage(`Continue result: ${result.status} (index ${result.commandIndex})`)
+        await logInfo('macro', 'Macro continue finished', { macroId: item.taskId, status: result.status, commandIndex: result.commandIndex })
       } else {
         // Run means rerun from beginning; Continue keeps current cursor.
         await db.macro_execution.put({
@@ -291,10 +297,12 @@ export function MacroTable() {
         })
         const result = await runUntilPauseOrComplete(definition, macroDeps)
         setMessage(`Run result: ${result.status} (index ${result.commandIndex})`)
+        await logInfo('macro', 'Macro rerun finished', { macroId: item.taskId, status: result.status, commandIndex: result.commandIndex })
       }
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error)
       setMessage(`Error: ${errMsg}`)
+      await logError('macro', errMsg, { macroId: item.taskId, mode })
     } finally {
       setIsRunning(false)
       await loadRows()

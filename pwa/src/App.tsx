@@ -17,8 +17,15 @@ import { db } from "./db/index";
 import "./styles.css";
 import { ResourceTable } from "./components/tables/ResourceTable";
 import { MacroTable } from "./components/tables/MacroTable";
+import { DebugLogPage } from "./components/debug/DebugLogPage";
 
-type AllPages = SheetName | "selection_cache" | "log" | "guide" | "macro";
+type AllPages =
+  | SheetName
+  | "selection_cache"
+  | "log"
+  | "guide"
+  | "macro"
+  | "debug";
 
 export default function App() {
   const TUTORIAL_SESSION_KEY = "nbl-home-tutorial-dismissed";
@@ -34,6 +41,7 @@ export default function App() {
   const loadRunningTask = useAppStore((state) => state.loadRunningTask);
   const locale = useAppStore((state) => state.locale);
   const setLocale = useAppStore((state) => state.setLocale);
+  const debugMode = useAppStore((state) => state.debugMode);
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -271,6 +279,8 @@ export default function App() {
         return <GuidePage />;
       case "macro":
         return <MacroTable />;
+      case "debug":
+        return <DebugLogPage />;
       default:
         return <InboxTable />;
     }
@@ -333,7 +343,19 @@ export default function App() {
                 <p className="text-sm text-gray-600">
                   Local-first Task Management
                 </p>
-                {!isMobile && <SyncStatus />}
+                {!isMobile && (
+                  <div className="flex flex-row flex-wrap space-between gap-1">
+                    <SyncStatus />
+                    <button
+                      onClick={() => setCurrentSheet("debug")}
+                      className="px-3 py-2 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100 flex-shrink-1"
+                      aria-label="Open debug logs"
+                      title="Open debug logs"
+                    >
+                      ...
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2 ml-auto flex-shrink-0">
@@ -391,8 +413,16 @@ export default function App() {
 
         {/* 手機選單下拉面板 */}
         {isMobile && showMobileMenu && (
-          <div className="bg-white border-t border-gray-100 px-4 py-3 shadow-md">
+          <div className="bg-white border-t border-gray-100 px-4 py-3 shadow-md flex flex-wrap flex-row gap-1">
             <SyncStatus />
+            <button
+              onClick={() => setCurrentSheet("debug")}
+              className="px-3 py-2 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100 flex-shrink-1"
+              aria-label="Open debug logs"
+              title="Open debug logs"
+            >
+              ...
+            </button>
           </div>
         )}
 

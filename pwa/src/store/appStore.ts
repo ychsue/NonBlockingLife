@@ -4,11 +4,12 @@ import { Dashboard, db } from '../db/schema'
 import type { SupportedLocale } from '../i18n'
 import { getInitialLocale } from '../i18n'
 
-type AppSheet = SheetName | 'selection_cache' | 'log' | 'guide' | 'macro'
+type AppSheet = SheetName | 'selection_cache' | 'log' | 'guide' | 'macro' | 'debug'
 export type StartupPreference = 'guide' | 'selection_cache' | 'last_visited'
 
 const STARTUP_PREFERENCE_KEY = 'nbl_startup_preference'
 const LAST_VISITED_SHEET_KEY = 'nbl_last_visited_sheet'
+export const DEBUG_MODE_KEY = 'nbl_debug_mode'
 
 function isAppSheet(value: string | null): value is AppSheet {
   return value === 'inbox'
@@ -20,6 +21,11 @@ function isAppSheet(value: string | null): value is AppSheet {
     || value === 'log'
     || value === 'guide'
     || value === 'macro'
+    || value === 'debug'
+}
+
+function getInitialDebugMode(): boolean {
+  return localStorage.getItem(DEBUG_MODE_KEY) === '1'
 }
 
 function getInitialStartupPreference(): StartupPreference {
@@ -107,6 +113,10 @@ interface AppState {
   // i18n
   locale: SupportedLocale
   setLocale: (locale: SupportedLocale) => void
+
+  // debug mode
+  debugMode: boolean
+  setDebugMode: (enabled: boolean) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -163,5 +173,11 @@ export const useAppStore = create<AppState>((set) => ({
   setLocale: (locale) => {
     localStorage.setItem('nbl_locale', locale)
     set({ locale })
+  },
+
+  debugMode: getInitialDebugMode(),
+  setDebugMode: (enabled) => {
+    localStorage.setItem(DEBUG_MODE_KEY, enabled ? '1' : '0')
+    set({ debugMode: enabled })
   },
 }))

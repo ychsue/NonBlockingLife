@@ -1,3 +1,4 @@
+import { satisfies } from 'compare-versions'
 import { db } from '../db/index'
 import type { ChangeLogEntry } from '../db/schema'
 
@@ -53,6 +54,8 @@ interface GASResponse {
   error?: string
   changes?: PulledChange[]
   results?: Array<{ success: boolean }>
+  message?: string // ping 回傳的值之一
+  version?: string // ping 回傳的值之一
   timestamp?: number
   counts?: Record<string, number>
 }
@@ -121,8 +124,12 @@ export class SyncManager {
     try {
       const response = await fetch(`${this.gasUrl}?action=ping`)
       const data = (await response.json()) as GASResponse
+      if (!!!satisfies(import.meta.env.__APP_VERSION__,data.version ?? '0.0.0')) {
+        confirm(`⚠️ 版本不匹配(Versions do not match)：前端 ${import.meta.env.__APP_VERSION__}，GAS "${data.version}"。請更新 GAS 腳本。`);
+      }
       return data.status === 'ok'
     } catch (error) {
+      confirm(`⚠️ 版本不匹配(Versions do not match)：前端 ${import.meta.env.__APP_VERSION__}，GAS "~2.2.0"。請更新 GAS 腳本。`);
       console.error('GAS 連接測試失敗:', error)
       return false
     }
