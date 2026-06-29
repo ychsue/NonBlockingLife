@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { db, type MacroExecution, type MacroItem } from '../../db/schema'
 import { applyChange } from '../../db/changeLog'
 import { useResponsiveTable } from '../../hooks/useResponsiveTable'
-import { TableCard } from '../TableCard'
 import { MacroEditor } from '../macro/MacroEditor'
 import { MacroHelp } from '../macro/MacroHelp'
 import {
@@ -17,6 +16,7 @@ import {
 import type { ParsedMacroCommand } from '../../macro/parser'
 import { interpolateTemplate } from '../../macro/interpolate'
 import { logError, logInfo, logWarn } from '../../utils/logger'
+import _ from 'lodash'
 
 const DEV_CLIENT_ID = 'dev-macro-table'
 const RESERVED_INPUT_KEYS = new Set(['command', 'iTitle', 'table'])
@@ -51,16 +51,6 @@ function createNewMacro(taskId?: string): MacroItem {
   }
 }
 
-function formatTime(ts?: number): string {
-  if (!ts) return '-'
-  return new Date(ts).toLocaleString()
-}
-
-function truncate(text: string, max = 72): string {
-  if (text.length <= max) return text
-  return `${text.slice(0, max)}...`
-}
-
 async function saveMacroPatch(taskId: string, patch: Partial<MacroItem>) {
   await applyChange({
     table: 'macro',
@@ -72,17 +62,15 @@ async function saveMacroPatch(taskId: string, patch: Partial<MacroItem>) {
 }
 
 export function MacroTable() {
-  const { isMobile } = useResponsiveTable()
   const [rows, setRows] = useState<MacroItem[]>([])
   const [executionMap, setExecutionMap] = useState<Record<string, MacroExecution>>({})
   const [editingItem, setEditingItem] = useState<MacroItem | null>(null)
   const [selectedMacroId, setSelectedMacroId] = useState<string | null>(null)
   const [isRunning, setIsRunning] = useState(false)
   const [message, setMessage] = useState('')
-  const [inputRequest, setInputRequest] = useState<InputRequest | null>(null)
-  const [inputValue, setInputValue] = useState('')
+  const [inputRequest, setInputRequest] = useState<InputRequest[] | null>(null)
   const inputResolverRef = useRef<{
-    resolve: (value: string) => void
+    resolve: (value: Record<string, string>) => void
     reject: (error: Error) => void
   } | null>(null)
 
@@ -93,9 +81,8 @@ export function MacroTable() {
 
   const selectedExecution = selectedMacroId ? executionMap[selectedMacroId] : undefined
 
-  const requestInput = useCallback((request: InputRequest): Promise<string> => {
+  const requestInput = useCallback((request: InputRequest[]): Promise<Record<string, string>> => {
     setInputRequest(request)
-    setInputValue(request.initialValue)
     return new Promise((resolve, reject) => {
       inputResolverRef.current = { resolve, reject }
     })
@@ -103,7 +90,6 @@ export function MacroTable() {
 
   const clearInputRequest = useCallback(() => {
     setInputRequest(null)
-    setInputValue('')
     inputResolverRef.current = null
   }, [])
 
@@ -120,6 +106,7 @@ export function MacroTable() {
         }
 
         let nextContext = { ...context }
+        let inputValues: InputRequest[] = []
 
         for (const [fieldKey, fieldDef] of fields) {
           const fieldType =
@@ -138,24 +125,31 @@ export function MacroTable() {
           const existingValue = nextContext[fieldKey]
           const initialValue = existingValue === undefined || existingValue === null ? '' : String(existingValue)
 
-          const rawInput = await requestInput({
+          inputValues.push({
             title,
             fieldKey,
             fieldLabel,
             fieldType,
             initialValue,
           })
-
-          if (fieldType === 'number') {
-            const numeric = Number(rawInput)
-            if (!Number.isFinite(numeric)) {
-              throw new Error(`Input '${fieldLabel}' must be a valid number`)
-            }
-            nextContext = { ...nextContext, [fieldKey]: numeric }
-          } else {
-            nextContext = { ...nextContext, [fieldKey]: rawInput }
-          }
         }
+
+        const rawInputs = await requestInput(inputValues);
+        // 轉存nextContext內
+        _.forEach(rawInputs, (rawInput, fieldKey) => {
+          //* refine rawInput
+          //** 如果使用者沒有輸入，則使用initialValue
+          if (_.isNil(rawInput)) {
+            rawInput = inputValues.find((v) => v.fieldKey === fieldKey)?.initialValue ?? ''
+          }
+          //** 根據所要的型別轉換
+          const fieldType = inputValues.find((v) => v.fieldKey === fieldKey)?.fieldType ?? 'string'
+          if (fieldType === 'number') {
+            nextContext[fieldKey] = Number(rawInput)
+          } else {
+            nextContext[fieldKey] = String(rawInput)
+          }
+        });
 
         return nextContext
       },
@@ -310,9 +304,9 @@ export function MacroTable() {
     }
   }
 
-  const submitInput = () => {
+  const submitInput = (values: Record<string, unknown>) => {
     if (!inputRequest || !inputResolverRef.current) return
-    inputResolverRef.current.resolve(inputValue)
+    inputResolverRef.current.resolve(values as Record<string, string>)
     clearInputRequest()
   }
 
@@ -352,7 +346,7 @@ export function MacroTable() {
                 className="px-3 py-2 text-sm rounded bg-green-500 text-white hover:bg-green-600 w-30 h-30 relative">
                 {item.name}
                 {/* 此按鈕內的左下角編輯按鈕icon，右下角刪除按鈕icon */}
-                <button
+                <span
                   onClick={(e) => {
                     e.stopPropagation()
                     setEditingItem(item)
@@ -361,8 +355,8 @@ export function MacroTable() {
                   className="absolute bottom-0 left-0 p-1 text-sm text-blue-500 hover:text-blue-600"
                 >
                   ✒️
-                </button>
-                <button
+                </span>
+                <span
                   onClick={(e) => {
                     e.stopPropagation()
                     void deleteRow(item)
@@ -370,7 +364,7 @@ export function MacroTable() {
                   className="absolute bottom-0 right-0 p-1 text-sm text-red-500 hover:text-red-600"
                 >
                   🗑️
-                </button>
+                </span>
               </button>
             )
           })}
@@ -456,33 +450,41 @@ export function MacroTable() {
 
       {inputRequest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={cancelInput}>
-          <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold text-gray-800 mb-1">{inputRequest.title}</h3>
-            <p className="text-sm text-gray-600 mb-3">{inputRequest.fieldLabel}</p>
+          <form className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}
+            onSubmit={(e) => {
+              const fd = new FormData(e.currentTarget)
+              let values: Record<string, FormDataEntryValue> = {};
+              fd.forEach((value, key) => {
+                values[key] = value
+              })
 
-            <input
-              autoFocus
-              type={inputRequest.fieldType === 'number' ? 'number' : 'text'}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  submitInput()
-                }
-              }}
+              e.preventDefault()
+              submitInput(values)
+            }}
+            >
+            <h3 className="text-lg font-semibold text-gray-800 mb-1">{inputRequest[0].title}</h3>
+            {inputRequest.map((ithRequest, ith) => (
+              <div key={ithRequest.fieldKey}>
+                <p className="text-sm text-gray-600 mb-3">{ithRequest.fieldLabel}</p>
+                <input
+                  autoFocus={ith === 0}
+                  type={ithRequest.fieldType === 'number' ? 'number' : 'text'}
+                  placeholder={ithRequest.initialValue}
+                  name={ithRequest.fieldKey}
               className="w-full rounded border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
             />
+              </div>
+            ))}
 
             <div className="mt-4 flex justify-end gap-2">
-              <button onClick={cancelInput} className="rounded border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">
+              <button type="button" onClick={cancelInput} className="rounded border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">
                 Cancel
               </button>
-              <button onClick={submitInput} className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+              <button type="submit" className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
                 OK
               </button>
             </div>
-          </div>
+          </form>
         </div>
       )}
     </div>
