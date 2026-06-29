@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-06-29] 能夠持續跑上次 pause 的地方，就算跳到別的頁面再回來，明天來將文字與 experiment 宣告，畢竟還不穩
+
+[ ] 怪現象，有時會在編輯 macro 之後，會卡在第一個 running macro，明天來 debug
+
 ## [2026-06-29] 改成讓多個 inputDialog 參數只需要打開一個 dialog 即可。
 
 ## [2026-06-29] 將 Macro 改成一格格的方塊

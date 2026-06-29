@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { db, type MacroExecution, type MacroItem } from '../../db/schema'
+import { db, MacroExecutionStatus, type MacroExecution, type MacroItem } from '../../db/schema'
 import { applyChange } from '../../db/changeLog'
 import { useResponsiveTable } from '../../hooks/useResponsiveTable'
 import { MacroEditor } from '../macro/MacroEditor'
@@ -20,6 +20,18 @@ import _ from 'lodash'
 
 const DEV_CLIENT_ID = 'dev-macro-table'
 const RESERVED_INPUT_KEYS = new Set(['command', 'iTitle', 'table'])
+
+const EditIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white hover:text-yellow-600">
+    <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32L19.513 8.2z" />
+  </svg>
+)
+
+const DeleteIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white hover:text-red-600">
+    <path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clipRule="evenodd" />
+  </svg>
+)
 
 type InputRequest = {
   title: string
@@ -156,20 +168,21 @@ export function MacroTable() {
     }
   }, [requestInput])
 
-  const loadRows = async () => {
+  const loadRows = useCallback(async () => {
     const data = await db.macro.toArray()
     data.sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
     setRows(data)
-  }
+  }, [])
 
-  const loadExecution = async () => {
+
+  const loadExecution = useCallback(async () => {
     const data = await db.macro_execution.toArray()
     const map: Record<string, MacroExecution> = {}
     for (const item of data) {
       map[item.macroId] = item
     }
     setExecutionMap(map)
-  }
+  }, [])
 
   useEffect(() => {
     void loadRows()
@@ -190,6 +203,14 @@ export function MacroTable() {
       inputResolverRef.current = null
     }
   }, [])
+
+  // 當ExecutionMap、rows 有變化，檢查 ExecutionMap 裡面第一個不是 idle 或 completed 的 macroId，並且在 rows 裡面有對應的 macroId，則將 selectedMacroId 設為該 macroId
+  useEffect(() => {
+    const runningMacro = Object.values(executionMap).find((execution) => execution.status === 'running' || execution.status === 'paused')
+    if (runningMacro && rows.find((row) => row.taskId === runningMacro.macroId)) {
+      setSelectedMacroId(runningMacro.macroId)
+    }
+  }, [executionMap, rows])
 
   const addRow = async () => {
     const newRow = createNewMacro()
@@ -317,6 +338,24 @@ export function MacroTable() {
     clearInputRequest()
   }
 
+  function allowedNextActions(action: 'Run' | 'Continue' | 'Retry' | 'Skip' | 'Abort' | 'Step +1', status: MacroExecutionStatus | undefined): boolean {
+    if (!status) return false
+    switch (status) {
+      case 'idle':
+        return ['Run'].includes(action)
+      case 'running':
+        return ['Abort', 'Step +1'].includes(action)
+      case 'paused':
+        return ['Continue', 'Abort', 'Step +1'].includes(action)
+      case 'completed':
+        return ['Run'].includes(action)
+      case 'failed':
+        return ['Retry', 'Skip'].includes(action)
+      default:
+        return false
+    }
+  }
+
   return (
     <div className="p-4 space-y-4">
       <MacroHelp />
@@ -343,7 +382,7 @@ export function MacroTable() {
             return (
               <button key={item.taskId}
                 onClick={() => void runMacro(item, 'normal')}
-                className="px-3 py-2 text-sm rounded bg-green-500 text-white hover:bg-green-600 w-30 h-30 relative">
+                className={`px-3 py-2 text-sm rounded ${(selectedMacroId === item.taskId && !!!['completed','aborted'].includes(selectedExecution?.status ?? '')) ? 'bg-blue-500' : 'bg-green-500'} text-white hover:bg-green-600 w-30 h-30 relative`}>
                 {item.name}
                 {/* 此按鈕內的左下角編輯按鈕icon，右下角刪除按鈕icon */}
                 <span
@@ -352,18 +391,18 @@ export function MacroTable() {
                     setEditingItem(item)
                     setSelectedMacroId(item.taskId)
                   }}
-                  className="absolute bottom-0 left-0 p-1 text-sm text-blue-500 hover:text-blue-600"
+                  className="absolute bottom-0 left-0 p-1 text-sm"
                 >
-                  ✒️
+                  <EditIcon />
                 </span>
                 <span
                   onClick={(e) => {
                     e.stopPropagation()
                     void deleteRow(item)
                   }}
-                  className="absolute bottom-0 right-0 p-1 text-sm text-red-500 hover:text-red-600"
+                  className="absolute bottom-0 right-0 p-1 text-sm"
                 >
-                  🗑️
+                  <DeleteIcon />
                 </span>
               </button>
             )
@@ -387,42 +426,42 @@ export function MacroTable() {
             <button
               onClick={() => void runMacro(selectedMacro, 'normal')}
               disabled={isRunning}
-              className="px-3 py-2 text-sm rounded bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-60"
+              className={`px-3 py-2 text-sm rounded bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-60 ${allowedNextActions('Run', selectedExecution?.status) ? '' : 'hidden'} ${isRunning ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               Run
             </button>
             <button
               onClick={() => void runMacro(selectedMacro, 'continue')}
               disabled={isRunning}
-              className="px-3 py-2 text-sm rounded bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-60"
+              className={`px-3 py-2 text-sm rounded bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-60 ${allowedNextActions('Continue', selectedExecution?.status) ? '' : 'hidden'} ${isRunning ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               Continue
             </button>
             <button
               onClick={() => void runMacro(selectedMacro, 'retry')}
               disabled={isRunning}
-              className="px-3 py-2 text-sm rounded bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-60"
+              className={`px-3 py-2 text-sm rounded bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-60 ${allowedNextActions('Retry', selectedExecution?.status) ? '' : 'hidden'} ${isRunning ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               Retry
             </button>
             <button
               onClick={() => void runMacro(selectedMacro, 'skip')}
               disabled={isRunning}
-              className="px-3 py-2 text-sm rounded bg-gray-500 text-white hover:bg-gray-600 disabled:opacity-60"
+              className={`px-3 py-2 text-sm rounded bg-gray-500 text-white hover:bg-gray-600 disabled:opacity-60 ${allowedNextActions('Skip', selectedExecution?.status) ? '' : 'hidden'} ${isRunning ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               Skip
             </button>
             <button
               onClick={() => void runMacro(selectedMacro, 'abort')}
               disabled={isRunning}
-              className="px-3 py-2 text-sm rounded bg-red-500 text-white hover:bg-red-600 disabled:opacity-60"
+              className={`px-3 py-2 text-sm rounded bg-red-500 text-white hover:bg-red-600 disabled:opacity-60 ${allowedNextActions('Abort', selectedExecution?.status) ? '' : 'hidden'} ${isRunning ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               Abort
             </button>
             <button
               onClick={() => void runNextCommand(buildDefinition(selectedMacro), macroDeps)}
               disabled={isRunning}
-              className="px-3 py-2 text-sm rounded bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-60"
+              className={`px-3 py-2 text-sm rounded bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-60 ${allowedNextActions('Step +1', selectedExecution?.status) ? '' : 'hidden'} ${isRunning ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               Step +1
             </button>
