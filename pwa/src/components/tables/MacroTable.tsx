@@ -343,89 +343,38 @@ export function MacroTable() {
 
         {rows.length === 0 && <div className="text-sm text-gray-500">No macros yet.</div>}
 
-        {isMobile ? (
-          <div className="space-y-3">
-            {rows.map((item) => {
-              const execution = executionMap[item.taskId]
-              return (
-                <TableCard
-                  key={item.taskId}
-                  item={item}
-                  fields={[
-                    { label: 'ID', value: item.taskId },
-                    { label: 'Name', value: item.name },
-                    { label: 'Status', value: execution?.status ?? 'idle' },
-                    { label: 'Updated', value: formatTime(item.updatedAt) },
-                    { label: 'Commands', value: truncate(item.commands.replace(/\n/g, ' '), 84) },
-                  ]}
-                  onEdit={() => {
+        <div className="flex flex-wrap gap-2 mb-3">
+          {rows.map((item) => {
+            const execution = executionMap[item.taskId]
+            return (
+              <button key={item.taskId}
+                onClick={() => void runMacro(item, 'normal')}
+                className="px-3 py-2 text-sm rounded bg-green-500 text-white hover:bg-green-600 w-30 h-30 relative">
+                {item.name}
+                {/* 此按鈕內的左下角編輯按鈕icon，右下角刪除按鈕icon */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
                     setEditingItem(item)
                     setSelectedMacroId(item.taskId)
                   }}
-                  onDelete={() => void deleteRow(item)}
-                  quickAction={{
-                    label: isRunning && selectedMacroId === item.taskId ? 'Running...' : 'Run',
-                    onClick: () => void runMacro(item, 'normal'),
+                  className="absolute bottom-0 left-0 p-1 text-sm text-blue-500 hover:text-blue-600"
+                >
+                  ✒️
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    void deleteRow(item)
                   }}
-                />
-              )
-            })}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm border border-gray-200 rounded">
-              <thead className="bg-gray-100 text-gray-700">
-                <tr>
-                  <th className="px-3 py-2 text-left">ID</th>
-                  <th className="px-3 py-2 text-left">Name</th>
-                  <th className="px-3 py-2 text-left">Description</th>
-                  <th className="px-3 py-2 text-left">Status</th>
-                  <th className="px-3 py-2 text-left">Commands</th>
-                  <th className="px-3 py-2 text-left">Updated</th>
-                  <th className="px-3 py-2 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((item) => {
-                  const execution = executionMap[item.taskId]
-                  return (
-                    <tr key={item.taskId} className="border-t border-gray-100 hover:bg-gray-50">
-                      <td className="px-3 py-2 font-mono text-xs">{item.taskId}</td>
-                      <td className="px-3 py-2">{item.name}</td>
-                      <td className="px-3 py-2">{item.description || '-'}</td>
-                      <td className="px-3 py-2">{execution?.status ?? 'idle'}</td>
-                      <td className="px-3 py-2 max-w-[24rem]">{truncate(item.commands.replace(/\n/g, ' '), 120)}</td>
-                      <td className="px-3 py-2">{formatTime(item.updatedAt)}</td>
-                      <td className="px-3 py-2 space-x-2 whitespace-nowrap">
-                        <button
-                          onClick={() => {
-                            setEditingItem(item)
-                            setSelectedMacroId(item.taskId)
-                          }}
-                          className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => void runMacro(item, 'normal')}
-                          className="px-2 py-1 text-xs rounded bg-amber-500 text-white hover:bg-amber-600"
-                        >
-                          Run
-                        </button>
-                        <button
-                          onClick={() => void deleteRow(item)}
-                          className="px-2 py-1 text-xs rounded bg-red-500 text-white hover:bg-red-600"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                  className="absolute bottom-0 right-0 p-1 text-sm text-red-500 hover:text-red-600"
+                >
+                  🗑️
+                </button>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {selectedMacro && (
