@@ -1,6 +1,6 @@
 import { SYNC_TABLES } from '../utils/syncUtils'
 
-export type BaseCommandType = 'inputDialog' | 'openUrl' | 'addRecord'
+export type BaseCommandType = 'inputDialog' | 'openUrl' | 'addRecord' | 'apiGetJson' | 'setParam'
 
 export type AddAliasCommandType =
   | 'add_task_pool'
@@ -63,6 +63,29 @@ export const COMMAND_SPECS: CommandSpec[] = [
       url: 'https://www.hymnal.net/en/hymn/ch/{{whichOne}}',
     },
   },
+  {
+    type: 'apiGetJson',
+    title: 'Call API and save JSON',
+    summary: 'Call an HTTP GET API, then write JSON result to context path.',
+    requiredFields: ['url'],
+    example: {
+      command: 'apiGetJson',
+      url: 'https://api.example.com/items/{{whichOne}}',
+      resultKey: 'apiResult',
+      timeoutMs: 10000,
+    },
+  },
+  {
+    type: 'setParam',
+    title: 'Set context parameter',
+    summary: 'Set context path from literal value, template string, or another context path.',
+    requiredFields: ['target'],
+    example: {
+      command: 'setParam',
+      target: 'saved.firstName',
+      fromPath: 'apiResult.user.name',
+    },
+  },
   ...ADD_TARGET_TABLES.map((table) => ({
     type: `add_${table}` as AddAliasCommandType,
     title: `Alias: add into ${table}`,
@@ -76,7 +99,13 @@ export const COMMAND_SPECS: CommandSpec[] = [
 ]
 
 export function normalizeCommandType(command: string): CommandType | null {
-  if (command === 'inputDialog' || command === 'openUrl' || command === 'addRecord') {
+  if (
+    command === 'inputDialog' ||
+    command === 'openUrl' ||
+    command === 'addRecord' ||
+    command === 'apiGetJson' ||
+    command === 'setParam'
+  ) {
     return command
   }
 

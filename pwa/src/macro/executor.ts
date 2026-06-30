@@ -4,6 +4,8 @@ import { parseMacroYaml, type ParsedMacroCommand } from './parser'
 import { executeAddRecord } from './commands/addRecord'
 import { executeInputDialog } from './commands/inputDialog'
 import { executeOpenUrl } from './commands/openUrl'
+import { executeSetParam } from './commands/setParam'
+import { executeApiGetJson } from './commands/apiGetJson'
 
 export interface MacroDefinition {
   taskId: string
@@ -17,6 +19,7 @@ export interface MacroExecutorDeps {
   ) => Promise<Record<string, unknown>>
   confirmOpenUrl?: (url: string, title?: string) => Promise<boolean>
   openUrl?: (url: string) => Promise<void>
+  fetchJson?: (url: string, timeoutMs: number) => Promise<unknown>
 }
 
 export interface RunNextResult {
@@ -48,6 +51,32 @@ function defaultDeps(): Required<MacroExecutorDeps> {
 
     async openUrl(url) {
       window.open(url, '_blank', 'noopener,noreferrer')
+    },
+
+    async fetchJson(url, timeoutMs) {
+      const controller = new AbortController()
+      const timeout = window.setTimeout(() => controller.abort(), timeoutMs)
+
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          signal: controller.signal,
+        })
+
+        if (!response.ok) {
+          throw new Error(`apiGetJson failed: ${response.status} ${response.statusText}`)
+        }
+
+        const result = await response.json()
+        return result as unknown
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error(`apiGetJson request timed out after ${timeoutMs} ms`)
+        }
+        throw error
+      } finally {
+        window.clearTimeout(timeout)
+      }
     },
   }
 }
@@ -106,6 +135,18 @@ async function executeOne(
       openUrl: deps.openUrl,
     })
     return { nextContext: context, pauseAfter: true }
+  }
+
+  if (command.commandType === 'setParam') {
+    const nextContext = executeSetParam(command, context)
+    return { nextContext, pauseAfter: false }
+  }
+
+  if (command.commandType === 'apiGetJson') {
+    const nextContext = await executeApiGetJson(command, context, {
+      fetchJson: deps.fetchJson,
+    })
+    return { nextContext, pauseAfter: false }
   }
 
   await executeAddRecord(command, context, clientId)

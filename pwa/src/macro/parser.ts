@@ -43,6 +43,41 @@ function validateCommandShape(cmd: RawMacroCommand, commandType: CommandType): {
     return {}
   }
 
+  if (commandType === 'apiGetJson') {
+    validateRequiredFields(cmd, ['url'])
+    if (typeof cmd.url !== 'string' || cmd.url.trim().length === 0) {
+      throw new Error(`'${cmd.command}' command requires non-empty string field 'url'`)
+    }
+
+    if (cmd.resultKey !== undefined && (typeof cmd.resultKey !== 'string' || cmd.resultKey.trim().length === 0)) {
+      throw new Error(`'${cmd.command}' optional field 'resultKey' must be non-empty string`)
+    }
+
+    if (cmd.timeoutMs !== undefined && (typeof cmd.timeoutMs !== 'number' || cmd.timeoutMs <= 0)) {
+      throw new Error(`'${cmd.command}' optional field 'timeoutMs' must be positive number`)
+    }
+
+    return {}
+  }
+
+  if (commandType === 'setParam') {
+    validateRequiredFields(cmd, ['target'])
+    if (typeof cmd.target !== 'string' || cmd.target.trim().length === 0) {
+      throw new Error("'setParam' command requires non-empty string field 'target'")
+    }
+
+    const hasValue = 'value' in cmd
+    const hasFromPath = typeof cmd.fromPath === 'string' && cmd.fromPath.trim().length > 0
+    const hasFromTemplate = typeof cmd.fromTemplate === 'string' && cmd.fromTemplate.trim().length > 0
+    const sourceCount = [hasValue, hasFromPath, hasFromTemplate].filter(Boolean).length
+
+    if (sourceCount !== 1) {
+      throw new Error("'setParam' requires exactly one source: value | fromPath | fromTemplate")
+    }
+
+    return {}
+  }
+
   const explicitTable = typeof cmd.table === 'string' ? cmd.table : undefined
   const addTable = resolveAddCommandTable(commandType, explicitTable)
   if (!addTable) {

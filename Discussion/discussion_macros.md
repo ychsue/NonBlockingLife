@@ -268,3 +268,16 @@
 1. 你的想法很好，能提升可擴充性。
 2. 實作上建議採 `addRecord + add_xxx alias`，兼顧可讀性與維護性。
 3. 白名單來源請直接共用 `SYNC_TABLES`（或從其衍生子集合），避免雙重維護。
+
+---
+
+## [2026-06-30] ychsue 額外的想法
+
+在修改您的程式碼後，發現有一些想法，想要跟您討論一下：
+1. 目前的command 都沒有回傳值，現在，我需要一個 `apiGetJson` 的 command，這個 command 會去呼叫一個 API，成功的話，會回傳一個 JSON，所以需要存放這個JSON
+   1. 我在想是否在 context 裡面，放一個變量，叫做 apiResult，然後這個 command 執行完後，就會把回傳的 JSON 存到 context.apiResult 裡面，然後下一個 command 就可以使用這個 context.apiResult 來做一些事情。
+2. 由於這裡我們使用 {{key}} 來取得 `context[key]` 裡面的變量，所以，在 [interpolate.ts](/pwa\src\macro\interpolate.ts) 裡面，得將他擴充成可以吃 {{key1.key2....}}
+   1. 也就是說，{{apiResult.key1.key2}} 就可以取得 context.apiResult.key1.key2 的值。
+3. 所以，還另外需要一個 command，稱為 `setParam` 如何？讓他可以clon(若是object) 或者直接賦值，將 context 裡面的變量，直接設定成某個值，或直接用 "{{key}}"， 這樣就可以讓下一個 command 使用這個變量了。
+   1. 因為像上面的例子裡面，如果我後來又呼叫了另外一個api，就會壓掉前一個的，如果前一個的有必要保存，那麼，就需要使用 setParam 來保存這個變量，這樣就可以讓下一個 command 使用這個變量了。
+您覺得這個想法有沒有甚麼問題呢？
