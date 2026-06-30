@@ -10,6 +10,7 @@ export type StartupPreference = 'guide' | 'selection_cache' | 'last_visited'
 const STARTUP_PREFERENCE_KEY = 'nbl_startup_preference'
 const LAST_VISITED_SHEET_KEY = 'nbl_last_visited_sheet'
 export const DEBUG_MODE_KEY = 'nbl_debug_mode'
+const ENABLE_EXPERIMENTAL_FEATURES_KEY = 'nbl_enable_experimental_features'
 
 function isAppSheet(value: string | null): value is AppSheet {
   return value === 'inbox'
@@ -26,6 +27,10 @@ function isAppSheet(value: string | null): value is AppSheet {
 
 function getInitialDebugMode(): boolean {
   return localStorage.getItem(DEBUG_MODE_KEY) === '1'
+}
+
+function getInitialExperimentalFeaturesEnabled(): boolean {
+  return localStorage.getItem(ENABLE_EXPERIMENTAL_FEATURES_KEY) === '1'
 }
 
 function getInitialStartupPreference(): StartupPreference {
@@ -117,6 +122,10 @@ interface AppState {
   // debug mode
   debugMode: boolean
   setDebugMode: (enabled: boolean) => void
+
+  // experimental features
+  experimentalFeaturesEnabled: boolean
+  setExperimentalFeaturesEnabled: (enabled: boolean) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -179,5 +188,11 @@ export const useAppStore = create<AppState>((set) => ({
   setDebugMode: (enabled) => {
     localStorage.setItem(DEBUG_MODE_KEY, enabled ? '1' : '0')
     set({ debugMode: enabled })
+  },
+
+  experimentalFeaturesEnabled: getInitialExperimentalFeaturesEnabled(),
+  setExperimentalFeaturesEnabled: (enabled) => {
+    localStorage.setItem(ENABLE_EXPERIMENTAL_FEATURES_KEY, enabled ? '1' : '0')
+    set({ experimentalFeaturesEnabled: enabled })
   },
 }))

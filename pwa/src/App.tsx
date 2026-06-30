@@ -17,7 +17,7 @@ import { db } from "./db/index";
 import "./styles.css";
 import { ResourceTable } from "./components/tables/ResourceTable";
 import { MacroTable } from "./components/tables/MacroTable";
-import { DebugLogPage } from "./components/debug/DebugLogPage";
+import { MorePage } from "./components/MorePage";
 
 type AllPages =
   | SheetName
@@ -280,7 +280,7 @@ export default function App() {
       case "macro":
         return <MacroTable />;
       case "debug":
-        return <DebugLogPage />;
+        return <MorePage />;
       default:
         return <InboxTable />;
     }

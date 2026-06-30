@@ -15,14 +15,18 @@ const TABS: { sheet: AllPages; label: string; icon: string }[] = [
   { sheet: 'guide', label: 'Guide', icon: '📘' },
 ]
 
+// sheet name of experimental features that are not yet fully released to users
+const EXPERIMENTAL_TABS: string[] = ['macro', 'debug']
+
 export function TabNavigation() {
   const currentSheet = useAppStore((state) => state.currentSheet)
   const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
+  const experimentalFeaturesEnabled = useAppStore((state) => state.experimentalFeaturesEnabled)
 
   return (
     <nav className="border-b border-gray-200 bg-white sticky top-0 z-10">
       <div className="flex gap-1 px-4 py-2 overflow-x-auto">
-        {TABS.map(({ sheet, label, icon }) => (
+        {TABS.filter(({ sheet }) => !EXPERIMENTAL_TABS.includes(sheet) || experimentalFeaturesEnabled).map(({ sheet, label, icon }) => (
           <button
             key={sheet}
             onClick={() => setCurrentSheet(sheet)}

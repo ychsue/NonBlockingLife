@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-06-30] 嘗試引進 Experimental 的概念，讓使用者知道這個功能是尚未完全穩定的，並且可以在 MorePage 裡面開關這個功能，這樣就可以讓使用者知道這個功能是實驗性的，並且可以選擇是否要使用它。
+
 ## [ ] [2026-06-30] 試著修復在 TWA 由 instance 回來時，不會自動更新的問題 TODO 待測
 
 ## [2026-06-30] 謝謝 GitHub Copilot 的幫忙，多了 apiGetJson 與 setParam 的 command type，可惜，把他的額度用完了，得等下個月才能繼續使用。
