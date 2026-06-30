@@ -17,8 +17,6 @@ export interface MacroExecutorDeps {
     command: ParsedMacroCommand,
     context: Record<string, unknown>
   ) => Promise<Record<string, unknown>>
-  confirmOpenUrl?: (url: string, title?: string) => Promise<boolean>
-  openUrl?: (url: string) => Promise<void>
   fetchJson?: (url: string, timeoutMs: number) => Promise<unknown>
 }
 
@@ -42,15 +40,6 @@ function defaultDeps(): Required<MacroExecutorDeps> {
       throw new Error(
         `Input dialog handler is not configured for command at index ${command.index}. Provide handleInputDialog via MacroExecutorDeps.`
       )
-    },
-
-    async confirmOpenUrl(url, title) {
-      const text = title ? `${title}\n${url}` : url
-      return window.confirm(text)
-    },
-
-    async openUrl(url) {
-      window.open(url, '_blank', 'noopener,noreferrer')
     },
 
     async fetchJson(url, timeoutMs) {
@@ -130,10 +119,7 @@ async function executeOne(
   }
 
   if (command.commandType === 'openUrl') {
-    await executeOpenUrl(command, context, {
-      confirmOpenUrl: deps.confirmOpenUrl,
-      openUrl: deps.openUrl,
-    })
+    await executeOpenUrl(command, context)
     return { nextContext: context, pauseAfter: true }
   }
 

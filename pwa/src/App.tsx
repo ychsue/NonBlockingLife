@@ -18,6 +18,8 @@ import "./styles.css";
 import { ResourceTable } from "./components/tables/ResourceTable";
 import { MacroTable } from "./components/tables/MacroTable";
 import { MorePage } from "./components/MorePage";
+import { useDialogStore } from "./store/dialogStore";
+import { GlobalDialog } from "./GlobalDialog";
 
 type AllPages =
   | SheetName
@@ -59,6 +61,18 @@ export default function App() {
   } as const;
   const currentLocaleLabel = localeLabelMap[locale];
   const nextLocaleLabel = localeLabelMap[nextLocale];
+  // For Global Dialog
+  const dialogConfig = useDialogStore((state) => state.dialogConfig);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  // For Global Dialog
+  useEffect(() => {
+    if (dialogConfig && dialogRef.current) {
+      dialogRef.current.showModal();
+    } else if (dialogRef.current) {
+      dialogRef.current.close();
+    }
+  }, [dialogConfig]);
 
   useEffect(() => {
     // 初始加载时获取当前正在运行的任务
@@ -498,6 +512,9 @@ export default function App() {
           onOpenScheduled={() => handleOpenTutorialSheet("scheduled")}
         />
       )}
+
+      {/* Global Dialog */}
+      <GlobalDialog ref={dialogRef} />
     </div>
   );
 }
