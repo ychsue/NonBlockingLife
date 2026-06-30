@@ -1,5 +1,7 @@
 # Journal
 
+## [ ] [2026-06-30] 試著修復在 TWA 由 instance 回來時，不會自動更新的問題 TODO 待測
+
 ## [2026-06-30] 謝謝 GitHub Copilot 的幫忙，多了 apiGetJson 與 setParam 的 command type，可惜，把他的額度用完了，得等下個月才能繼續使用。
 
 ## [2026-06-30] 讓中斷產生的新的任務以Micro Tasks 為預設，然後修正 cronExpr 的 bug，讓 r? 可以正確迴圈

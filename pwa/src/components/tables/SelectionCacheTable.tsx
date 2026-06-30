@@ -116,9 +116,24 @@ export function SelectionCacheTable() {
 
   // 初始載入
   useEffect(() => {
-    loadCandidates();
-    loadRunningTask();
-    handleRefreshCandidates(); //想說當進入此頁面的一開始就讓它更新
+    const refresh = async () => {
+      await loadCandidates();
+      await loadRunningTask();
+      await handleRefreshCandidates(); //想說當進入此頁面的一開始就讓它更新
+    };
+    refresh(); //進來就執行
+    // 在 visibilitychange 與 focus 事件中也會觸發更新，避免長時間停留在此頁面時，候選任務列表過舊
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        refresh();
+      }
+    };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -213,7 +228,7 @@ export function SelectionCacheTable() {
     }
   };
 
-  const loadCandidates = async () => {
+  const loadCandidates = useCallback(async () => {
     try {
       setLoading(true);
       const data = await db.selection_cache.toArray();
@@ -231,10 +246,10 @@ export function SelectionCacheTable() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setLoading, setRows]);
 
   // 刷新候選任務列表
-  const handleRefreshCandidates = async () => {
+  const handleRefreshCandidates = useCallback( async () => {
     try {
       setRefreshing(true);
 
@@ -305,7 +320,8 @@ export function SelectionCacheTable() {
     } finally {
       setRefreshing(false);
     }
-  };
+  },[setRefreshing, loadCandidates, setConflictScheduled,]);
+
 
   // 點擊任務行，開啟"開始任務"對話框
   const handleRowClick = (taskId: string) => {
