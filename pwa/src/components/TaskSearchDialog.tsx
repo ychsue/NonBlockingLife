@@ -70,7 +70,7 @@ export function TaskSearchDialog() {
   const [loadingData, setLoadingData] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [regexError, setRegexError] = useState<string | null>(null)
-  const [addTarget, setAddTarget] = useState<AddTarget>('Task_Pool')
+  const [addTarget, setAddTarget] = useState<AddTarget>('Micro_Tasks')
   const [addChecked, setAddChecked] = useState(false)
   const [adding, setAdding] = useState(false)
 
@@ -290,8 +290,8 @@ export function TaskSearchDialog() {
                   onChange={(e) => setAddTarget(e.target.value as AddTarget)}
                   className="ml-1 border rounded px-2 py-1 text-sm"
                 >
-                  <option value="Task_Pool">{t('taskSearch.source.taskPool')}</option>
                   <option value="Micro_Tasks">{t('taskSearch.source.microTasks')}</option>
+                  <option value="Task_Pool">{t('taskSearch.source.taskPool')}</option>
                   <option value="Scheduled">{t('taskSearch.source.scheduled')}</option>
                 </select>
               </label>

@@ -159,8 +159,9 @@ function resolveRelativeCronExpr(cronExpr, baseDate) {
     }
 
     const values = [];
-    for (let value = anchor; value <= max; value += step) {
-      values.push(String(value));
+    for (let value = min; value <= max; value += step) {
+      const modValue = (anchor + value - 2*min) % (max - min + 1) + min;
+      values.push(String(modValue));
     }
 
     changed = true;
