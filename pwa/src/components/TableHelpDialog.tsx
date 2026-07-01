@@ -51,6 +51,35 @@ export function TableHelpDialog({
         <div className="max-h-[70vh] overflow-y-auto pr-1 text-sm leading-relaxed text-gray-800 space-y-2">
           <ReactMarkdown
             components={{
+              a: ({ href, children, ...props }) => {
+                // 檢查網址結尾是不是 #btn
+                const isButton = href && href.endsWith('#btn');
+                    
+                if (isButton) {
+                  // 把結尾的 #btn 拿掉，恢復正常網址
+                  const cleanHref = href.replace('#btn', '');
+                
+                  return (
+                    <a
+                      href={cleanHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      // 這裡塞滿你的 Tailwind 魔法 ✨
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-semibold rounded-xl shadow-md shadow-red-200 hover:shadow-lg transition-all duration-200 no-underline my-2"
+                      {...props}
+                    >
+                      🎥 {children}
+                    </a>
+                  );
+                }
+              
+                // 一般的超連結樣式
+                return (
+                  <a href={href} className="text-blue-600 hover:text-blue-800 underline" {...props}>
+                    {children}
+                  </a>
+                );                
+              },
               h1: ({ children }) => (
                 <h1 className="text-xl font-bold mb-3">{children}</h1>
               ),
