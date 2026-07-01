@@ -54,9 +54,8 @@ function createNewMacro(taskId?: string): MacroItem {
       '  whichOne:\n' +
       '    type: number\n' +
       '    label: Hymn number\n' +
-      '- command: add_inbox\n' +
-      '  iTitle: Add task to inbox\n' +
-      '  title: Play hymn {{whichOne}}\n' +
+      '- command: openUrl\n' +
+      '  iTitle: 開啟大本第 {{whichOne}} 首\n' +
       '  url: https://www.hymnal.net/en/hymn/ch/{{whichOne}}\n',
     createdAt: now,
     updatedAt: now,
