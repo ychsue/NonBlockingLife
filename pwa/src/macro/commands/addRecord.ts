@@ -18,7 +18,7 @@ export async function executeAddRecord(
     throw new Error(`Cannot resolve add target table at index ${command.index}`)
   }
 
-  const payload: Record<string, unknown> = {}
+  const payload: Record<string, unknown> = {status: 'PENDING', updatedAt: Date.now()}
   for (const [key, value] of Object.entries(command.raw)) {
     if (RESERVED_COMMAND_FIELDS.has(key)) continue
 
