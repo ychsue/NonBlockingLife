@@ -50,7 +50,7 @@ export default function App() {
   const [showTutorial, setShowTutorial] = useState(false);
   const defaultTitleRef = useRef(BASE_TITLE);
   const previousRunningTaskIdRef = useRef<string | null>(null);
-  const { isMobile } = useResponsiveTable();
+  const { isMobile, isTooSmall } = useResponsiveTable();
 
   const nextLocale =
     locale === "zh-TW" ? "en" : locale === "en" ? "ja" : "zh-TW";
@@ -350,12 +350,19 @@ export default function App() {
             className={`max-w-7xl mx-auto px-4 py-4 flex justify-between items-center gap-3`}
           >
             <div className="min-w-0 flex flex-col flex-shrink-1">
-              <h1 className="text-2xl font-bold text-gray-800">
+              {isTooSmall && (
+                <h2 className="text-l font-bold text-gray-800 truncate">
+                  📱 Non-Blocking Life
+                </h2>
+              )}
+              {!!!isTooSmall && (
+                <h1 className="text-2xl font-bold text-gray-800">
                 📱 Non-Blocking Life
-              </h1>
+                </h1>)
+              }
               <div className="flex items-center gap-2">
-                <p className="text-sm text-gray-600">
-                  Local-first Task Management
+                <p className="truncate text-sm text-gray-600">
+                  {isTooSmall ? "Task Management" : "Local-first Task Management"}
                 </p>
                 {!isMobile && (
                   <div className="flex flex-row flex-wrap space-between gap-1">

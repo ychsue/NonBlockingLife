@@ -125,6 +125,9 @@
 > 我有特地寫了一篇詳細的圖文功能解說：[https://vocus.cc/article/6a3e2565fd89780001a92977](https://www.google.com/search?q=https%3A%2F%2Fvocus.cc%2Farticle%2F6a3e2565fd89780001a92977)
 > 這關係到我的 App 能不能順利誕生，真的需要你挺我！可以的話，回我一下，我把加入的 Google 群組連結傳給你，下個月請你喝杯大杯咖啡/吃頓飯補償你！謝謝啦 🙏」
 
+[巨集](https://youtube.com/shorts/fmzZwrnK8oo)
+[中斷](https://youtube.com/shorts/s8k1HbEQ6_Q)
+
 #### 第二類：職場忙碌的「各行各業專業人士」（解決痛點風）
 
 > 「嗨 [名字]，好久不見！身為常被工作打斷的上班族，想推薦你一個我親自開發的防斷片時間管理工具 `NonBlockingLife`！

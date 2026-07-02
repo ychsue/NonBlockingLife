@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 export function useResponsiveTable() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [isTooSmall, setIsTooSmall] = useState(window.innerWidth < 480)
 
   useEffect(() => {
     let debounceTimer: NodeJS.Timeout
@@ -10,6 +11,7 @@ export function useResponsiveTable() {
       clearTimeout(debounceTimer)
       debounceTimer = setTimeout(() => {
         setIsMobile(window.innerWidth < 768)
+        setIsTooSmall(window.innerWidth < 480)
       }, 150)
     }
 
@@ -20,5 +22,5 @@ export function useResponsiveTable() {
     }
   }, [])
 
-  return { isMobile }
+  return { isMobile, isTooSmall }
 }

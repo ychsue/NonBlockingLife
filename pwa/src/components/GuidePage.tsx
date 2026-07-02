@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { TutorialCarousel } from './TutorialCarousel'
 import { useAppStore, type StartupPreference } from '../store/appStore'
 import {
+  getDeviceType,
   getNblTimerInstallUrl,
   isValidICloudShortcutUrl,
   setNblTimerInstallUrl,
@@ -86,6 +87,7 @@ export function GuidePage() {
     'unsupported'
   )
   const [requestingPermission, setRequestingPermission] = useState(false)
+  const [isIOS] = useState(getDeviceType()=== 'Shortcuts');
 
   useEffect(() => {
     if (typeof Notification === 'undefined') {
@@ -460,7 +462,8 @@ export function GuidePage() {
         </ul>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-5">
+      {isIOS &&
+      (<div className="bg-white border border-gray-200 rounded-lg p-5">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">📱 iOS Shortcuts 安裝</h3>
         <div className="space-y-3">
           {SHORTCUTS.map((shortcut) => (
@@ -485,10 +488,10 @@ export function GuidePage() {
           ))}
         </div>
 
-      </div>
+      </div>)}
 
       <div className="bg-white border border-gray-200 rounded-lg p-5">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">🧩 iPhone 整合進度</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">🧩 整合進度</h3>
         <ul className="space-y-2 text-gray-700">
           <li>✅ Start 後切單色 + 30 分鐘計時（由 NBL_Timer 處理）</li>
           <li>✅ End 後恢復色彩 + 10 分鐘計時（由 NBL_Timer 處理）</li>
