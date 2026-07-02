@@ -110,6 +110,9 @@ export function LogTable() {
       }),
       columnHelper.accessor('title', {
         header: t('table.log.col.title'),
+        meta: {
+            className: 'min-w-50', // 將你想加的樣式寫在這裡
+          },
       }),
       columnHelper.accessor('action', {
         header: t('table.log.col.action'),
@@ -126,6 +129,9 @@ export function LogTable() {
       }),
       columnHelper.accessor('notes', {
         header: t('table.log.col.notes'),
+        meta: {
+          className: 'min-w-50', // 將你想加的樣式寫在這裡
+        },
       }),
     ],
     [t]
@@ -219,10 +225,12 @@ export function LogTable() {
             <tbody>
               {table.getRowModel().rows.map((row) => (
                 <tr key={row.id} className="border-b border-gray-200">
-                  {row.getVisibleCells().map((cell) => (
+                  {row.getVisibleCells().map((cell) => {
+                    const customClass = cell.column.columnDef.meta?.className || '';
+                    return (
                     <td
                       key={cell.id}
-                      className="p-2"
+                      className={`p-2 ${customClass}`}
                       style={{ width: cell.column.getSize() }}
                     >
                       {flexRender(
@@ -230,7 +238,7 @@ export function LogTable() {
                         cell.getContext()
                       )}
                     </td>
-                  ))}
+                  )})}
                 </tr>
               ))}
             </tbody>
