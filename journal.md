@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-07-04] 設法修正 SetupWizard 的靈異現象，就是在斷網時，竟然說 2.2.0 與 ~2.2.0 不匹配，但連上網就好了
+
+- fetch 加上 cache: 'no-store'，避免 cache 的問題
+
 ## [2026-07-02] 讓Log 能夠有正確的欄寬
 
 由於在 <td>, <tr> 裡面的元素 <span> 的 display 預設是 inline，這樣就會導致欄寬無法正確顯示，因此，給他的 meta多一個 className，然後在 LogTable 裡面，透過這個 className 來給 td 加上 min-w-50 的樣式，這樣就可以讓欄寬正確顯示了。

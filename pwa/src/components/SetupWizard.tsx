@@ -53,7 +53,7 @@ export function SetupWizard({ isModal = false, onComplete, onClose }: SetupWizar
 
     // 測試連接
     try {
-      const response = await fetch(gasUrl + '?action=ping');
+      const response = await fetch(gasUrl + '?action=ping', {cache: 'no-store'});
       const data = await response.json();
 
       if (!!!satisfies(import.meta.env.__APP_VERSION__,data.version ?? '0.0.0')) {
