@@ -122,7 +122,7 @@ export class SyncManager {
    */
   async testConnection(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.gasUrl}?action=ping`)
+      const response = await fetch(`${this.gasUrl}?action=ping`, {cache: 'no-store'})
       const data = (await response.json()) as GASResponse
       if (!!!satisfies(import.meta.env.__APP_VERSION__,data.version ?? '0.0.0')) {
         confirm(`⚠️ 版本不匹配(Versions do not match)：前端 ${import.meta.env.__APP_VERSION__}，GAS "${data.version}"。請更新 GAS 腳本。`);
