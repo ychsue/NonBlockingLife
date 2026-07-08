@@ -9,6 +9,7 @@ export type SheetName =
   | "scheduled"
   | "task_pool"
   | "micro_tasks"
+  | "macro"
   | "resource";
 
 interface UseUrlActionOptions {
@@ -150,6 +151,15 @@ export function useUrlAction(options: UseUrlActionOptions) {
       return;
     }
 
+    if (action === "navigate") {
+      const targetSheet = params.get("sheet") as SheetName | null;
+      if (targetSheet) {
+        onNavigate(targetSheet);
+        clearActionUrl();
+      }
+      return;
+    }
+
     // 處理 task 搜尋動作：?action=search&query=xxx
     if (action === "search") {
       const searchQuery = params.get("query") || "";
@@ -243,6 +253,7 @@ export function useUrlAction(options: UseUrlActionOptions) {
           task_pool: "Task Pool",
           micro_tasks: "Micro Tasks",
           resource: "Resource",
+          macro: "Macro",
         };
         onSuccess?.(
           `✅ 已新增到 ${sheetLabel[sheet]}: ${patch.title || recordId}`,
