@@ -87,6 +87,16 @@ export const COMMAND_SPECS: CommandSpec[] = [
       fromPath: 'apiResult.user.name',
     },
   },
+  {
+    type: 'alert',
+    title: 'Show alert',
+    summary: 'Display an alert message to the user.',
+    requiredFields: ['message'],
+    example: {
+      command: 'alert',
+      message: 'This is an alert message',
+    },
+  },
   ...ADD_TARGET_TABLES.map((table) => ({
     type: `add_${table}` as AddAliasCommandType,
     title: `Alias: add into ${table}`,
