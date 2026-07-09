@@ -20,9 +20,9 @@ public class AddInboxWidgetProvider extends AppWidgetProvider {
             PendingIntent pendingIntent = PendingIntent.getActivity(context, 2, intent, 
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_layout);
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_add_inbox);
             views.setTextViewText(R.id.widget_text, "Add Inbox");
-            views.setOnClickPendingIntent(R.id.widget_root, pendingIntent);
+            views.setOnClickPendingIntent(R.id.widget_add_root, pendingIntent);
             
             appWidgetManager.updateAppWidget(appWidgetId, views);
         }

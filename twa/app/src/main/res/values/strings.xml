@@ -38,5 +38,17 @@
         }
     }]
     
-  </string>  
+  </string>
+    <string name="btn_add">Add</string>
+    <string name="btn_query">Query</string>
+    <string name="btn_macro">Macro</string>
+    <string name="desc_add_inbox">Add Inbox</string>
+    <string name="appName">NonBlockingLife</string>
+    <string name="launcherName">NonBlockingLife</string>
+    <string name="launchUrl">https://ychsue.github.io/NonBlockingLife/</string>
+    <string name="hostName">ychsue.github.io</string>
+    <string name="providerAuthority">com.yescirculation.nonblockinglife.fileprovider</string>
+    <string name="fallbackType">customtabs</string>
+    <string name="orientation">default</string>
+    <string name="generatorApp">it.pwa2.app</string>
 </resources>

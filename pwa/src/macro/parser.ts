@@ -78,6 +78,14 @@ function validateCommandShape(cmd: RawMacroCommand, commandType: CommandType): {
     return {}
   }
 
+  if (commandType === 'alert') {
+    validateRequiredFields(cmd, ['message'])
+    if (typeof cmd.message !== 'string' || cmd.message.trim().length === 0) {
+      throw new Error("'alert' command requires non-empty string field 'message'")
+    }
+    return {}
+  }
+
   const explicitTable = typeof cmd.table === 'string' ? cmd.table : undefined
   const addTable = resolveAddCommandTable(commandType, explicitTable)
   if (!addTable) {

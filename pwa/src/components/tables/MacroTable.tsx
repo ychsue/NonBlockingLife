@@ -33,11 +33,14 @@ const DeleteIcon = () => (
   </svg>
 )
 
+const FieldTypeOptions = [ 'text', 'number', 'date', 'datetime-local'] as const
+type FieldType = (typeof FieldTypeOptions)[number]
+
 type InputRequest = {
   title: string
   fieldKey: string
   fieldLabel: string
-  fieldType: 'text' | 'number'
+  fieldType: FieldType
   initialValue: string
 }
 
@@ -121,8 +124,8 @@ export function MacroTable() {
 
         for (const [fieldKey, fieldDef] of fields) {
           const fieldType =
-            fieldDef && typeof fieldDef === 'object' && (fieldDef as Record<string, unknown>).type === 'number'
-              ? 'number'
+            fieldDef && typeof fieldDef === 'object' && FieldTypeOptions.includes((fieldDef as Record<string, unknown>).type as FieldType)
+              ? (fieldDef as Record<string, unknown>).type as FieldType
               : 'text'
           const fieldLabel =
             fieldDef && typeof fieldDef === 'object' && typeof (fieldDef as Record<string, unknown>).label === 'string'
@@ -157,6 +160,8 @@ export function MacroTable() {
           const fieldType = inputValues.find((v) => v.fieldKey === fieldKey)?.fieldType ?? 'string'
           if (fieldType === 'number') {
             nextContext[fieldKey] = Number(rawInput)
+          } else if (fieldType === 'date' || fieldType === 'datetime-local') {
+            nextContext[fieldKey] = new Date(rawInput)
           } else {
             nextContext[fieldKey] = String(rawInput)
           }
@@ -506,7 +511,7 @@ export function MacroTable() {
                 <p className="text-sm text-gray-600 mb-3">{ithRequest.fieldLabel}</p>
                 <input
                   autoFocus={ith === 0}
-                  type={ithRequest.fieldType === 'number' ? 'number' : 'text'}
+                  type={ithRequest.fieldType}
                   placeholder={ithRequest.initialValue}
                   name={ithRequest.fieldKey}
               className="w-full rounded border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"

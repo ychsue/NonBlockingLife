@@ -223,6 +223,14 @@
                 android:resource="@xml/widget_query_info" />
         </receiver>
 
+        <receiver android:name=".MacroWidgetProvider" android:exported="true" android:label="NBL Macro" android:icon="@mipmap/ic_extension">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/widget_macro_info" />
+        </receiver>
+
         <receiver android:name=".AddInboxWidgetProvider" android:exported="true" android:label="NBL Add Inbox" android:icon="@android:drawable/ic_input_add">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

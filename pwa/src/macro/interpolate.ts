@@ -1,4 +1,4 @@
-const TOKEN_RE = /\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}/g
+const TOKEN_RE = /\{\{\s*([a-zA-Z0-9_.\(\)]+)\s*\}\}/g
 const BLOCKED_PATH_SEGMENTS = new Set(['__proto__', 'prototype', 'constructor'])
 
 function validatePath(path: string) {
@@ -29,10 +29,16 @@ export function getContextPath(context: Record<string, unknown>, path: string): 
   let current: unknown = context
 
   for (const segment of segments) {
-    if (!isRecord(current) || !(segment in current)) {
+    if (current instanceof Date) {
+      if (segment === 'toISOString()') {
+        return current.toISOString()
+      } else {
+        throw new Error(`Invalid path segment '${segment}' for Date object in '${path}'`)
+      }
+    } else if (isRecord(current) && !(segment in current)) {
       throw new Error(`Missing template variable: ${path}`)
-    }
-    current = current[segment]
+    } 
+    current = (current as Record<string, unknown>)[segment]
   }
 
   return current

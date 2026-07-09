@@ -1,6 +1,7 @@
 import { SYNC_TABLES } from '../utils/syncUtils'
 
-export type BaseCommandType = 'inputDialog' | 'openUrl' | 'addRecord' | 'apiGetJson' | 'setParam'
+export const BaseCommandTypes = ['inputDialog', 'openUrl', 'addRecord', 'apiGetJson', 'setParam', 'alert'] as const;
+export type BaseCommandType = (typeof BaseCommandTypes)[number];
 
 export type AddAliasCommandType =
   | 'add_task_pool'
@@ -100,13 +101,9 @@ export const COMMAND_SPECS: CommandSpec[] = [
 
 export function normalizeCommandType(command: string): CommandType | null {
   if (
-    command === 'inputDialog' ||
-    command === 'openUrl' ||
-    command === 'addRecord' ||
-    command === 'apiGetJson' ||
-    command === 'setParam'
+    BaseCommandTypes.includes(command as BaseCommandType)
   ) {
-    return command
+    return command as CommandType
   }
 
   if (command.startsWith('add_')) {

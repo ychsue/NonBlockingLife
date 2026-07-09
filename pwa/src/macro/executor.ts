@@ -6,6 +6,7 @@ import { executeInputDialog } from './commands/inputDialog'
 import { executeOpenUrl } from './commands/openUrl'
 import { executeSetParam } from './commands/setParam'
 import { executeApiGetJson } from './commands/apiGetJson'
+import { interpolateTemplate } from './interpolate'
 
 export interface MacroDefinition {
   taskId: string
@@ -133,6 +134,13 @@ async function executeOne(
       fetchJson: deps.fetchJson,
     })
     return { nextContext, pauseAfter: false }
+  }
+
+  if (command.commandType === 'alert') {
+    let message = String(command.raw.message ?? '');
+    message = interpolateTemplate(message, context);
+    window.alert(message)
+    return { nextContext: context, pauseAfter: true }
   }
 
   await executeAddRecord(command, context, clientId)
