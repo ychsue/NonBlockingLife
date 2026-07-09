@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-07-09] 改良 TWA widget 的顯示方式，而PWA的部分則增加 Alert 的 command type，讓使用者可以在 macro 裡面使用 alert 來顯示訊息，然後，多了 Date 的格式可以使用
+
 ## [2026-07-08] 增加 action=navigate&sheet= 的功能，讓使用者可以透過 url 來切換頁面
 
 ## [2026-07-04] 設法修正 SetupWizard 的靈異現象，就是在斷網時，竟然說 2.2.0 與 ~2.2.0 不匹配，但連上網就好了
