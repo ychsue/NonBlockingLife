@@ -1,5 +1,9 @@
 # Journal
 
+## [ ] [2026-07-11] 未解之謎，出現DOING，但是沒有顯示在Dashboard裡面，好奇怪，需要調查，應該是沒修改到，傷腦筋 TODO
+
+**重要錯誤，待解決**
+
 ## [2026-07-11] 發布新版 NBL-1.0.8
 
 1. [x]先增加版本號 [twa-manifest.json](twa\twa-manifest.json) 的 `appVersion....`

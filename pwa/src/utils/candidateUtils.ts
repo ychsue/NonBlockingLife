@@ -100,7 +100,7 @@ export function calculateCandidates(
   // ===== Task_Pool 處理 =====
   pool.forEach((task) => {
     const status = task.status
-    if (status === 'PENDING' || status === 'INTERRUPTED') {
+    if (status === 'PENDING' || status === 'INTERRUPTED' || status === 'DOING') {
       const taskId = task.taskId
       const title = task.title || t('task.unnamed')
       let spentToday = task.spentTodayMins || 0
@@ -184,7 +184,7 @@ export function calculateCandidates(
   // ===== Scheduled Tasks 處理 =====
   scheduled.forEach((task) => {
     const status = task.status
-    if (status === 'PENDING' || status === 'INTERRUPTED') {
+    if (status === 'PENDING' || status === 'INTERRUPTED' || status === 'DOING') {
       const taskId = task.taskId
       let title = task.title || t('task.unnamedScheduled')
       const nextRunTime = task.nextRun
@@ -212,7 +212,7 @@ export function calculateCandidates(
   // ===== Micro_Tasks 處理 =====
   microTasks.forEach((task) => {
     const status = task.status
-    if (status === 'PENDING' || status === 'INTERRUPTED') {
+    if (status === 'PENDING' || status === 'INTERRUPTED' || status === 'DOING') {
       const taskId = task.taskId
       const title = task.title || t('task.unnamedMicro')
       let score = 30 // 固定基礎分
