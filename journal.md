@@ -1,5 +1,16 @@
 # Journal
 
+## [2026-07-11] 發布新版 NBL-1.0.8
+
+1. [x]先增加版本號 [twa-manifest.json](twa\twa-manifest.json) 的 `appVersion....`
+2. [x]也增加版本號 [build.gradle](twa\app\build.gradle) 的 `versionCode` 與 `versionName`
+3. [x]重新 build AAB (Android Studio -> Build -> Generate Signed App Bundle or APK... -> Android App Bundle)
+4. [x]回到 [Google Play Console](https://play.google.com/console) 的封閉測試頁面 → 選中目前版本按 右邊的 `升級版本`
+5. [x]上傳新的 AAB
+6. [x]填寫更新內容（Macro Widget、新外觀）
+7. [x]按「送審」或「發布到封閉測試」
+8. [x]等待 Google 審查（通常封閉測試很快）
+
 ## [2026-07-09] 改良 TWA widget 的顯示方式，而PWA的部分則增加 Alert 的 command type，讓使用者可以在 macro 裡面使用 alert 來顯示訊息，然後，多了 Date 的格式可以使用
 
 - 補上 `alert` 的說明
