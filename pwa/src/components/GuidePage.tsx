@@ -181,6 +181,7 @@ export function GuidePage() {
       )}
       <div className="bg-white border border-gray-200 rounded-lg p-5">
         <h2 className="text-xl font-bold text-gray-800 mb-2">📘 說明頁</h2>
+        <div>version: {import.meta.env.__APP_VERSION__}</div>
         <p className="text-gray-700 leading-relaxed">
           Non-Blocking Life 的目的是把任務管理做成「不打斷主線」的日常系統，讓你在 iPhone
           與 PWA 之間可以快速開始、結束、打岔與回到任務。
