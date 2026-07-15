@@ -67,6 +67,9 @@ export function ScheduledTable() {
   const [sorting, setSorting] = useState<SortingState>([])
   const [sortMode, setSortMode] = useState<'none' | 'lastRunAsc' | 'lastRunDesc' | 'nextRunAsc' | 'nextRunDesc'>('none')
   const { isMobile } = useResponsiveTable()
+
+  const [createdNewRowId, setCreatedNewRowId] = useState("");
+  
   const [editingItem, setEditingItem] = useState<ScheduledItem | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [isOrMode, setIsOrMode] = useState(true)
@@ -207,6 +210,7 @@ export function ScheduledTable() {
     }).catch((err) => console.error('Failed to add row:', err))
 
     setEditingItem(newRow)
+    setCreatedNewRowId(newRow.taskId)
   }
 
   const deleteRow = async (taskId: string) => {
@@ -263,6 +267,20 @@ export function ScheduledTable() {
     await saveUpdate(editingItem.taskId, patch)
     setEditingItem(null)
   }
+
+  const handleCloseEditDialog = (isSaved?: boolean) => {
+    if (isSaved) {
+      setEditingItem(null);
+      setCreatedNewRowId("");
+    } else {
+      // 如果是新建的行，且未保存，則刪除該行
+      if (createdNewRowId) {
+        deleteRow(createdNewRowId);
+        setCreatedNewRowId("");
+      }
+      setEditingItem(null);
+    }
+  };
 
   const openCronPreview = (item: ScheduledItem, cronExpr: string) => {
     setCronPreview({
@@ -995,7 +1013,7 @@ export function ScheduledTable() {
           },
         ]}
         onSave={handleEditSave}
-        onClose={() => setEditingItem(null)}
+        onClose={handleCloseEditDialog}
       />
 
       <TableHelpDialog

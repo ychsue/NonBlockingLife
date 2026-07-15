@@ -46,6 +46,9 @@ export function MicroTasksTable() {
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     taskId: false,
   })
+  
+  const [createdNewRowId, setCreatedNewRowId] = useState("");
+
   const { isMobile } = useResponsiveTable()
   const [editingItem, setEditingItem] = useState<MicroTaskItem | null>(null)
     const [searchQuery, setSearchQuery] = useState('')
@@ -142,6 +145,7 @@ export function MicroTasksTable() {
     }).catch((err) => console.error('Failed to add row:', err))
 
     setEditingItem(newRow)
+    setCreatedNewRowId(newRow.taskId)
   }
 
   const deleteRow = async (taskId: string) => {
@@ -192,6 +196,20 @@ export function MicroTasksTable() {
     await saveUpdate(editingItem.taskId, patch)
     setEditingItem(null)
   }
+
+  const handleCloseEditDialog = (isSaved?: boolean) => {
+    if (isSaved) {
+      setEditingItem(null);
+      setCreatedNewRowId("");
+    } else {
+      // 如果是新建的行，且未保存，則刪除該行
+      if (createdNewRowId) {
+        deleteRow(createdNewRowId);
+        setCreatedNewRowId("");
+      }
+      setEditingItem(null);
+    }
+  };
 
   const columns = useMemo(
     () => [
@@ -551,7 +569,7 @@ export function MicroTasksTable() {
           },
         ]}
         onSave={handleEditSave}
-        onClose={() => setEditingItem(null)}
+        onClose={handleCloseEditDialog}
       />
 
       <TableHelpDialog

@@ -28,7 +28,7 @@ interface EditDialogProps<T> {
   item: T | null
   fields: DialogField[]
   onSave: (data: Record<string, any>) => Promise<void>
-  onClose: () => void
+  onClose: (isSaved?: boolean) => void
   footerLeft?: React.ReactNode
 }
 
@@ -83,7 +83,7 @@ export function EditDialog<T>({
       setIsSaving(true)
       setError(null)
       await onSave(formData)
-      onClose()
+      onClose(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : t('dialog.saveFailed'))
     } finally {
@@ -165,7 +165,7 @@ export function EditDialog<T>({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center items-center bg-black/50 pointer-events-auto" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center items-center bg-black/50 pointer-events-auto" onClick={() => onClose(false)}>
       <div className="bg-white w-full sm:max-w-md rounded-t-lg sm:rounded-lg p-6 shadow-lg max-h-[90vh] sm:max-h-[80vh] flex flex-col overflow-y-auto overflow-x-hidden pointer-events-auto" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-lg font-bold mb-4 flex-shrink-0">{title}</h2>
 
@@ -232,15 +232,15 @@ export function EditDialog<T>({
           <div className="flex items-center gap-2">{footerLeft}</div>
           <div className="flex gap-3 justify-end">
             <button
-              onClick={onClose}
-              onTouchEnd={(event) => handleDialogActionTouchEnd(event, onClose)}
+              onClick={() => onClose(false)}
+              onTouchEnd={(event) => handleDialogActionTouchEnd(event, () => onClose(false))}
               disabled={isSaving}
               className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50"
             >
               {t('dialog.cancel')}
             </button>
             <button
-              onClick={handleSave}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSave(); }}
               onTouchEnd={(event) => handleDialogActionTouchEnd(event, handleSave)}
               disabled={isSaving}
               className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors disabled:opacity-50"

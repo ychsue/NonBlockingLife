@@ -140,6 +140,8 @@ export function InboxTable() {
     (state) => state.setPendingEditIntent,
   );
 
+  const [createdNewRowId, setCreatedNewRowId] = useState("");
+
   // 這是因為有可能透過useUrlAction加入 Inbox，所以，需要這兩個
   const currentSheet = useAppStore((state) => state.currentSheet)
   const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
@@ -225,6 +227,8 @@ export function InboxTable() {
       clientId: DEV_CLIENT_ID,
     }).catch((err) => console.error("Failed to add row:", err));
 
+    setCreatedNewRowId(newRow.taskId);
+
     setEditingItem(newRow);
   };
 
@@ -254,6 +258,20 @@ export function InboxTable() {
     // 再异步保存到数据库
     await saveUpdate(editingItem.taskId, patch);
     setEditingItem(null);
+  };
+
+  const handleCloseEditDialog = (isSaved?: boolean) => {
+    if (isSaved) {
+      setEditingItem(null);
+      setCreatedNewRowId("");
+    } else {
+      // 如果是新建的行，且未保存，則刪除該行
+      if (createdNewRowId) {
+        deleteRow(createdNewRowId);
+        setCreatedNewRowId("");
+      }
+      setEditingItem(null);
+    }
   };
 
   const moveRow = async (item: InboxItem, target: MoveTargetSheet) => {
@@ -614,7 +632,7 @@ export function InboxTable() {
           },
         ]}
         onSave={handleEditSave}
-        onClose={() => setEditingItem(null)}
+        onClose={handleCloseEditDialog}
         footerLeft={
           editingItem ? (
             <div className="flex items-center gap-2">

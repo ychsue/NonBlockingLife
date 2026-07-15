@@ -45,6 +45,9 @@ export function ResourceTable() {
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     taskId: false,
   })
+
+  const [createdNewRowId, setCreatedNewRowId] = useState("");
+  
   const { isMobile } = useResponsiveTable()
   const [editingItem, setEditingItem] = useState<ResourceItem | null>(null)
   
@@ -142,6 +145,7 @@ export function ResourceTable() {
     }).catch((err) => console.error('Failed to add row:', err))
 
     setEditingItem(newRow)
+    setCreatedNewRowId(newRow.taskId)
   }
 
   const deleteRow = async (taskId: string) => {
@@ -171,6 +175,20 @@ export function ResourceTable() {
     await saveUpdate(editingItem.taskId, patch)
     setEditingItem(null)
   }
+
+  const handleCloseEditDialog = (isSaved?: boolean) => {
+    if (isSaved) {
+      setEditingItem(null);
+      setCreatedNewRowId("");
+    } else {
+      // 如果是新建的行，且未保存，則刪除該行
+      if (createdNewRowId) {
+        deleteRow(createdNewRowId);
+        setCreatedNewRowId("");
+      }
+      setEditingItem(null);
+    }
+  };
 
   // 搜尋過濾
   const filteredRows = useSearchFilter(
@@ -482,7 +500,7 @@ export function ResourceTable() {
           },
         ]}
         onSave={handleEditSave}
-        onClose={() => setEditingItem(null)}
+        onClose={handleCloseEditDialog}
       />
 
       <TableHelpDialog
