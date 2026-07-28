@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-07-28] 讓 react-markdown 可以支援 GFM 的語法，這樣就可以在說明裡面使用表格了
+
+## [2026-07-22] 因應Google 要求，將 JAVA targetversion 改為 36
+
 ## [2026-07-15] 2.2.1 當 Add 後在Edit裡面按 Cancel，就將它刪除
 
 ## [ ] [2026-07-11] 未解之謎，出現DOING，但是沒有顯示在Dashboard裡面，好奇怪，需要調查，應該是沒修改到，傷腦筋 TODO

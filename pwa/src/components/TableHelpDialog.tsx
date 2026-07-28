@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface TableHelpDialogProps {
   isOpen: boolean
@@ -50,6 +51,7 @@ export function TableHelpDialog({
 
         <div className="max-h-[70vh] overflow-y-auto pr-1 text-sm leading-relaxed text-gray-800 space-y-2">
           <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
             components={{
               a: ({ href, children, ...props }) => {
                 // 檢查網址結尾是不是 #btn
