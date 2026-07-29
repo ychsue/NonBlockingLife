@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-07-29] 修改 GAS 的程式碼，讓 `syncedAt` 由 GAS 端統一產生，好避免多個client 同步出問題
+
+[程式碼.js](pwa\src\gas\程式碼.js)
+
 ## [2026-07-28] 讓 react-markdown 可以支援 GFM 的語法，這樣就可以在說明裡面使用表格了
 
 ## [2026-07-22] 因應Google 要求，將 JAVA targetversion 改為 36

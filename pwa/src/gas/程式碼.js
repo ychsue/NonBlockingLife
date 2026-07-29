@@ -10,7 +10,7 @@
  */
 
 const CONFIG = {
-  VERSION: '~2.2.0',
+  VERSION: '~2.3.0',
   TABLE_SHEETS: {
     task_pool: 'NBL_TaskPool',
     scheduled: 'NBL_Scheduled',
@@ -37,6 +37,7 @@ const LOG_HEADERS = [
   'operationId',
   'deviceId',
   'category', // 例如：task_pool, scheduled, micro_tasks, inbox
+  'syncedAt',
 ]
 
 // 其他表：提取 taskId（Dimension Tables）
@@ -48,6 +49,7 @@ const DIMENSION_HEADERS = [
   'deleted',
   'operationId',
   'deviceId',
+  'syncedAt',
 ]
 
 function getSheetHeaders(table) {
@@ -153,6 +155,8 @@ function pullChanges(lastSync) {
 
   Object.keys(CONFIG.TABLE_SHEETS).forEach(function (table) {
     const sheet = getOrCreateSheet(table)
+    ensureSheetHeaders(sheet, table)
+
     const lastRow = sheet.getLastRow()
     if (lastRow <= 1) return
 
@@ -176,8 +180,10 @@ function pullChanges(lastSync) {
         const operationId = row[10]
         const deviceId = row[11]
         const category = row[12] || 'unknown'
+        const syncedAt = Number(row[13]) || 0
+        const effectiveSyncTime = syncedAt || updatedAt
 
-        if (updatedAt <= lastSync) continue
+        if (effectiveSyncTime <= lastSync) continue
 
         changes.push({
           table: table,
@@ -193,7 +199,8 @@ function pullChanges(lastSync) {
             notes: notes,
             category: category,
           },
-          timestamp: updatedAt,
+          timestamp: effectiveSyncTime,
+          syncedAt: syncedAt || 0,
           deleted: deleted,
           operationId: operationId,
           deviceId: deviceId,
@@ -210,8 +217,10 @@ function pullChanges(lastSync) {
         const deleted = Boolean(row[4])
         const operationId = row[5]
         const deviceId = row[6]
+        const syncedAt = Number(row[7]) || 0
+        const effectiveSyncTime = syncedAt || updatedAt
 
-        if (updatedAt <= lastSync) continue
+        if (effectiveSyncTime <= lastSync) continue
 
         const payload = safeParseJson(payloadJson)
         payload.taskId = taskId // 確保 taskId 存在
@@ -220,7 +229,8 @@ function pullChanges(lastSync) {
           table: table,
           recordId: recordId,
           data: payload,
-          timestamp: updatedAt,
+          timestamp: effectiveSyncTime,
+          syncedAt: syncedAt || 0,
           deleted: deleted,
           operationId: operationId,
           deviceId: deviceId,
@@ -257,6 +267,7 @@ function processOperation(operation) {
   const rowIndex = findRowByRecordId(sheet, recordId)
   const data = operation.data || {}
   const ts = Number(operation.timestamp) || now()
+  const serverSyncedAt = now()
   const operationId = operation.operationId || generateUUID()
   const deviceId = operation.deviceId || 'unknown-device'
 
@@ -264,14 +275,14 @@ function processOperation(operation) {
     if (rowIndex > 0) {
       const existingData = readExistingData(sheet, table, rowIndex)
       const preservedData = mergePayload(existingData, data)
-      writeRowByTable(sheet, table, rowIndex, recordId, preservedData, ts, true, operationId, deviceId)
+      writeRowByTable(sheet, table, rowIndex, recordId, preservedData, ts, serverSyncedAt, true, operationId, deviceId)
       return { action: 'deleted', table: table, recordId: recordId }
     }
 
     if (Object.keys(data).length === 0) {
       return { action: 'skipped', reason: 'empty data tombstone', table: table, recordId: recordId }
     }
-    writeRowByTable(sheet, table, -1, recordId, data, ts, true, operationId, deviceId)
+    writeRowByTable(sheet, table, -1, recordId, data, ts, serverSyncedAt, true, operationId, deviceId)
     return { action: 'deleted', table: table, recordId: recordId, createdTombstone: true }
   }
 
@@ -279,18 +290,18 @@ function processOperation(operation) {
     if (rowIndex > 0) {
       return { action: 'skipped', reason: 'already exists', table: table, recordId: recordId }
     }
-    writeRowByTable(sheet, table, -1, recordId, data, ts, false, operationId, deviceId)
+    writeRowByTable(sheet, table, -1, recordId, data, ts, serverSyncedAt, false, operationId, deviceId)
     return { action: 'created', table: table, recordId: recordId }
   }
 
   if (rowIndex > 0) {
     const prev = readExistingData(sheet, table, rowIndex)
     const merged = mergePayload(prev, data)
-    writeRowByTable(sheet, table, rowIndex, recordId, merged, ts, false, operationId, deviceId)
+    writeRowByTable(sheet, table, rowIndex, recordId, merged, ts, serverSyncedAt, false, operationId, deviceId)
     return { action: 'updated', table: table, recordId: recordId }
   }
 
-  writeRowByTable(sheet, table, -1, recordId, data, ts, false, operationId, deviceId)
+  writeRowByTable(sheet, table, -1, recordId, data, ts, serverSyncedAt, false, operationId, deviceId)
   return { action: 'created', table: table, recordId: recordId, fromUpdate: true }
 }
 
@@ -344,7 +355,26 @@ function getOrCreateSheet(table) {
     sheet.setFrozenRows(1)
   }
 
+  ensureSheetHeaders(sheet, table)
   return sheet
+}
+
+function ensureSheetHeaders(sheet, table) {
+  const requiredHeaders = getSheetHeaders(table)
+  const existingHeaderRow = sheet.getRange(1, 1, 1, requiredHeaders.length).getValues()[0] // 只讀取前 N 個欄位，避免過多空白欄位干擾
+
+  const targetColumnCount = requiredHeaders.length
+  let isTheSame = true
+  for (var i = 0; i < targetColumnCount; i++) {
+    if (existingHeaderRow[i].trim() !== requiredHeaders[i].trim()) {
+      isTheSame = false
+      break
+    }
+  }
+
+  if (isTheSame) return
+  sheet.getRange(1, 1, 1, targetColumnCount).setValues([requiredHeaders])
+  sheet.getRange(1, 1, 1, targetColumnCount).setFontWeight('bold')
 }
 
 function findRowByRecordId(sheet, recordId) {
@@ -359,7 +389,7 @@ function findRowByRecordId(sheet, recordId) {
   return -1
 }
 
-function writeRowByTable(sheet, table, rowIndex, recordId, data, updatedAt, deleted, operationId, deviceId) {
+function writeRowByTable(sheet, table, rowIndex, recordId, data, updatedAt, syncedAt, deleted, operationId, deviceId) {
   let row
 
   if (table === 'log') {
@@ -378,6 +408,7 @@ function writeRowByTable(sheet, table, rowIndex, recordId, data, updatedAt, dele
       operationId,
       deviceId,
       data.category || 'unknown',
+      syncedAt,
     ]
   } else {
     // 其他表：提取 taskId + payloadJson
@@ -385,7 +416,7 @@ function writeRowByTable(sheet, table, rowIndex, recordId, data, updatedAt, dele
     const payload = Object.assign({}, data)
     delete payload.taskId // 避免重複存儲
 
-    row = [recordId, taskId, JSON.stringify(payload), updatedAt, deleted, operationId, deviceId]
+    row = [recordId, taskId, JSON.stringify(payload), updatedAt, deleted, operationId, deviceId, syncedAt]
   }
 
   const headers = getSheetHeaders(table)
