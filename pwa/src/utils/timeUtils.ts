@@ -93,3 +93,7 @@ export const formatTimestamp = (ms: number | undefined, includeTime = true): str
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
+
+export const sleep = (ms: number): Promise<void> => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};

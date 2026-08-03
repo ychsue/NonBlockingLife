@@ -4,6 +4,8 @@ import { Dashboard, db } from '../db/schema'
 import type { SupportedLocale } from '../i18n'
 import { getInitialLocale } from '../i18n'
 
+export type AndroidTimerLaunchMode = 'none' | 'show_clock' | 'set_timer'
+
 type AppSheet = SheetName | 'selection_cache' | 'log' | 'guide' | 'macro' | 'debug'
 export type StartupPreference = 'guide' | 'selection_cache' | 'last_visited'
 
@@ -11,6 +13,19 @@ const STARTUP_PREFERENCE_KEY = 'nbl_startup_preference'
 const LAST_VISITED_SHEET_KEY = 'nbl_last_visited_sheet'
 export const DEBUG_MODE_KEY = 'nbl_debug_mode'
 const ENABLE_EXPERIMENTAL_FEATURES_KEY = 'nbl_enable_experimental_features'
+const ANDROID_TIMER_LAUNCH_MODE_KEY = 'nbl_android_timer_launch_mode'
+
+function getStorage(): Storage | null {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    return window.localStorage
+  }
+
+  if (typeof globalThis !== 'undefined' && 'localStorage' in globalThis) {
+    return globalThis.localStorage as Storage | null
+  }
+
+  return null
+}
 
 function isAppSheet(value: string | null): value is AppSheet {
   return value === 'inbox'
@@ -26,15 +41,23 @@ function isAppSheet(value: string | null): value is AppSheet {
 }
 
 function getInitialDebugMode(): boolean {
-  return localStorage.getItem(DEBUG_MODE_KEY) === '1'
+  return getStorage()?.getItem(DEBUG_MODE_KEY) === '1'
 }
 
 function getInitialExperimentalFeaturesEnabled(): boolean {
-  return localStorage.getItem(ENABLE_EXPERIMENTAL_FEATURES_KEY) === '1'
+  return getStorage()?.getItem(ENABLE_EXPERIMENTAL_FEATURES_KEY) === '1'
+}
+
+function getInitialAndroidTimerLaunchMode(): AndroidTimerLaunchMode {
+  const stored = getStorage()?.getItem(ANDROID_TIMER_LAUNCH_MODE_KEY)
+  if (stored === 'none' || stored === 'show_clock' || stored === 'set_timer') {
+    return stored
+  }
+  return 'show_clock'
 }
 
 function getInitialStartupPreference(): StartupPreference {
-  const stored = localStorage.getItem(STARTUP_PREFERENCE_KEY)
+  const stored = getStorage()?.getItem(STARTUP_PREFERENCE_KEY)
   if (stored === 'guide' || stored === 'selection_cache' || stored === 'last_visited') {
     return stored
   }
@@ -42,7 +65,7 @@ function getInitialStartupPreference(): StartupPreference {
 }
 
 function getLastVisitedSheet(): AppSheet | null {
-  const stored = localStorage.getItem(LAST_VISITED_SHEET_KEY)
+  const stored = getStorage()?.getItem(LAST_VISITED_SHEET_KEY)??null
   if (isAppSheet(stored)) return stored
   return null
 }
@@ -126,18 +149,22 @@ interface AppState {
   // experimental features
   experimentalFeaturesEnabled: boolean
   setExperimentalFeaturesEnabled: (enabled: boolean) => void
+
+  // Android TWA timer launch mode
+  androidTimerLaunchMode: AndroidTimerLaunchMode
+  setAndroidTimerLaunchMode: (mode: AndroidTimerLaunchMode) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
   currentSheet: getInitialCurrentSheet(),
   setCurrentSheet: (sheet) => {
-    localStorage.setItem(LAST_VISITED_SHEET_KEY, sheet)
+    getStorage()?.setItem(LAST_VISITED_SHEET_KEY, sheet)
     set({ currentSheet: sheet })
   },
 
   startupPreference: getInitialStartupPreference(),
   setStartupPreference: (preference) => {
-    localStorage.setItem(STARTUP_PREFERENCE_KEY, preference)
+    getStorage()?.setItem(STARTUP_PREFERENCE_KEY, preference)
     set({ startupPreference: preference })
   },
 
@@ -180,19 +207,25 @@ export const useAppStore = create<AppState>((set) => ({
 
   locale: getInitialLocale(),
   setLocale: (locale) => {
-    localStorage.setItem('nbl_locale', locale)
+    getStorage()?.setItem('nbl_locale', locale)
     set({ locale })
   },
 
   debugMode: getInitialDebugMode(),
   setDebugMode: (enabled) => {
-    localStorage.setItem(DEBUG_MODE_KEY, enabled ? '1' : '0')
+    getStorage()?.setItem(DEBUG_MODE_KEY, enabled ? '1' : '0')
     set({ debugMode: enabled })
   },
 
   experimentalFeaturesEnabled: getInitialExperimentalFeaturesEnabled(),
   setExperimentalFeaturesEnabled: (enabled) => {
-    localStorage.setItem(ENABLE_EXPERIMENTAL_FEATURES_KEY, enabled ? '1' : '0')
+    getStorage()?.setItem(ENABLE_EXPERIMENTAL_FEATURES_KEY, enabled ? '1' : '0')
     set({ experimentalFeaturesEnabled: enabled })
+  },
+
+  androidTimerLaunchMode: getInitialAndroidTimerLaunchMode(),
+  setAndroidTimerLaunchMode: (mode) => {
+    getStorage()?.setItem(ANDROID_TIMER_LAUNCH_MODE_KEY, mode)
+    set({ androidTimerLaunchMode: mode })
   },
 }))

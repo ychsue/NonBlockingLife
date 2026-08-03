@@ -6,7 +6,8 @@ import type {
   TaskPoolItem,
 } from "../db/schema";
 import Utils from "../../../gas/src/Utils";
-import { triggerShortcutTimer, getShortcutConfig } from "./shortcutUtils";
+import { triggerShortcutTimer, getShortcutConfig, getDeviceType } from "./shortcutUtils";
+import { useDialogStore } from "../store/dialogStore";
 import { parseToMinutes } from "./candidateUtils";
 
 const DEV_CLIENT_ID = "dev-task-flow";
@@ -25,6 +26,10 @@ const SOURCE_TABLE_MAP: Record<
 export async function getRunningTask(): Promise<Dashboard | null> {
   const rows = await db.dashboard.toArray();
   return rows[0] ?? null;
+}
+
+export function shouldPromptForTimerStart(deviceType: string, plannedTimerMinutes: number): boolean {
+  return deviceType === "Android" && plannedTimerMinutes > 0;
 }
 
 export async function startTask(candidate: SelectionCacheItem, note: string) {
@@ -47,6 +52,8 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
   const sourceTable = SOURCE_TABLE_MAP[source]
 
   const now = Date.now();
+  const focusTime = await getFocusTimeBySource(sourceTable, candidate.taskId)
+  const plannedTimerMinutes = resolveStartTimerMinutes(focusTime)
   const dashboardRow: Dashboard = {
     taskId: candidate.taskId,
     title: candidate.title,
@@ -54,6 +61,8 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
     notes: note,
     startAt: now,
     systemStatus: "DOING",
+    // store the planned deadline so the end flow can decide whether the timer was exceeded
+    endAt: plannedTimerMinutes > 0 ? now + plannedTimerMinutes * 60 * 1000 : undefined,
   };
 
   await applyChange({
@@ -109,14 +118,27 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
     clientId: DEV_CLIENT_ID,
   });
 
-  // 如果是 iPhone 用户，触发 Shortcut 启动计时器
-  const focusTime = await getFocusTimeBySource(sourceTable, candidate.taskId)
-  const timerMinutes = resolveStartTimerMinutes(focusTime)
-  // if (timerMinutes > 0) { // 想想就算0也傳0回去好了，讓使用者可以選擇不啟動計時器
+  if (plannedTimerMinutes > 0) {
     const shortcutConfig = getShortcutConfig("start");
-    shortcutConfig.timerMinutes = timerMinutes
-    triggerShortcutTimer(candidate.title ?? "", candidate.taskId, shortcutConfig);
-  // }
+    shortcutConfig.timerMinutes = plannedTimerMinutes;
+
+    if (shouldPromptForTimerStart(getDeviceType(), plannedTimerMinutes)) {
+      void useDialogStore.getState().openDialog({
+        title: "要不要開始計時器？",
+        message: "這段專注剛開始。要不要直接開啟計時器或時鐘介面？",
+        actions: [
+          { id: "cancel", label: "不用，謝謝" },
+          { id: "open", label: "開啟" },
+        ],
+      }).then(({ actionId }) => {
+        if (actionId === "open") {
+          triggerShortcutTimer(candidate.title ?? "", candidate.taskId, shortcutConfig);
+        }
+      });
+    } else {
+      triggerShortcutTimer(candidate.title ?? "", candidate.taskId, shortcutConfig);
+    }
+  }
 
   return { status: "success", message: "任務已開始" };
 }
@@ -186,6 +208,7 @@ export async function endTask(endNote: string, isInterrupt = false) {
   const duration = running.startAt
     ? Utils.calculateDuration(running.startAt, now)
     : 0;
+  const wasOverdue = Boolean(running.endAt && now > running.endAt);
   const finalNote = isInterrupt
     ? `任務被中斷${endNote ? ` - ${endNote}` : ""}`
     : endNote;
@@ -226,11 +249,30 @@ export async function endTask(endNote: string, isInterrupt = false) {
     clientId: DEV_CLIENT_ID,
   });
 
-  // 如果是 iPhone 用户，觸發 Shortcut 結束計時器
-  if (!!!isInterrupt) {
+  // 只在任務開始時建立計時器，避免在結束時再次觸發 Android 的 set-timer，
+  // 因為系統不會自動覆蓋/取消既有 timer，這樣反而比較容易打擾使用者。
+  if (!isInterrupt) {
     const shortcutConfig = getShortcutConfig("end");
     shortcutConfig.timerMinutes = timerMinutes;
-    triggerShortcutTimer(running.title ?? "", running.taskId, shortcutConfig);
+
+    if (getDeviceType() === "Android") {
+      void useDialogStore.getState().openDialog({
+        title: wasOverdue ? "時間已超過，是否要開始休息？" : "要不要開啟計時器？",
+        message: wasOverdue
+          ? "這段專注已超過預設時限。要不要直接開啟計時器或時鐘介面，幫自己進入休息模式？"
+          : "這段專注似乎提前結束。要不要直接開啟計時器或時鐘介面好結束他？",
+        actions: [
+          { id: "cancel", label: "不用，謝謝" },
+          { id: "open", label: "開啟" },
+        ],
+      }).then(({ actionId }) => {
+        if (actionId === "open") {
+          triggerShortcutTimer(running.title ?? "", running.taskId, shortcutConfig, undefined, "end");
+        }
+      });
+    } else {
+      triggerShortcutTimer(running.title ?? "", running.taskId, shortcutConfig, undefined, "end");
+    }
   }
 
   return { status: "success", message: "任務已結束", duration };

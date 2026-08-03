@@ -18,6 +18,7 @@ export interface Dashboard {
   source?: string
   notes?: string
   startAt?: number
+  endAt?: number
   systemStatus?: string
   totalFocusToday?: number
 }

@@ -13,8 +13,20 @@ const translations: Record<SupportedLocale, Record<TranslationKey, string>> = {
   ja,
 }
 
+function getStorage(): Storage | null {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    return window.localStorage
+  }
+
+  if (typeof globalThis !== 'undefined' && 'localStorage' in globalThis) {
+    return globalThis.localStorage as Storage | null
+  }
+
+  return null
+}
+
 export function getInitialLocale(): SupportedLocale {
-  const stored = localStorage.getItem('nbl_locale')
+  const stored = getStorage()?.getItem('nbl_locale')
   if (stored === 'en' || stored === 'zh-TW' || stored === 'ja') return stored
   // Auto-detect: prefer zh-TW for zh browsers
   if (navigator.language.toLowerCase().startsWith('zh')) return 'zh-TW'

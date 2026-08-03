@@ -176,7 +176,14 @@
         <activity android:name=".ClockTriggerActivity" android:exported="true"
         android:launchMode="singleTask">
             <intent-filter android:label="Clock Router">
-                <data android:scheme="nonblockinglife"/>
+                <data android:scheme="nonblockinglife" android:host="show-clock"/>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
+
+            <intent-filter android:label="Clock Router">
+                <data android:scheme="nonblockinglife" android:host="set-timer"/>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />

@@ -33,6 +33,7 @@ import {
   handleDialogTextFieldInteractionEnd,
   resetDialogTextInteractionState,
 } from "../../utils/dialogInteractionUtils";
+import { useDialogStore } from '../../store/dialogStore';
 
 const DEV_CLIENT_ID = "dev-selection-cache";
 const columnHelper = createColumnHelper<SelectionCacheItem>();
@@ -95,6 +96,8 @@ export function SelectionCacheTable() {
   const [showRecordDialog, setShowRecordDialog] = useState(false);
   const [conflictScheduled, setConflictScheduled] = useState<ScheduledItem[]>([]);
 
+  const globalDialogConfig = useDialogStore((state) => state.dialogConfig);
+
   const handleDialogButtonTouchEnd = useCallback(
     (event: TouchEvent<HTMLButtonElement>, action: () => void) => {
       if (event.currentTarget.disabled) return;
@@ -139,12 +142,12 @@ export function SelectionCacheTable() {
   useEffect(() => {
     const dialog = startDialogRef.current;
     if (!dialog) return;
-    if (showStartDialog) {
+    if (showStartDialog && !!!globalDialogConfig) {
       if (!dialog.open) dialog.showModal();
     } else if (dialog.open) {
       dialog.close();
     }
-  }, [showStartDialog]);
+  }, [showStartDialog, globalDialogConfig]);
 
   // 當有運行中的任務時，自動顯示 EndDialog（除非是通過 URL action 觸發）
   useEffect(() => {
@@ -195,17 +198,17 @@ export function SelectionCacheTable() {
     }
     handleDialogState(dialog);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showEndDialog, isInterruptMode, endDialogRef.current, showInterruptConfirmDialog, showTaskSearchDialog]);
+  }, [showEndDialog, isInterruptMode, endDialogRef.current, showInterruptConfirmDialog, showTaskSearchDialog, globalDialogConfig]);
 
   useEffect(() => {
     const dialog = recordDialogRef.current;
     if (!dialog) return;
-    if (showRecordDialog) {
+    if (showRecordDialog && !!!globalDialogConfig) {
       if (!dialog.open) dialog.showModal();
     } else if (dialog.open) {
       dialog.close();
     }
-  }, [showRecordDialog]);
+  }, [showRecordDialog, globalDialogConfig]);
 
   useEffect(() => {
     if (!showStartDialog && !showEndDialog && !showRecordDialog) {
@@ -219,7 +222,7 @@ export function SelectionCacheTable() {
 
   const handleDialogState = (dialog: HTMLDialogElement) => {
     // Suppress native endDialog while InterruptConfirmDialog or TaskSearchDialog is on top
-    if (showEndDialog && !showInterruptConfirmDialog && !showTaskSearchDialog) {
+    if (showEndDialog && !showInterruptConfirmDialog && !showTaskSearchDialog && !!!globalDialogConfig) {
       if (!dialog.open) {
         dialog.showModal();
       }

@@ -1,6 +1,10 @@
+import { useAppStore } from '../store/appStore'
+
 /**
  * iOS Shortcut 及 Android Automate 相關工具函數
  */
+
+export type AndroidTimerLaunchMode = 'none' | 'show_clock' | 'set_timer'
 
 /**
  * 取得 device 資訊，看是 Apple系列 還是 Android 還是 Windows 還是 Linux
@@ -209,11 +213,40 @@ export function triggerAutomateFlow(
  * @param automateConfig Automate 配置（Android 用），若不傳則從 localStorage 讀取
  * @returns 是否成功触发
  */
+export function buildAndroidTimerUri(
+  taskTitle: string,
+  timerMinutes: number,
+  mode?: AndroidTimerLaunchMode,
+  intent?: "start" | "end",
+): string {
+  const resolvedMode = mode ?? useAppStore.getState().androidTimerLaunchMode;
+  const normalizedTitle = (taskTitle ?? "").trim();
+
+  if (intent === "end") {
+    if (resolvedMode === "none") {
+      return "";
+    }
+    return "nonblockinglife://show-clock";
+  }
+
+  if (resolvedMode === "set_timer") {
+    const durationSeconds = Math.max(0, Math.round(timerMinutes * 60));
+    return `nonblockinglife://set-timer?duration=${durationSeconds}&skipUi=true&title=${encodeURIComponent(normalizedTitle)}`;
+  }
+
+  if (resolvedMode === "show_clock") {
+    return "nonblockinglife://show-clock";
+  }
+
+  return "";
+}
+
 export function triggerShortcutTimer(
   taskTitle: string,
   taskId: string,
   config: ShortcutConfig,
   automateConfig?: AutomateConfig,
+  intent: "start" | "end" = "start",
 ): boolean {
   config = { ...config, taskTitle };
   const deviceType = getDeviceType();
@@ -232,7 +265,14 @@ export function triggerShortcutTimer(
       return false;
     }
   } else if (deviceType === "Android") {
-    window.location.href = "nonblockinglife://show-clock";
+    const timerUri = buildAndroidTimerUri(taskTitle, config.timerMinutes, undefined, intent);
+
+    if (!timerUri) {
+      console.info("Android timer launch is disabled by current mode.");
+      return false;
+    }
+
+    window.location.href = timerUri;
     return true;
     // const aConfig = automateConfig ?? getAutomateConfig(config.started ? "start" : "end");
     // return triggerAutomateFlow(taskTitle, { ...aConfig, taskTitle });

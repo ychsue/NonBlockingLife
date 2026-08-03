@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-08-03] 讓使用者可以選擇timer啟用方式與改變timer的行為
+
 ## [2026-07-29] 修改 GAS 的程式碼，讓 `syncedAt` 由 GAS 端統一產生，好避免多個client 同步出問題
 
 [程式碼.js](pwa\src\gas\程式碼.js)
