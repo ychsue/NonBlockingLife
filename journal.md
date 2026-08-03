@@ -1,6 +1,7 @@
 # Journal
 
 ## [2026-08-03] 讓使用者可以選擇timer啟用方式與改變timer的行為
+- 2.3.2 修正 TimerLaunchMode == 'none' 時的問題，就是還會顯示dialog
 
 ## [2026-07-29] 修改 GAS 的程式碼，讓 `syncedAt` 由 GAS 端統一產生，好避免多個client 同步出問題
 

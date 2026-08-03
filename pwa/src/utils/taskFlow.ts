@@ -9,6 +9,7 @@ import Utils from "../../../gas/src/Utils";
 import { triggerShortcutTimer, getShortcutConfig, getDeviceType } from "./shortcutUtils";
 import { useDialogStore } from "../store/dialogStore";
 import { parseToMinutes } from "./candidateUtils";
+import { useAppStore } from "../store/appStore";
 
 const DEV_CLIENT_ID = "dev-task-flow";
 const DEFAULT_FOCUS_TIME_MINUTES = 30;
@@ -29,7 +30,10 @@ export async function getRunningTask(): Promise<Dashboard | null> {
 }
 
 export function shouldPromptForTimerStart(deviceType: string, plannedTimerMinutes: number): boolean {
-  return deviceType === "Android" && plannedTimerMinutes > 0;
+  
+  const timerLaunchMode = useAppStore.getState().androidTimerLaunchMode;
+
+  return deviceType === "Android" && timerLaunchMode !== "none" && plannedTimerMinutes > 0;
 }
 
 export async function startTask(candidate: SelectionCacheItem, note: string) {
@@ -255,7 +259,9 @@ export async function endTask(endNote: string, isInterrupt = false) {
     const shortcutConfig = getShortcutConfig("end");
     shortcutConfig.timerMinutes = timerMinutes;
 
-    if (getDeviceType() === "Android") {
+    const timerLaunchMode = useAppStore.getState().androidTimerLaunchMode;
+
+    if (getDeviceType() === "Android" && timerLaunchMode !== "none") {
       void useDialogStore.getState().openDialog({
         title: wasOverdue ? "時間已超過，是否要開始休息？" : "要不要開啟計時器？",
         message: wasOverdue
