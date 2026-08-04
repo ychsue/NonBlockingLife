@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-08-04] 修改 MorePage 與將 `Android Timer` 移到 `More/Settings/Local` 
+
 ## [2026-08-04] 加上當我們由 Candidates 跳去編輯某一項目時，順便將他的 SearchQuery 設定成該項目的title，方便使用者是否要進一步編輯或刪除。
 
 ## [2026-08-03] 讓使用者可以選擇timer啟用方式與改變timer的行為
