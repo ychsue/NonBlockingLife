@@ -20,6 +20,8 @@ import { MacroTable } from "./components/tables/MacroTable";
 import { MorePage } from "./components/MorePage";
 import { useDialogStore } from "./store/dialogStore";
 import { GlobalDialog } from "./GlobalDialog";
+import { ProductTourWrapper } from "./components/tour/ProductTourWrapper";
+import { useProductTour } from "./components/tour/useProductTour";
 
 type AllPages =
   | SheetName
@@ -48,6 +50,7 @@ export default function App() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const { activeTour, activeStep, isRunning, startTour, completeTour, nextStep, resetTour } = useProductTour(currentSheet);
   const defaultTitleRef = useRef(BASE_TITLE);
   const previousRunningTaskIdRef = useRef<string | null>(null);
   const { isMobile, isTooSmall } = useResponsiveTable();
@@ -249,6 +252,16 @@ export default function App() {
     sessionStorage.setItem(TUTORIAL_SESSION_KEY, "1");
     setShowTutorial(false);
   }, [TUTORIAL_SESSION_KEY]);
+
+  useEffect(() => {
+    if (!currentSheet || activeTour) return;
+    const completedTours = JSON.parse(window.localStorage.getItem("completed_tours") ?? "[]") as string[];
+    const lastTourTime = Number(window.localStorage.getItem("last_tour_time") ?? "0");
+    if (completedTours.includes("inbox-new-task")) return;
+    if (currentSheet === "inbox" && (!lastTourTime || Date.now() - lastTourTime >= 10 * 60 * 1000)) {
+      startTour("inbox-new-task");
+    }
+  }, [activeTour, currentSheet, startTour]);
 
   const handleOpenTutorialSheet = useCallback(
     (sheet: SheetName) => {
@@ -511,6 +524,15 @@ export default function App() {
       {toast && !globalToast && (
         <Toast message={toast} duration={3000} onClose={() => setToast("")} />
       )}
+
+      <ProductTourWrapper
+        tour={activeTour}
+        step={activeStep}
+        run={isRunning}
+        onComplete={() => completeTour(activeTour?.id ?? "")}
+        onNext={nextStep}
+        onReset={resetTour}
+      />
 
       {showTutorial && (
         <TutorialCarousel

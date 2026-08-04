@@ -240,6 +240,7 @@ export function EditDialog<T>({
               {t('dialog.cancel')}
             </button>
             <button
+              data-tour="inbox-save-button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSave(); }}
               onTouchEnd={(event) => handleDialogActionTouchEnd(event, handleSave)}
               disabled={isSaving}

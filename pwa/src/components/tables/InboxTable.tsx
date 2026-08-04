@@ -381,6 +381,7 @@ export function InboxTable() {
 
           return (
             <textarea
+              data-tour="inbox-title-input"
               className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 min-w-3xs resize-none overflow-hidden"
               value={value}
               rows={1}
@@ -522,6 +523,7 @@ export function InboxTable() {
           </button>
           <button
             onClick={addRow}
+            data-tour="inbox-add-button"
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             {t("table.add")}
