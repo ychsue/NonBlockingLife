@@ -3,6 +3,7 @@
 ## [2026-08-04] 實作Joyride的規劃與管理流程
 - Joyride 能動了，但有問題
 - [05:55] 還有問題在 editDialog
+- [20:43] 能正常讓使用者在 Inbox 新增任務的教學流程了，還沒優化MorePage
 
 ## [2026-08-04] 修改 MorePage 與將 `Android Timer` 移到 `More/Settings/Local` 
 

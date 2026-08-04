@@ -21,6 +21,7 @@ import { TableHelpDialog } from "../TableHelpDialog";
 import inboxHelpMarkdown from "./InboxHelp.md?raw";
 import { shouldOpenRowEdit } from "./rowEditUtils";
 import { handleDialogTextFieldInteractionEnd } from "../../utils/dialogInteractionUtils";
+import { useProductTourContext } from "../tour/ProductTourContext";
 
 const DEV_CLIENT_ID = "dev-client";
 const columnHelper = createColumnHelper<InboxItem>();
@@ -142,6 +143,8 @@ export function InboxTable() {
 
   const [createdNewRowId, setCreatedNewRowId] = useState("");
 
+  const { isRunning, nextStep,} = useProductTourContext();
+
   // 這是因為有可能透過useUrlAction加入 Inbox，所以，需要這兩個
   const currentSheet = useAppStore((state) => state.currentSheet)
   const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
@@ -230,6 +233,10 @@ export function InboxTable() {
     setCreatedNewRowId(newRow.taskId);
 
     setEditingItem(newRow);
+    // 如果有Joyride導覽，則執行nextStep，讓導覽可以繼續
+    if (isRunning) {
+      nextStep();
+    }
   };
 
   const deleteRow = async (taskId: string) => {
@@ -258,6 +265,10 @@ export function InboxTable() {
     // 再异步保存到数据库
     await saveUpdate(editingItem.taskId, patch);
     setEditingItem(null);
+    // 如果有Joyride導覽，則執行nextStep，讓導覽可以繼續
+    if (isRunning) {
+      nextStep();
+    }
   };
 
   const handleCloseEditDialog = (isSaved?: boolean) => {
@@ -528,6 +539,10 @@ export function InboxTable() {
             {t("table.add")}
           </button>
         </div>
+        <textarea
+          data-tour="inbox-search-input"
+          placeholder={"Test Only"}
+        />
       </div>
 
       {moveError && (

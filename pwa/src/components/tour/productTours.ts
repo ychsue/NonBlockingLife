@@ -22,6 +22,15 @@ export function getToursList(locale: SupportedLocale = "en"): ProductTourConfig[
       requiredSheet: "inbox",
       steps: [
         {
+          id: "inbox-search",
+          title: map["tour.inboxNewTask.step1.title"],
+          content: map["tour.inboxNewTask.step1.content"],
+          target: "[data-tour='inbox-search-input']",
+          placement: "bottom",
+          hideCloseButton: true,
+          spotlightPadding: 8,
+        },
+        {
           id: "inbox-add",
           title: map["tour.inboxNewTask.step1.title"],
           content: map["tour.inboxNewTask.step1.content"],
@@ -35,7 +44,7 @@ export function getToursList(locale: SupportedLocale = "en"): ProductTourConfig[
           id: "inbox-title",
           title: map["tour.inboxNewTask.step2.title"],
           content: map["tour.inboxNewTask.step2.content"],
-          target: "[data-tour='inbox-title-input']",
+          target: "[data-tour='edit-dialog-title-input']",
           placement: "bottom",
           waitForElement: true,
           spotlightPadding: 8,
@@ -44,7 +53,7 @@ export function getToursList(locale: SupportedLocale = "en"): ProductTourConfig[
           id: "inbox-save",
           title: map["tour.inboxNewTask.step3.title"],
           content: map["tour.inboxNewTask.step3.content"],
-          target: "[data-tour='inbox-save-button']",
+          target: "[data-tour='edit-dialog-save-button']",
           placement: "bottom",
           waitForElement: true,
           spotlightPadding: 8,

@@ -216,7 +216,7 @@ export function EditDialog<T>({
               ) : (
                 <textarea
                   id={field.name}
-                  data-tour={field.name === 'title' ? 'inbox-title-input' : undefined}
+                  data-tour={field.name === 'title' ? 'edit-dialog-title-input' : undefined}
                   value={formData[field.name] ?? ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
                   onBlur={handleDialogTextFieldInteractionEnd}
@@ -241,7 +241,7 @@ export function EditDialog<T>({
               {t('dialog.cancel')}
             </button>
             <button
-              data-tour="inbox-save-button"
+              data-tour="edit-dialog-save-button"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
