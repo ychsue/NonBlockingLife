@@ -20,6 +20,7 @@ import { MacroTable } from "./components/tables/MacroTable";
 import { MorePage } from "./components/MorePage";
 import { useDialogStore } from "./store/dialogStore";
 import { GlobalDialog } from "./GlobalDialog";
+import { ProductTourProvider } from "./components/tour/ProductTourContext";
 import { ProductTourWrapper } from "./components/tour/ProductTourWrapper";
 import { useProductTour } from "./components/tour/useProductTour";
 
@@ -50,7 +51,8 @@ export default function App() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const { activeTour, activeStep, isRunning, startTour, completeTour, nextStep, resetTour } = useProductTour(currentSheet);
+  const productTourState = useProductTour(currentSheet);
+  const { activeTour, activeStep, isRunning, startTour, completeTour, nextStep, resetTour } = productTourState;
   const defaultTitleRef = useRef(BASE_TITLE);
   const previousRunningTaskIdRef = useRef<string | null>(null);
   const { isMobile, isTooSmall } = useResponsiveTable();
@@ -353,6 +355,7 @@ export default function App() {
   };
 
   return (
+    <ProductTourProvider value={productTourState}>
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <div
@@ -545,5 +548,6 @@ export default function App() {
       {/* Global Dialog */}
       <GlobalDialog ref={dialogRef} />
     </div>
+    </ProductTourProvider>
   );
 }

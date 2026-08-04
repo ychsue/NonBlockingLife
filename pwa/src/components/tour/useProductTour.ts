@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAppStore } from "../../store/appStore";
 import type { ProductTourConfig, ProductTourStep } from "./productTourTypes";
-import { TOURS_LIST } from "./productTours";
+import { getToursList } from "./productTours";
 
 type UseProductTourResult = {
   activeTour: ProductTourConfig | null;
   activeStep: ProductTourStep | null;
   isRunning: boolean;
-  startTour: (tourId: string) => void;
+  startTour: (tourId: string, options?: { force?: boolean }) => void;
   completeTour: (tourId: string) => void;
   nextStep: () => void;
   resetTour: () => void;
@@ -58,14 +59,17 @@ function writeLastTourTime(timestamp: number) {
 }
 
 export function useProductTour(currentSheet?: string): UseProductTourResult {
+  const locale = useAppStore((state) => state.locale);
+  const forceStartRef = useRef(false);
   const [activeTourId, setActiveTourId] = useState<string | null>(null);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [completedTours, setCompletedTours] = useState<string[]>(() => readCompletedTours());
+  const toursList = useMemo(() => getToursList(locale), [locale]);
 
   const activeTour = useMemo(() => {
     if (!activeTourId) return null;
-    return TOURS_LIST.find((tour) => tour.id === activeTourId) ?? null;
-  }, [activeTourId]);
+    return toursList.find((tour) => tour.id === activeTourId) ?? null;
+  }, [activeTourId, toursList]);
 
   const activeStep = activeTour?.steps[activeStepIndex] ?? null;
   const isRunning = Boolean(activeTour && activeStep);
@@ -79,13 +83,14 @@ export function useProductTour(currentSheet?: string): UseProductTourResult {
     setActiveStepIndex(0);
   }, []);
 
-  const startTour = useCallback((tourId: string) => {
-    const tour = TOURS_LIST.find((entry) => entry.id === tourId);
+  const startTour = useCallback((tourId: string, options?: { force?: boolean }) => {
+    const tour = toursList.find((entry) => entry.id === tourId);
     if (!tour) return;
-    if (readCompletedTours().includes(tourId)) return;
+    if (!options?.force && readCompletedTours().includes(tourId)) return;
+    forceStartRef.current = Boolean(options?.force);
     setActiveTourId(tourId);
     setActiveStepIndex(0);
-  }, []);
+  }, [toursList]);
 
   const nextStep = useCallback(() => {
     if (!activeTour) return;
@@ -111,6 +116,11 @@ export function useProductTour(currentSheet?: string): UseProductTourResult {
 
   useEffect(() => {
     if (!activeTour) return;
+    if (forceStartRef.current) {
+      forceStartRef.current = false;
+      return;
+    }
+
     const completed = readCompletedTours();
     if (completed.includes(activeTour.id)) {
       resetTour();

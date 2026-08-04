@@ -17,6 +17,7 @@ export interface ProductTourConfig {
   id: string;
   version: number;
   title: string;
+  description: string;
   requiredSheet?: TourSheet;
   steps: ProductTourStep[];
 }

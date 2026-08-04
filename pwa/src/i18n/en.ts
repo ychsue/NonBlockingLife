@@ -135,6 +135,14 @@ export const en = {
   'table.inbox.col.delete':         'Delete',
   // EditDialog field labels
   'table.inbox.field.title':        'Title',
+  'tour.inboxNewTask.title': 'Create a task in Inbox',
+  'tour.inboxNewTask.description': 'Learn the basics of adding and saving an Inbox task.',
+  'tour.inboxNewTask.step1.title': 'Add a task',
+  'tour.inboxNewTask.step1.content': 'Tap the add button to create a new task.',
+  'tour.inboxNewTask.step2.title': 'Enter a title',
+  'tour.inboxNewTask.step2.content': 'Type a title for the task in the editor.',
+  'tour.inboxNewTask.step3.title': 'Save the task',
+  'tour.inboxNewTask.step3.content': 'Tap save to finish creating the task.',
   'table.inbox.field.receivedAt':   'Received At',
   'table.inbox.field.url':          'URL',
 

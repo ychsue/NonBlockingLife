@@ -138,6 +138,14 @@ export const zhTW: TranslationMap = {
   'table.inbox.col.delete':         '刪除',
   // EditDialog field labels
   'table.inbox.field.title':        '標題',
+  'tour.inboxNewTask.title': '在 Inbox 建立任務',
+  'tour.inboxNewTask.description': '了解如何新增並儲存 Inbox 任務。',
+  'tour.inboxNewTask.step1.title': '新增任務',
+  'tour.inboxNewTask.step1.content': '點擊新增按鈕來建立新的任務。',
+  'tour.inboxNewTask.step2.title': '輸入標題',
+  'tour.inboxNewTask.step2.content': '在編輯器中輸入任務標題。',
+  'tour.inboxNewTask.step3.title': '儲存任務',
+  'tour.inboxNewTask.step3.content': '點擊儲存完成建立任務。',
   'table.inbox.field.receivedAt':   '接收時間',
   'table.inbox.field.url':          'URL',
 

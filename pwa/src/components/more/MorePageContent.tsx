@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { DebugLogPage } from "../debug/DebugLogPage";
 import { useAppStore } from "../../store/appStore";
+import { useProductTourContext } from "../tour/ProductTourContext";
 import type { AndroidTimerLaunchMode } from "../../utils/shortcutUtils";
 
 type MoreTab = "settings" | "experiment";
@@ -77,6 +78,7 @@ function SettingsPanel() {
   const setEnableExperimentalFeatures = useAppStore((state) => state.setExperimentalFeaturesEnabled);
   const androidTimerLaunchMode = useAppStore((state) => state.androidTimerLaunchMode);
   const setAndroidTimerLaunchMode = useAppStore((state) => state.setAndroidTimerLaunchMode);
+  const { startTour, activeTour } = useProductTourContext();
 
   return (
     <div className="space-y-4">
@@ -126,6 +128,24 @@ function SettingsPanel() {
         title={copy.settings.experimentalTitle}
         description={copy.settings.experimentalDescription}
       >
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => {
+              useAppStore.getState().setCurrentSheet("inbox");
+              window.setTimeout(() => {
+                startTour("inbox-new-task", { force: true });
+              }, 0);
+            }}
+            className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100"
+          >
+            Replay inbox tour
+          </button>
+          <p className="text-sm text-gray-600">
+            {activeTour?.description ?? "Restart the guided Inbox introduction."}
+          </p>
+        </div>
+
         <label className="flex items-center gap-2 text-sm text-gray-700">
           <input
             type="checkbox"

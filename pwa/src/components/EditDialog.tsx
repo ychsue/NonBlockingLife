@@ -216,6 +216,7 @@ export function EditDialog<T>({
               ) : (
                 <textarea
                   id={field.name}
+                  data-tour={field.name === 'title' ? 'inbox-title-input' : undefined}
                   value={formData[field.name] ?? ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
                   onBlur={handleDialogTextFieldInteractionEnd}
@@ -241,7 +242,11 @@ export function EditDialog<T>({
             </button>
             <button
               data-tour="inbox-save-button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSave(); }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSave();
+              }}
               onTouchEnd={(event) => handleDialogActionTouchEnd(event, handleSave)}
               disabled={isSaving}
               className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors disabled:opacity-50"
