@@ -137,6 +137,7 @@ export function TaskPoolTable() {
     if (!targetRow) return
 
     setEditingItem(targetRow)
+    setSearchQuery(targetRow.title || '')
     clearPendingEditIntent()
   }, [rows, pendingEditIntent, currentSheet, clearPendingEditIntent])
 
