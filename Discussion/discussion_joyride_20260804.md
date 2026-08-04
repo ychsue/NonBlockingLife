@@ -75,3 +75,62 @@
      6. 提示說明：「現在開始，任何一個任務在使用者確認後，就會自動計時。」
 
 請提供清晰的 React Custom Hook（例如 `useProductTour`）、Joyride Wrapper 元件，以及設定檔範例。
+
+---
+
+## [2026-08-04] 實作規劃與管理流程（供後續串接）
+
+### 1. 架構落點
+- Joyride 的全域掛載點建議放在 [pwa/src/App.tsx](pwa/src/App.tsx)，原因是它同時掌握：
+  - 當前 sheet / page 切換
+  - 使用者目前所在頁面
+  - tour 的自動觸發條件
+  - tour 的完成/中斷狀態
+- 這一層會負責：
+  1. 監聽 `currentSheet` 變化
+  2. 判斷是否應啟動下一個未完成 tour
+  3. 管理 `completed_tours` 與 `last_tour_time`
+  4. 渲染 Joyride wrapper
+
+### 2. Hook 與元件分工
+- `useProductTour`：
+  - 管理 tour 狀態
+  - 讀寫 localStorage
+  - 判斷自動觸發條件
+  - 提供 `startTour()`、`completeTour()`、`nextStep()` 等控制方法
+- `ProductTourWrapper`：
+  - 負責把 React Joyride 真的掛到 App 上
+  - 接收當前 tour、step、nextStep 以及完成事件
+  - 將 UI 事件與 tour state 串在一起
+
+### 3. `nextStep()` 的驅動來源
+- 為了讓互動流程自然，`nextStep()` 不要只由 Joyride 的內建 Next 按鈕驅動。
+- 建議優先採用以下順序：
+  1. 被標定元素本身的 callback（例如使用者點擊新增按鈕後，觸發下一步）
+  2. `useEffect` 觀察某個 state / flag 變化後觸發下一步
+  3. 由外層 callback / props 觸發下一步
+- 也就是說，步驟的「完成條件」會由實際使用者操作來串接，而不是只靠按鈕。
+
+### 4. 等待元素出現的策略
+- 若某個步驟目標元素可能在頁面切換、資料載入、或 UI 展開後才出現，建議使用 `waitForElement: true`。
+- 這樣可以避免 Joyride 先去定位一個還不存在的 target，造成 step 失敗或卡住。
+- 但需要注意：
+  - 只在真的可能延遲出現的步驟使用
+  - 過度使用會讓流程變慢，應與 `timeout` 配合
+
+### 5. 先做的最小可行版本（MVP）
+- Phase 1：
+  - 建立 tour 型別與中央 tour 設定
+  - 實作 `completed_tours` / `last_tour_time` 的 localStorage 管理
+  - 做自動觸發與手動啟動
+- Phase 2：
+  - 將 Inbox 新增任務教學接上
+  - 將 Android Timer 教學接上
+- Phase 3：
+  - 讓步驟支援真正的互動式前進
+  - 加入更穩定的 target 定位與 fallback
+
+### 6. 實作注意事項
+- 先把「可運作」做出來，再把「畫面美觀」補上。
+- 對於多國語後續擴充，tour 文案建議先抽離成可替換的 `copy` 層，而不是直接寫死在 step 內。
+- 所有 tour 都要有明確的完成/中斷行為，避免卡在某一步。
