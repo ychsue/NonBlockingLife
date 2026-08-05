@@ -654,7 +654,7 @@ export function SelectionCacheTable() {
   }
 
   return (
-    <div className="p-4">
+    <div className="p-4" data-tour="selection-cache-intro">
       {/* 工具欄 */}
       <div className="mb-4 flex items-center gap-2">
         <button

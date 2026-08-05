@@ -86,7 +86,7 @@ function SettingsPanel() {
   const setEnableExperimentalFeatures = useAppStore((state) => state.setExperimentalFeaturesEnabled);
   const androidTimerLaunchMode = useAppStore((state) => state.androidTimerLaunchMode);
   const setAndroidTimerLaunchMode = useAppStore((state) => state.setAndroidTimerLaunchMode);
-  const { startTour, activeTour, completedTours, tours } = useProductTourContext();
+  const { startTour, activeTour, completedTours, tours, nextStep, isRunning } = useProductTourContext();
 
   const handleReplayTour = (tour: ProductTourConfig) => {
     if (tour.requiredSheet) {
@@ -121,7 +121,13 @@ function SettingsPanel() {
                   type="radio"
                   name="android-timer-launch-mode"
                   checked={androidTimerLaunchMode === option.value}
-                  onChange={() => setAndroidTimerLaunchMode(option.value)}
+                  data-tour={option.value === "set_timer" ? "android-timer-set-timer-option" : undefined}
+                  onChange={() => {
+                    setAndroidTimerLaunchMode(option.value);
+                    if (option.value === "set_timer" && isRunning && activeTour?.id === "android-timer-setup") {
+                      nextStep();
+                    }
+                  }}
                 />
                 <span>
                   <span className="font-medium">{option.label}</span>
@@ -242,6 +248,14 @@ function ExperimentPanel() {
 
 export function MorePageContent() {
   const [activeTab, setActiveTab] = useState<MoreTab>("settings");
+  const { nextStep, isRunning, activeTour } = useProductTourContext();
+
+  const handleTabChange = (tab: MoreTab) => {
+    setActiveTab(tab);
+    if (tab === "settings" && isRunning && activeTour?.id === "android-timer-setup") {
+      nextStep();
+    }
+  };
 
   return (
     <div className="p-4 space-y-4">
@@ -253,7 +267,8 @@ export function MorePageContent() {
       <div className="flex gap-2 rounded-lg border border-gray-200 bg-gray-50 p-1">
         <button
           type="button"
-          onClick={() => setActiveTab("settings")}
+          onClick={() => handleTabChange("settings")}
+          data-tour="more-settings-tab"
           className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition ${
             activeTab === "settings"
               ? "bg-blue-600 text-white shadow-sm"
@@ -264,7 +279,8 @@ export function MorePageContent() {
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab("experiment")}
+          onClick={() => handleTabChange("experiment")}
+          data-tour="more-experiment-tab"
           className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition ${
             activeTab === "experiment"
               ? "bg-blue-600 text-white shadow-sm"

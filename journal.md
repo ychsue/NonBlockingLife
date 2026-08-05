@@ -1,6 +1,8 @@
 # Journal
 
 ## [2026-08-05] 在 More Page 裡面Tours List 化
+- [10:10] Android Timer 也可以了，但是scrolling 還有問題
+
 
 ## [2026-08-04] 實作Joyride的規劃與管理流程
 - Joyride 能動了，但有問題

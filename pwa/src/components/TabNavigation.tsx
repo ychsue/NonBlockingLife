@@ -1,5 +1,6 @@
 import { useAppStore } from '../store/appStore'
 import { SheetName } from '../hooks/useUrlAction'
+import { useProductTourContext } from './tour/ProductTourContext'
 
 type AllPages = SheetName | 'selection_cache' | 'log' | 'guide' | 'macro'
 
@@ -22,6 +23,14 @@ export function TabNavigation() {
   const currentSheet = useAppStore((state) => state.currentSheet)
   const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
   const experimentalFeaturesEnabled = useAppStore((state) => state.experimentalFeaturesEnabled)
+  const { activeTour, isRunning, nextStep } = useProductTourContext()
+
+  const handleTabSelect = (sheet: AllPages) => {
+    setCurrentSheet(sheet)
+    if (sheet === 'selection_cache' && isRunning && activeTour?.id === 'android-timer-setup') {
+      nextStep()
+    }
+  }
 
   return (
     <nav className="border-b border-gray-200 bg-white sticky top-0 z-10">
@@ -29,7 +38,8 @@ export function TabNavigation() {
         {TABS.filter(({ sheet }) => !EXPERIMENTAL_TABS.includes(sheet) || experimentalFeaturesEnabled).map(({ sheet, label, icon }) => (
           <button
             key={sheet}
-            onClick={() => setCurrentSheet(sheet)}
+            onClick={() => handleTabSelect(sheet)}
+            data-tour={sheet === 'selection_cache' ? 'selection-cache-tab' : undefined}
             className={`px-3 py-2 text-sm whitespace-nowrap rounded-t-md border-b-2 transition-colors ${
               currentSheet === sheet
                 ? 'border-blue-500 text-blue-600 bg-blue-50'

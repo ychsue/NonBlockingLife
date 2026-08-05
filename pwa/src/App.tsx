@@ -52,7 +52,7 @@ export default function App() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const productTourState = useProductTour(currentSheet);
-  const { activeTour, activeStep, isRunning, startTour, completeTour, nextStep, resetTour } = productTourState;
+  const { activeTour, activeStep, isRunning, startTour, completeTour, nextStep, resetTour, tours } = productTourState;
   const defaultTitleRef = useRef(BASE_TITLE);
   const previousRunningTaskIdRef = useRef<string | null>(null);
   const { isMobile, isTooSmall } = useResponsiveTable();
@@ -259,11 +259,17 @@ export default function App() {
     if (!currentSheet || activeTour) return;
     const completedTours = JSON.parse(window.localStorage.getItem("completed_tours") ?? "[]") as string[];
     const lastTourTime = Number(window.localStorage.getItem("last_tour_time") ?? "0");
-    if (completedTours.includes("inbox-new-task")) return;
-    if (currentSheet === "inbox" && (!lastTourTime || Date.now() - lastTourTime >= 10 * 60 * 1000)) {
-      startTour("inbox-new-task");
+    const eligibleTour = tours.find((tour) => {
+      if (completedTours.includes(tour.id)) return false;
+      if (tour.requiredSheet && tour.requiredSheet !== currentSheet) return false;
+      return true;
+    });
+
+    if (!eligibleTour) return;
+    if (!lastTourTime || Date.now() - lastTourTime >= 10 * 60 * 1000) {
+      startTour(eligibleTour.id);
     }
-  }, [activeTour, currentSheet, startTour]);
+  }, [activeTour, currentSheet, startTour, tours]);
 
   const handleOpenTutorialSheet = useCallback(
     (sheet: SheetName) => {
@@ -411,15 +417,19 @@ export default function App() {
                 </span>
               </button>
               {/* 手機漢堡選單按鈕 */}
-              {isMobile && (
                 <button
-                  onClick={() => setShowMobileMenu(!showMobileMenu)}
-                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg text-xl leading-none"
+                  onClick={() => {
+                    setShowMobileMenu((value) => !value);
+                    if (isRunning && activeTour?.id === "android-timer-setup" && activeStep?.id === "android-menu") {
+                      nextStep();
+                    }
+                  }}
+                  className={`p-2 text-gray-600 hover:bg-gray-100 rounded-lg text-xl leading-none` + (isMobile ? " " : " hidden w-0")}
+                  data-tour={'menu-button'}
                   aria-label="選單"
                 >
                   {showMobileMenu ? "✕" : "☰"}
                 </button>
-              )}
             </div>
           </div>
           {runningTask && (
@@ -453,10 +463,16 @@ export default function App() {
           <div className="bg-white border-t border-gray-100 px-4 py-3 shadow-md flex flex-wrap flex-row gap-1">
             <SyncStatus />
             <button
-              onClick={() => setCurrentSheet("debug")}
+              onClick={() => {
+                setCurrentSheet("debug");
+                if (isRunning && activeTour?.id === "android-timer-setup" && activeStep?.id === "android-more") {
+                  nextStep();
+                }
+              }}
               className="px-3 py-2 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100 flex-shrink-1"
               aria-label="Open debug logs"
               title="Open debug logs"
+              data-tour="mobile-more-button"
             >
               ...
             </button>
