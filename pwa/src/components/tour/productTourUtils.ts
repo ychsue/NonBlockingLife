@@ -2,6 +2,10 @@ import type { ProductTourConfig } from "./productTourTypes";
 
 const REPLAY_DELAY_MS = 10 * 60 * 1000;
 
+export function isTourCompleted(tourId: string, completedTours: string[]): boolean {
+  return completedTours.includes(tourId);
+}
+
 export function canAutoStartTour({
   tour,
   currentSheet,
@@ -15,7 +19,7 @@ export function canAutoStartTour({
   lastTourTime: number | null;
   now?: number;
 }): boolean {
-  if (completedTours.includes(tour.id)) {
+  if (isTourCompleted(tour.id, completedTours)) {
     return false;
   }
 

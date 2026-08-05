@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-08-05] 在 More Page 裡面Tours List 化
+
 ## [2026-08-04] 實作Joyride的規劃與管理流程
 - Joyride 能動了，但有問題
 - [05:55] 還有問題在 editDialog

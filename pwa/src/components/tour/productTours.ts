@@ -22,15 +22,6 @@ export function getToursList(locale: SupportedLocale = "en"): ProductTourConfig[
       requiredSheet: "inbox",
       steps: [
         {
-          id: "inbox-search",
-          title: map["tour.inboxNewTask.step1.title"],
-          content: map["tour.inboxNewTask.step1.content"],
-          target: "[data-tour='inbox-search-input']",
-          placement: "bottom",
-          hideCloseButton: true,
-          spotlightPadding: 8,
-        },
-        {
           id: "inbox-add",
           title: map["tour.inboxNewTask.step1.title"],
           content: map["tour.inboxNewTask.step1.content"],

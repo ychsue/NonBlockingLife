@@ -5,6 +5,8 @@ type ProductTourContextValue = {
   activeTour: ProductTourConfig | null;
   activeStep: ProductTourStep | null;
   isRunning: boolean;
+  completedTours: string[];
+  tours: ProductTourConfig[];
   startTour: (tourId: string, options?: { force?: boolean }) => void;
   completeTour: (tourId: string) => void;
   nextStep: () => void;

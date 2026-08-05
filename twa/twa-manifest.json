@@ -20,8 +20,8 @@
     "path": "./android.keystore",
     "alias": "android"
   },
-  "appVersionName": "NBL-1.0.9",
-  "appVersionCode": 11,
+  "appVersionName": "NBL-1.1.0",
+  "appVersionCode": 12,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://ychsue.github.io/NonBlockingLife/manifest.webmanifest",
@@ -52,5 +52,5 @@
   "additionalTrustedOrigins": [],
   "retainedBundles": [],
   "displayOverride": [],
-  "appVersion": "NBL-1.0.9"
+  "appVersion": "NBL-1.1.0"
 }

@@ -539,10 +539,6 @@ export function InboxTable() {
             {t("table.add")}
           </button>
         </div>
-        <textarea
-          data-tour="inbox-search-input"
-          placeholder={"Test Only"}
-        />
       </div>
 
       {moveError && (

@@ -2,11 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "../../store/appStore";
 import type { ProductTourConfig, ProductTourStep } from "./productTourTypes";
 import { getToursList } from "./productTours";
+import { isTourCompleted } from "./productTourUtils";
 
 type UseProductTourResult = {
   activeTour: ProductTourConfig | null;
   activeStep: ProductTourStep | null;
   isRunning: boolean;
+  completedTours: string[];
+  tours: ProductTourConfig[];
   startTour: (tourId: string, options?: { force?: boolean }) => void;
   completeTour: (tourId: string) => void;
   nextStep: () => void;
@@ -86,7 +89,7 @@ export function useProductTour(currentSheet?: string): UseProductTourResult {
   const startTour = useCallback((tourId: string, options?: { force?: boolean }) => {
     const tour = toursList.find((entry) => entry.id === tourId);
     if (!tour) return;
-    if (!options?.force && readCompletedTours().includes(tourId)) return;
+    if (!options?.force && isTourCompleted(tourId, readCompletedTours())) return;
     forceStartRef.current = Boolean(options?.force);
     setActiveTourId(tourId);
     setActiveStepIndex(0);
@@ -122,7 +125,7 @@ export function useProductTour(currentSheet?: string): UseProductTourResult {
     }
 
     const completed = readCompletedTours();
-    if (completed.includes(activeTour.id)) {
+    if (isTourCompleted(activeTour.id, completed)) {
       resetTour();
       return;
     }
@@ -136,7 +139,7 @@ export function useProductTour(currentSheet?: string): UseProductTourResult {
   useEffect(() => {
     if (!activeTour) return;
     const completed = readCompletedTours();
-    if (!completed.includes(activeTour.id)) {
+    if (!isTourCompleted(activeTour.id, completed)) {
       const lastTourTime = readLastTourTime();
       if (!lastTourTime || Date.now() - lastTourTime >= MIN_REPLAY_DELAY_MS) {
         return;
@@ -149,6 +152,8 @@ export function useProductTour(currentSheet?: string): UseProductTourResult {
     activeTour,
     activeStep,
     isRunning,
+    completedTours,
+    tours: toursList,
     startTour,
     completeTour,
     nextStep,
