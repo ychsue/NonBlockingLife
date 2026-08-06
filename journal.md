@@ -1,6 +1,7 @@
 # Journal
 
 ## [2026-08-06] 修正 Replay 間隔為 1 秒，然後再多加這個 Tour 的教學，所以現在有三個教學了
+- 2.3.3 版，引進了 `tourReplay`，這個 tour 會在使用者第一次使用 `Replay` 時，給他一個簡單的教學，讓他知道如何使用這個功能。
 
 ## [2026-08-05] 在 More Page 裡面Tours List 化
 - [10:10] Android Timer 也可以了，但是scrolling 還有問題
