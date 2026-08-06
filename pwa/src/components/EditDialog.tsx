@@ -7,6 +7,7 @@ import {
   handleDialogTextFieldInteractionEnd,
   resetDialogTextInteractionState,
 } from '../utils/dialogInteractionUtils'
+import _ from 'lodash'
 
 export type FieldType = 'text' | 'number' | 'datetime' | 'select' | 'cron'
 
@@ -46,8 +47,21 @@ export function EditDialog<T>({
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [openCronPreviewField, setOpenCronPreviewField] = useState<string | null>(null)
+  //為了避免同樣的item來亂
+  const [lastItem, setLastItem] = useState<T | null>(null)
+  const [lastFields, setLastFields] = useState<DialogField[]>([])
 
+  // 當 item 或 fields 改變時，更新 formData
   useEffect(() => {
+    //比較 item 與 lastItem 是否相同，如果不同才更新 formData
+    const isItemChanged = !_.isEqual(item, lastItem)
+    const isFieldsChanged = !_.isEqual(fields, lastFields)
+    if (isItemChanged || isFieldsChanged) {
+      if (isItemChanged) setLastItem(item)
+      if (isFieldsChanged) setLastFields(fields)
+    } else {
+      return;
+    }
     if (item) {
       const initialData: Record<string, any> = {}
       fields.forEach((field) => {
