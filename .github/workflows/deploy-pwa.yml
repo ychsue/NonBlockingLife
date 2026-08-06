@@ -36,10 +36,14 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Debug dist
+        run: ls -R pwa/dist
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: pwa/dist
+          name: github-pages
 
       - name: Deploy
         uses: actions/deploy-pages@v4
