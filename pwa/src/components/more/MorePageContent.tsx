@@ -86,7 +86,7 @@ function SettingsPanel() {
   const setEnableExperimentalFeatures = useAppStore((state) => state.setExperimentalFeaturesEnabled);
   const androidTimerLaunchMode = useAppStore((state) => state.androidTimerLaunchMode);
   const setAndroidTimerLaunchMode = useAppStore((state) => state.setAndroidTimerLaunchMode);
-  const { startTour, activeTour, completedTours, tours, nextStep, isRunning } = useProductTourContext();
+  const { startTour, activeTour, completedTours, tours, nextStep, isRunning, clearCompletedTours } = useProductTourContext();
 
   const handleReplayTour = (tour: ProductTourConfig) => {
     if (tour.requiredSheet) {
@@ -152,7 +152,19 @@ function SettingsPanel() {
         title={copy.settings.toursTitle}
         description={copy.settings.toursDescription}
       >
-        <div className="space-y-3">
+        <div
+          className="space-y-3"
+          data-tour="more-settings-tours-card"
+        >
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => clearCompletedTours()}
+              className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100"
+            >
+              Clear completed tours
+            </button>
+          </div>
           {tours.map((tour) => {
             const isCompleted = completedTours.includes(tour.id);
             const isBusy = Boolean(activeTour);
@@ -252,7 +264,7 @@ export function MorePageContent() {
 
   const handleTabChange = (tab: MoreTab) => {
     setActiveTab(tab);
-    if (tab === "settings" && isRunning && activeTour?.id === "android-timer-setup") {
+    if (tab === "settings" && isRunning) {
       nextStep();
     }
   };

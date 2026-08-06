@@ -3,6 +3,7 @@ import { ja } from "../../i18n/ja";
 import { zhTW } from "../../i18n/zh-TW";
 import type { SupportedLocale } from "../../i18n";
 import type { ProductTourConfig } from "./productTourTypes";
+import { useResponsiveTable } from "../../hooks/useResponsiveTable";
 
 const localeMaps = {
   en,
@@ -10,10 +11,59 @@ const localeMaps = {
   ja,
 } as const;
 
-export function getToursList(locale: SupportedLocale = "en"): ProductTourConfig[] {
+export function getToursList(locale: SupportedLocale = "en", isMobile: boolean = false): ProductTourConfig[] {
   const map = localeMaps[locale] ?? en;
 
-  return [
+  const ideaTours: ProductTourConfig[] = [
+    {
+      id: "tour-replay",
+      version: 1,
+      title: map["tour.tourReplay.title"],
+      description: map["tour.tourReplay.description"],
+      steps: [
+        {
+          id: "tour-menu",
+          title: map["tour.tourReplay.step1.title"],
+          content: map["tour.tourReplay.step1.content"],
+          target: "[data-tour='menu-button']",
+          placement: "bottom",
+          hideFooterButton: true,
+          waitForElement: true,
+          spotlightPadding: 8,
+          device: "mobile",
+        },
+        {
+          id: "tour-more",
+          title: map["tour.tourReplay.step2.title"],
+          content: map["tour.tourReplay.step2.content"],
+          target: "[data-tour='more-button']",
+          placement: "bottom",
+          hideFooterButton: true,
+          waitForElement: true,
+          spotlightPadding: 8,
+        },
+        {
+          id: "tour-settings",
+          title: map["tour.tourReplay.step3.title"],
+          content: map["tour.tourReplay.step3.content"],
+          target: "[data-tour='more-settings-tab']",
+          placement: "bottom",
+          hideFooterButton: true,
+          waitForElement: true,
+          spotlightPadding: 8,
+        },
+        {
+          id: "tour-card",
+          title: map["tour.tourReplay.step4.title"],
+          content: map["tour.tourReplay.step4.content"],
+          target: "[data-tour='more-settings-tours-card']",
+          placement: "bottom",
+          hideFooterButton: false,
+          waitForElement: true,
+          spotlightPadding: 8,
+        },
+      ],
+    },
     {
       id: "inbox-new-task",
       version: 1,
@@ -66,12 +116,13 @@ export function getToursList(locale: SupportedLocale = "en"): ProductTourConfig[
           hideFooterButton: true,
           waitForElement: true,
           spotlightPadding: 8,
+          device: "mobile",
         },
         {
           id: "android-more",
           title: map["tour.androidTimerSetup.step2.title"],
           content: map["tour.androidTimerSetup.step2.content"],
-          target: "[data-tour='mobile-more-button']",
+          target: "[data-tour='more-button']",
           placement: "bottom",
           hideFooterButton: true,
           waitForElement: true,
@@ -120,4 +171,16 @@ export function getToursList(locale: SupportedLocale = "en"): ProductTourConfig[
       ],
     },
   ];
+
+  // Filter out steps that are not applicable to the current device type
+  const tours = ideaTours.map((tour) => {
+    tour.steps = tour.steps.filter((step) => {
+      if (step.device === "mobile" && !isMobile) {
+        return false;
+      }
+      return true;
+    });
+    return tour;
+  });
+  return tours;
 }

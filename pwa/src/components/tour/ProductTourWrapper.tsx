@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { ButtonType, Joyride, type EventData, type Step } from "react-joyride";
 import type { ProductTourConfig, ProductTourStep } from "./productTourTypes";
 
@@ -81,6 +82,18 @@ export function ProductTourWrapper({
   continuous = true,
   run,
 }: ProductTourWrapperProps) {
+  useEffect(() => {
+    if (!run || !step?.target) return;
+
+    const timerId = window.setTimeout(() => {
+      const element = document.querySelector(step.target);
+      if (!element) return;
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 120);
+
+    return () => window.clearTimeout(timerId);
+  }, [run, step?.id, step?.target]);
+
   if (!tour || !step || !run) {
     return null;
   }
@@ -116,6 +129,9 @@ export function ProductTourWrapper({
       continuous={continuous}
       scrollToFirstStep={false}
       debug={true}
+      options={{
+        skipScroll: true,
+      }}
       onEvent={handleJoyrideCallback}
       locale={{ back: "Back", close: "Close", last: "Finish", next: "Next", skip: "Skip" }}
     />

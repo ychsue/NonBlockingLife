@@ -1,3 +1,5 @@
+import { StepTarget } from "react-joyride";
+
 export type TourSheet = "inbox" | "selection_cache" | "guide" | "macro" | "debug" | "scheduled" | "task_pool" | "micro_tasks" | "resource" | "log";
 
 export interface ProductTourStep {
@@ -11,6 +13,8 @@ export interface ProductTourStep {
   spotlightPadding?: number;
   hideCloseButton?: boolean;
   hideFooterButton?: boolean;
+  device?: "desktop" | "mobile";
+  scrollTarget?: StepTarget;
 }
 
 export interface ProductTourConfig {

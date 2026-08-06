@@ -23,6 +23,7 @@ import { GlobalDialog } from "./GlobalDialog";
 import { ProductTourProvider } from "./components/tour/ProductTourContext";
 import { ProductTourWrapper } from "./components/tour/ProductTourWrapper";
 import { useProductTour } from "./components/tour/useProductTour";
+import { canAutoStartTour } from "./components/tour/productTourUtils";
 
 type AllPages =
   | SheetName
@@ -259,14 +260,8 @@ export default function App() {
     if (!currentSheet || activeTour) return;
     const completedTours = JSON.parse(window.localStorage.getItem("completed_tours") ?? "[]") as string[];
     const lastTourTime = Number(window.localStorage.getItem("last_tour_time") ?? "0");
-    const eligibleTour = tours.find((tour) => {
-      if (completedTours.includes(tour.id)) return false;
-      if (tour.requiredSheet && tour.requiredSheet !== currentSheet) return false;
-      return true;
-    });
-
-    if (!eligibleTour) return;
-    if (!lastTourTime || Date.now() - lastTourTime >= 10 * 60 * 1000) {
+    const eligibleTour = tours.find((tour) => canAutoStartTour({ tour, currentSheet, completedTours, lastTourTime }));
+    if (eligibleTour) {
       startTour(eligibleTour.id);
     }
   }, [activeTour, currentSheet, startTour, tours]);
@@ -390,10 +385,16 @@ export default function App() {
                   <div className="flex flex-row flex-wrap space-between gap-1">
                     <SyncStatus />
                     <button
-                      onClick={() => setCurrentSheet("debug")}
+                      onClick={() => {
+                        setCurrentSheet("debug");
+                        if (isRunning) {
+                          nextStep();
+                        }
+                      }}
                       className="px-3 py-2 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100 flex-shrink-1"
                       aria-label="Open debug logs"
                       title="Open debug logs"
+                      data-tour="more-button"
                     >
                       ...
                     </button>
@@ -419,10 +420,12 @@ export default function App() {
               {/* 手機漢堡選單按鈕 */}
                 <button
                   onClick={() => {
-                    setShowMobileMenu((value) => !value);
-                    if (isRunning && activeTour?.id === "android-timer-setup" && activeStep?.id === "android-menu") {
+                    if (isRunning) {
+                      setShowMobileMenu(true);
                       nextStep();
+                      return;
                     }
+                    setShowMobileMenu((value) => !value);
                   }}
                   className={`p-2 text-gray-600 hover:bg-gray-100 rounded-lg text-xl leading-none` + (isMobile ? " " : " hidden w-0")}
                   data-tour={'menu-button'}
@@ -465,14 +468,14 @@ export default function App() {
             <button
               onClick={() => {
                 setCurrentSheet("debug");
-                if (isRunning && activeTour?.id === "android-timer-setup" && activeStep?.id === "android-more") {
+                if (isRunning) {
                   nextStep();
                 }
               }}
               className="px-3 py-2 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100 flex-shrink-1"
               aria-label="Open debug logs"
               title="Open debug logs"
-              data-tour="mobile-more-button"
+              data-tour="more-button"
             >
               ...
             </button>

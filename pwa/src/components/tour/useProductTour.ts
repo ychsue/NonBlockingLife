@@ -3,6 +3,7 @@ import { useAppStore } from "../../store/appStore";
 import type { ProductTourConfig, ProductTourStep } from "./productTourTypes";
 import { getToursList } from "./productTours";
 import { isTourCompleted } from "./productTourUtils";
+import { useResponsiveTable } from "../../hooks/useResponsiveTable";
 
 type UseProductTourResult = {
   activeTour: ProductTourConfig | null;
@@ -14,12 +15,13 @@ type UseProductTourResult = {
   completeTour: (tourId: string) => void;
   nextStep: () => void;
   resetTour: () => void;
+  clearCompletedTours: () => void;
   setActiveStepIndex: (index: number) => void;
 };
 
 const COMPLETED_TOURS_KEY = "completed_tours";
 const LAST_TOUR_TIME_KEY = "last_tour_time";
-const MIN_REPLAY_DELAY_MS = 10 * 60 * 1000;
+const MIN_REPLAY_DELAY_MS = 100;
 
 function getStorage(): Storage | null {
   if (typeof window === "undefined") return null;
@@ -67,7 +69,8 @@ export function useProductTour(currentSheet?: string): UseProductTourResult {
   const [activeTourId, setActiveTourId] = useState<string | null>(null);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [completedTours, setCompletedTours] = useState<string[]>(() => readCompletedTours());
-  const toursList = useMemo(() => getToursList(locale), [locale]);
+  const {isMobile} = useResponsiveTable();
+  const toursList = useMemo(() => getToursList(locale, isMobile), [locale, isMobile]);
 
   const activeTour = useMemo(() => {
     if (!activeTourId) return null;
@@ -105,6 +108,14 @@ export function useProductTour(currentSheet?: string): UseProductTourResult {
   }, [activeStepIndex, activeTour, completeTour]);
 
   const resetTour = useCallback(() => {
+    setActiveTourId(null);
+    setActiveStepIndex(0);
+  }, []);
+
+  const clearCompletedTours = useCallback(() => {
+    writeCompletedTours([]);
+    writeLastTourTime(0);
+    setCompletedTours([]);
     setActiveTourId(null);
     setActiveStepIndex(0);
   }, []);
@@ -158,6 +169,7 @@ export function useProductTour(currentSheet?: string): UseProductTourResult {
     completeTour,
     nextStep,
     resetTour,
+    clearCompletedTours,
     setActiveStepIndex,
   };
 }

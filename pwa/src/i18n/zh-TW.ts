@@ -138,6 +138,17 @@ export const zhTW: TranslationMap = {
   'table.inbox.col.delete':         '刪除',
   // EditDialog field labels
   'table.inbox.field.title':        '標題',
+  'tour.tourReplay.title': '互動教學重播',
+  'tour.tourReplay.description': '了解如何重播互動教學。',
+  'tour.tourReplay.step1.title': '(互動教學重播) 開啟選單',
+  'tour.tourReplay.step1.content': '點擊右上角選單按鈕，顯示應用捷徑。',
+  'tour.tourReplay.step2.title': '開啟更多選項',
+  'tour.tourReplay.step2.content': '點擊更多按鈕，進入設定區域。',
+  'tour.tourReplay.step3.title': '打開設定',
+  'tour.tourReplay.step3.content': '切換到設定，查看互動教學的本地偏好設定。',
+  'tour.tourReplay.step4.title': '開啟互動教學',
+  'tour.tourReplay.step4.content': '選擇互動教學選項，查看可用的互動教學列表。點擊其按鈕再次開始互動教學。',
+
   'tour.inboxNewTask.title': '在 Inbox 建立任務',
   'tour.inboxNewTask.description': '了解如何新增並儲存 Inbox 任務。',
   'tour.inboxNewTask.step1.title': '新增任務',

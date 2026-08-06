@@ -11,6 +11,7 @@ type ProductTourContextValue = {
   completeTour: (tourId: string) => void;
   nextStep: () => void;
   resetTour: () => void;
+  clearCompletedTours: () => void;
 };
 
 const ProductTourContext = createContext<ProductTourContextValue | null>(null);
