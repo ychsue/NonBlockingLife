@@ -34,6 +34,7 @@ import {
   resetDialogTextInteractionState,
 } from "../../utils/dialogInteractionUtils";
 import { useDialogStore } from '../../store/dialogStore';
+import { useDebouncedState } from '../../hooks/useDebouncedState';
 
 const DEV_CLIENT_ID = "dev-selection-cache";
 const columnHelper = createColumnHelper<SelectionCacheItem>();
@@ -46,7 +47,7 @@ function mapSourceToSheet(source?: string): SheetName | null {
 }
 
 export function SelectionCacheTable() {
-  const [rows, setRows] = useState<SelectionCacheItem[]>([]);
+  const [rows, setRows] = useDebouncedState<SelectionCacheItem[]>([],300); // 防抖 300ms，避免頻繁更新 UI
   const [loading, setLoading] = useState(true);
   const [columnVisibility, setColumnVisibility] = useState<
     Record<string, boolean>

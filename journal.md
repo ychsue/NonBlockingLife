@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-08-08] 2.3.4 加入 `useDebouncedState` 來避免 SelectionCacheTable 在頻繁更新時造成的效能問題
+- [ ] 還不確定效果如何
+
 ## [2026-08-06] 還是Deploy 失敗，按照Gemini 講的試看看
 - [23:09] 加上 timeout: 1200000
 
