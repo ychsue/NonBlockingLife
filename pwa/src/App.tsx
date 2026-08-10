@@ -96,16 +96,26 @@ export default function App() {
     };
 
     const nav = navigator as BadgeNavigator;
-    const notify = (title: string, body: string) => {
+    const notify = (
+      title: string,
+      body: string,
+      options?: { dismissOnClick?: boolean; url?: string },
+    ) => {
       if (typeof Notification === "undefined") return;
       if (Notification.permission !== "granted") return;
 
-      const notificationOptions: NotificationOptions & { data?: { url: string } } = {
+      const dismissOnClick = options?.dismissOnClick ?? true;
+      const notificationOptions: NotificationOptions & {
+        data?: { url: string; dismissOnClick: boolean };
+      } = {
         body,
         tag: "nbl-running-task",
-        data: { url: "/NonBlockingLife/" },
+        data: {
+          url: options?.url ?? "/NonBlockingLife/",
+          dismissOnClick,
+        },
       };
-      
+
       const showViaServiceWorker = () => {
         if (!navigator.serviceWorker) {
           return;
@@ -128,8 +138,11 @@ export default function App() {
 
         const notification = new Notification(title, notificationOptions);
         notification.onclick = () => {
+          if (dismissOnClick) {
+            notification.close();
+          }
           window.focus();
-          window.location.assign("/NonBlockingLife/");
+          window.location.assign(notificationOptions.data?.url ?? "/NonBlockingLife/");
         };
       } catch (e) {
         console.warn("Unable to show notification:", e);
@@ -155,6 +168,7 @@ export default function App() {
             : locale === "ja"
               ? "Non-Blocking Life は作業中ステータスを終了しました。"
               : "Non-Blocking Life is no longer in running mode.",
+          { dismissOnClick: true },
         );
       }
 
@@ -189,6 +203,7 @@ export default function App() {
           : locale === "ja"
             ? `${runningTask.title} を開始しました。`
             : `${runningTask.title} has started. Stay focused.`,
+        { dismissOnClick: false },
       );
     }
 

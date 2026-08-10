@@ -28,11 +28,15 @@ self.addEventListener("activate", ((event: Event & { waitUntil: (promise: Promis
 self.addEventListener(
   "notificationclick",
   ((event: Event & { notification: Notification; waitUntil: (promise: Promise<unknown>) => void }) => {
-    event.notification.close();
-
     const notificationData = event.notification.data as
-      | { url?: string }
+      | { url?: string; dismissOnClick?: boolean }
       | undefined;
+    const dismissOnClick = notificationData?.dismissOnClick ?? true;
+
+    if (dismissOnClick) {
+      event.notification.close();
+    }
+
     const targetUrl = notificationData?.url || APP_URL;
     const url = new URL(targetUrl, self.location.origin).toString();
 
