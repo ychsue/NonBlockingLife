@@ -99,29 +99,41 @@ export default function App() {
     const notify = (title: string, body: string) => {
       if (typeof Notification === "undefined") return;
       if (Notification.permission !== "granted") return;
-      // if (!document.hidden) return;
-      try {
-        new Notification(title, { body, tag: "nbl-running-task" });
-      } catch (e) {
-        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-          void navigator.serviceWorker.ready
-            .then((reg) => {
-              reg.showNotification(title, { body, tag: "nbl-running-task" });
-            })
-            .catch((err) =>
-              console.warn(
-                "Failed to show notification via service worker:",
-                err,
-              ),
-            ); //不曉得與下面的code是否有差
-          // navigator.serviceWorker.controller.postMessage({
-          //   type: "show-notification",
-          //   title,
-          //   options: { body, tag: "nbl-running-task" },
-          // });
-        } else {
-          console.warn("Unable to show notification:", e);
+
+      const notificationOptions: NotificationOptions & { data?: { url: string } } = {
+        body,
+        tag: "nbl-running-task",
+        data: { url: "/NonBlockingLife/" },
+      };
+      
+      const showViaServiceWorker = () => {
+        if (!navigator.serviceWorker) {
+          return;
         }
+
+        void navigator.serviceWorker.ready
+          .then((reg) => {
+            reg.showNotification(title, notificationOptions);
+          })
+          .catch((err) =>
+            console.warn("Failed to show notification via service worker:", err),
+          );
+      };
+
+      try {
+        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+          showViaServiceWorker();
+          return;
+        }
+
+        const notification = new Notification(title, notificationOptions);
+        notification.onclick = () => {
+          window.focus();
+          window.location.assign("/NonBlockingLife/");
+        };
+      } catch (e) {
+        console.warn("Unable to show notification:", e);
+        showViaServiceWorker();
       }
     };
 

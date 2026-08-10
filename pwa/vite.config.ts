@@ -8,6 +8,12 @@ export default defineConfig(({ command }) => ({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
+      injectManifest: {
+        injectionPoint: "self.__WB_MANIFEST",
+      },
       devOptions: {
         enabled: false, // 開發模式下停用 PWA
       },

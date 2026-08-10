@@ -1,7 +1,14 @@
 # Journal
 
+## [2026-08-10] 改進 notification 的行為，讓他點了會跳到本APP，使用到了 service worker，還不確定效果如何
+- [ ] 尚未確定效果
+
 ## [2026-08-08] 2.3.4 加入 `useDebouncedState` 來避免 SelectionCacheTable 在頻繁更新時造成的效能問題
 - [ ] 還不確定效果如何
+   * 還是有抖的情況，但好像是來自有任務在跑的時候，也就是說
+       * 1. 剛打開： runningTask = null
+       * 2. 發現有跑任務： runningTask = task
+      這塊的防抖動還要再想
 
 ## [2026-08-06] 還是Deploy 失敗，按照Gemini 講的試看看
 - [23:09] 加上 timeout: 1200000
