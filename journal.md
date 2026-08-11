@@ -1,7 +1,8 @@
 # Journal
 
 ## [2026-08-11] !!嚴重的問題，share-to-inbox突然失效，改成 `https://ychsue.github.io/NonBlockingLife/?action=share-to-inbox` 看看
-- [ ] 先部署到 GitHub Pages，然後再測試 TWA 與 PWA 的 share-to-inbox 是否正常
+- [x] 先部署到 GitHub Pages，然後再測試 TWA 與 PWA 的 share-to-inbox 是否正常
+- [ ] 更新 Android aab 到 Play Store，看看是否正常，版本PWA 為 2.3.6，TWA 為 NBL-1.1.1 & 13
 
 ## [2026-08-11] 當 cronExpr 被修改後，會詢問使用者是否要將 nextRun 也改成預測的時間，這樣就可以避免使用者忘記修改 nextRun 的問題了。謝謝 MAI-Code1-Flash
 
