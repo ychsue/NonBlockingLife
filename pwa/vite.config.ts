@@ -40,7 +40,7 @@ export default defineConfig(({ command }) => ({
           },
         ],
         share_target: {
-          action: "/NonBlockingLife/share-to-inbox",
+          action: "/NonBlockingLife/?action=share-to-inbox",
           method: "GET",
           enctype: "application/x-www-form-urlencoded",
           params: {

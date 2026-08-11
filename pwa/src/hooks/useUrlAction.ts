@@ -19,6 +19,19 @@ interface UseUrlActionOptions {
   clientId?: string;
 }
 
+export function resolveShareTargetParams(pathname: string, search: string) {
+  const params = new URLSearchParams(search);
+  const isLegacySharePath = /\/share-to-inbox\/?$/.test(pathname);
+  const hasShareAction = params.get("action") === "share-to-inbox";
+  const shouldHandleShare = isLegacySharePath || hasShareAction;
+
+  if (shouldHandleShare && !params.has("action")) {
+    params.set("action", "share-to-inbox");
+  }
+
+  return { params, shouldHandleShare };
+}
+
 /**
  * 監聽 URL Query 參數，自動將 iPhone Shortcut 的新增請求寫入 Dexie
  *
@@ -66,9 +79,6 @@ export function useUrlAction(options: UseUrlActionOptions) {
     const rawQuery = window.location.search;
     const protocolPrefix = encodeURIComponent("web+nbl://");
     let queryString = rawQuery;
-    const isShareToInboxPath = /\/share-to-inbox\/?$/.test(
-      window.location.pathname,
-    );
     if (rawQuery.includes(protocolPrefix)) {
       // 兼容 protocol handler 的 URL 格式：web+nbl://?sheet=inbox&action=add&title=Buy%20milk
       queryString = rawQuery
@@ -80,14 +90,14 @@ export function useUrlAction(options: UseUrlActionOptions) {
         queryString = queryString.slice(0, -encodeURIComponent("/").length);
       }
     }
-    const params = new URLSearchParams(queryString);
-    if (isShareToInboxPath && !params.has("action")) {
-      params.set("action", "share-to-inbox");
-    }
+    const { params, shouldHandleShare } = resolveShareTargetParams(
+      window.location.pathname,
+      queryString,
+    );
     const sheet = params.get("sheet") as SheetName | null;
     const action = params.get("action");
 
-    if (action === "share-to-inbox") {
+    if (shouldHandleShare && action === "share-to-inbox") {
       // Web Share Target 僅支援 title/text/url，非 URL 欄位合併成 title。
       const shareTitle = (params.get("title") || "").trim();
       const shareText = (params.get("text") || "").trim();

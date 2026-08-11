@@ -130,7 +130,7 @@
 
             <meta-data
                 android:name="android.support.customtabs.trusted.METADATA_SHARE_TARGET"
-                android:value='{"action":"/NonBlockingLife/share-to-inbox","method":"GET","enctype":"application/x-www-form-urlencoded","params":{"title":"title","text":"text","url":"url"}}' />
+                android:value='{"action":"/NonBlockingLife/?action=share-to-inbox","method":"GET","enctype":"application/x-www-form-urlencoded","params":{"title":"title","text":"text","url":"url"}}' />
 
             
 

@@ -64,8 +64,8 @@ public class LauncherActivity
                 }
 
                 // 手動構建目標 URL，確保路徑正確
-                // 注意：這裡的路徑要跟你的 PWA 路由一致
-                Uri.Builder builder = Uri.parse("https://ychsue.github.io/NonBlockingLife/share-to-inbox").buildUpon();
+                // 使用根路徑 + query 參數，避免 GitHub Pages 的子路徑 404
+                Uri.Builder builder = Uri.parse("https://ychsue.github.io/NonBlockingLife/?action=share-to-inbox").buildUpon();
 
                 if (text != null) {
 //                    builder.appendQueryParameter("text", text);

@@ -28,7 +28,7 @@
   "fallbackType": "customtabs",
   "features": {
     "webShareTarget": {
-      "action": "/share-to-inbox",
+      "action": "/NonBlockingLife/?action=share-to-inbox",
       "method": "GET",
       "params": {
         "title": "title",
