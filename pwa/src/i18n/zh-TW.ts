@@ -277,6 +277,7 @@ export const zhTW: TranslationMap = {
   'table.scheduled.previewButton':      '預覽',
   'table.scheduled.previewEmpty':       '無法計算未來執行時間，請檢查 Cron 表達式。',
   'table.scheduled.previewCount':       '接下來 {n} 次執行時間',
+  'table.scheduled.nextRunConfirm':      'Cron 表達式預測到的下次執行時間不同，是否要把 nextRun 改成 {predicted}？\n目前: {current}',
   'table.scheduled.cronMinute':         '分鐘',
   'table.scheduled.cronHour':           '小時',
   'table.scheduled.cronDay':            '日',

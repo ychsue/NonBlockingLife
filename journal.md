@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-08-11] 當 cronExpr 被修改後，會詢問使用者是否要將 nextRun 也改成預測的時間，這樣就可以避免使用者忘記修改 nextRun 的問題了。謝謝 MAI-Code1-Flash
+
 ## [2026-08-10] 改進 notification 的行為，讓他點了會跳到本APP，使用到了 service worker，還不確定效果如何
 - [ ] 尚未確定效果
 - [12:24] 讓他在工作中，點了不會消失，但是，工作結束點了則會關閉。由於在 `App.tsx` 都使用同一個 tag，所以，點了之後，會關閉所有的 notification，這樣就不會有殘留的 notification 了。

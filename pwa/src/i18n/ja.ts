@@ -256,6 +256,7 @@ export const ja: TranslationMap = {
   'table.scheduled.previewButton': 'プレビュー',
   'table.scheduled.previewEmpty': '次回実行を計算できません。Cron 式を確認してください。',
   'table.scheduled.previewCount': '今後 {n} 回の実行時刻',
+  'table.scheduled.nextRunConfirm': 'Cron 式から予測される次回実行時刻が異なります。nextRun を {predicted} に更新しますか？\n現在: {current}',
   'table.scheduled.cronMinute': '分',
   'table.scheduled.cronHour': '時',
   'table.scheduled.cronDay': '日',

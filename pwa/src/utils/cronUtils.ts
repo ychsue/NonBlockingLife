@@ -2,6 +2,13 @@ import Utils from '../../../gas/src/Utils'
 
 export const CRON_PREVIEW_LIMIT = 10
 
+export function getPredictedNextRun(cronExpr?: string, baseDate = new Date()): number | undefined {
+  if (!cronExpr) return undefined
+
+  const nextRunDate = Utils.getNextOccurrence(cronExpr, baseDate)
+  return nextRunDate?.getTime()
+}
+
 export function getCronParts(cronExpr?: string): [string, string, string, string, string] {
   const parts = (cronExpr ?? '').split(' ')
   return [

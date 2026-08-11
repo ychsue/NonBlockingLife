@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { formatToDateTimeLocal } from '../utils/timeUtils'
 import { useT } from '../i18n'
-import { buildCronExpr, getCronParts, getUpcomingOccurrences } from '../utils/cronUtils'
+import { buildCronExpr, getCronParts, getPredictedNextRun, getUpcomingOccurrences } from '../utils/cronUtils'
 import {
   handleDialogActionTouchEnd,
   handleDialogTextFieldInteractionEnd,
@@ -96,7 +96,31 @@ export function EditDialog<T>({
     try {
       setIsSaving(true)
       setError(null)
-      await onSave(formData)
+
+      const nextRunField = fields.find((field) => field.name === 'nextRun')
+      const cronField = fields.find((field) => field.type === 'cron')
+      const saveData = { ...formData }
+      if (!!nextRunField && !!cronField) {
+        const cronExpr = cronField ? String(formData[cronField.name] ?? '') : ''
+        const currentNextRun = item && typeof item === 'object' ? (item as Record<string, any>).nextRun : undefined
+        const predictedNextRun = cronExpr ? getPredictedNextRun(cronExpr, new Date()) : undefined
+        
+        if (cronField && nextRunField && cronExpr && predictedNextRun != null && currentNextRun !== predictedNextRun) {
+          const shouldApply = window.confirm(
+            t('table.scheduled.nextRunConfirm', {
+              current: currentNextRun ? new Date(currentNextRun).toLocaleString() : t('table.notSet'),
+              predicted: new Date(predictedNextRun).toLocaleString(),
+            })
+          )
+
+          if (shouldApply) {
+            saveData.nextRun = predictedNextRun
+            setFormData((prev) => ({ ...prev, nextRun: predictedNextRun }))
+          }
+        }
+      }
+
+      await onSave(saveData)
       onClose(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : t('dialog.saveFailed'))

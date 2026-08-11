@@ -273,6 +273,7 @@ export const en = {
   'table.scheduled.previewButton':      'Preview',
   'table.scheduled.previewEmpty':       'Unable to calculate upcoming runs. Please check the cron expression.',
   'table.scheduled.previewCount':       'Next {n} run(s)',
+  'table.scheduled.nextRunConfirm':      'The cron expression predicts a different next run time. Update nextRun to {predicted}?\nCurrent: {current}',
   'table.scheduled.cronMinute':         'Minute',
   'table.scheduled.cronHour':           'Hour',
   'table.scheduled.cronDay':            'Day',

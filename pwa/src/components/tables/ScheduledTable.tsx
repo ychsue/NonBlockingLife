@@ -22,7 +22,7 @@ import { EditDialog, type FieldType } from '../EditDialog'
 import { TableHelpDialog } from '../TableHelpDialog'
 import scheduledHelpMarkdown from './ScheduledHelp.md?raw'
 import { useSearchFilter, useHideDone } from '../../hooks/useSearchFilter'
-import { buildCronExpr, getCronParts, getUpcomingOccurrences } from '../../utils/cronUtils'
+import { buildCronExpr, getCronParts, getPredictedNextRun, getUpcomingOccurrences } from '../../utils/cronUtils'
 import { interruptTask } from '../../utils/taskFlow'
 import { shouldOpenRowEdit } from './rowEditUtils'
 
@@ -407,13 +407,28 @@ export function ScheduledTable() {
           const previewCronExpr = composeCronExpr()
 
           const maybeAutoFillNextRun = () => {
-            if (currentNextRun != null) return
-            const cronExpr = previewCronExpr
-            const nextRunDate = Utils.getNextOccurrence(cronExpr, new Date())
-            if (!nextRunDate) return
-            const nextRun = nextRunDate.getTime()
-            updateLocalRow(taskId, { nextRun })
-            saveUpdate(taskId, { nextRun })
+            const predictedNextRun = getPredictedNextRun(previewCronExpr, new Date())
+            if (predictedNextRun == null) return
+
+            if (currentNextRun == null) {
+              updateLocalRow(taskId, { nextRun: predictedNextRun })
+              saveUpdate(taskId, { nextRun: predictedNextRun })
+              return
+            }
+
+            if (currentNextRun === predictedNextRun) return
+
+            const shouldApply = window.confirm(
+              t('table.scheduled.nextRunConfirm', {
+                current: currentNextRun ? new Date(currentNextRun).toLocaleString() : t('table.notSet'),
+                predicted: new Date(predictedNextRun).toLocaleString(),
+              })
+            )
+
+            if (!shouldApply) return
+
+            updateLocalRow(taskId, { nextRun: predictedNextRun })
+            saveUpdate(taskId, { nextRun: predictedNextRun })
           }
 
           const handleCronGroupBlur = (event: FocusEvent<HTMLDivElement>) => {
