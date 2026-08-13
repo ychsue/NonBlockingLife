@@ -56,11 +56,11 @@
 ## 實作分階段（建議）
 
 ### Phase 1：本地資料與 offset parser
-- 新增 `alarm_queue` Dexie table。
-- 加入 `alarmOffsets` 或 `reminderOffsets` 欄位，支援格式如 `1d,2h,0m`、`1d,2h,0`。
-- 實作 parser：將 offset 字串轉成數值分鐘陣列，並轉成 `alarmAt` ISO timestamp。
-- 完成去重邏輯：`taskId + alarmAt` 作為 unique key。
-- 先不做 Android native scheduling，先確認前端 queue 正常生效。
+- [x] 新增 `alarm_queue` Dexie table。
+- [x] 加入 `alarmOffsets` 或 `reminderOffsets` 欄位，支援格式如 `1d,2h,0m`、`1d,2h,0`。
+- [x] 實作 parser：將 offset 字串轉成數值分鐘陣列，並轉成 `alarmAt` ISO timestamp。
+- [x] 完成去重邏輯：`taskId + alarmAt` 作為 unique key。
+- [x] 先不做 Android native scheduling，先確認前端 queue 正常生效。
 
 ### Phase 2：Notification 主流程
 - Android native 端新增 notification schedule / trigger flow。

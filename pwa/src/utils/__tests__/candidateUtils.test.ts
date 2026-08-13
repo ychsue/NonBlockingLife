@@ -4,6 +4,7 @@ import {
   calculateCandidates,
   parseToMinutes,
   parseAlarmOffsets,
+  buildAlarmQueueEntries,
   minutesToTimeString,
   getSourceEmoji,
 } from '../candidateUtils'
@@ -40,6 +41,31 @@ describe('candidateUtils: 工具函數測試', () => {
       expect(parseAlarmOffsets(' 1d, 2h, 0m , , invalid ')).toEqual([1440, 120, 0])
       expect(parseAlarmOffsets('0')).toEqual([0])
       expect(parseAlarmOffsets('')).toEqual([])
+    })
+  })
+
+  describe('buildAlarmQueueEntries', () => {
+    test('應只取下一個 24 小時內的提醒點，並以 taskId + alarmAt 去重', () => {
+      const now = new Date('2026-08-13T12:00:00Z')
+      const nextRun = new Date('2026-08-14T04:00:00Z').getTime()
+
+      const scheduled: ScheduledItem[] = [
+        {
+          taskId: 'S01',
+          title: '提醒任務',
+          status: 'PENDING',
+          nextRun,
+          alarmOffsets: '1d,0,2h,2h,0,1d',
+          updatedAt: now.getTime(),
+        },
+      ]
+
+      const entries = buildAlarmQueueEntries(scheduled, now)
+
+      expect(entries.map((entry) => entry.offsetMinutes)).toEqual([120, 0])
+      expect(entries).toHaveLength(2)
+      expect(entries[0].dedupeKey).toBe('S01:1786672800000')
+      expect(entries[1].dedupeKey).toBe('S01:1786680000000')
     })
   })
 

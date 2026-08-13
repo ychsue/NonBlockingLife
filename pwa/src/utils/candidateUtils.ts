@@ -1,4 +1,4 @@
-import type { TaskPoolItem, ScheduledItem, MicroTaskItem } from '../db/schema'
+import type { TaskPoolItem, ScheduledItem, MicroTaskItem, AlarmQueueItem } from '../db/schema'
 import { getT } from '../i18n'
 
 export interface Candidate {
@@ -81,6 +81,53 @@ export function parseAlarmOffsets(offsets?: string | string[] | number[] | null)
     .filter((value) => value.length > 0)
     .map((value) => parseToMinutes(value))
     .filter((value): value is number => value !== null)
+}
+
+/**
+ * 將 ScheduledItem 轉成 alarm_queue 的待處理項目。
+ * 只包含下一個 24 小時內的提醒，並保留 dedupeKey 去除重複。
+ */
+export function buildAlarmQueueEntries(
+  scheduled: ScheduledItem[],
+  now: Date = new Date(),
+  windowMs = 24 * 60 * 60 * 1000
+): AlarmQueueItem[] {
+  const nowMs = now.getTime()
+  const futureCutoff = nowMs + windowMs
+  const entries: AlarmQueueItem[] = []
+
+  scheduled.forEach((task) => {
+    if (!task.taskId || !task.nextRun) return
+    if (task.status && !['PENDING', 'INTERRUPTED', 'DOING'].includes(task.status)) return
+
+    const rawOffsets = task.alarmOffsets ?? task.reminderOffsets ?? []
+    const offsets = parseAlarmOffsets(rawOffsets)
+    if (offsets.length === 0) return
+
+    offsets.forEach((offsetMinutes) => {
+      const alarmAt = task.nextRun! - offsetMinutes * 60 * 1000
+      if (alarmAt < nowMs || alarmAt > futureCutoff) return
+
+      const dedupeKey = `${task.taskId}:${alarmAt}`
+      entries.push({
+        taskId: task.taskId,
+        title: task.title || 'Unnamed scheduled task',
+        alarmAt,
+        offsetMinutes,
+        state: 'pending',
+        dedupeKey,
+        createdAt: nowMs,
+        updatedAt: nowMs,
+      })
+    })
+  })
+
+  const seen = new Set<string>()
+  return entries.filter((entry) => {
+    if (seen.has(entry.dedupeKey)) return false
+    seen.add(entry.dedupeKey)
+    return true
+  })?.sort((a, b) => a.alarmAt - b.alarmAt) || []
 }
 
 /**
