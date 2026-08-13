@@ -63,11 +63,11 @@
 - [x] 先不做 Android native scheduling，先確認前端 queue 正常生效。
 
 ### Phase 2：Notification 主流程
-- Android native 端新增 notification schedule / trigger flow。
-- 以 `Notification` 作為預設提醒方式。
-- 當 `alarmAt` 到達時，發送 notification，並標記 `triggered` / `dismissed`。
-- 完成 `alarm_queue` 的過期清理與 UI 可見/可刪除。
-- 先驗證最穩定的使用者體驗。
+- [ ]Android native 端新增 notification schedule / trigger flow。
+- [ ]以 `Notification` 作為預設提醒方式。
+- [ ]當 `alarmAt` 到達時，發送 notification，並標記 `triggered` / `dismissed`。
+- [ ]完成 `alarm_queue` 的過期清理與 UI 可見/可刪除。
+- [ ]先驗證最穩定的使用者體驗。
 
 ### Phase 3：System Alarm 進階模式
 - 保留 `preferredAlarmAppPackage` / `resetPreferredAlarmApp` 流程。
