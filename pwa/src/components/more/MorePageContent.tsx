@@ -61,6 +61,28 @@ const timerModeOptions: Array<{
   },
 ];
 
+const alarmTestModeOptions: Array<{
+  value: "none" | "notification" | "system";
+  label: string;
+  description: string;
+}> = [
+  {
+    value: "none",
+    label: "None",
+    description: "Disable the alarm test and keep the app quiet.",
+  },
+  {
+    value: "notification",
+    label: "Notification",
+    description: "Trigger a local browser notification for a quick device check.",
+  },
+  {
+    value: "system",
+    label: "System",
+    description: "Attempt to open the Android clock/timer intent for native checking.",
+  },
+];
+
 function SettingsCard({
   title,
   description,
@@ -225,7 +247,69 @@ function SettingsPanel() {
 
 function ExperimentPanel() {
   const enableExperimentalFeatures = useAppStore((state) => state.experimentalFeaturesEnabled);
+  const showGlobalToast = useAppStore((state) => state.showGlobalToast);
   const [showDebug, setShowDebug] = useState(false);
+  const [alarmTestMode, setAlarmTestMode] = useState<"none" | "notification" | "system">("none");
+
+  const handleAlarmTest = () => {
+    if (alarmTestMode === "none") {
+      showGlobalToast({
+        message: "Alarm test is disabled.",
+        duration: 2500,
+      });
+      return;
+    }
+
+    if (alarmTestMode === "notification") {
+      if (typeof Notification === "undefined") {
+        window.alert("This browser does not support Notification.");
+        return;
+      }
+
+      const permission = Notification.permission;
+      if (permission === "granted") {
+        new Notification("NBL Alarm Test", {
+          body: "This is a local notification test for the alarm flow.",
+          tag: "nbl-alarm-test",
+        });
+        return;
+      }
+
+      if (permission === "default") {
+        void Notification.requestPermission().then((nextPermission) => {
+          if (nextPermission === "granted") {
+            new Notification("NBL Alarm Test", {
+              body: "Notification permission granted. This is a local test notification.",
+              tag: "nbl-alarm-test",
+            });
+          } else {
+            showGlobalToast({
+              message: "Notification permission was not granted.",
+              duration: 3000,
+            });
+          }
+        });
+        return;
+      }
+
+      showGlobalToast({
+        message: "Notification permission is blocked. Please allow it in browser settings.",
+        duration: 4000,
+      });
+      return;
+    }
+
+    const testUrl = "nonblockinglife://show-clock";
+    try {
+      window.location.href = testUrl;
+      showGlobalToast({
+        message: "Attempting to open the Android clock UI for system test.",
+        duration: 3000,
+      });
+    } catch {
+      window.alert("Unable to launch the Android clock intent from this environment.");
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -240,7 +324,44 @@ function ExperimentPanel() {
             {copy.experiment.disabledMessage}
           </div>
         ) : (
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 space-y-4">
+            <div className="rounded-lg border border-amber-200 bg-white p-3">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <h4 className="text-sm font-semibold text-gray-900">Alarm test</h4>
+                <button
+                  type="button"
+                  onClick={handleAlarmTest}
+                  className="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+                >
+                  Test Alarm
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {alarmTestModeOptions.map((option) => (
+                  <label
+                    key={option.value}
+                    className={`flex cursor-pointer items-start gap-2 rounded-md border p-3 text-sm ${
+                      alarmTestMode === option.value
+                        ? "border-amber-500 bg-amber-50"
+                        : "border-gray-200 bg-white"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="alarm-test-mode"
+                      checked={alarmTestMode === option.value}
+                      onChange={() => setAlarmTestMode(option.value)}
+                    />
+                    <span>
+                      <span className="font-medium">{option.label}</span>
+                      <span className="mt-1 block text-gray-600">{option.description}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
             <label className="flex items-center gap-2 text-sm text-gray-700">
               <input
                 type="checkbox"

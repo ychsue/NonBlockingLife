@@ -5,6 +5,7 @@
 - [16:50] 設好 schema `AlarmQueueItem` 與 `parseAlarmOffsets`
 - [17:03] `buildAlarmQueueEntries` 能將 scheduledItem 轉成多個 AlarmQueueItem，並且去重、排序與只取24小時內的
 - [18:57] 處理 [alarmQueue.ts](pwa\src\utils\alarmQueue.ts) 準備開始寫 `processDueAlarmQueue`的對接
+- [22:06] 在 [MorePageContent](pwa\src\components\more\MorePageContent.tsx) 加入 `測試Alarm` 按鈕
 
 ## [2026-08-11] !!嚴重的問題，share-to-inbox突然失效，改成 `https://ychsue.github.io/NonBlockingLife/?action=share-to-inbox` 看看
 - [x] 先部署到 GitHub Pages，然後再測試 TWA 與 PWA 的 share-to-inbox 是否正常

@@ -76,9 +76,9 @@
 - 補上 fallback：若 preferred app 不存在，就重新掃描並提示使用者重選。
 
 ### Phase 4：UAT / 測試工具
-- 在 More/Experimental/Alarm 增加 `Test Alarm`。
-- 提供 `none / notification / system` 三個模式讓使用者測試。
-- 記錄是否真的如預期觸發，確認明確的失敗與成功條件。
+- [ ] 在 More/Experimental/Alarm 增加 `Test Alarm`。
+- [ ] 提供 `none / notification / system` 三個模式讓使用者測試。
+- [ ] 記錄是否真的如預期觸發，確認明確的失敗與成功條件。
 
 ### Phase 5：產品化收斂
 - 再逐步評估：是否要保留 Clock App 顯示功能、是否要新增「停用某個提醒」與「重新排程」功能。
