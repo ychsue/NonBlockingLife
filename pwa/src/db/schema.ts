@@ -89,6 +89,18 @@ export interface MicroTaskItem {
   deadline?: number
 }
 
+export interface AlarmQueueItem {
+  id?: number
+  title?: string
+  taskId: string
+  alarmAt: number
+  offsetMinutes: number
+  state: 'pending' | 'triggered' | 'expired' | 'dismissed'
+  dedupeKey: string
+  createdAt: number
+  updatedAt: number
+}
+
 export type ChangeLogStatus = 'pending' | 'synced' | 'failed'
 
 export interface ResourceItem {
@@ -160,6 +172,7 @@ export class AppDB extends Dexie {
   scheduled!: Table<ScheduledItem, string>
   selection_cache!: Table<SelectionCacheItem, string>
   micro_tasks!: Table<MicroTaskItem, string>
+  alarm_queue!: Table<AlarmQueueItem, number>
   change_log!: Table<ChangeLogEntry, string>
   sync_state!: Table<SyncState, string>
   resource!: Table<ResourceItem, string>
@@ -200,6 +213,27 @@ export class AppDB extends Dexie {
       })
       .upgrade(() => {
         // Reserved for future data backfill if macro-related defaults are needed.
+      })
+
+    this.version(3)
+      .stores({
+        log: 'id, timestamp, taskId, action, state, title',
+        dashboard: 'taskId, systemStatus',
+        inbox: 'taskId, receivedAt, title',
+        task_pool: 'taskId, status, project, priority, lastRunDate, title, note, url',
+        scheduled: 'taskId, status, nextRun, title',
+        selection_cache: 'taskId, score, source, title',
+        micro_tasks: 'taskId, status, lastRunDate, title',
+        alarm_queue: '++id, taskId, alarmAt, dedupeKey, state, createdAt, updatedAt',
+        change_log: 'id, table, recordId, op, status, createdAt',
+        sync_state: 'key',
+        resource: 'taskId, category, receivedAt, title',
+        macro: 'taskId, name, updatedAt, createdAt',
+        macro_execution: 'macroId, status, lockOwner, lockExpiresAt, updatedAt',
+        app_log: 'id, timestamp, level, scope'
+      })
+      .upgrade(() => {
+        // Reserved for future alarm queue data backfill.
       })
   }
 }

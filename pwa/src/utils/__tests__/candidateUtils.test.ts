@@ -3,6 +3,7 @@ import type { TaskPoolItem, ScheduledItem, MicroTaskItem } from '../../db/schema
 import {
   calculateCandidates,
   parseToMinutes,
+  parseAlarmOffsets,
   minutesToTimeString,
   getSourceEmoji,
 } from '../candidateUtils'
@@ -27,6 +28,18 @@ describe('candidateUtils: 工具函數測試', () => {
       expect(parseToMinutes('30x')).toBeNull()
       expect(parseToMinutes('')).toBeNull()
       expect(parseToMinutes(undefined)).toBeNull()
+    })
+
+    test('應解析多段 alarm offsets 字串', () => {
+      expect(parseAlarmOffsets('1d,2h,0m')).toEqual([1440, 120, 0])
+      expect(parseAlarmOffsets('1d,2h,0')).toEqual([1440, 120, 0])
+      expect(parseAlarmOffsets('30m,15m')).toEqual([30, 15])
+    })
+
+    test('應忽略空白與不合法單位，且保留 0', () => {
+      expect(parseAlarmOffsets(' 1d, 2h, 0m , , invalid ')).toEqual([1440, 120, 0])
+      expect(parseAlarmOffsets('0')).toEqual([0])
+      expect(parseAlarmOffsets('')).toEqual([])
     })
   })
 

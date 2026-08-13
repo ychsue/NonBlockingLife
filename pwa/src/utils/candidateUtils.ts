@@ -56,6 +56,34 @@ export function parseToMinutes(takesTime?: string | number): number | null {
 }
 
 /**
+ * 解析 alarmOffsets 字串（例如 "1d,2h,0m" 或 "1d,2h,0"）
+ * 回傳逐段的分鐘偏移陣列，並忽略空白與不合法項目。
+ */
+export function parseAlarmOffsets(offsets?: string | string[] | number[] | null): number[] {
+  if (!offsets) return []
+
+  if (Array.isArray(offsets)) {
+    return offsets
+      .map((value) => {
+        if (typeof value === 'number' && Number.isFinite(value)) return value
+        if (typeof value === 'string') {
+          const parsed = parseToMinutes(value.trim())
+          return parsed ?? null
+        }
+        return null
+      })
+      .filter((value): value is number => value !== null)
+  }
+
+  return String(offsets)
+    .split(',')
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0)
+    .map((value) => parseToMinutes(value))
+    .filter((value): value is number => value !== null)
+}
+
+/**
  * 分鐘數轉人類可讀的時間字串
  */
 export function minutesToTimeString(totalMinutes: number): string {

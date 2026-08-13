@@ -2,6 +2,7 @@
 
 ## [2026-08-13] 準備實作 alarm 的批次處理
 請閱讀 [討論](Discussion/twa/alarm/discussion_20260813.md)
+- [16:50] 設好 schema `AlarmQueueItem` 與 `parseAlarmOffsets`
 
 ## [2026-08-11] !!嚴重的問題，share-to-inbox突然失效，改成 `https://ychsue.github.io/NonBlockingLife/?action=share-to-inbox` 看看
 - [x] 先部署到 GitHub Pages，然後再測試 TWA 與 PWA 的 share-to-inbox 是否正常

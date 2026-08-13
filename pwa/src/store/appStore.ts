@@ -2,7 +2,20 @@ import { create } from 'zustand'
 import type { SheetName } from '../hooks/useUrlAction'
 import { Dashboard, db } from '../db/schema'
 import type { SupportedLocale } from '../i18n'
-import { getInitialLocale } from '../i18n'
+
+function getInitialLocale(): SupportedLocale {
+  const storage = typeof globalThis !== 'undefined' && 'localStorage' in globalThis
+    ? globalThis.localStorage as Storage | null
+    : null
+
+  const stored = storage?.getItem('nbl_locale')
+  if (stored === 'en' || stored === 'zh-TW' || stored === 'ja') return stored
+
+  const browserLanguage = typeof navigator !== 'undefined' ? navigator.language : undefined
+  if (browserLanguage?.toLowerCase().startsWith('zh')) return 'zh-TW'
+  if (browserLanguage?.toLowerCase().startsWith('ja')) return 'ja'
+  return 'en'
+}
 
 export type AndroidTimerLaunchMode = 'none' | 'show_clock' | 'set_timer'
 

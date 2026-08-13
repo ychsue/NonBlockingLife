@@ -25,14 +25,6 @@ function getStorage(): Storage | null {
   return null
 }
 
-export function getInitialLocale(): SupportedLocale {
-  const stored = getStorage()?.getItem('nbl_locale')
-  if (stored === 'en' || stored === 'zh-TW' || stored === 'ja') return stored
-  // Auto-detect: prefer zh-TW for zh browsers
-  if (navigator.language.toLowerCase().startsWith('zh')) return 'zh-TW'
-  if (navigator.language.toLowerCase().startsWith('ja')) return 'ja'
-  return 'en'
-}
 
 /**
  * Returns a `t(key, vars?)` translation function bound to the current locale.
