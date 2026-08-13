@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-08-13] 準備實作 alarm 的批次處理
+請閱讀 [討論](Discussion/twa/alarm/discussion_20260813.md)
+
 ## [2026-08-11] !!嚴重的問題，share-to-inbox突然失效，改成 `https://ychsue.github.io/NonBlockingLife/?action=share-to-inbox` 看看
 - [x] 先部署到 GitHub Pages，然後再測試 TWA 與 PWA 的 share-to-inbox 是否正常
 - [ ] 更新 Android aab 到 Play Store，看看是否正常，版本PWA 為 2.3.6，TWA 為 NBL-1.1.1 & 13
