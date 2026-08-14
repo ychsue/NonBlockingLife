@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { DebugLogPage } from "../debug/DebugLogPage";
 import { useAppStore } from "../../store/appStore";
 import { useProductTourContext } from "../tour/ProductTourContext";
 import type { ProductTourConfig } from "../tour/productTourTypes";
 import type { AndroidTimerLaunchMode } from "../../utils/shortcutUtils";
-import { db } from "../../db";
 import type { AlarmQueueItem } from "../../db/schema";
 import { triggerAlarmNotification } from "../../utils/alarmNotifications";
+import { useAlarmQueueWatcher } from "../../hooks/useAlarmQueueWatcher";
+import { AlarmQueuePanel } from "./AlarmQueuePanel";
 
 type MoreTab = "settings" | "experiment";
 
@@ -262,29 +263,9 @@ function SettingsPanel() {
 function ExperimentPanel() {
   const enableExperimentalFeatures = useAppStore((state) => state.experimentalFeaturesEnabled);
   const showGlobalToast = useAppStore((state) => state.showGlobalToast);
+  const { queueItems, refreshQueue, triggerItem, dismissItem, deleteItem } = useAlarmQueueWatcher(enableExperimentalFeatures);
   const [showDebug, setShowDebug] = useState(false);
   const [alarmTestMode, setAlarmTestMode] = useState<"none" | "notification" | "system">("none");
-  const [queueItems, setQueueItems] = useState<AlarmQueueItem[]>([]);
-
-  useEffect(() => {
-    if (!enableExperimentalFeatures) return;
-
-    //如果 db.alarm_queue 為空，則插入一個sample
-    void db.alarm_queue.count().then((count) => {
-      if (count === 0) {
-        void db.alarm_queue.add(alarmQueueSample);
-      }
-    }).finally(() => {
-      void db.alarm_queue.orderBy("alarmAt").toArray().then((rows) => {
-        setQueueItems(rows);
-      });
-    });
-  }, [enableExperimentalFeatures]);
-
-  const refreshQueue = async () => {
-    const rows = await db.alarm_queue.orderBy("alarmAt").toArray();
-    setQueueItems(rows);
-  };
 
   const handleAlarmTest = async () => {
     if (alarmTestMode === "none") {
@@ -340,24 +321,6 @@ function ExperimentPanel() {
     }
   };
 
-  const handleTriggerQueueItem = async (item: AlarmQueueItem) => {
-    if (!item.id) return;
-    const fired = triggerAlarmNotification(item);
-    if (!fired) {
-      showGlobalToast({
-        message: "Notification is unavailable in this browser context.",
-        duration: 3000,
-      });
-      return;
-    }
-
-    await db.alarm_queue.update(item.id, {
-      state: "triggered",
-      updatedAt: Date.now(),
-    });
-    await refreshQueue();
-  };
-
   return (
     <div className="space-y-4">
       <section className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
@@ -409,44 +372,13 @@ function ExperimentPanel() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-amber-200 bg-white p-3">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <h4 className="text-sm font-semibold text-gray-900">Alarm queue</h4>
-                <button
-                  type="button"
-                  onClick={() => void refreshQueue()}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-                >
-                  Refresh
-                </button>
-              </div>
-
-              {queueItems.length === 0 ? (
-                <div className="text-sm text-gray-500">No alarm queue entries yet.</div>
-              ) : (
-                <div className="space-y-2">
-                  {queueItems.slice(0, 8).map((item) => (
-                    <div key={item.id ?? item.dedupeKey} className="rounded border border-gray-200 bg-gray-50 p-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{item.title ?? item.taskId}</div>
-                          <div className="text-xs text-gray-500">
-                            {new Date(item.alarmAt).toLocaleString()} · {item.state}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => void handleTriggerQueueItem(item)}
-                          className="rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-700 transition hover:bg-amber-100"
-                        >
-                          Trigger
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <AlarmQueuePanel
+              items={queueItems}
+              onRefresh={() => refreshQueue()}
+              onTrigger={triggerItem}
+              onDismiss={dismissItem}
+              onDelete={deleteItem}
+            />
 
             <label className="flex items-center gap-2 text-sm text-gray-700">
               <input

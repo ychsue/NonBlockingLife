@@ -2,6 +2,7 @@
 
 ## [2026-08-14] 準備實作 alarm 的批次處理(二)
 - [12:07] 補上 alarmNotifications
+- [13:40] [AlarmQueuePanel](pwa/src/components/more/AlarmQueuePanel.tsx) 與 [useAlarmQueueWatcher](pwa/src/hooks/useAlarmQueueWatcher.ts) 加入
 
 ## [2026-08-13] 準備實作 alarm 的批次處理
 請閱讀 [討論](Discussion/twa/alarm/discussion_20260813.md)

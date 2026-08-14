@@ -85,3 +85,14 @@
 - [ ] 先以 notification 為主，再根據 UAT 結果決定 system alarm 是否要作為預設選項。
 
 這樣拆成多個階段後，不會一次把所有 Android、Dexie、UI、UAT、系統警報流程一起扛上來，風險更低，也更容易回退。
+
+---
+
+## [2026-08-14] ychsue 需求背景補充
+
+建議把 MorePage 裡面的 Alarm queue 區段變成一個 .tsx ，
+其二， refresh 應該考量到時間與修改狀態。
+其三，每個 Alarm queue 的 item 功能太少，無法自訂一些東西，不用全顯示，
+其四，我後來覺得，其實應該在進入App.tsx 與 ScheduledTable.tsx 時 (useEffect(...., [])) 應該就可以了，所以，
+其五，Refresh 也許直接以放進 useEffect 裡面執行之物即可，對嗎？
+其六，所以是先把前端打造完， Android 端當成 Edge 或 API 或 PostMessage 來看待，unit測試時 Mock 他們，UAT前再實作，對嗎？
