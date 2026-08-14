@@ -18,6 +18,7 @@ function getInitialLocale(): SupportedLocale {
 }
 
 export type AndroidTimerLaunchMode = 'none' | 'show_clock' | 'set_timer'
+export type AlarmTestMode = 'none' | 'notification' | 'system'
 
 type AppSheet = SheetName | 'selection_cache' | 'log' | 'guide' | 'macro' | 'debug'
 export type StartupPreference = 'guide' | 'selection_cache' | 'last_visited'
@@ -27,6 +28,7 @@ const LAST_VISITED_SHEET_KEY = 'nbl_last_visited_sheet'
 export const DEBUG_MODE_KEY = 'nbl_debug_mode'
 const ENABLE_EXPERIMENTAL_FEATURES_KEY = 'nbl_enable_experimental_features'
 const ANDROID_TIMER_LAUNCH_MODE_KEY = 'nbl_android_timer_launch_mode'
+const ALARM_TEST_MODE_KEY = 'nbl_alarm_test_mode'
 
 function getStorage(): Storage | null {
   if (typeof window !== 'undefined' && window.localStorage) {
@@ -67,6 +69,14 @@ function getInitialAndroidTimerLaunchMode(): AndroidTimerLaunchMode {
     return stored
   }
   return 'show_clock'
+}
+
+function getInitialAlarmTestMode(): AlarmTestMode {
+  const stored = getStorage()?.getItem(ALARM_TEST_MODE_KEY)
+  if (stored === 'none' || stored === 'notification' || stored === 'system') {
+    return stored
+  }
+  return 'none'
 }
 
 function getInitialStartupPreference(): StartupPreference {
@@ -166,6 +176,10 @@ interface AppState {
   // Android TWA timer launch mode
   androidTimerLaunchMode: AndroidTimerLaunchMode
   setAndroidTimerLaunchMode: (mode: AndroidTimerLaunchMode) => void
+
+  // alarm test mode
+  alarmTestMode: AlarmTestMode
+  setAlarmTestMode: (mode: AlarmTestMode) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -240,5 +254,11 @@ export const useAppStore = create<AppState>((set) => ({
   setAndroidTimerLaunchMode: (mode) => {
     getStorage()?.setItem(ANDROID_TIMER_LAUNCH_MODE_KEY, mode)
     set({ androidTimerLaunchMode: mode })
+  },
+
+  alarmTestMode: getInitialAlarmTestMode(),
+  setAlarmTestMode: (mode) => {
+    getStorage()?.setItem(ALARM_TEST_MODE_KEY, mode)
+    set({ alarmTestMode: mode })
   },
 }))

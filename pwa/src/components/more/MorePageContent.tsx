@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { DebugLogPage } from "../debug/DebugLogPage";
-import { useAppStore } from "../../store/appStore";
+import { useAppStore, type AlarmTestMode } from "../../store/appStore";
 import { useProductTourContext } from "../tour/ProductTourContext";
 import type { ProductTourConfig } from "../tour/productTourTypes";
 import type { AndroidTimerLaunchMode } from "../../utils/shortcutUtils";
 import type { AlarmQueueItem } from "../../db/schema";
 import { triggerAlarmNotification } from "../../utils/alarmNotifications";
+import { syncAlarmQueueFromScheduled } from "../../utils/alarmQueue";
 import { useAlarmQueueWatcher } from "../../hooks/useAlarmQueueWatcher";
 import { AlarmQueuePanel } from "./AlarmQueuePanel";
+import { db } from "../../db";
 
 type MoreTab = "settings" | "experiment";
 
@@ -66,7 +68,7 @@ const timerModeOptions: Array<{
 ];
 
 const alarmTestModeOptions: Array<{
-  value: "none" | "notification" | "system";
+  value: AlarmTestMode;
   label: string;
   description: string;
 }> = [
@@ -263,9 +265,24 @@ function SettingsPanel() {
 function ExperimentPanel() {
   const enableExperimentalFeatures = useAppStore((state) => state.experimentalFeaturesEnabled);
   const showGlobalToast = useAppStore((state) => state.showGlobalToast);
+  const alarmTestMode = useAppStore((state) => state.alarmTestMode);
+  const setAlarmTestMode = useAppStore((state) => state.setAlarmTestMode);
   const { queueItems, refreshQueue, triggerItem, dismissItem, deleteItem } = useAlarmQueueWatcher(enableExperimentalFeatures);
   const [showDebug, setShowDebug] = useState(false);
-  const [alarmTestMode, setAlarmTestMode] = useState<"none" | "notification" | "system">("none");
+
+  const handleSyncAlarmQueue = async () => {
+    const scheduledRows = await db.scheduled.toArray();
+    const existingRows = await db.alarm_queue.orderBy("alarmAt").toArray();
+    const nextRows = syncAlarmQueueFromScheduled(scheduledRows, existingRows, new Date(), 30 * 24 * 60 * 60 * 1000);
+
+    await db.alarm_queue.clear();
+    await db.alarm_queue.bulkPut(nextRows);
+    await refreshQueue();
+    showGlobalToast({
+      message: `${nextRows.length} alarm queue entries synced from scheduled items.`,
+      duration: 2500,
+    });
+  };
 
   const handleAlarmTest = async () => {
     if (alarmTestMode === "none") {
@@ -335,41 +352,59 @@ function ExperimentPanel() {
           </div>
         ) : (
           <div className="mt-4 space-y-4">
+            {/* {alarmTestMode !== "none" && ( */}
+              <div className="rounded-lg border border-amber-200 bg-white p-3">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <h4 className="text-sm font-semibold text-gray-900">Alarm test</h4>
+                  <button
+                    type="button"
+                    onClick={() => void handleAlarmTest()}
+                    className="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+                  >
+                    Test Alarm
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {alarmTestModeOptions.map((option) => (
+                    <label
+                      key={option.value}
+                      className={`flex cursor-pointer items-start gap-2 rounded-md border p-3 text-sm ${
+                        alarmTestMode === option.value
+                          ? "border-amber-500 bg-amber-50"
+                          : "border-gray-200 bg-white"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="alarm-test-mode"
+                        checked={alarmTestMode === option.value}
+                        onChange={() => setAlarmTestMode(option.value)}
+                      />
+                      <span>
+                        <span className="font-medium">{option.label}</span>
+                        <span className="mt-1 block text-gray-600">{option.description}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            {/* )} */}
+
             <div className="rounded-lg border border-amber-200 bg-white p-3">
               <div className="mb-2 flex items-center justify-between gap-3">
-                <h4 className="text-sm font-semibold text-gray-900">Alarm test</h4>
+                <h4 className="text-sm font-semibold text-gray-900">Alarm queue sync</h4>
                 <button
                   type="button"
-                  onClick={() => void handleAlarmTest()}
-                  className="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+                  onClick={() => void handleSyncAlarmQueue()}
+                  className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
                 >
-                  Test Alarm
+                  Sync from scheduled
                 </button>
               </div>
-
-              <div className="space-y-2">
-                {alarmTestModeOptions.map((option) => (
-                  <label
-                    key={option.value}
-                    className={`flex cursor-pointer items-start gap-2 rounded-md border p-3 text-sm ${
-                      alarmTestMode === option.value
-                        ? "border-amber-500 bg-amber-50"
-                        : "border-gray-200 bg-white"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="alarm-test-mode"
-                      checked={alarmTestMode === option.value}
-                      onChange={() => setAlarmTestMode(option.value)}
-                    />
-                    <span>
-                      <span className="font-medium">{option.label}</span>
-                      <span className="mt-1 block text-gray-600">{option.description}</span>
-                    </span>
-                  </label>
-                ))}
-              </div>
+              <p className="text-xs text-gray-500">
+                Rebuild the derived queue from scheduled items and keep future reminders in the local queue.
+              </p>
             </div>
 
             <AlarmQueuePanel

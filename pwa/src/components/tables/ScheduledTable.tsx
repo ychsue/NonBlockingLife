@@ -47,6 +47,7 @@ function createNewScheduledRow(taskId?: string, title?: string): ScheduledItem {
     cronExpr: cronExpr,
     remindBefore: '',
     remindAfter: '',
+    alarmOffsets: '',
     callback: '',
     lastRun: undefined,
     note: '',
@@ -67,6 +68,7 @@ export function ScheduledTable() {
   const [sorting, setSorting] = useState<SortingState>([])
   const [sortMode, setSortMode] = useState<'none' | 'lastRunAsc' | 'lastRunDesc' | 'nextRunAsc' | 'nextRunDesc'>('none')
   const { isMobile } = useResponsiveTable()
+  const alarmTestMode = useAppStore((state) => state.alarmTestMode)
 
   const [createdNewRowId, setCreatedNewRowId] = useState("");
   
@@ -247,6 +249,14 @@ export function ScheduledTable() {
   const handleEditSave = async (data: Record<string, any>) => {
     if (!editingItem) return
 
+    const rawAlarmOffsets = data.alarmOffsets ?? ''
+    const normalizedAlarmOffsets =
+      typeof rawAlarmOffsets === 'string'
+        ? rawAlarmOffsets.trim() === ''
+          ? undefined
+          : rawAlarmOffsets
+        : rawAlarmOffsets
+
     const patch = {
       title: data.title,
       status: data.status,
@@ -254,6 +264,7 @@ export function ScheduledTable() {
       cronExpr: data.cronExpr,
       remindBefore: data.remindBefore,
       remindAfter: data.remindAfter,
+      alarmOffsets: normalizedAlarmOffsets,
       callback: data.callback,
       lastRun: data.lastRun ? parseFromDateTimeLocal(data.lastRun) : undefined,
       nextRun: data.nextRun ? parseFromDateTimeLocal(data.nextRun) : undefined,
@@ -502,6 +513,31 @@ export function ScheduledTable() {
           )
         },
       }),
+      ...(alarmTestMode !== 'none' ? [columnHelper.accessor('alarmOffsets', {
+        header: t('table.scheduled.col.alarmOffsets'),
+        cell: (info) => {
+          const taskId = info.row.original.taskId
+          const rawValue = info.getValue()
+          const value = typeof rawValue === 'string' ? rawValue : Array.isArray(rawValue) ? rawValue.join(',') : ''
+
+          return (
+            <input
+              className="w-28 min-w-28 px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-xs"
+              value={value}
+              placeholder="1d,2h,30m"
+              onChange={(event) =>
+                updateLocalRow(taskId, { alarmOffsets: event.target.value })
+              }
+              onBlur={(event) => {
+                const nextValue = event.target.value.trim()
+                saveUpdate(taskId, {
+                  alarmOffsets: nextValue ? nextValue : undefined,
+                })
+              }}
+            />
+          )
+        },
+      })] : []),
       columnHelper.accessor('remindBefore', {
         header: t('table.scheduled.col.remindBefore'),
         cell: (info) => {
@@ -986,6 +1022,14 @@ export function ScheduledTable() {
             label: t('table.scheduled.field.focusTime'),
             type: 'number' as FieldType,
           },
+          ...(alarmTestMode !== 'none'
+            ? [{
+                name: 'alarmOffsets',
+                label: t('table.scheduled.field.alarmOffsets'),
+                type: 'text' as FieldType,
+                placeholder: '1d,2h,30m',
+              }]
+            : []),
           {
             name: 'remindBefore',
             label: t('table.scheduled.field.remindBefore'),

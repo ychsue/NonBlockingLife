@@ -1,4 +1,5 @@
-import type { AlarmQueueItem } from '../db/schema'
+import type { AlarmQueueItem, ScheduledItem } from '../db/schema'
+import { buildAlarmQueueEntries } from './candidateUtils'
 
 export function getDueAlarmQueueEntries(
   items: AlarmQueueItem[],
@@ -24,6 +25,22 @@ export function mergeAlarmQueueEntries(
   }
 
   return Array.from(map.values()).sort((a, b) => a.alarmAt - b.alarmAt)
+}
+
+export function syncAlarmQueueFromScheduled(
+  scheduled: ScheduledItem[],
+  existing: AlarmQueueItem[] = [],
+  now: Date = new Date(),
+  horizonMs: number = 30 * 24 * 60 * 60 * 1000
+): AlarmQueueItem[] {
+  const desired = buildAlarmQueueEntries(scheduled, now, horizonMs)
+  const merged = mergeAlarmQueueEntries(existing, desired)
+
+  const desiredKeys = new Set(desired.map((item) => item.dedupeKey))
+  return merged.filter((item) => {
+    if (desiredKeys.has(item.dedupeKey)) return true
+    return item.state !== 'expired' && item.state !== 'triggered' && item.state !== 'dismissed'
+  })
 }
 
 /**

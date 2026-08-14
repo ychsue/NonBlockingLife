@@ -85,12 +85,12 @@ export function parseAlarmOffsets(offsets?: string | string[] | number[] | null)
 
 /**
  * 將 ScheduledItem 轉成 alarm_queue 的待處理項目。
- * 只包含下一個 24 小時內的提醒，並保留 dedupeKey 去除重複。
+ * 只包含下一個月內的提醒，並保留 dedupeKey 去除重複。
  */
 export function buildAlarmQueueEntries(
   scheduled: ScheduledItem[],
   now: Date = new Date(),
-  windowMs = 24 * 60 * 60 * 1000
+  windowMs = 30 * 24 * 60 * 60 * 1000
 ): AlarmQueueItem[] {
   const nowMs = now.getTime()
   const futureCutoff = nowMs + windowMs
@@ -98,7 +98,7 @@ export function buildAlarmQueueEntries(
 
   scheduled.forEach((task) => {
     if (!task.taskId || !task.nextRun) return
-    if (task.status && !['PENDING', 'INTERRUPTED', 'DOING'].includes(task.status)) return
+    if (task.status && !['PENDING', 'INTERRUPTED', 'DOING', 'WAITING'].includes(task.status)) return
 
     const rawOffsets = task.alarmOffsets ?? task.reminderOffsets ?? []
     const offsets = parseAlarmOffsets(rawOffsets)

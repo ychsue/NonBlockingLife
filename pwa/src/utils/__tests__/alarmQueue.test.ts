@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import type { AlarmQueueItem } from '../../db/schema'
-import { getDueAlarmQueueEntries, mergeAlarmQueueEntries } from '../alarmQueue'
+import type { AlarmQueueItem, ScheduledItem } from '../../db/schema'
+import { getDueAlarmQueueEntries, mergeAlarmQueueEntries, syncAlarmQueueFromScheduled } from '../alarmQueue'
 
 describe('alarmQueue helpers', () => {
   test('應僅回傳已到時且仍 pending 的提醒', () => {
@@ -30,5 +30,46 @@ describe('alarmQueue helpers', () => {
     const merged = mergeAlarmQueueEntries(existing, incoming)
     expect(merged.map((item) => item.taskId).sort()).toEqual(['A', 'B', 'C'])
     expect(merged.filter((item) => item.taskId === 'A')).toHaveLength(1)
+  })
+
+  test('syncAlarmQueueFromScheduled 應從 scheduled 重新計算 pending queue 並保留去重', () => {
+    const now = new Date('2026-08-15T12:00:00Z')
+    const scheduled: ScheduledItem[] = [
+      {
+        taskId: 'S01',
+        title: '每日提醒',
+        status: 'PENDING',
+        nextRun: new Date('2026-08-16T08:00:00Z').getTime(),
+        alarmOffsets: '1h,2h',
+        updatedAt: now.getTime(),
+      },
+    ]
+
+    const existing: AlarmQueueItem[] = [
+      {
+        taskId: 'S01',
+        alarmAt: new Date('2026-08-16T07:00:00Z').getTime(),
+        offsetMinutes: 60,
+        state: 'dismissed',
+        dedupeKey: 'S01:2026-08-16T07:00:00.000Z',
+        createdAt: now.getTime(),
+        updatedAt: now.getTime(),
+      },
+      {
+        taskId: 'S99',
+        alarmAt: new Date('2026-08-17T00:00:00Z').getTime(),
+        offsetMinutes: 30,
+        state: 'pending',
+        dedupeKey: 'S99:2026-08-17T00:00:00.000Z',
+        createdAt: now.getTime(),
+        updatedAt: now.getTime(),
+      },
+    ]
+
+    const synced = syncAlarmQueueFromScheduled(scheduled, existing, now)
+
+    expect(synced.map((item) => item.taskId).sort()).toEqual(['S01', 'S01', 'S99'])
+    expect(synced.find((item) => item.taskId === 'S01')?.state).toBe('pending')
+    expect(synced.filter((item) => item.taskId === 'S01')).toHaveLength(2)
   })
 })
