@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-08-14] 準備實作 alarm 的批次處理(二)
+- [12:07] 補上 alarmNotifications
+
 ## [2026-08-13] 準備實作 alarm 的批次處理
 請閱讀 [討論](Discussion/twa/alarm/discussion_20260813.md)
 - [16:50] 設好 schema `AlarmQueueItem` 與 `parseAlarmOffsets`

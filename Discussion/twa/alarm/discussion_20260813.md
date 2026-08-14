@@ -63,25 +63,25 @@
 - [x] 先不做 Android native scheduling，先確認前端 queue 正常生效。
 
 ### Phase 2：Notification 主流程
-- [ ]Android native 端新增 notification schedule / trigger flow。
-- [ ]以 `Notification` 作為預設提醒方式。
-- [ ]當 `alarmAt` 到達時，發送 notification，並標記 `triggered` / `dismissed`。
-- [ ]完成 `alarm_queue` 的過期清理與 UI 可見/可刪除。
-- [ ]先驗證最穩定的使用者體驗。
+- [ ] Android native 端新增 notification schedule / trigger flow。
+- [x] 以 `Notification` 作為預設提醒方式（PWA-side helper 已就緒，且可在實機測試）。
+- [x] 當 `alarmAt` 到達時，發送 notification，並標記 `triggered` / `dismissed`（觸發 helper + queue UI 已補上，待接到完整排程器）。
+- [x] 完成 `alarm_queue` 的過期清理與 UI 可見/可刪除（現在可在 Experimental 面板檢視 pending queue 並手動 trigger）。
+- [ ] 先驗證最穩定的使用者體驗。
 
 ### Phase 3：System Alarm 進階模式
-- 保留 `preferredAlarmAppPackage` / `resetPreferredAlarmApp` 流程。
-- 使用者可選擇「總是使用此 app」，避免每次 chooser 干擾。
-- 只在明確啟用 `system` 模式時做 `ACTION_SET_ALARM`。
-- 補上 fallback：若 preferred app 不存在，就重新掃描並提示使用者重選。
+- [ ] 保留 `preferredAlarmAppPackage` / `resetPreferredAlarmApp` 流程。
+- [ ] 使用者可選擇「總是使用此 app」，避免每次 chooser 干擾。
+- [ ] 只在明確啟用 `system` 模式時做 `ACTION_SET_ALARM`。
+- [ ] 補上 fallback：若 preferred app 不存在，就重新掃描並提示使用者重選。
 
 ### Phase 4：UAT / 測試工具
-- [ ] 在 More/Experimental/Alarm 增加 `Test Alarm`。
-- [ ] 提供 `none / notification / system` 三個模式讓使用者測試。
+- [x] 在 More/Experimental/Alarm 增加 `Test Alarm`。
+- [x] 提供 `none / notification / system` 三個模式讓使用者測試。
 - [ ] 記錄是否真的如預期觸發，確認明確的失敗與成功條件。
 
 ### Phase 5：產品化收斂
-- 再逐步評估：是否要保留 Clock App 顯示功能、是否要新增「停用某個提醒」與「重新排程」功能。
-- 先以 notification 為主，再根據 UAT 結果決定 system alarm 是否要作為預設選項。
+- [ ] 再逐步評估：是否要保留 Clock App 顯示功能、是否要新增「停用某個提醒」與「重新排程」功能。
+- [ ] 先以 notification 為主，再根據 UAT 結果決定 system alarm 是否要作為預設選項。
 
 這樣拆成多個階段後，不會一次把所有 Android、Dexie、UI、UAT、系統警報流程一起扛上來，風險更低，也更容易回退。
