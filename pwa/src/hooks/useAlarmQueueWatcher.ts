@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { db } from '../db'
 import type { AlarmQueueItem } from '../db/schema'
 import { triggerAlarmNotification } from '../utils/alarmNotifications'
+import type { AlarmQueueSyncPlan } from '../utils/alarmQueue'
 
 export function useAlarmQueueWatcher(enabled: boolean) {
   const [queueItems, setQueueItems] = useState<AlarmQueueItem[]>([])
@@ -29,6 +30,19 @@ export function useAlarmQueueWatcher(enabled: boolean) {
       window.clearInterval(intervalId)
     }
   }, [enabled, refreshQueue])
+
+  const applySyncPlan = useCallback(async (plan: AlarmQueueSyncPlan) => {
+    if (plan.toDelete.length > 0) {
+      await db.alarm_queue.bulkDelete(plan.toDelete)
+    }
+
+    if (plan.toUpdate.length > 0 || plan.toAdd.length > 0) {
+      await db.alarm_queue.bulkPut([...plan.toAdd, ...plan.toUpdate])
+    }
+
+    await refreshQueue()
+    return plan
+  }, [refreshQueue])
 
   const markItemState = useCallback(async (item: AlarmQueueItem, nextState: AlarmQueueItem['state']) => {
     if (!item.id) return false
@@ -70,6 +84,7 @@ export function useAlarmQueueWatcher(enabled: boolean) {
   return {
     queueItems,
     refreshQueue,
+    applySyncPlan,
     triggerItem,
     dismissItem,
     deleteItem,

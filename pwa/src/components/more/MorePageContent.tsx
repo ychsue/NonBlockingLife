@@ -267,19 +267,17 @@ function ExperimentPanel() {
   const showGlobalToast = useAppStore((state) => state.showGlobalToast);
   const alarmTestMode = useAppStore((state) => state.alarmTestMode);
   const setAlarmTestMode = useAppStore((state) => state.setAlarmTestMode);
-  const { queueItems, refreshQueue, triggerItem, dismissItem, deleteItem } = useAlarmQueueWatcher(enableExperimentalFeatures);
+  const { queueItems, refreshQueue, triggerItem, dismissItem, deleteItem, applySyncPlan } = useAlarmQueueWatcher(enableExperimentalFeatures);
   const [showDebug, setShowDebug] = useState(false);
 
   const handleSyncAlarmQueue = async () => {
     const scheduledRows = await db.scheduled.toArray();
     const existingRows = await db.alarm_queue.orderBy("alarmAt").toArray();
-    const nextRows = syncAlarmQueueFromScheduled(scheduledRows, existingRows, new Date(), 30 * 24 * 60 * 60 * 1000);
+    const plan = syncAlarmQueueFromScheduled(scheduledRows, existingRows, new Date(), 30 * 24 * 60 * 60 * 1000);
 
-    await db.alarm_queue.clear();
-    await db.alarm_queue.bulkPut(nextRows);
-    await refreshQueue();
+    await applySyncPlan(plan);
     showGlobalToast({
-      message: `${nextRows.length} alarm queue entries synced from scheduled items.`,
+      message: `${plan.toAdd.length + plan.toUpdate.length} alarm queue entries synced; ${plan.toDelete.length} removed.`,
       duration: 2500,
     });
   };

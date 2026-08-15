@@ -32,7 +32,7 @@ describe('alarmQueue helpers', () => {
     expect(merged.filter((item) => item.taskId === 'A')).toHaveLength(1)
   })
 
-  test('syncAlarmQueueFromScheduled 應從 scheduled 重新計算 pending queue 並保留去重', () => {
+  test('syncAlarmQueueFromScheduled 應產出新增/更新/刪除計畫，不直接清空 existing', () => {
     const now = new Date('2026-08-15T12:00:00Z')
     const scheduled: ScheduledItem[] = [
       {
@@ -47,6 +47,7 @@ describe('alarmQueue helpers', () => {
 
     const existing: AlarmQueueItem[] = [
       {
+        id: 1,
         taskId: 'S01',
         alarmAt: new Date('2026-08-16T07:00:00Z').getTime(),
         offsetMinutes: 60,
@@ -56,6 +57,7 @@ describe('alarmQueue helpers', () => {
         updatedAt: now.getTime(),
       },
       {
+        id: 2,
         taskId: 'S99',
         alarmAt: new Date('2026-08-17T00:00:00Z').getTime(),
         offsetMinutes: 30,
@@ -66,10 +68,10 @@ describe('alarmQueue helpers', () => {
       },
     ]
 
-    const synced = syncAlarmQueueFromScheduled(scheduled, existing, now)
+    const plan = syncAlarmQueueFromScheduled(scheduled, existing, now)
 
-    expect(synced.map((item) => item.taskId).sort()).toEqual(['S01', 'S01', 'S99'])
-    expect(synced.find((item) => item.taskId === 'S01')?.state).toBe('pending')
-    expect(synced.filter((item) => item.taskId === 'S01')).toHaveLength(2)
+    expect(plan.toAdd.length).toBeGreaterThan(0)
+    expect(plan.toDelete).toEqual([2])
+    expect(plan.keep.some((item) => item.taskId === 'S01')).toBe(true)
   })
 })

@@ -1,6 +1,13 @@
 import type { AlarmQueueItem, ScheduledItem } from '../db/schema'
 import { buildAlarmQueueEntries } from './candidateUtils'
 
+export interface AlarmQueueSyncPlan {
+  toAdd: AlarmQueueItem[]
+  toUpdate: AlarmQueueItem[]
+  toDelete: number[]
+  keep: AlarmQueueItem[]
+}
+
 export function getDueAlarmQueueEntries(
   items: AlarmQueueItem[],
   nowMs: number = Date.now()
@@ -32,15 +39,87 @@ export function syncAlarmQueueFromScheduled(
   existing: AlarmQueueItem[] = [],
   now: Date = new Date(),
   horizonMs: number = 30 * 24 * 60 * 60 * 1000
-): AlarmQueueItem[] {
+): AlarmQueueSyncPlan {
   const desired = buildAlarmQueueEntries(scheduled, now, horizonMs)
-  const merged = mergeAlarmQueueEntries(existing, desired)
+  const desiredByKey = new Map(desired.map((item) => [item.dedupeKey, item] as const))
+  const existingByKey = new Map(existing.map((item) => [item.dedupeKey, item] as const))
+  const nowMs = now.getTime()
+  const retentionMs = 24 * 60 * 60 * 1000
 
-  const desiredKeys = new Set(desired.map((item) => item.dedupeKey))
-  return merged.filter((item) => {
-    if (desiredKeys.has(item.dedupeKey)) return true
-    return item.state !== 'expired' && item.state !== 'triggered' && item.state !== 'dismissed'
-  })
+  const toAdd: AlarmQueueItem[] = []
+  const toUpdate: AlarmQueueItem[] = []
+  const toDelete: number[] = []
+  const keep: AlarmQueueItem[] = []
+  const seenKeys = new Set<string>()
+
+  for (const item of existing) {
+    const desiredItem = desiredByKey.get(item.dedupeKey)
+    const key = item.dedupeKey || `${item.taskId}:${item.alarmAt}`
+
+    // 沒有在 desired 中的項目，且是 pending 狀態，則刪除；若不是 pending，則保留一段時間後再刪除
+    if (!desiredItem) {
+      if (item.state === 'pending') {
+        if (item.id != null) {
+          toDelete.push(item.id)
+        }
+        continue
+      }
+
+      if (item.updatedAt > nowMs - retentionMs) {
+        keep.push(item)
+      } else if (item.id != null) {
+        toDelete.push(item.id)
+      }
+      continue
+    }
+
+    seenKeys.add(key)
+
+    // 給toUpdate的條件：狀態是 pending，且 alarmAt、offsetMinutes、title 或 state 有變化，然後補上 id、createdAt、updatedAt
+    const shouldUpdate =
+      item.state === 'pending' && (
+        item.alarmAt !== desiredItem.alarmAt ||
+        item.offsetMinutes !== desiredItem.offsetMinutes ||
+        item.title !== desiredItem.title ||
+        item.state !== desiredItem.state
+      )
+
+    if (shouldUpdate && item.id != null) {
+      toUpdate.push({
+        ...desiredItem,
+        id: item.id,
+        createdAt: item.createdAt || desiredItem.createdAt,
+        updatedAt: nowMs,
+      })
+      continue
+    }
+
+    // 保留現有的 pending 項目，或非 pending 的項目在保留期內
+    if (item.state !== 'pending') {
+      if (item.updatedAt > nowMs - retentionMs) {
+        keep.push(item)
+      } else if (item.id != null) {
+        toDelete.push(item.id)
+      }
+      continue
+    }
+
+    keep.push(item)
+  }
+
+  // 將 desired 中的項目加入 toAdd，排除已經存在的項目
+  for (const item of desired) {
+    if (existingByKey.has(item.dedupeKey)) continue
+    toAdd.push(item)
+    seenKeys.add(item.dedupeKey)
+  }
+
+  return {
+    toAdd: toAdd.sort((a, b) => a.alarmAt - b.alarmAt),
+    toUpdate: toUpdate.sort((a, b) => a.alarmAt - b.alarmAt),
+    toDelete: [...new Set(toDelete)],
+    keep: keep.sort((a, b) => a.alarmAt - b.alarmAt),
+  }
 }
 
 /**

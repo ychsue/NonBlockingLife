@@ -96,3 +96,52 @@
 其四，我後來覺得，其實應該在進入App.tsx 與 ScheduledTable.tsx 時 (useEffect(...., [])) 應該就可以了，所以，
 其五，Refresh 也許直接以放進 useEffect 裡面執行之物即可，對嗎？
 其六，所以是先把前端打造完， Android 端當成 Edge 或 API 或 PostMessage 來看待，unit測試時 Mock 他們，UAT前再實作，對嗎？
+
+---
+
+## [2026-08-15] 最終設計結論（結論型整理）
+
+### 1. queue sync 與 queue state 必須分開
+- `scheduled` 是 source of truth。
+- `alarm_queue` 是 derived queue + lifecycle history，不是單純快照。
+- `syncAlarmQueueFromScheduled()` 應該只產生「同步計畫」，不能直接 `clear()` 或 `bulkPut(merged)`，否則會把 `dismissed` / `triggered` / `expired` 混淆掉。
+
+### 2. 不要用 `clear()`，因為這會洗掉使用者已處理過的狀態
+- `dismissed` 表示使用者已關閉提醒
+- `triggered` 表示已真的觸發
+- `expired` 表示這個提醒已失效
+- 這些狀態都不是「可任意刪除」的 temporary 資料
+
+### 3. `sync` 應該輸出 plan：toAdd / toUpdate / toDelete
+- `toAdd`: 新增的 desired alarm entries
+- `toUpdate`: 同 `dedupeKey` 但資料已更新
+- `toDelete`: 已從 schedule 消失，或已過期且不再需要保留的紀錄
+- `keep`: 不需動作，保留在 DB
+
+### 4. 真正修改 DB 應該由 watcher 負責
+- [pwa/src/hooks/useAlarmQueueWatcher.ts](pwa/src/hooks/useAlarmQueueWatcher.ts) 應該接管 `applySyncPlan(plan)`
+- watcher 會執行 `bulkPut` / `bulkDelete` / `update`
+- Android adapter / PostMessage / native edge 也應該在 watcher 或 action layer 上被呼叫，而不是混進 sync 側計算邏輯
+
+### 5. 狀態變更與同步計算分流
+- `syncAlarmQueueFromScheduled()`：以 `scheduled` 為基準，產生 desired queue
+- `triggerItem()`：`pending -> triggered`
+- `dismissItem()`：`pending -> dismissed`
+- `expireItem()`：`pending -> expired`（在到期檢查中發生）
+- `pruneTerminalItems()`：刪除超出 TTL 的 `triggered/dismissed/expired`
+
+### 6. Android 端仍然是 edge / adapter，不是 scheduler 核心
+- 前端先把 local queue 做完整
+- Android 端在 UAT 前可當作 optional adapter / PostMessage bridge
+- unit test 可 mock 這些 native call，避免前端依賴系統環境
+
+## 重點摘要
+
+- 這個設計最終應該是「local scheduler first, native Android second」
+- `alarm_queue` 不應該被整張表重建；應該是增量同步 + TTL 清理
+- `syncAlarmQueueFromScheduled()` 應該是 pure planner，不寫資料庫
+- `watcher` 才是改 DB 和透過 adapter 溝通的責任區
+- `dismissed/triggered/expired` 是生命週期狀態，不應被 `clear()` 一次抹掉
+- `pending` 仍然是當前有效 queue 的核心資料
+
+這樣的拆法讓前端可先實作完整，Android 只在最後階段接到邊緣 API，而不會破壞主要 scheduling flow。
