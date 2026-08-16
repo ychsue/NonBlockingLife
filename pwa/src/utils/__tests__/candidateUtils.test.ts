@@ -55,7 +55,7 @@ describe('candidateUtils: 工具函數測試', () => {
           title: '提醒任務',
           status: 'PENDING',
           nextRun,
-          alarmOffsets: '1d,0,2h,2h,0,1d',
+          reminderOffsets: '1d,0,2h,2h,0,1d',
           updatedAt: now.getTime(),
         },
       ]

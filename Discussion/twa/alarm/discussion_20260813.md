@@ -135,6 +135,13 @@
 - Android 端在 UAT 前可當作 optional adapter / PostMessage bridge
 - unit test 可 mock 這些 native call，避免前端依賴系統環境
 
+### 7. 命名與責任邊界：不要把 `trigger` 當成「PWA 在時間點提醒使用者」
+- 這個 app 的核心使用情境是：使用者看一眼後就關閉，之後由系統在該時間點提醒自己。
+- 因此，PWA 不應該負責「在時間到時啟動提醒」，而是負責「排程與派送提醒時間」；Android / System 才負責「真的響起」
+- `trigger` 這個詞容易讓人誤會成前端 app 自己會在那個時間啟動 Notification，這不符合設計。
+- 更貼切的命名可用：`scheduleAlarm`、`armAlarm`、`setAlarmAt`、`dispatchToNative`、`fireNativeAlarm`
+- 在 UI 上，使用者真正看重的是：事件時間 + 提前多少；因此，`AlarmQueueItem` 最好保留 `eventAt`、`alarmAt`、`offsetMinutes`，不要只用單一 `alarmAt` 來表達語意
+
 ## 重點摘要
 
 - 這個設計最終應該是「local scheduler first, native Android second」
@@ -143,5 +150,7 @@
 - `watcher` 才是改 DB 和透過 adapter 溝通的責任區
 - `dismissed/triggered/expired` 是生命週期狀態，不應被 `clear()` 一次抹掉
 - `pending` 仍然是當前有效 queue 的核心資料
+- 對使用者而言，真正重要的是「事件時間 + 提前多久」，而不是單純看到 `alarmAt`
+- 命名上建議優先用 `scheduleAlarm` / `armAlarm`，避免把 `trigger` 用成前端提醒語意
 
 這樣的拆法讓前端可先實作完整，Android 只在最後階段接到邊緣 API，而不會破壞主要 scheduling flow。

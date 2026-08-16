@@ -57,7 +57,6 @@ export interface ScheduledItem {
   cronExpr?: string
   remindBefore?: string | number
   remindAfter?: string | number
-  alarmOffsets?: string | number[]
   reminderOffsets?: string | number[]
   callback?: string
   lastRun?: number

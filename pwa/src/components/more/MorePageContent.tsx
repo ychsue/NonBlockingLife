@@ -10,6 +10,7 @@ import { syncAlarmQueueFromScheduled } from "../../utils/alarmQueue";
 import { useAlarmQueueWatcher } from "../../hooks/useAlarmQueueWatcher";
 import { AlarmQueuePanel } from "./AlarmQueuePanel";
 import { db } from "../../db";
+import { buildTwaBridgePayload, listenForTwaMessages, sendTwaBridgeTestMessage, getTwaBridgeState } from "../../utils/twaBridge";
 
 type MoreTab = "settings" | "experiment";
 
@@ -269,6 +270,39 @@ function ExperimentPanel() {
   const setAlarmTestMode = useAppStore((state) => state.setAlarmTestMode);
   const { queueItems, refreshQueue, triggerItem, dismissItem, deleteItem, applySyncPlan } = useAlarmQueueWatcher(enableExperimentalFeatures);
   const [showDebug, setShowDebug] = useState(false);
+  const [twaMessageLog, setTwaMessageLog] = useState<string[]>([]);
+  const [twaBridgeReady, setTwaBridgeReady] = useState(false);
+
+  useState(() => {
+    const cleanup = listenForTwaMessages((event) => {
+      const payload = typeof event.data === 'object' && event.data ? (event.data as Record<string, unknown>) : { raw: String(event.data ?? '') };
+      const message = `Received from TWA: ${JSON.stringify(payload)}`;
+      setTwaMessageLog((current) => [message, ...current].slice(0, 10));
+      setTwaBridgeReady(true);
+    });
+
+    return cleanup;
+  });
+
+  const handleTwaBridgePing = () => {
+    const success = sendTwaBridgeTestMessage('pwa->twa bridge check');
+    setTwaMessageLog((current) => [
+      success ? 'Sent PWA test message via TWA bridge.' : 'TWA bridge port not ready yet.',
+      ...current,
+    ].slice(0, 10));
+  };
+
+  const handleSendTwaBridgeMessage = () => {
+    const payload = buildTwaBridgePayload('nbl:probe', { action: 'hello', from: 'pwa', time: Date.now() });
+    const port = getTwaBridgeState().port;
+    if (port) {
+      port.postMessage(payload);
+      setTwaMessageLog((current) => [`Sent two-way probe via port: ${JSON.stringify(payload)}`, ...current].slice(0, 10));
+      return;
+    }
+
+    setTwaMessageLog((current) => ['No TWA message port ready yet; waiting for Android bridge setup.', ...current].slice(0, 10));
+  };
 
   const handleSyncAlarmQueue = async () => {
     const scheduledRows = await db.scheduled.toArray();
@@ -388,6 +422,42 @@ function ExperimentPanel() {
                 </div>
               </div>
             {/* )} */}
+
+            <div className="rounded-lg border border-amber-200 bg-white p-3">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <h4 className="text-sm font-semibold text-gray-900">TWA bridge probe</h4>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleTwaBridgePing}
+                    className="rounded-md border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+                  >
+                    Send test
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendTwaBridgeMessage}
+                    className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100"
+                  >
+                    Two-way probe
+                  </button>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">
+                {twaBridgeReady ? 'TWA bridge is receiving messages.' : 'Waiting for TWA bridge connection to be ready.'}
+              </p>
+              <div className="mt-3 space-y-1">
+                {twaMessageLog.length === 0 ? (
+                  <div className="text-xs text-gray-500">No messages yet.</div>
+                ) : (
+                  twaMessageLog.map((message, index) => (
+                    <div key={`${message}-${index}`} className="rounded border border-gray-200 bg-gray-50 px-2 py-1 text-[11px] text-gray-700">
+                      {message}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
 
             <div className="rounded-lg border border-amber-200 bg-white p-3">
               <div className="mb-2 flex items-center justify-between gap-3">

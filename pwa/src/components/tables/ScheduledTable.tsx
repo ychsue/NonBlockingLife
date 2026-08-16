@@ -47,7 +47,7 @@ function createNewScheduledRow(taskId?: string, title?: string): ScheduledItem {
     cronExpr: cronExpr,
     remindBefore: '',
     remindAfter: '',
-    alarmOffsets: '',
+    reminderOffsets: '',
     callback: '',
     lastRun: undefined,
     note: '',
@@ -249,7 +249,7 @@ export function ScheduledTable() {
   const handleEditSave = async (data: Record<string, any>) => {
     if (!editingItem) return
 
-    const rawAlarmOffsets = data.alarmOffsets ?? ''
+    const rawAlarmOffsets = data.reminderOffsets ?? ''
     const normalizedAlarmOffsets =
       typeof rawAlarmOffsets === 'string'
         ? rawAlarmOffsets.trim() === ''
@@ -264,7 +264,7 @@ export function ScheduledTable() {
       cronExpr: data.cronExpr,
       remindBefore: data.remindBefore,
       remindAfter: data.remindAfter,
-      alarmOffsets: normalizedAlarmOffsets,
+      reminderOffsets: normalizedAlarmOffsets,
       callback: data.callback,
       lastRun: data.lastRun ? parseFromDateTimeLocal(data.lastRun) : undefined,
       nextRun: data.nextRun ? parseFromDateTimeLocal(data.nextRun) : undefined,
@@ -513,8 +513,8 @@ export function ScheduledTable() {
           )
         },
       }),
-      ...(alarmTestMode !== 'none' ? [columnHelper.accessor('alarmOffsets', {
-        header: t('table.scheduled.col.alarmOffsets'),
+      ...(alarmTestMode !== 'none' ? [columnHelper.accessor('reminderOffsets', {
+        header: t('table.scheduled.col.reminderOffsets'),
         cell: (info) => {
           const taskId = info.row.original.taskId
           const rawValue = info.getValue()
@@ -526,12 +526,12 @@ export function ScheduledTable() {
               value={value}
               placeholder="1d,2h,30m"
               onChange={(event) =>
-                updateLocalRow(taskId, { alarmOffsets: event.target.value })
+                updateLocalRow(taskId, { reminderOffsets: event.target.value })
               }
               onBlur={(event) => {
                 const nextValue = event.target.value.trim()
                 saveUpdate(taskId, {
-                  alarmOffsets: nextValue ? nextValue : undefined,
+                  reminderOffsets: nextValue ? nextValue : undefined,
                 })
               }}
             />
@@ -1024,8 +1024,8 @@ export function ScheduledTable() {
           },
           ...(alarmTestMode !== 'none'
             ? [{
-                name: 'alarmOffsets',
-                label: t('table.scheduled.field.alarmOffsets'),
+                name: 'reminderOffsets',
+                label: t('table.scheduled.field.reminderOffsets'),
                 type: 'text' as FieldType,
                 placeholder: '1d,2h,30m',
               }]

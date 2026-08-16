@@ -56,7 +56,7 @@ export function parseToMinutes(takesTime?: string | number): number | null {
 }
 
 /**
- * 解析 alarmOffsets 字串（例如 "1d,2h,0m" 或 "1d,2h,0"）
+ * 解析 reminderOffsets 字串（例如 "1d,2h,0m" 或 "1d,2h,0"）
  * 回傳逐段的分鐘偏移陣列，並忽略空白與不合法項目。
  */
 export function parseAlarmOffsets(offsets?: string | string[] | number[] | null): number[] {
@@ -100,7 +100,7 @@ export function buildAlarmQueueEntries(
     if (!task.taskId || !task.nextRun) return
     if (task.status && !['PENDING', 'INTERRUPTED', 'DOING', 'WAITING'].includes(task.status)) return
 
-    const rawOffsets = task.alarmOffsets ?? task.reminderOffsets ?? []
+    const rawOffsets = task.reminderOffsets ?? []
     const offsets = parseAlarmOffsets(rawOffsets)
     if (offsets.length === 0) return
 

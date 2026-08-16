@@ -40,7 +40,7 @@ describe('alarmQueue helpers', () => {
         title: '每日提醒',
         status: 'PENDING',
         nextRun: new Date('2026-08-16T08:00:00Z').getTime(),
-        alarmOffsets: '1h,2h',
+        reminderOffsets: '1h,2h',
         updatedAt: now.getTime(),
       },
     ]
