@@ -25,6 +25,7 @@ export function listenForTwaMessages(
   onMessage: (event: MessageEvent, port: MessagePort | null) => void
 ): () => void {
   const handler = (event: MessageEvent) => {
+    console.debug('Received message from TWA:', event.data, event.ports);
     const port = Array.isArray(event.ports) && event.ports.length > 0 ? event.ports[0] : null
     if (port) {
       TWA_BRIDGE_STATE.port = port
