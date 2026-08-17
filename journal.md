@@ -2,6 +2,8 @@
 
 ## [2026-08-16] 準備實作 alarm 的批次處理(五)
 - [09:17] 試著打通 PostMessage
+- [12:17] 藉由[範例的幫忙](https://github.com/GoogleChrome/android-browser-helper/tree/main/demos/twa-post-message)，後端似乎能動了，但是丟出去的前端收不到 
+   * [ ] [TwaPostMessageBridge.java](twa/app/src/main/java/com/yescirculation/nonblockinglife/TwaPostMessageBridge.java)裡面有用 `DEBUG` 來標示測試用的每兩秒丟前端，事後要移除，不過，前端收不到
 
 ## [2026-08-16] 準備實作 alarm 的批次處理(四)
 - [16:11] 準備測試 postMessage

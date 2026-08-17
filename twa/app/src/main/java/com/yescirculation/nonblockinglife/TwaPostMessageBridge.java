@@ -1,7 +1,12 @@
 package com.yescirculation.nonblockinglife;
 
+import android.annotation.SuppressLint;
+import android.os.Handler;
+import android.os.Looper;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,23 +18,41 @@ import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsService;
 import androidx.browser.customtabs.CustomTabsServiceConnection;
 import androidx.browser.customtabs.CustomTabsSession;
+import androidx.browser.trusted.TrustedWebActivityIntentBuilder;
+import androidx.core.content.ContextCompat;
 
 public class TwaPostMessageBridge {
     private static final String TAG = "NBL/TwaBridge";
     private static final Uri TARGET_ORIGIN = Uri.parse("https://ychsue.github.io");
+    private static final Uri URL = Uri.parse("https://ychsue.github.io/NonBlockingLife");
 
     private final Context context;
-    private CustomTabsSession session;
-    private boolean validated;
-    private boolean channelRequested;
+    private CustomTabsClient mClient;
+    private CustomTabsSession mSession;
+    private boolean validated = false;
+    private boolean channelRequested = false;
+
+    // Debugging only \\
+    private final Handler pingHandler = new Handler(Looper.getMainLooper());
+    private final Runnable pingRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (mSession != null) {
+                String msg = "{\"type\":\"nbl:ping\",\"source\":\"android\",\"ts\":" + System.currentTimeMillis() + "}";
+                int result = mSession.postMessage(msg, null);
+                Log.d(TAG, "ping result = " + result + " / " + msg);
+            }
+            pingHandler.postDelayed(this, 2000);
+        }
+    };
+    //\\ Debugging only //
 
     private TwaPostMessageBridge(Context context) {
         this.context = context.getApplicationContext();
     }
 
     public static void bindFrom(Context context) {
-        TwaPostMessageBridge bridge = new TwaPostMessageBridge(context);
-        bridge.bind();
+        new TwaPostMessageBridge(context).bind();
     }
 
     private void bind() {
@@ -50,30 +73,43 @@ public class TwaPostMessageBridge {
                             @NonNull CustomTabsClient client
                     ) {
                         mClient = client;
-
-                        Log.d(TAG, "CustomTabsService connected.");
                         client.warmup(0L);
-                        session = mClient.newSession(customTabsCallback);
-                        if (session == null) {
+                        mSession = mClient.newSession(customTabsCallback);
+                        if (mSession == null) {
                             Log.w(TAG, "CustomTabsSession is null; postMessage cannot start.");
                             return;
                         }
 
-                        Log.i(TAG, "CustomTabsSession created. Requesting relationship validation.");
-                        // 主動要求驗證網域關係
-                        session.validateRelationship(
-                                CustomTabsService.RELATION_USE_AS_ORIGIN,
-                                TARGET_ORIGIN,
-                                null
-                        );
+                        Log.d(TAG, "CustomTabsSession created.");
+                        launchTrustedWebActivity();
+                        registerBroadcastReceiver();
                     }
 
                     @Override
                     public void onServiceDisconnected(ComponentName name) {
                         Log.w(TAG, "TWA CustomTabs service disconnected.");
-                        session = null;
+                        mClient = null;
                     }
                 }
+        );
+    }
+
+    private void launchTrustedWebActivity() {
+        TrustedWebActivityIntentBuilder builder = new TrustedWebActivityIntentBuilder(URL);
+        Intent intent = builder.build(mSession).getIntent();
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+    }
+
+    @SuppressLint("WrongConstant")
+    private void registerBroadcastReceiver() {
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(PostMessageBroadcastReceiver.POST_MESSAGE_ACTION);
+        ContextCompat.registerReceiver(
+                context,
+                new PostMessageBroadcastReceiver(mSession),
+                intentFilter,
+                ContextCompat.RECEIVER_NOT_EXPORTED
         );
     }
 
@@ -86,20 +122,16 @@ public class TwaPostMessageBridge {
                 @Nullable Bundle extras
         ) {
             validated = result;
-            Log.i(TAG, "Relationship validation: " + requestedOrigin + " => " + result + " (relation=" + relation + ")");
-            
-            if (result && relation == CustomTabsService.RELATION_USE_AS_ORIGIN && session != null) {
-                if (!channelRequested) {
-                    Log.d(TAG, "USE_AS_ORIGIN validated. Requesting postMessage channel.");
-                    channelRequested = session.requestPostMessageChannel(
-                            TARGET_ORIGIN,
-                            TARGET_ORIGIN,
-                            new Bundle()
-                    );
-                    Log.i(TAG, "requestPostMessageChannel => " + channelRequested);
-                } else {
-                    Log.d(TAG, "Channel already requested previously.");
-                }
+            Log.d(TAG, "Relationship validation: " + requestedOrigin + " => " + result + " (relation=" + relation + ")");
+
+        if (result && relation == CustomTabsService.RELATION_USE_AS_ORIGIN && mSession != null /*&& !channelRequested*/) {
+                Log.d(TAG, "USE_AS_ORIGIN validated. Requesting postMessage channel.");
+                // channelRequested = mSession.requestPostMessageChannel(
+                //         TARGET_ORIGIN,
+                //         TARGET_ORIGIN,
+                //         new Bundle()
+                // );
+                Log.d(TAG, "requestPostMessageChannel => " + channelRequested);
             }
         }
 
@@ -110,39 +142,45 @@ public class TwaPostMessageBridge {
                 return;
             }
 
-            if (session == null) {
-                Log.w(TAG, "Session is null when navigation event occurred.");
+            if (mSession == null) {
+                Log.w(TAG, "Session is null when navigation finished.");
                 return;
             }
 
-            // If validation was already successful but channel wasn't requested, try one more time
-            if (validated && !channelRequested) {
-                Log.d(TAG, "Navigation finished. Requesting channel (validated=" + validated + ")");
-                channelRequested = session.requestPostMessageChannel(
+            if (!validated) {
+                Log.w(TAG, "Validation did not succeed before requesting postMessage channel.");
+            }
+
+            if (!channelRequested) {
+                Log.d(TAG, "Navigation finished. Requesting channel.");
+                channelRequested = mSession.requestPostMessageChannel(
                         TARGET_ORIGIN,
                         TARGET_ORIGIN,
                         new Bundle()
                 );
-                Log.i(TAG, "requestPostMessageChannel (fallback) => " + channelRequested);
+                Log.d(TAG, "requestPostMessageChannel (fallback) => " + channelRequested);
             }
         }
 
         @Override
         public void onMessageChannelReady(@Nullable Bundle extras) {
-            Log.i(TAG, "Message channel ready. Sending Android-ready message.");
-            if (session != null) {
-                int result = session.postMessage(buildAndroidReadyMessage(), null);
-                Log.i(TAG, "postMessage(android-ready) result = " + result);
+            Log.d(TAG, "Message channel ready.");
+            pingHandler.postDelayed(pingRunnable, 2000); //Debugging only: start pinging every 2 seconds
+            if (mSession != null) {
+                int result = mSession.postMessage(buildAndroidReadyMessage(), null);
+                Log.d(TAG, "postMessage(android-ready) result = " + result);
             }
         }
 
         @Override
         public void onPostMessage(@NonNull String message, @Nullable Bundle extras) {
-            Log.i(TAG, "Received message from PWA: " + message);
-            if (session != null) {
+            super.onPostMessage(message, extras);
+            Log.d(TAG, "Received from PWA: " + message);
+
+            if (mSession != null) {
                 String response = buildReplyMessage(message);
-                int result = session.postMessage(response, null);
-                Log.i(TAG, "Reply result = " + result + ", payload = " + response);
+                int result = mSession.postMessage(response, null);
+                Log.d(TAG, "PostMessage reply result = " + result + ", payload = " + response);
             }
         }
     };
@@ -152,7 +190,7 @@ public class TwaPostMessageBridge {
     }
 
     private String buildReplyMessage(String receivedMessage) {
-        return "{\"type\":\"nbl:android-reply\",\"source\":\"twa\",\"status\":\"ok\",\"received\":"
-                + (receivedMessage == null ? "\"\"" : "\"" + receivedMessage.replace("\"", "\\\"") + "\"") + ",\"sentAt\":" + System.currentTimeMillis() + "}";
+        String safeReceived = receivedMessage == null ? "" : receivedMessage.replace("\"", "\\\"");
+        return "{\"type\":\"nbl:android-reply\",\"source\":\"twa\",\"status\":\"ok\",\"received\":\"" + safeReceived + "\",\"sentAt\":" + System.currentTimeMillis() + "}";
     }
 }
