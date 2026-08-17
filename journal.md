@@ -8,6 +8,7 @@
 - [13:46] beta.3 加些 debug 看看
 - [14:08] beta.5 改由 index.html 來初始化 port看看
 - [16:26] beta.6 避免有多個 session，還是不能拿掉 index.html
+- [21:36] beta.7 懷疑 postMessage 的 port 只存活一下下，所以，拿到後立刻回傳看看。
 
 ## [2026-08-16] 準備實作 alarm 的批次處理(四)
 - [16:11] 準備測試 postMessage

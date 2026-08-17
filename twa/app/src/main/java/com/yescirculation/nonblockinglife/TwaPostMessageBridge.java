@@ -11,8 +11,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.browser.customtabs.CustomTabsCallback;
@@ -26,15 +24,13 @@ import androidx.core.content.ContextCompat;
 public class TwaPostMessageBridge {
     private static final String TAG = "NBL/TwaBridge";
     private static final Uri TARGET_ORIGIN = Uri.parse("https://ychsue.github.io");
-    private static final Uri URL = Uri.parse("https://ychsue.github.io/NonBlockingLife/index.html");
-    private static final AtomicBoolean BRIDGE_ACTIVE = new AtomicBoolean(false);
+    private static final Uri URL = Uri.parse("https://ychsue.github.io/NonBlockingLife/");
 
     private final Context context;
     private CustomTabsClient mClient;
     private CustomTabsSession mSession;
     private boolean validated = false;
     private boolean channelRequested = false;
-    private boolean launched = false;
 
     // Debugging only \\
     private final Handler pingHandler = new Handler(Looper.getMainLooper());
@@ -56,11 +52,6 @@ public class TwaPostMessageBridge {
     }
 
     public static void bindFrom(Context context) {
-        if (!BRIDGE_ACTIVE.compareAndSet(false, true)) {
-            Log.d(TAG, "Bridge already active; skipping duplicate bind.");
-            return;
-        }
-
         new TwaPostMessageBridge(context).bind();
     }
 
@@ -104,12 +95,6 @@ public class TwaPostMessageBridge {
     }
 
     private void launchTrustedWebActivity() {
-        if (launched || mSession == null) {
-            return;
-        }
-
-        launched = true;
-        Log.d(TAG, "Launching trusted web activity with session.");
         TrustedWebActivityIntentBuilder builder = new TrustedWebActivityIntentBuilder(URL);
         Intent intent = builder.build(mSession).getIntent();
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -128,20 +113,6 @@ public class TwaPostMessageBridge {
         );
     }
 
-    private void ensureChannelRequested() {
-        if (mSession == null || channelRequested) {
-            return;
-        }
-
-        Log.d(TAG, "Requesting postMessage channel once.");
-        channelRequested = mSession.requestPostMessageChannel(
-                TARGET_ORIGIN,
-                TARGET_ORIGIN,
-                new Bundle()
-        );
-        Log.d(TAG, "requestPostMessageChannel => " + channelRequested);
-    }
-
     private final CustomTabsCallback customTabsCallback = new CustomTabsCallback() {
         @Override
         public void onRelationshipValidationResult(
@@ -153,9 +124,9 @@ public class TwaPostMessageBridge {
             validated = result;
             Log.d(TAG, "Relationship validation: " + requestedOrigin + " => " + result + " (relation=" + relation + ")");
 
-            if (result && relation == CustomTabsService.RELATION_USE_AS_ORIGIN) {
+        if (result && relation == CustomTabsService.RELATION_USE_AS_ORIGIN && mSession != null) {
                 Log.d(TAG, "USE_AS_ORIGIN validated. Requesting postMessage channel.");
-                ensureChannelRequested();
+                Log.d(TAG, "requestPostMessageChannel => " + channelRequested);
             }
         }
 
@@ -175,13 +146,19 @@ public class TwaPostMessageBridge {
                 Log.w(TAG, "Validation did not succeed before requesting postMessage channel.");
             }
 
-            ensureChannelRequested();
+            Log.d(TAG, "Navigation finished. Requesting channel.");
+            channelRequested = mSession.requestPostMessageChannel(
+                    TARGET_ORIGIN,
+                    TARGET_ORIGIN,
+                    new Bundle()
+            );
+            Log.d(TAG, "requestPostMessageChannel (fallback) => " + channelRequested);
         }
 
         @Override
         public void onMessageChannelReady(@Nullable Bundle extras) {
             Log.d(TAG, "Message channel ready.");
-            pingHandler.postDelayed(pingRunnable, 2000); //Debugging only: start pinging every 2 seconds
+            pingHandler.postDelayed(pingRunnable, 5000); //Debugging only: start pinging every 2 seconds
             if (mSession != null) {
                 int result = mSession.postMessage(buildAndroidReadyMessage(), null);
                 Log.d(TAG, "postMessage(android-ready) result = " + result);
