@@ -14,6 +14,38 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      window.__NBL_TWA_BRIDGE__ = window.__NBL_TWA_BRIDGE__ || {
+        port: null,
+        connected: false,
+        lastMessage: null,
+      };
+
+      const forwardTwaMessage = (event) => {
+        const port = Array.isArray(event.ports) && event.ports.length > 0 ? event.ports[0] : null;
+        window.__NBL_TWA_BRIDGE__.port = port;
+        window.__NBL_TWA_BRIDGE__.connected = Boolean(port);
+        window.__NBL_TWA_BRIDGE__.lastMessage = event.data;
+
+        window.dispatchEvent(
+          new CustomEvent('nbl:twa:message', {
+            detail: {
+              data: event.data,
+              port,
+              timestamp: Date.now(),
+            },
+          }),
+        );
+      };
+
+      window.addEventListener('message', (event) => {
+        console.debug('[index.html] TWA message received data:', event.data);
+        console.debug('[index.html] TWA message origin:', event.origin);
+        console.debug('[index.html] TWA message source:', event.source);
+        console.debug('[index.html] TWA message ports:', event.ports);
+        forwardTwaMessage(event);
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

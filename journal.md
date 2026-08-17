@@ -6,6 +6,7 @@
    * [ ] [TwaPostMessageBridge.java](twa/app/src/main/java/com/yescirculation/nonblockinglife/TwaPostMessageBridge.java)裡面有用 `DEBUG` 來標示測試用的每兩秒丟前端，事後要移除，不過，前端收不到
 - [13:16] 加 listen at App.tsx ，然後頁面起始於 MorePageContent.tsx，偶而可以取得 port 的樣子，但還是不能傳輸。 -_-
 - [13:46] beta.3 加些 debug 看看
+- [14:08] beta.5 改由 index.html 來初始化 port看看
 
 ## [2026-08-16] 準備實作 alarm 的批次處理(四)
 - [16:11] 準備測試 postMessage

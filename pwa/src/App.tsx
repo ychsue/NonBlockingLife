@@ -60,14 +60,30 @@ export default function App() {
   const { isMobile, isTooSmall } = useResponsiveTable();
 
   useEffect(() => {
-    // 監聽來自 TWA (Android) 的通訊埠
     const cleanup = listenForTwaMessages((event, port) => {
-      console.log("TWA Bridge initialized via App.tsx", event.data);
+      console.log('[App.tsx] TWA bridge event received', event.data, port);
+      const portInfo = port ? `MessagePort bound: ${String(port)}` : 'No MessagePort yet';
+      console.log(portInfo);
+
       if (port) {
-        console.log("TWA MessagePort received and bound.");
+        port.onmessage = (replyEvent) => {
+          console.log('[App.tsx] Android replied via port', replyEvent.data);
+        };
       }
     });
-    return cleanup;
+
+    const forwardFromGlobal = (event: Event) => {
+      const detail = (event as CustomEvent<{ data: unknown; port: MessagePort | null }>).detail;
+      if (!detail) return;
+      console.log('[App.tsx] Forwarded TWA event from index.html', detail.data, detail.port);
+    };
+
+    window.addEventListener('nbl:twa:message', forwardFromGlobal);
+
+    return () => {
+      cleanup();
+      window.removeEventListener('nbl:twa:message', forwardFromGlobal);
+    };
   }, []);
 
   const nextLocale =
