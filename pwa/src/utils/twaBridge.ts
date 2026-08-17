@@ -25,11 +25,30 @@ export function listenForTwaMessages(
   onMessage: (event: MessageEvent, port: MessagePort | null) => void
 ): () => void {
   const handler = (event: MessageEvent) => {
-    console.debug('Received message from TWA:', event.data, event.ports);
+    console.debug('Received data from TWA:', event.data);
+    console.debug('Event origin:', event.origin);
+    console.debug('Event source:', event.source);
+    console.debug('Event ports:', event.ports);
+
     const port = Array.isArray(event.ports) && event.ports.length > 0 ? event.ports[0] : null
     if (port) {
       TWA_BRIDGE_STATE.port = port
       TWA_BRIDGE_STATE.connected = true
+      DEBUG:{
+        port.postMessage({
+          type: 'nbl:debug-port-connected-from-pwa',
+          from: 'pwa',
+          ts: Date.now(),
+        })
+        console.debug('Sent debug message to TWA port:', {
+          type: 'nbl:debug-port-connected-from-pwa',
+          from: 'pwa',
+          ts: Date.now(), 
+        });
+      }
+    } else {
+      TWA_BRIDGE_STATE.connected = false
+      console.warn('No MessagePort found in the event. TWA bridge may not be connected.');
     }
 
     TWA_BRIDGE_STATE.lastMessage = {
