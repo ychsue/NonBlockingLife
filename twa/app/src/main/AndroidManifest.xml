@@ -27,14 +27,13 @@
 
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM"/>
 
+  <queries>
+    <intent>
+      <action android:name="android.support.customtabs.action.CustomTabsService" />
+    </intent>
+  </queries>
 
-    
-
-    
-
-    
-
-    <application
+  <application
         android:name="Application"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -199,6 +198,10 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/filepaths" />
         </provider>
+
+        <service
+            android:name="androidx.browser.customtabs.PostMessageService"
+            android:exported="true" />
 
         <service
             android:name=".DelegationService"

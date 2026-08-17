@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DebugLogPage } from "../debug/DebugLogPage";
 import { useAppStore, type AlarmTestMode } from "../../store/appStore";
 import { useProductTourContext } from "../tour/ProductTourContext";
@@ -273,7 +273,7 @@ function ExperimentPanel() {
   const [twaMessageLog, setTwaMessageLog] = useState<string[]>([]);
   const [twaBridgeReady, setTwaBridgeReady] = useState(false);
 
-  useState(() => {
+  useEffect(() => {
     const cleanup = listenForTwaMessages((event) => {
       const payload = typeof event.data === 'object' && event.data ? (event.data as Record<string, unknown>) : { raw: String(event.data ?? '') };
       const message = `Received from TWA: ${JSON.stringify(payload)}`;
@@ -282,7 +282,7 @@ function ExperimentPanel() {
     });
 
     return cleanup;
-  });
+  }, []);
 
   const handleTwaBridgePing = () => {
     const success = sendTwaBridgeTestMessage('pwa->twa bridge check');

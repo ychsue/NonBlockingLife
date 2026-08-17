@@ -15,6 +15,7 @@ import { GuidePage } from "./components/GuidePage";
 import { TutorialCarousel } from "./components/TutorialCarousel";
 import { db } from "./db/index";
 import "./styles.css";
+import { listenForTwaMessages } from "./utils/twaBridge";
 import { ResourceTable } from "./components/tables/ResourceTable";
 import { MacroTable } from "./components/tables/MacroTable";
 import { MorePage } from "./components/MorePage";
@@ -57,6 +58,17 @@ export default function App() {
   const defaultTitleRef = useRef(BASE_TITLE);
   const previousRunningTaskIdRef = useRef<string | null>(null);
   const { isMobile, isTooSmall } = useResponsiveTable();
+
+  useEffect(() => {
+    // 監聽來自 TWA (Android) 的通訊埠
+    const cleanup = listenForTwaMessages((event, port) => {
+      console.log("TWA Bridge initialized via App.tsx", event.data);
+      if (port) {
+        console.log("TWA MessagePort received and bound.");
+      }
+    });
+    return cleanup;
+  }, []);
 
   const nextLocale =
     locale === "zh-TW" ? "en" : locale === "en" ? "ja" : "zh-TW";

@@ -1,7 +1,18 @@
 # Journal
 
+## [2026-08-16] 準備實作 alarm 的批次處理(五)
+- [09:17] 試著打通 PostMessage
+
 ## [2026-08-16] 準備實作 alarm 的批次處理(四)
 - [16:11] 準備測試 postMessage
+強制重新驗證 assetlinks，指令如下：
+``` ps1
+# 1. 重設驗證狀態
+adb shell pm set-app-links --package com.yescirculation.nonblockinglife 0 all
+
+# 2. 強制立即重新驗證
+adb shell pm verify-app-links --re-verify com.yescirculation.nonblockinglife
+```
 
 ## [2026-08-15] 準備實作 alarm 的批次處理(三)
 - [12:59] 在 [討論](Discussion/twa/alarm/discussion_20260813.md#2026-08-15-最終設計結論結論型整理) 裡面，將 `syncAlarmQueueFromScheduled()` 改成純 planner，並且將 `applySyncPlan(plan)` 移到 watcher 裡面，這樣就可以避免在 sync 的時候直接修改 DB，造成狀態混亂的問題了。
