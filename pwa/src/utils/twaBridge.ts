@@ -47,7 +47,7 @@ export function listenForTwaMessages(
         });
       }
     } else {
-      TWA_BRIDGE_STATE.connected = false
+      // TWA_BRIDGE_STATE.connected = false
       console.warn('No MessagePort found in the event. TWA bridge may not be connected.');
     }
 
