@@ -10,7 +10,7 @@ import { syncAlarmQueueFromScheduled } from "../../utils/alarmQueue";
 import { useAlarmQueueWatcher } from "../../hooks/useAlarmQueueWatcher";
 import { AlarmQueuePanel } from "./AlarmQueuePanel";
 import { db } from "../../db";
-import { buildTwaBridgePayload, listenForTwaMessages, sendTwaBridgeTestMessage, getTwaBridgeState } from "../../utils/twaBridge";
+import { buildTwaBridgePayload, listenForTwaMessages, sendTwaBridgeTestMessage, getTwaBridgeState, postMessageToTwa } from "../../utils/twaBridge";
 
 type MoreTab = "settings" | "experiment";
 
@@ -296,7 +296,7 @@ function ExperimentPanel() {
     const payload = buildTwaBridgePayload('nbl:probe', { action: 'hello', from: 'pwa', time: Date.now() });
     const port = getTwaBridgeState().port;
     if (port) {
-      port.postMessage(payload);
+      postMessageToTwa(port, payload);
       setTwaMessageLog((current) => [`Sent two-way probe via port: ${JSON.stringify(payload)}`, ...current].slice(0, 10));
       return;
     }

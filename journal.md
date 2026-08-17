@@ -9,6 +9,8 @@
 - [14:08] beta.5 改由 index.html 來初始化 port看看
 - [16:26] beta.6 避免有多個 session，還是不能拿掉 index.html
 - [21:36] beta.7 懷疑 postMessage 的 port 只存活一下下，所以，拿到後立刻回傳看看。
+- [22:06] 發現原來 ts 端不可以傳 `{...}` 物件給 `port.postMessage(...)`，這樣是接不到的，一定要 `JSON.stringify({....})`
+- [08/18 07:38] beta.8 改餵 String 給 `port.postMessage(...)`，這樣才能被 JAVA postMessage 接到，然後再由 JAVA 端 `new JSONObject(...)` 解析成物件，這樣就可以了。
 
 ## [2026-08-16] 準備實作 alarm 的批次處理(四)
 - [16:11] 準備測試 postMessage

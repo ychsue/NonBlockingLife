@@ -52,11 +52,11 @@
 
         const payload = {
           type: 'nbl:pwa-ping',
-          from: 'pwa',
-          ts: Date.now(),
+          source: 'pwa',
+          sentAt: Date.now(),
         };
 
-        port.postMessage(payload);
+        port.postMessage(JSON.stringify(payload));
         console.log('[index.html] Sent TWA ping to Android:', payload);
         return true;
       };
@@ -68,11 +68,11 @@
         if (port) {
           console.log('[index.html] TWA bridge ready. Current state:', window.__NBL_TWA_BRIDGE__);
           //立刻回傳看看onPostMessage是否正常
-          port.postMessage({
+          port.postMessage(JSON.stringify({
             type: 'pwa-get-port',
-            from: 'pwa',
-            ts: Date.now(),
-          });
+            source: 'pwa',
+            sentAt: Date.now(),
+          }));
         }
 
         window.dispatchEvent(

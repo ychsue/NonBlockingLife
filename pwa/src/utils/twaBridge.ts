@@ -21,6 +21,17 @@ function isMessageEvent(value: unknown): value is MessageEvent {
   return typeof value === 'object' && value !== null && 'data' in value
 }
 
+export function postMessageToTwa(port: MessagePort | null, message: TwaBridgeMessage): boolean {
+  if (port) {
+    port.postMessage(JSON.stringify(message));
+    console.debug('[twaBridge.ts] Sent message via port:', message);
+    return true
+  }
+
+  console.warn('[twaBridge.ts] No TWA port available yet; cannot send message.')
+  return false
+}
+
 export function listenForTwaMessages(
   onMessage: (event: MessageEvent, port: MessagePort | null) => void
 ): () => void {
@@ -39,10 +50,10 @@ export function listenForTwaMessages(
       TWA_BRIDGE_STATE.port = port
       TWA_BRIDGE_STATE.connected = true
       console.debug('[twaBridge.ts] port bound; sending debug ping back to Android.')
-      port.postMessage({
+      postMessageToTwa(port, {
         type: 'nbl:pwa-ready',
-        from: 'pwa',
-        ts: Date.now(),
+        source: 'pwa',
+        sentAt: Date.now(),
       })
     } else {
       console.warn('[twaBridge.ts] No MessagePort in event; channel not ready yet.')
@@ -87,8 +98,7 @@ export function sendTwaMessage(message: TwaBridgeMessage): boolean {
   const port = TWA_BRIDGE_STATE.port
 
   if (port) {
-    port.postMessage(message)
-    console.debug('[twaBridge.ts] Sent message via port:', message)
+    postMessageToTwa(port, message)
     return true
   }
 

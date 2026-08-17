@@ -24,7 +24,7 @@ import androidx.core.content.ContextCompat;
 public class TwaPostMessageBridge {
     private static final String TAG = "NBL/TwaBridge";
     private static final Uri TARGET_ORIGIN = Uri.parse("https://ychsue.github.io");
-    private static final Uri URL = Uri.parse("https://ychsue.github.io/NonBlockingLife/");
+    private static final Uri URL = Uri.parse("https://ychsue.github.io/NonBlockingLife/index.html");
 
     private final Context context;
     private CustomTabsClient mClient;
@@ -158,7 +158,7 @@ public class TwaPostMessageBridge {
         @Override
         public void onMessageChannelReady(@Nullable Bundle extras) {
             Log.d(TAG, "Message channel ready.");
-            pingHandler.postDelayed(pingRunnable, 5000); //Debugging only: start pinging every 2 seconds
+//            pingHandler.postDelayed(pingRunnable, 5000); //Debugging only: start pinging every 2 seconds
             if (mSession != null) {
                 int result = mSession.postMessage(buildAndroidReadyMessage(), null);
                 Log.d(TAG, "postMessage(android-ready) result = " + result);
