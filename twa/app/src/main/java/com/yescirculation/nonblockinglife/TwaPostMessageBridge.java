@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.browser.customtabs.CustomTabsCallback;
@@ -24,13 +26,15 @@ import androidx.core.content.ContextCompat;
 public class TwaPostMessageBridge {
     private static final String TAG = "NBL/TwaBridge";
     private static final Uri TARGET_ORIGIN = Uri.parse("https://ychsue.github.io");
-    private static final Uri URL = Uri.parse("https://ychsue.github.io/NonBlockingLife");
+    private static final Uri URL = Uri.parse("https://ychsue.github.io/NonBlockingLife/index.html");
+    private static final AtomicBoolean BRIDGE_ACTIVE = new AtomicBoolean(false);
 
     private final Context context;
     private CustomTabsClient mClient;
     private CustomTabsSession mSession;
     private boolean validated = false;
     private boolean channelRequested = false;
+    private boolean launched = false;
 
     // Debugging only \\
     private final Handler pingHandler = new Handler(Looper.getMainLooper());
@@ -52,6 +56,11 @@ public class TwaPostMessageBridge {
     }
 
     public static void bindFrom(Context context) {
+        if (!BRIDGE_ACTIVE.compareAndSet(false, true)) {
+            Log.d(TAG, "Bridge already active; skipping duplicate bind.");
+            return;
+        }
+
         new TwaPostMessageBridge(context).bind();
     }
 
@@ -95,6 +104,12 @@ public class TwaPostMessageBridge {
     }
 
     private void launchTrustedWebActivity() {
+        if (launched || mSession == null) {
+            return;
+        }
+
+        launched = true;
+        Log.d(TAG, "Launching trusted web activity with session.");
         TrustedWebActivityIntentBuilder builder = new TrustedWebActivityIntentBuilder(URL);
         Intent intent = builder.build(mSession).getIntent();
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -113,6 +128,20 @@ public class TwaPostMessageBridge {
         );
     }
 
+    private void ensureChannelRequested() {
+        if (mSession == null || channelRequested) {
+            return;
+        }
+
+        Log.d(TAG, "Requesting postMessage channel once.");
+        channelRequested = mSession.requestPostMessageChannel(
+                TARGET_ORIGIN,
+                TARGET_ORIGIN,
+                new Bundle()
+        );
+        Log.d(TAG, "requestPostMessageChannel => " + channelRequested);
+    }
+
     private final CustomTabsCallback customTabsCallback = new CustomTabsCallback() {
         @Override
         public void onRelationshipValidationResult(
@@ -124,14 +153,9 @@ public class TwaPostMessageBridge {
             validated = result;
             Log.d(TAG, "Relationship validation: " + requestedOrigin + " => " + result + " (relation=" + relation + ")");
 
-        if (result && relation == CustomTabsService.RELATION_USE_AS_ORIGIN && mSession != null /*&& !channelRequested*/) {
+            if (result && relation == CustomTabsService.RELATION_USE_AS_ORIGIN) {
                 Log.d(TAG, "USE_AS_ORIGIN validated. Requesting postMessage channel.");
-                // channelRequested = mSession.requestPostMessageChannel(
-                //         TARGET_ORIGIN,
-                //         TARGET_ORIGIN,
-                //         new Bundle()
-                // );
-                Log.d(TAG, "requestPostMessageChannel => " + channelRequested);
+                ensureChannelRequested();
             }
         }
 
@@ -151,15 +175,7 @@ public class TwaPostMessageBridge {
                 Log.w(TAG, "Validation did not succeed before requesting postMessage channel.");
             }
 
-            if (!channelRequested) {
-                Log.d(TAG, "Navigation finished. Requesting channel.");
-                channelRequested = mSession.requestPostMessageChannel(
-                        TARGET_ORIGIN,
-                        TARGET_ORIGIN,
-                        new Bundle()
-                );
-                Log.d(TAG, "requestPostMessageChannel (fallback) => " + channelRequested);
-            }
+            ensureChannelRequested();
         }
 
         @Override

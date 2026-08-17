@@ -15,17 +15,55 @@
   <body>
     <div id="root"></div>
     <script>
+      console.debug('[index.html] Initializing TWA bridge... location:', window.location.href);
       window.__NBL_TWA_BRIDGE__ = window.__NBL_TWA_BRIDGE__ || {
         port: null,
         connected: false,
         lastMessage: null,
+        eventLog: [],
+      };
+
+      const updateBridgeState = (event, port) => {
+        const state = window.__NBL_TWA_BRIDGE__;
+        state.port = port;
+        state.connected = Boolean(port);
+        state.lastMessage = event?.data ?? null;
+        state.eventLog = [...(state.eventLog || []), {
+          data: event?.data ?? null,
+          origin: event?.origin ?? null,
+          ports: event?.ports ?? [],
+          ts: Date.now(),
+        }].slice(-20);
+
+        if (port && port.onmessage === null) {
+          port.onmessage = (portEvent) => {
+            console.log('[index.html] Android replied via port:', portEvent.data);
+            state.lastMessage = portEvent.data;
+          };
+        }
+      };
+
+      window.__NBL_TWA_BRIDGE__.ping = function pingTwaPort() {
+        const port = window.__NBL_TWA_BRIDGE__.port;
+        if (!port) {
+          console.warn('[index.html] No TWA port yet; cannot ping Android.');
+          return false;
+        }
+
+        const payload = {
+          type: 'nbl:pwa-ping',
+          from: 'pwa',
+          ts: Date.now(),
+        };
+
+        port.postMessage(payload);
+        console.log('[index.html] Sent TWA ping to Android:', payload);
+        return true;
       };
 
       const forwardTwaMessage = (event) => {
         const port = Array.isArray(event.ports) && event.ports.length > 0 ? event.ports[0] : null;
-        window.__NBL_TWA_BRIDGE__.port = port;
-        window.__NBL_TWA_BRIDGE__.connected = Boolean(port);
-        window.__NBL_TWA_BRIDGE__.lastMessage = event.data;
+        updateBridgeState(event, port);
 
         window.dispatchEvent(
           new CustomEvent('nbl:twa:message', {
@@ -39,12 +77,18 @@
       };
 
       window.addEventListener('message', (event) => {
-        console.debug('[index.html] TWA message received data:', event.data);
-        console.debug('[index.html] TWA message origin:', event.origin);
-        console.debug('[index.html] TWA message source:', event.source);
-        console.debug('[index.html] TWA message ports:', event.ports);
+        console.debug('[index.html] TWA message event:', {
+          url: window.location.href,
+          data: event.data,
+          origin: event.origin,
+          source: event.source,
+          portsLength: event.ports?.length ?? 0,
+          ports: event.ports ?? [],
+        });
         forwardTwaMessage(event);
       });
+
+      console.log('[index.html] TWA bridge ready. Current state:', window.__NBL_TWA_BRIDGE__);
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>

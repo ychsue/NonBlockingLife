@@ -25,30 +25,27 @@ export function listenForTwaMessages(
   onMessage: (event: MessageEvent, port: MessagePort | null) => void
 ): () => void {
   const handler = (event: MessageEvent) => {
-    console.debug('Received data from TWA:', event.data);
-    console.debug('Event origin:', event.origin);
-    console.debug('Event source:', event.source);
-    console.debug('Event ports:', event.ports);
+    console.debug('[twaBridge.ts] event:', {
+      data: event.data,
+      origin: event.origin,
+      source: event.source,
+      ports: event.ports,
+      url: window.location.href,
+    });
 
     const port = Array.isArray(event.ports) && event.ports.length > 0 ? event.ports[0] : null
+
     if (port) {
       TWA_BRIDGE_STATE.port = port
       TWA_BRIDGE_STATE.connected = true
-      DEBUG:{
-        port.postMessage({
-          type: 'nbl:debug-port-connected-from-pwa',
-          from: 'pwa',
-          ts: Date.now(),
-        })
-        console.debug('Sent debug message to TWA port:', {
-          type: 'nbl:debug-port-connected-from-pwa',
-          from: 'pwa',
-          ts: Date.now(), 
-        });
-      }
+      console.debug('[twaBridge.ts] port bound; sending debug ping back to Android.')
+      port.postMessage({
+        type: 'nbl:pwa-ready',
+        from: 'pwa',
+        ts: Date.now(),
+      })
     } else {
-      // TWA_BRIDGE_STATE.connected = false
-      console.warn('No MessagePort found in the event. TWA bridge may not be connected.');
+      console.warn('[twaBridge.ts] No MessagePort in event; channel not ready yet.')
     }
 
     TWA_BRIDGE_STATE.lastMessage = {
@@ -61,10 +58,24 @@ export function listenForTwaMessages(
     onMessage(event, port)
   }
 
+  const customHandler = (event: Event) => {
+    const detail = (event as CustomEvent<{ data: unknown; port: MessagePort | null }>).detail
+    if (!detail) return
+
+    const synthetic = new MessageEvent('message', {
+      data: detail.data,
+      origin: window.location.origin,
+      ports: detail.port ? [detail.port] : [],
+    })
+    handler(synthetic)
+  }
+
   window.addEventListener('message', handler)
+  window.addEventListener('nbl:twa:message', customHandler as EventListener)
 
   return () => {
     window.removeEventListener('message', handler)
+    window.removeEventListener('nbl:twa:message', customHandler as EventListener)
   }
 }
 
@@ -77,10 +88,24 @@ export function sendTwaMessage(message: TwaBridgeMessage): boolean {
 
   if (port) {
     port.postMessage(message)
+    console.debug('[twaBridge.ts] Sent message via port:', message)
     return true
   }
 
+  console.warn('[twaBridge.ts] No TWA port available yet; cannot send message.')
   return false
+}
+
+export function pingTwaBridge(): boolean {
+  return sendTwaMessage({
+    type: 'nbl:pwa-ping',
+    payload: {
+      from: 'pwa',
+      ts: Date.now(),
+    },
+    sentAt: Date.now(),
+    source: 'pwa',
+  })
 }
 
 export function sendTwaBridgeTestMessage(label: string): boolean {

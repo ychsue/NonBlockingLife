@@ -62,28 +62,16 @@ export default function App() {
   useEffect(() => {
     const cleanup = listenForTwaMessages((event, port) => {
       console.log('[App.tsx] TWA bridge event received', event.data, port);
-      const portInfo = port ? `MessagePort bound: ${String(port)}` : 'No MessagePort yet';
-      console.log(portInfo);
 
       if (port) {
         port.onmessage = (replyEvent) => {
+          console.log('[App.tsx] this port', port);
           console.log('[App.tsx] Android replied via port', replyEvent.data);
         };
       }
     });
 
-    const forwardFromGlobal = (event: Event) => {
-      const detail = (event as CustomEvent<{ data: unknown; port: MessagePort | null }>).detail;
-      if (!detail) return;
-      console.log('[App.tsx] Forwarded TWA event from index.html', detail.data, detail.port);
-    };
-
-    window.addEventListener('nbl:twa:message', forwardFromGlobal);
-
-    return () => {
-      cleanup();
-      window.removeEventListener('nbl:twa:message', forwardFromGlobal);
-    };
+    return cleanup;
   }, []);
 
   const nextLocale =
