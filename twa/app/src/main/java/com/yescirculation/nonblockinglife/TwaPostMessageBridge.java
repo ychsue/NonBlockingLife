@@ -3,8 +3,8 @@ package com.yescirculation.nonblockinglife;
 import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.os.Looper;
+import android.app.Activity;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
@@ -22,11 +22,13 @@ import androidx.browser.trusted.TrustedWebActivityIntentBuilder;
 import androidx.core.content.ContextCompat;
 
 public class TwaPostMessageBridge {
+    private static TwaPostMessageBridge instance;
+
     private static final String TAG = "NBL/TwaBridge";
     private static final Uri TARGET_ORIGIN = Uri.parse("https://ychsue.github.io");
-    private static final Uri URL = Uri.parse("https://ychsue.github.io/NonBlockingLife/index.html");
+    private static final Uri URL = Uri.parse("https://ychsue.github.io/NonBlockingLife/");
 
-    private final Context context;
+    private final Activity context;
     private CustomTabsClient mClient;
     private CustomTabsSession mSession;
     private boolean validated = false;
@@ -47,15 +49,34 @@ public class TwaPostMessageBridge {
     };
     //\\ Debugging only //
 
-    private TwaPostMessageBridge(Context context) {
-        this.context = context.getApplicationContext();
+    TwaPostMessageBridge(Activity activity) {
+        this.context = activity;
     }
 
-    public static void bindFrom(Context context) {
-        new TwaPostMessageBridge(context).bind();
+    public static void bindFrom(Activity activity) {
+        instance = new TwaPostMessageBridge(activity);
+        instance.bind();
     }
 
-    private void bind() {
+    public static TwaPostMessageBridge getInstance() {
+        return instance;
+    }
+
+    public void requestChannelAgain() {
+        if (mSession != null) {
+            Log.d(TAG, "Requesting postMessage channel again.");
+            channelRequested = mSession.requestPostMessageChannel(
+                    TARGET_ORIGIN,
+                    TARGET_ORIGIN,
+                    new Bundle()
+            );
+            Log.d(TAG, "requestPostMessageChannel (manual) => " + channelRequested);
+        } else {
+            Log.w(TAG, "Cannot request postMessage channel; session is null.");
+        }
+    }
+
+    void bind() {
         String packageName = CustomTabsClient.getPackageName(context, null);
         if (packageName == null) {
             Log.w(TAG, "No Chrome/CustomTabs package available for postMessage testing.");
@@ -132,7 +153,7 @@ public class TwaPostMessageBridge {
 
         @Override
         public void onNavigationEvent(int navigationEvent, @Nullable Bundle extras) {
-            Log.d(TAG, "onNavigationEvent: " + navigationEvent);
+            Log.d(TAG, "[" + System.identityHashCode(this) + "] onNavigationEvent: " + navigationEvent);
             if (navigationEvent != NAVIGATION_FINISHED) {
                 return;
             }
@@ -144,6 +165,13 @@ public class TwaPostMessageBridge {
 
             if (!validated) {
                 Log.w(TAG, "Validation did not succeed before requesting postMessage channel.");
+            }
+
+            //睡 0.1 秒，避免在某些情況下，TWA 還沒完全啟動就去 requestPostMessageChannel，導致失敗
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Log.w(TAG, "Sleep interrupted: " + e.getMessage());
             }
 
             Log.d(TAG, "Navigation finished. Requesting channel.");

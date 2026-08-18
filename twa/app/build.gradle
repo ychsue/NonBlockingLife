@@ -152,6 +152,9 @@ android {
     }
     buildTypes {
         release {
+            //測試
+            signingConfig = signingConfigs.debug
+
             minifyEnabled true
         }
     }

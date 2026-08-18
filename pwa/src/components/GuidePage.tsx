@@ -135,6 +135,20 @@ export function GuidePage() {
     }
   }
 
+  const handleSetNotificationPermission = async (next: 'granted' | 'denied') => {
+    if (next === 'granted') {
+      await handleRequestNotificationPermission()
+      return
+    }
+
+    if (typeof Notification === 'undefined') {
+      setNotificationPermission('unsupported')
+      return
+    }
+
+    setNotificationPermission('denied')
+  }
+
   function isVideoForCurrentLocale(video: typeof VIDEO_RESOURCES[number]) {
     if (!!!video.language) return true; // If no language specified, show for all locales
     if (locale === 'zh-TW') {
@@ -226,25 +240,63 @@ export function GuidePage() {
             <p className="text-sm text-amber-700">此瀏覽器目前不支援 Web Notification。</p>
           )}
 
-          {notificationPermission === 'granted' && (
-            <p className="text-sm text-green-700">已啟用通知權限。背景時可收到工作狀態提醒。</p>
+          {(notificationPermission === 'granted' || notificationPermission === 'default') && (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="inline-flex rounded-full border border-sky-200 bg-sky-50 p-1">
+                <button
+                  type="button"
+                  onClick={() => void handleSetNotificationPermission('granted')}
+                  disabled={requestingPermission || notificationPermission === 'granted'}
+                  className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                    notificationPermission === 'granted'
+                      ? 'bg-sky-600 text-white shadow-sm'
+                      : 'text-sky-700 hover:bg-sky-100'
+                  }`}
+                >
+                  {requestingPermission ? '請稍候...' : '允許'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleSetNotificationPermission('denied')}
+                  className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${ 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  停用
+                </button>
+              </div>
+
+              <p className="text-sm text-gray-600">
+                {notificationPermission === 'granted'
+                  ? '已啟用通知權限。背景時可收到工作狀態提醒。'
+                  : '若你選擇允許，系統會請求通知權限；若已被封鎖，可在下方直接重試。'}
+              </p>
+            </div>
           )}
 
           {notificationPermission === 'denied' && (
-            <p className="text-sm text-amber-700">
-              已封鎖通知。請到瀏覽器網站權限設定將 Notifications 改為 Allow。
-            </p>
-          )}
+            <div className="space-y-3">
+              <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-1">
+                <button
+                  type="button"
+                  onClick={() => void handleSetNotificationPermission('granted')}
+                  disabled={requestingPermission}
+                  className="rounded-full bg-sky-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {requestingPermission ? '請稍候...' : '重新允許'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleSetNotificationPermission('denied')}
+                  className="rounded-full px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                >
+                  已停用
+                </button>
+              </div>
 
-          {notificationPermission === 'default' && (
-            <button
-              type="button"
-              onClick={handleRequestNotificationPermission}
-              disabled={requestingPermission}
-              className="inline-flex items-center justify-center rounded-md bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {requestingPermission ? '請稍候...' : '啟用背景通知'}
-            </button>
+              <p className="text-sm text-amber-700">
+                已封鎖通知。若是 TWA/Android App 內部狀態，點「重新允許」會再請求一次；若瀏覽器仍拒絕，請到系統或瀏覽器設定將 Notifications 改為 Allow。
+              </p>
+            </div>
           )}
         </div>
       </div>

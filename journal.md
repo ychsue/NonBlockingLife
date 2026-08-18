@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-08-18] 準備實作 alarm 的批次處理(六)
+- [20:40] beta.9 修改 Notification Allow/Deny 的流程，然後改singleTask，然後在 onNavigationEvent 請他睡個 0.1s 再 requestPostMessageChannel，這樣就可以避免在某些情況下，前端已經預熱。
+
 ## [2026-08-16] 準備實作 alarm 的批次處理(五)
 - [09:17] 試著打通 PostMessage
 - [12:17] 藉由[範例的幫忙](https://github.com/GoogleChrome/android-browser-helper/tree/main/demos/twa-post-message)，後端似乎能動了，但是丟出去的前端收不到 

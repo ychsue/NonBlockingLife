@@ -78,7 +78,7 @@
         
 
         <activity android:name="LauncherActivity"
-            android:launchMode="standard"
+            android:launchMode="singleTask"
             android:label="@string/launcherName"
             android:exported="true">
             <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL"
@@ -164,13 +164,24 @@
                 <data android:mimeType="text/plain"/>
             </intent-filter>
 
-            
+
         </activity>
 
         <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity" />
 
         <activity android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
             android:configChanges="orientation|screenSize" />
+
+        <activity android:name=".RequestPortActivity" android:exported="true"
+            android:launchMode="singleTask">
+            <!-- 支援內部 Scheme 喚醒以請求 Port -->
+            <intent-filter>
+                <data android:scheme="nonblockinglife" android:host="request-port"/>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>            
+        </activity>
 
         <activity android:name=".ClockTriggerActivity" android:exported="true"
         android:launchMode="singleTask">
