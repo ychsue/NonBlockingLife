@@ -118,6 +118,13 @@ public class TwaPostMessageBridge {
     private void launchTrustedWebActivity() {
         TrustedWebActivityIntentBuilder builder = new TrustedWebActivityIntentBuilder(URL);
         Intent intent = builder.build(mSession).getIntent();
+        
+        // 指定使用的套件，避免出現 Intent Chooser
+        String packageName = CustomTabsClient.getPackageName(context, null);
+        if (packageName != null) {
+            intent.setPackage(packageName);
+        }
+        
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }

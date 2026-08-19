@@ -2,6 +2,7 @@
 *secret*
 .clasp.json
 appsscript.json
+local.properties
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

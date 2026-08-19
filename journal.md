@@ -1,5 +1,12 @@
 # Journal
 
+## [2026-08-19] 準備實作 alarm 的批次處理(七)
+終於能build release 了，用
+```cmd
+gradlew.bat :app:signingReport
+```
+可以看到 sha256 release 的值，竟然沒在 assetlinks.json 裡面？
+
 ## [2026-08-18] 準備實作 alarm 的批次處理(六)
 - [20:40] beta.9 修改 Notification Allow/Deny 的流程，然後改singleTask，然後在 onNavigationEvent 請他睡個 0.1s 再 requestPostMessageChannel，這樣就可以避免在某些情況下，前端已經預熱。
 
@@ -24,6 +31,9 @@ adb shell pm set-app-links --package com.yescirculation.nonblockinglife 0 all
 
 # 2. 強制立即重新驗證
 adb shell pm verify-app-links --re-verify com.yescirculation.nonblockinglife
+
+# 3. 檢查驗證結果
+adb shell pm get-app-links com.yescirculation.nonblockinglife
 ```
 
 ## [2026-08-15] 準備實作 alarm 的批次處理(三)
