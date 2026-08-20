@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-08-20] 準備實作 alarm 的批次處理(八)
+- [09:40] 先不要使用 androidBrowserHelper 看看，
+
 ## [2026-08-19] 準備實作 alarm 的批次處理(七)
 終於能build release 了，用
 ```cmd

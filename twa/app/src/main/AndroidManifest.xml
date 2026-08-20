@@ -34,241 +34,147 @@
   </queries>
 
   <application
-        android:name="Application"
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/appName"
-        
-        android:manageSpaceActivity="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
-        
-        android:supportsRtl="true"
-        android:theme="@android:style/Theme.Translucent.NoTitleBar">
-
+      android:name=".Application"
+      android:allowBackup="true"
+      android:icon="@mipmap/ic_launcher"
+      android:label="@string/appName"
+      android:supportsRtl="true"
+      android:theme="@style/Theme.AppCompat.NoActionBar">
+    <activity
+        android:name=".TwaPostMessageTesterActivity"
+        android:launchMode="singleTask"
+        android:label="@string/launcherName"
+        android:exported="true">
         <meta-data
             android:name="asset_statements"
             android:resource="@string/assetStatements" />
-
-        
-            <meta-data
-                android:name="web_manifest_url"
-                android:value="@string/webManifestUrl" />
-        
-
+        <meta-data
+            android:name="web_manifest_url"
+            android:value="@string/webManifestUrl" />
         <meta-data
             android:name="twa_generator"
             android:value="@string/generatorApp" />
 
-        
+        <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL"
+            android:value="@string/launchUrl" />
+        <meta-data
+            android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
+            android:resource="@color/colorPrimary" />
+        <meta-data
+            android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR_DARK"
+            android:resource="@color/colorPrimaryDark" />
+        <meta-data
+            android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
+            android:resource="@color/navigationColor" />
+        <meta-data
+            android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR_DARK"
+            android:resource="@color/navigationColorDark" />
+        <meta-data
+            android:name="androidx.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR"
+            android:resource="@color/navigationDividerColor" />
+        <meta-data
+            android:name="androidx.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR_DARK"
+            android:resource="@color/navigationDividerColorDark" />
+        <meta-data android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
+            android:resource="@drawable/splash"/>
+        <meta-data android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
+            android:resource="@color/backgroundColor"/>
+        <meta-data android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
+            android:value="@integer/splashScreenFadeOutDuration"/>
+        <meta-data android:name="android.support.customtabs.trusted.FILE_PROVIDER_AUTHORITY"
+            android:value="@string/providerAuthority"/>
+        <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        <meta-data android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
+            android:value="@string/fallbackType" />
+        <meta-data android:name="android.support.customtabs.trusted.SCREEN_ORIENTATION"
+            android:value="@string/orientation"/>
 
-        
-
-        
-            <activity android:name="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
-                android:exported="false"
-                android:enabled="true"
-                android:excludeFromRecents="true">
-                <meta-data
-                    android:name="android.support.customtabs.trusted.MANAGE_SPACE_URL"
-                    android:value="@string/launchUrl" />
-                <intent-filter>
-                    <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
-                    <category android:name="android.intent.category.DEFAULT" />
-                </intent-filter>
-            </activity>
-        
-
-        <activity android:name="LauncherActivity"
-            android:launchMode="singleTask"
-            android:label="@string/launcherName"
-            android:exported="true">
-            <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL"
-                android:value="@string/launchUrl" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
-                android:resource="@color/colorPrimary" />
-
-            
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR_DARK"
-                android:resource="@color/colorPrimaryDark" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
-                android:resource="@color/navigationColor" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR_DARK"
-                android:resource="@color/navigationColorDark" />
-
-            <meta-data
-                android:name="androidx.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR"
-                android:resource="@color/navigationDividerColor" />
-
-            <meta-data
-                android:name="androidx.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR_DARK"
-                android:resource="@color/navigationDividerColorDark" />
-
-            <meta-data android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
-                android:resource="@drawable/splash"/>
-
-            <meta-data android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
-                android:resource="@color/backgroundColor"/>
-
-            <meta-data android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
-                android:value="@integer/splashScreenFadeOutDuration"/>
-
-            <meta-data android:name="android.support.customtabs.trusted.FILE_PROVIDER_AUTHORITY"
-                android:value="@string/providerAuthority"/>
-
-            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
-
-            <meta-data android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
-                android:value="@string/fallbackType" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.METADATA_SHARE_TARGET"
-                android:value='{"action":"/NonBlockingLife/?action=share-to-inbox","method":"GET","enctype":"application/x-www-form-urlencoded","params":{"title":"title","text":"text","url":"url"}}' />
-
-            
-
-            
-
-            <meta-data android:name="android.support.customtabs.trusted.SCREEN_ORIENTATION"
+        <meta-data
+            android:name="android.support.customtabs.trusted.METADATA_SHARE_TARGET"
+            android:value='{"action":"/NonBlockingLife/?action=share-to-inbox","method":"GET","enctype":"application/x-www-form-urlencoded","params":{"title":"title","text":"text","url":"url"}}' />
+        <meta-data android:name="android.support.customtabs.trusted.SCREEN_ORIENTATION"
                 android:value="@string/orientation"/>
 
-            
-
-            
-
-            
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="https"
-                    android:host="@string/hostName"
-                    android:pathPrefix="/NonBlockingLife" />
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT"/>
-                <data android:mimeType="text/plain"/>
-            </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
 
 
-        </activity>
+      <intent-filter android:autoVerify="true">
+          <action android:name="android.intent.action.VIEW"/>
+          <category android:name="android.intent.category.DEFAULT" />
+          <category android:name="android.intent.category.BROWSABLE"/>
+          <data android:scheme="https"
+              android:host="@string/hostName"
+              android:pathPrefix="/NonBlockingLife" />
+      </intent-filter>
+      <intent-filter>
+          <action android:name="android.intent.action.SEND" />
+          <category android:name="android.intent.category.DEFAULT"/>
+          <data android:mimeType="text/plain"/>
+      </intent-filter>
 
-        <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity" />
+    </activity>
 
-        <activity android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
-            android:configChanges="orientation|screenSize" />
+    <activity android:name=".ClockTriggerActivity" android:exported="true"
+    android:launchMode="singleTask">
+        <intent-filter android:label="Clock Router">
+            <data android:scheme="nonblockinglife" android:host="show-clock"/>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+        </intent-filter>
+        <intent-filter android:label="Clock Router">
+            <data android:scheme="nonblockinglife" android:host="set-timer"/>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+        </intent-filter>
+    </activity>
 
-        <activity android:name=".RequestPortActivity" android:exported="true"
-            android:launchMode="singleTask">
-            <!-- 支援內部 Scheme 喚醒以請求 Port -->
-            <intent-filter>
-                <data android:scheme="nonblockinglife" android:host="request-port"/>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-            </intent-filter>            
-        </activity>
-
-        <activity android:name=".ClockTriggerActivity" android:exported="true"
-        android:launchMode="singleTask">
-            <intent-filter android:label="Clock Router">
-                <data android:scheme="nonblockinglife" android:host="show-clock"/>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-            </intent-filter>
-
-            <intent-filter android:label="Clock Router">
-                <data android:scheme="nonblockinglife" android:host="set-timer"/>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-            </intent-filter>
-        </activity>
-
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="@string/providerAuthority"
-            android:grantUriPermissions="true"
-            android:exported="false">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/filepaths" />
-        </provider>
-
-        <service
-            android:name="androidx.browser.customtabs.PostMessageService"
-            android:exported="true" />
-
-        <service
-            android:name=".DelegationService"
-            android:enabled="@bool/enableNotification"
-            android:exported="@bool/enableNotification">
-
-            
-                <meta-data
-                    android:name="android.support.customtabs.trusted.SMALL_ICON"
-                    android:resource="@drawable/ic_notification_icon" />
-            
-
-            <intent-filter>
-                <action android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_SERVICE"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-            </intent-filter>
-        </service>
-
-        
-            <activity android:name="com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"
-            android:excludeFromRecents="true" />
-
-        <receiver android:name=".QueryWidgetProvider" android:exported="true" android:label="NBL Query" android:icon="@android:drawable/ic_menu_search">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data android:name="android.appwidget.provider"
-                android:resource="@xml/widget_query_info" />
-        </receiver>
-
-        <receiver android:name=".MacroWidgetProvider" android:exported="true" android:label="NBL Macro" android:icon="@mipmap/ic_extension">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data android:name="android.appwidget.provider"
-                android:resource="@xml/widget_macro_info" />
-        </receiver>
-
-        <receiver android:name=".AddInboxWidgetProvider" android:exported="true" android:label="NBL Add Inbox" android:icon="@android:drawable/ic_input_add">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data android:name="android.appwidget.provider"
-                android:resource="@xml/widget_add_info" />
-        </receiver>
-
-        <receiver android:name=".CombinedWidgetProvider" android:exported="true" android:label="NBL Quick Tools" android:icon="@mipmap/ic_launcher">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data android:name="android.appwidget.provider"
-                android:resource="@xml/widget_combined_info" />
-        </receiver>
+    <provider
+        android:name="androidx.core.content.FileProvider"
+        android:authorities="@string/providerAuthority"
+        android:grantUriPermissions="true"
+        android:exported="false">
+        <meta-data
+            android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/filepaths" />
+    </provider>
 
 
-        
-    </application>
+    <service android:name="androidx.browser.customtabs.PostMessageService"
+        android:exported="true"/>
+
+    <receiver android:name=".QueryWidgetProvider" android:exported="true" android:label="NBL Query" android:icon="@android:drawable/ic_menu_search">
+        <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+        <meta-data android:name="android.appwidget.provider"
+            android:resource="@xml/widget_query_info" />
+    </receiver>
+    <receiver android:name=".MacroWidgetProvider" android:exported="true" android:label="NBL Macro" android:icon="@mipmap/ic_extension">
+        <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+        <meta-data android:name="android.appwidget.provider"
+            android:resource="@xml/widget_macro_info" />
+    </receiver>
+    <receiver android:name=".AddInboxWidgetProvider" android:exported="true" android:label="NBL Add Inbox" android:icon="@android:drawable/ic_input_add">
+        <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+        <meta-data android:name="android.appwidget.provider"
+            android:resource="@xml/widget_add_info" />
+    </receiver>
+    <receiver android:name=".CombinedWidgetProvider" android:exported="true" android:label="NBL Quick Tools" android:icon="@mipmap/ic_launcher">
+        <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+        <meta-data android:name="android.appwidget.provider"
+            android:resource="@xml/widget_combined_info" />
+    </receiver>
+
+  </application>
 </manifest>

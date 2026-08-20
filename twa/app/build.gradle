@@ -63,14 +63,14 @@ android {
         resValues true
     }
 
-    signingConfigs {
-        release {
-            storeFile rootProject.file('android.keystore')
-            storePassword localProperties['RELEASE_STORE_PASSWORD']
-            keyAlias 'android'
-            keyPassword localProperties['RELEASE_KEY_PASSWORD']
-        }
-    }
+     signingConfigs {
+         release {
+             storeFile rootProject.file('android.keystore')
+             storePassword localProperties['RELEASE_STORE_PASSWORD']
+             keyAlias 'android'
+             keyPassword localProperties['RELEASE_KEY_PASSWORD']
+         }
+     }
 
     defaultConfig {
         applicationId "com.yescirculation.nonblockinglife"
