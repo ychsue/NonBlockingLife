@@ -40,9 +40,8 @@ public class TwaPostMessageTesterActivity extends AppCompatActivity {
         Uri launchingUri = getLaunchingUrl(getIntent());
 
         // This is the right place to bind the service for postMessage testing.
-        bindCustomTabsService();
+        bindCustomTabsService(launchingUri);
 
-        launchTwa(mSession, launchingUri);
     }
 
     @Override
@@ -52,7 +51,7 @@ public class TwaPostMessageTesterActivity extends AppCompatActivity {
 
         // 取得 Launching URL
         Uri launchingUri = getLaunchingUrl(getIntent());
-        launchTwa(mSession, launchingUri);
+        launch(launchingUri);
     }
 
     private Uri getLaunchingUrl(Intent intent) {
@@ -96,17 +95,6 @@ public class TwaPostMessageTesterActivity extends AppCompatActivity {
 
         // 3. 預設行為
         return URL;
-    }
-
-    private void launchTwa(CustomTabsSession session, Uri launchingUri) {
-        CustomTabsIntent customTabsIntent = new CustomTabsIntent.Builder(session)
-                // 可自訂標題列隱藏、顏色等
-                .setShowTitle(false)
-                .build();
-
-        // 關鍵：將控制權交給 Chrome Custom Tabs，並帶著你的 Session 與 Launching URL
-        customTabsIntent.intent.setData(launchingUri);
-        customTabsIntent.launchUrl(this, launchingUri);
     }
 
     private final CustomTabsCallback customTabsCallback = new CustomTabsCallback() {
@@ -157,7 +145,7 @@ public class TwaPostMessageTesterActivity extends AppCompatActivity {
         }
     };
 
-    private void bindCustomTabsService() {
+    private void bindCustomTabsService(Uri launchingUri) {
         String packageName = CustomTabsClient.getPackageName(this, null);
         if (packageName == null) {
             Log.w(TAG, "No compatible browser package found. Cannot bind to CustomTabs service.");
@@ -174,7 +162,7 @@ public class TwaPostMessageTesterActivity extends AppCompatActivity {
                         client.warmup(0L);
                         mSession = mClient.newSession(customTabsCallback);
                         if (mSession != null) {
-                            launch();
+                            launch(launchingUri);
                             registerBroadcastReceiver();
                         }
                     }
@@ -186,8 +174,8 @@ public class TwaPostMessageTesterActivity extends AppCompatActivity {
                 });
     }
 
-    private void launch() {
-        new TrustedWebActivityIntentBuilder(URL)
+    private void launch(Uri launchingUri) {
+        new TrustedWebActivityIntentBuilder(launchingUri)
                 .build(mSession)
                 .launchTrustedWebActivity(TwaPostMessageTesterActivity.this);
     }
