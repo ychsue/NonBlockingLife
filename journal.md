@@ -2,7 +2,19 @@
 
 ## [2026-08-20] 準備實作 alarm 的批次處理(八)
 - [09:40] 先不要使用 androidBrowserHelper 看看，
-
+- [12:08] 以下為要跟AI 討論的，先解以下兩個
+   1. [AndroidManifest.xml](twa\app\src\main\AndroidManifest.xml) 
+      * 使用 `android:theme="@android:style/Theme.Translucent.NoTitleBar"` 會閃退，得改 `android:theme="@style/Theme.AppCompat.NoActionBar"`，但是，這樣就會有黑色背景了
+      * 有打開幾個 androidBrowserHelper 的 activity，有 ManageDataLauncherActivity， FocusActivity 與 WebViewFallbackActivity，這些 activity 都是由 androidBrowserHelper 提供的，不曉得影響如何
+      * `NotificationPermissionRequestActivity` 與 `DelegationService` 被我關掉，因為若提供，連 Notification 都會出不來 
+         - 但我需要，因為目前的 Notification 顯示的是 Chrome 的圖案，而非這個PWA原本設定的。
+   2. `Notification` 希望能像先前 AndroidBrowserHelper 那樣可以像是 Native 的 Notification，而非像是被阻擋的 sw 送出的 Notification (因為title 相同時還會被他當垃圾資訊，icon也是 chrome)
+   3. 我把 [MacroWidgetProvider.java](twa\app\src\main\java\com\yescirculation\nonblockinglife\MacroWidgetProvider.java) 的 intent 改成給 `TwaPostMessageTesterActivity.class`，這樣就能打開 TWA 了，但是他卻會有網址列或者打開首頁而已。
+      * 打開時，如果按手機右下的 `<`，會跳到這APP的先前動作(我希望是跳別的APP)，或者就直接顯示 `activity_main.xml` 而不bind chrome。
+      * 如果移掉這個 instance (透過三條線，然後把它滑掉)，再按這個 widget，會重新打開 TWA，但不會跳到該頁面
+      * 如果按這個 widget 時有 TWA 已經在跑了，會打開該頁面，但是會有個網址列 
+   4. `share-to-inbox` 也是有跟上面一樣的問題
+   
 ## [2026-08-19] 準備實作 alarm 的批次處理(七)
 終於能build release 了，用
 ```cmd

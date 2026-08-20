@@ -38,13 +38,11 @@
       android:allowBackup="true"
       android:icon="@mipmap/ic_launcher"
       android:label="@string/appName"
+        
+      android:manageSpaceActivity="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
+        
       android:supportsRtl="true"
       android:theme="@style/Theme.AppCompat.NoActionBar">
-    <activity
-        android:name=".TwaPostMessageTesterActivity"
-        android:launchMode="singleTask"
-        android:label="@string/launcherName"
-        android:exported="true">
         <meta-data
             android:name="asset_statements"
             android:resource="@string/assetStatements" />
@@ -54,6 +52,25 @@
         <meta-data
             android:name="twa_generator"
             android:value="@string/generatorApp" />
+
+        <activity android:name="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
+            android:exported="false"
+            android:enabled="true"
+            android:excludeFromRecents="true">
+            <meta-data
+                android:name="android.support.customtabs.trusted.MANAGE_SPACE_URL"
+                android:value="@string/launchUrl" />
+            <intent-filter>
+                <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+      <activity
+        android:name=".TwaPostMessageTesterActivity"
+        android:launchMode="singleTask"
+        android:label="@string/launcherName"
+        android:exported="true">
 
         <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL"
             android:value="@string/launchUrl" />
@@ -117,6 +134,12 @@
 
     </activity>
 
+    <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity" />
+
+    <activity android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
+            android:configChanges="orientation|screenSize" />
+
+
     <activity android:name=".ClockTriggerActivity" android:exported="true"
     android:launchMode="singleTask">
         <intent-filter android:label="Clock Router">
@@ -146,6 +169,24 @@
 
     <service android:name="androidx.browser.customtabs.PostMessageService"
         android:exported="true"/>
+
+        <!-- <service
+            android:name=".DelegationService"
+            android:enabled="@bool/enableNotification"
+            android:exported="@bool/enableNotification">            
+                <meta-data
+                    android:name="android.support.customtabs.trusted.SMALL_ICON"
+                    android:resource="@drawable/ic_notification_icon" />
+        
+            <intent-filter>
+                <action android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_SERVICE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </service>
+
+        <activity android:name="com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity"
+        android:theme="@android:style/Theme.Translucent.NoTitleBar"
+        android:excludeFromRecents="true" /> -->
 
     <receiver android:name=".QueryWidgetProvider" android:exported="true" android:label="NBL Query" android:icon="@android:drawable/ic_menu_search">
         <intent-filter>
