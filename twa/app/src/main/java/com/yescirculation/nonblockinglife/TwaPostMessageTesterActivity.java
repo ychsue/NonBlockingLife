@@ -1,10 +1,16 @@
 package com.yescirculation.nonblockinglife;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -18,9 +24,17 @@ import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.browser.customtabs.CustomTabsServiceConnection;
 import androidx.browser.customtabs.CustomTabsSession;
 import androidx.browser.trusted.TrustedWebActivityIntentBuilder;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class TwaPostMessageTesterActivity extends AppCompatActivity {
+    private static final String BROWSER_WAS_LAUNCHED_KEY = "twa_browser_was_launched";
+
     private CustomTabsClient mClient;
     private CustomTabsSession mSession;
     private final String TAG = "TwaPostMessageTester";
@@ -30,18 +44,69 @@ public class TwaPostMessageTesterActivity extends AppCompatActivity {
     private final Uri SOURCE_ORIGIN = Uri.parse("https://ychsue.github.io/");
     private final Uri TARGET_ORIGIN = Uri.parse("https://ychsue.github.io");
     private boolean mValidated = false;
+    // Tracks whether the TWA has already been launched, so we can finish() this native
+    // Activity instead of leaving activity_main.xml behind in the back stack.
+    private boolean mBrowserWasLaunched = false;
+    private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 1001;
+    // Holds the URL to launch once the first-run permission dialog has been answered, so
+    // Chrome isn't started on top of (and covering) the still-pending system dialog.
+    private Uri mPendingLaunchUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null && savedInstanceState.getBoolean(BROWSER_WAS_LAUNCHED_KEY)) {
+            // We died in the background after launching the TWA; the user closed it and
+            // ended up here. Just finish instead of showing activity_main.xml again.
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_main);
+
+        createNotificationChannel();
 
         // 取得 Launching URL
         Uri launchingUri = getLaunchingUrl(getIntent());
 
+        if (requestNotificationPermissionIfNeeded()) {
+            // Wait for onRequestPermissionsResult() before binding/launching the TWA, otherwise
+            // Chrome comes to the front and covers the still-pending system permission dialog.
+            mPendingLaunchUri = launchingUri;
+            return;
+        }
+
         // This is the right place to bind the service for postMessage testing.
         bindCustomTabsService(launchingUri);
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+            @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == NOTIFICATION_PERMISSION_REQUEST_CODE && mPendingLaunchUri != null) {
+            Uri launchingUri = mPendingLaunchUri;
+            mPendingLaunchUri = null;
+            bindCustomTabsService(launchingUri);
+        }
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        if (mBrowserWasLaunched) {
+            // The user closed the TWA and ended up back here; finish so pressing '<' inside
+            // the TWA exits to the previous app instead of revealing activity_main.xml.
+            finish();
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(BROWSER_WAS_LAUNCHED_KEY, mBrowserWasLaunched);
     }
 
     @Override
@@ -96,12 +161,13 @@ public class TwaPostMessageTesterActivity extends AppCompatActivity {
         // 3. 預設行為
         return URL;
     }
-
+    
     private final CustomTabsCallback customTabsCallback = new CustomTabsCallback() {
         @Override
         public void onPostMessage(@NonNull String message, @Nullable Bundle extras) {
             super.onPostMessage(message, extras);
             Log.d(TAG, "Got message: " + message);
+            handleIncomingMessage(message);
             if (mSession != null) {
                 String response = buildReplyMessage(message);
                 int result = mSession.postMessage(response, null);
@@ -133,6 +199,11 @@ public class TwaPostMessageTesterActivity extends AppCompatActivity {
 
             boolean result = mSession.requestPostMessageChannel(SOURCE_ORIGIN, TARGET_ORIGIN, new Bundle());
             Log.d(TAG, "Request channel result: " + result);
+
+            // The TWA is now showing its own content in its own task; drop this native
+            // Activity from the back stack so back-navigation never falls through to it.
+            mBrowserWasLaunched = true;
+            finish();
         }
 
         @Override
@@ -142,6 +213,7 @@ public class TwaPostMessageTesterActivity extends AppCompatActivity {
                 int result = mSession.postMessage("{\"type\":\"android-ready\"}", null);
                 Log.d(TAG, "postMessage result: " + result);
             }
+            replyNotificationPermissionStatus();
         }
     };
 
@@ -175,6 +247,9 @@ public class TwaPostMessageTesterActivity extends AppCompatActivity {
     }
 
     private void launch(Uri launchingUri) {
+        // No NEW_TASK flag: finish() in onNavigationEvent already removes this Activity from
+        // the back stack, which is enough to stop back-navigation from reaching activity_main.xml.
+        // Adding NEW_TASK here caused a second Chrome task to spawn on repeated launches.
         new TrustedWebActivityIntentBuilder(launchingUri)
                 .build(mSession)
                 .launchTrustedWebActivity(TwaPostMessageTesterActivity.this);
@@ -193,5 +268,90 @@ public class TwaPostMessageTesterActivity extends AppCompatActivity {
     private String buildReplyMessage(String receivedMessage) {
         String safeReceived = receivedMessage == null ? "" : receivedMessage.replace("\"", "\\\"");
         return "{\"type\":\"nbl:android-reply\",\"source\":\"twa\",\"status\":\"ok\",\"received\":\"" + safeReceived + "\",\"sentAt\":" + System.currentTimeMillis() + "}";
+    }
+
+    private static final String NOTIFICATION_CHANNEL_ID = "nbl_pwa_notifications";
+    // Convention agreed with the PWA: it posts {"type":"nbl:notify","title":..,"body":..,"id":..}
+    // instead of calling the web Notification API, bypassing TWA notification delegation entirely.
+    private static final String NOTIFY_MESSAGE_TYPE = "nbl:notify";
+    private static final String QUERY_NOTIFICATION_PERMISSION_TYPE = "nbl:query-notification-permission";
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return;
+        }
+        NotificationChannel channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,
+                "NonBlockingLife", NotificationManager.IMPORTANCE_DEFAULT);
+        NotificationManagerCompat.from(this).createNotificationChannel(channel);
+    }
+
+    /** Returns true if a permission dialog was shown and the caller should wait for its result. */
+    private boolean requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return false;
+        }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_PERMISSION_REQUEST_CODE);
+            return true;
+        }
+        return false;
+    }
+
+    private void handleIncomingMessage(String message) {
+        try {
+            JSONObject json = new JSONObject(message);
+            String type = json.optString("type");
+            if (NOTIFY_MESSAGE_TYPE.equals(type)) {
+                showNativeNotification(json.optString("title", getString(R.string.appName)),
+                        json.optString("body", ""),
+                        json.optInt("id", (int) System.currentTimeMillis()),
+                        json.has("url") ? json.optString("url") : null,
+                        json.optBoolean("dismissOnClick", true));
+            } else if (QUERY_NOTIFICATION_PERMISSION_TYPE.equals(type)) {
+                replyNotificationPermissionStatus();
+            }
+        } catch (JSONException e) {
+            // Not a JSON message we understand; ignore.
+        }
+    }
+
+    private void replyNotificationPermissionStatus() {
+        if (mSession == null) {
+            return;
+        }
+        boolean granted = ActivityCompat.checkSelfPermission(getApplicationContext(),
+                Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+        mSession.postMessage(
+                "{\"type\":\"nbl:notification-permission-status\",\"granted\":" + granted + "}", null);
+    }
+
+    private void showNativeNotification(String title, String body, int notificationId,
+            @Nullable String url, boolean dismissOnClick) {
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "POST_NOTIFICATIONS not granted; dropping native notification.");
+            return;
+        }
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(),
+                NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification_icon)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setAutoCancel(dismissOnClick)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+        if (url != null && !url.isEmpty()) {
+            Intent openIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url),
+                    getApplicationContext(), TwaPostMessageTesterActivity.class);
+            openIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(),
+                    notificationId, openIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            builder.setContentIntent(contentIntent);
+        }
+
+        NotificationManagerCompat.from(getApplicationContext()).notify(notificationId, builder.build());
     }
 }

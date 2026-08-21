@@ -1,5 +1,11 @@
 # Journal
 
+## [2026-08-21] 準備實作 alarm 的批次處理(九)
+- [10:34] beta.10 的修正如下
+   1. Android 的 Notification 改走原生的，透過 schema `notification-settings` 來叫出設定，不能走 postMessage，因為沒有使用者互動，會被阻擋
+   2. 查詢 notification permission 的狀態，則走 postMessage，因為這個是由使用者互動的，所以不會被阻擋
+   3. JAVA 端還是有問題，先commit 再說
+
 ## [2026-08-20] 準備實作 alarm 的批次處理(八)
 - [09:40] 先不要使用 androidBrowserHelper 看看，
 - [12:08] 以下為要跟AI 討論的，先解以下兩個

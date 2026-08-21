@@ -112,22 +112,50 @@ export default function App() {
     };
 
     const nav = navigator as BadgeNavigator;
+    /**
+     * 
+     * @param title 標題
+     * @param body 內文
+     * @param options dismissOnClick 是否點擊後關閉通知, url 點擊通知後要導向的網址, id 通知的唯一識別碼，
+     * id : 1: 任務狀態切換(開始&結束)通知
+     * @returns void
+     */
     const notify = (
       title: string,
       body: string,
-      options?: { dismissOnClick?: boolean; url?: string },
+      options?: { dismissOnClick?: boolean; url?: string; id?: number },
     ) => {
+      const dismissOnClick = options?.dismissOnClick ?? true;
+      const twaPort = (window as unknown as {
+        __NBL_TWA_BRIDGE__?: { port: MessagePort | null };
+      }).__NBL_TWA_BRIDGE__?.port;
+
+      // Inside the TWA, let the Android app show a native notification instead of the
+      // web Notification API, since it has its own icon/channel and doesn't need permission.
+      if (twaPort) {
+        twaPort.postMessage(
+          JSON.stringify({
+            type: "nbl:notify",
+            title,
+            body,
+            id: options?.id ?? Date.now() & 0x7fffffff,
+            url: options?.url ?? window.location.href,
+            dismissOnClick,
+          }),
+        );
+        return;
+      }
+
       if (typeof Notification === "undefined") return;
       if (Notification.permission !== "granted") return;
 
-      const dismissOnClick = options?.dismissOnClick ?? true;
       const notificationOptions: NotificationOptions & {
         data?: { url: string; dismissOnClick: boolean };
       } = {
         body,
         tag: "nbl-running-task",
         data: {
-          url: options?.url ?? "/NonBlockingLife/",
+          url: options?.url ?? window.location.href,
           dismissOnClick,
         },
       };
@@ -158,7 +186,7 @@ export default function App() {
             notification.close();
           }
           window.focus();
-          window.location.assign(notificationOptions.data?.url ?? "/NonBlockingLife/");
+          window.location.assign(notificationOptions.data?.url ?? window.location.href);
         };
       } catch (e) {
         console.warn("Unable to show notification:", e);
@@ -184,7 +212,7 @@ export default function App() {
             : locale === "ja"
               ? "Non-Blocking Life は作業中ステータスを終了しました。"
               : "Non-Blocking Life is no longer in running mode.",
-          { dismissOnClick: true },
+          { dismissOnClick: true, id: 1 },
         );
       }
 
@@ -219,7 +247,7 @@ export default function App() {
           : locale === "ja"
             ? `${runningTask.title} を開始しました。`
             : `${runningTask.title} has started. Stay focused.`,
-        { dismissOnClick: false },
+        { dismissOnClick: false, id:1 },
       );
     }
 

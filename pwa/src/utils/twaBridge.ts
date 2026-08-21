@@ -11,11 +11,12 @@ export interface TwaBridgeState {
   lastMessage: TwaBridgeMessage | null
 }
 
-const TWA_BRIDGE_STATE: TwaBridgeState = {
-  port: null,
-  connected: false,
-  lastMessage: null,
-}
+const TWA_BRIDGE_STATE: TwaBridgeState = (window as any).__NBL_TWA_BRIDGE__;
+// {
+//   port: null,
+//   connected: false,
+//   lastMessage: null,
+// }
 
 function isMessageEvent(value: unknown): value is MessageEvent {
   return typeof value === 'object' && value !== null && 'data' in value
@@ -35,58 +36,67 @@ export function postMessageToTwa(port: MessagePort | null, message: TwaBridgeMes
 export function listenForTwaMessages(
   onMessage: (event: MessageEvent, port: MessagePort | null) => void
 ): () => void {
-  const handler = (event: MessageEvent) => {
-    console.debug('[twaBridge.ts] event:', {
-      data: event.data,
-      origin: event.origin,
-      source: event.source,
-      ports: event.ports,
-      url: window.location.href,
-    });
+  // const handler = (event: MessageEvent) => {
+  //   console.debug('[twaBridge.ts] event:', {
+  //     data: event.data,
+  //     origin: event.origin,
+  //     source: event.source,
+  //     ports: event.ports,
+  //     url: window.location.href,
+  //   });
 
-    const port = Array.isArray(event.ports) && event.ports.length > 0 ? event.ports[0] : null
+  //   const port = Array.isArray(event.ports) && event.ports.length > 0 ? event.ports[0] : null
 
-    if (port) {
-      TWA_BRIDGE_STATE.port = port
-      TWA_BRIDGE_STATE.connected = true
-      console.debug('[twaBridge.ts] port bound; sending debug ping back to Android.')
-      postMessageToTwa(port, {
-        type: 'nbl:pwa-ready',
-        source: 'pwa',
-        sentAt: Date.now(),
-      })
-    } else {
-      console.warn('[twaBridge.ts] No MessagePort in event; channel not ready yet.')
-    }
+  //   if (port) {
+  //     TWA_BRIDGE_STATE.port = port
+  //     TWA_BRIDGE_STATE.connected = true
+  //     console.debug('[twaBridge.ts] port bound; sending debug ping back to Android.')
+  //     postMessageToTwa(port, {
+  //       type: 'nbl:pwa-ready',
+  //       source: 'pwa',
+  //       sentAt: Date.now(),
+  //     })
+  //   } else {
+  //     console.warn('[twaBridge.ts] No MessagePort in event; channel not ready yet.')
+  //   }
 
-    TWA_BRIDGE_STATE.lastMessage = {
-      type: typeof event.data === 'string' ? event.data : 'message',
-      payload: typeof event.data === 'object' && event.data !== null ? event.data as Record<string, unknown> : undefined,
-      sentAt: Date.now(),
-      source: 'pwa',
-    }
+  //   TWA_BRIDGE_STATE.lastMessage = {
+  //     type: typeof event.data === 'string' ? event.data : 'message',
+  //     payload: typeof event.data === 'object' && event.data !== null ? event.data as Record<string, unknown> : undefined,
+  //     sentAt: Date.now(),
+  //     source: 'pwa',
+  //   }
 
-    onMessage(event, port)
+  //   onMessage(event, port)
+  // }
+
+  // const customHandler = (event: Event) => {
+  //   const detail = (event as CustomEvent<{ data: unknown; port: MessagePort | null }>).detail
+  //   if (!detail) return
+
+  //   const synthetic = new MessageEvent('message', {
+  //     data: detail.data,
+  //     origin: window.location.origin,
+  //     ports: detail.port ? [detail.port] : [],
+  //   })
+  //   handler(synthetic)
+  // }
+
+  // window.addEventListener('message', handler)
+  // window.addEventListener('nbl:twa:message', customHandler as EventListener)
+
+  // window.__NBL_TWA_BRIDGE__ 應該已經有，所以，要將 onMessage 掛入 TWA_BRIDGE_STATE.port?.onmessage 之中
+  if (!TWA_BRIDGE_STATE.port) {
+    console.warn('[twaBridge.ts] No TWA port available yet; cannot listen for messages.')
+    return () => {}
   }
-
-  const customHandler = (event: Event) => {
-    const detail = (event as CustomEvent<{ data: unknown; port: MessagePort | null }>).detail
-    if (!detail) return
-
-    const synthetic = new MessageEvent('message', {
-      data: detail.data,
-      origin: window.location.origin,
-      ports: detail.port ? [detail.port] : [],
-    })
-    handler(synthetic)
+  TWA_BRIDGE_STATE.port.onmessage = (event) => {
+    onMessage(event, TWA_BRIDGE_STATE.port)
   }
-
-  window.addEventListener('message', handler)
-  window.addEventListener('nbl:twa:message', customHandler as EventListener)
 
   return () => {
-    window.removeEventListener('message', handler)
-    window.removeEventListener('nbl:twa:message', customHandler as EventListener)
+    // window.removeEventListener('message', handler)
+    // window.removeEventListener('nbl:twa:message', customHandler as EventListener)
   }
 }
 

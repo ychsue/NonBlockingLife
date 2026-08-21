@@ -156,6 +156,17 @@
         </intent-filter>
     </activity>
 
+    <activity android:name=".NotificationSettingsActivity" android:exported="true"
+        android:theme="@android:style/Theme.Translucent.NoTitleBar"
+        android:excludeFromRecents="true">
+        <intent-filter>
+            <data android:scheme="nonblockinglife" android:host="notification-settings"/>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+        </intent-filter>
+    </activity>
+
     <provider
         android:name="androidx.core.content.FileProvider"
         android:authorities="@string/providerAuthority"
@@ -170,14 +181,17 @@
     <service android:name="androidx.browser.customtabs.PostMessageService"
         android:exported="true"/>
 
-        <!-- <service
+        <!-- Disabled: notification delegation split web/app permission state and kept using
+             Chrome's icon regardless. Replaced by a native postMessage-driven notification
+             in TwaPostMessageTesterActivity instead of TWA delegation.
+        <service
             android:name=".DelegationService"
-            android:enabled="@bool/enableNotification"
-            android:exported="@bool/enableNotification">            
+            android:enabled="true"
+            android:exported="true">
                 <meta-data
                     android:name="android.support.customtabs.trusted.SMALL_ICON"
                     android:resource="@drawable/ic_notification_icon" />
-        
+
             <intent-filter>
                 <action android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_SERVICE"/>
                 <category android:name="android.intent.category.DEFAULT"/>

@@ -88,6 +88,41 @@ export function GuidePage() {
   )
   const [requestingPermission, setRequestingPermission] = useState(false)
   const [isIOS] = useState(getDeviceType()=== 'Shortcuts');
+  const [androidNotificationGranted, setAndroidNotificationGranted] = useState<boolean | null>(null)
+
+  const twaPort = useMemo(
+    () =>
+      (window as unknown as { __NBL_TWA_BRIDGE__?: { port: MessagePort | null } }).__NBL_TWA_BRIDGE__
+        ?.port ?? null,
+    []
+  )
+
+  useEffect(() => {
+    if (!twaPort) return
+
+    const handleBridgeMessage = (event: MessageEvent) => {
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
+        if (data?.type === 'nbl:notification-permission-status') {
+          setAndroidNotificationGranted(Boolean(data.granted))
+        }
+      } catch {
+        // Not a JSON message we understand; ignore.
+      }
+    }
+
+    twaPort.addEventListener('message', handleBridgeMessage)
+    twaPort.start?.()
+    twaPort.postMessage(JSON.stringify({ type: 'nbl:query-notification-permission' }))
+
+    return () => twaPort.removeEventListener('message', handleBridgeMessage)
+  }, [twaPort])
+
+  const handleOpenAndroidNotificationSettings = () => {
+    // Chrome (foreground) must issue this navigation itself so Android treats the resulting
+    // Activity start as user-initiated; a postMessage from our background process gets blocked.
+    window.location.href = 'nonblockinglife://notification-settings'
+  }
 
   useEffect(() => {
     if (typeof Notification === 'undefined') {
@@ -236,67 +271,88 @@ export function GuidePage() {
         </p>
 
         <div className="mt-3">
-          {notificationPermission === 'unsupported' && (
-            <p className="text-sm text-amber-700">此瀏覽器目前不支援 Web Notification。</p>
-          )}
-
-          {(notificationPermission === 'granted' || notificationPermission === 'default') && (
+          {twaPort ? (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="inline-flex rounded-full border border-sky-200 bg-sky-50 p-1">
-                <button
-                  type="button"
-                  onClick={() => void handleSetNotificationPermission('granted')}
-                  disabled={requestingPermission || notificationPermission === 'granted'}
-                  className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-                    notificationPermission === 'granted'
-                      ? 'bg-sky-600 text-white shadow-sm'
-                      : 'text-sky-700 hover:bg-sky-100'
-                  }`}
-                >
-                  {requestingPermission ? '請稍候...' : '允許'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleSetNotificationPermission('denied')}
-                  className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${ 'text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  停用
-                </button>
-              </div>
-
+              <button
+                type="button"
+                onClick={handleOpenAndroidNotificationSettings}
+                className="rounded-full bg-sky-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-sky-700"
+              >
+                重設通知權限
+              </button>
               <p className="text-sm text-gray-600">
-                {notificationPermission === 'granted'
-                  ? '已啟用通知權限。背景時可收到工作狀態提醒。'
-                  : '若你選擇允許，系統會請求通知權限；若已被封鎖，可在下方直接重試。'}
+                {androidNotificationGranted === null
+                  ? '正在確認 Android 通知權限狀態...'
+                  : androidNotificationGranted
+                    ? '已啟用通知權限。背景時可收到工作狀態提醒。'
+                    : '尚未允許通知。點「重設通知權限」會開啟系統設定頁面，將 NonBlockingLife 的通知改為允許。'}
               </p>
             </div>
-          )}
+          ) : (
+            <>
+              {notificationPermission === 'unsupported' && (
+                <p className="text-sm text-amber-700">此瀏覽器目前不支援 Web Notification。</p>
+              )}
 
-          {notificationPermission === 'denied' && (
-            <div className="space-y-3">
-              <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-1">
-                <button
-                  type="button"
-                  onClick={() => void handleSetNotificationPermission('granted')}
-                  disabled={requestingPermission}
-                  className="rounded-full bg-sky-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {requestingPermission ? '請稍候...' : '重新允許'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleSetNotificationPermission('denied')}
-                  className="rounded-full px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
-                >
-                  已停用
-                </button>
-              </div>
+              {(notificationPermission === 'granted' || notificationPermission === 'default') && (
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <div className="inline-flex rounded-full border border-sky-200 bg-sky-50 p-1">
+                    <button
+                      type="button"
+                      onClick={() => void handleSetNotificationPermission('granted')}
+                      disabled={requestingPermission || notificationPermission === 'granted'}
+                      className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                        notificationPermission === 'granted'
+                          ? 'bg-sky-600 text-white shadow-sm'
+                          : 'text-sky-700 hover:bg-sky-100'
+                      }`}
+                    >
+                      {requestingPermission ? '請稍候...' : '允許'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleSetNotificationPermission('denied')}
+                      className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${ 'text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      停用
+                    </button>
+                  </div>
 
-              <p className="text-sm text-amber-700">
-                已封鎖通知。若是 TWA/Android App 內部狀態，點「重新允許」會再請求一次；若瀏覽器仍拒絕，請到系統或瀏覽器設定將 Notifications 改為 Allow。
-              </p>
-            </div>
+                  <p className="text-sm text-gray-600">
+                    {notificationPermission === 'granted'
+                      ? '已啟用通知權限。背景時可收到工作狀態提醒。'
+                      : '若你選擇允許，系統會請求通知權限；若已被封鎖，可在下方直接重試。'}
+                  </p>
+                </div>
+              )}
+
+              {notificationPermission === 'denied' && (
+                <div className="space-y-3">
+                  <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-1">
+                    <button
+                      type="button"
+                      onClick={() => void handleSetNotificationPermission('granted')}
+                      disabled={requestingPermission}
+                      className="rounded-full bg-sky-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {requestingPermission ? '請稍候...' : '重新允許'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleSetNotificationPermission('denied')}
+                      className="rounded-full px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                    >
+                      已停用
+                    </button>
+                  </div>
+
+                  <p className="text-sm text-amber-700">
+                    已封鎖通知。若是 TWA/Android App 內部狀態，點「重新允許」會再請求一次；若瀏覽器仍拒絕，請到系統或瀏覽器設定將 Notifications 改為 Allow。
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
