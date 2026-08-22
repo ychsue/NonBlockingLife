@@ -12,7 +12,7 @@ public class MacroWidgetProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
-            Intent intent = new Intent(context, TwaPostMessageTesterActivity.class);
+            Intent intent = new Intent(context, LauncherActivity.class);
             intent.setData(Uri.parse("https://ychsue.github.io/NonBlockingLife/?action=navigate&sheet=macro"));
             intent.setAction(Intent.ACTION_VIEW);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

@@ -6,6 +6,7 @@ import { useAppStore } from '../store/appStore'
 import { useT } from '../i18n'
 import Utils from '../../../gas/src/Utils'
 import type { SheetName } from '../hooks/useUrlAction'
+import { notifies } from '../utils/notification'
 
 const DEV_CLIENT_ID = 'task-search-dialog'
 
@@ -57,6 +58,7 @@ function createNewPatch(target: AddTarget, taskId: string, title: string): Recor
 
 export function TaskSearchDialog() {
   const t = useT()
+  const locale = useAppStore((state) => state.locale)
   const showTaskSearchDialog = useAppStore((state) => state.showTaskSearchDialog)
   const setShowTaskSearchDialog = useAppStore((state) => state.setShowTaskSearchDialog)
   const taskSearchInitQuery = useAppStore((state) => state.taskSearchInitQuery)
@@ -153,6 +155,7 @@ export function TaskSearchDialog() {
       console.error('Failed to switch task:', result.message)
       return
     }
+    notifies.taskStarted(selectedItem.title ?? selectedItem.taskId ?? '',locale);
     await loadRunningTask()
     handleClose()
   }
@@ -201,6 +204,9 @@ export function TaskSearchDialog() {
         console.error('Failed to run new task:', result.message)
         return
       }
+
+      notifies.taskStarted(query.trim(), locale);
+
       await loadRunningTask()
       handleClose()
     } finally {

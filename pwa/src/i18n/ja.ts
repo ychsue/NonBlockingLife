@@ -332,6 +332,7 @@ export const ja: TranslationMap = {
   'interrupt.confirm.title':     '操作を選択してください',
   'interrupt.confirm.cancel':    'キャンセル',
   'interrupt.confirm.immediate': '今すぐ割り込み',
+  'interrupt.confirm.notify': '⚡{task}⚡ の割り込み通知',
   'interrupt.confirm.search':    'タスクを検索して切り替え',
 
   // ── TaskSearchDialog ──────────────────────────────────────────

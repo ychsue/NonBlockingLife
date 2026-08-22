@@ -6,13 +6,14 @@ type ProductTourWrapperProps = {
   tour: ProductTourConfig | null;
   step: ProductTourStep | null;
   continuous?: boolean;
+  stopTour: () => void;
   onComplete: () => void;
   onNext: () => void;
   onReset: () => void;
   run: boolean;
 };
 
-function waitForTarget(target: string, timeoutMs = 5000): Promise<void> {
+function waitForTarget(target: string, timeoutMs = 5000, stopTour?: () => void): Promise<void> {
   if (typeof window === "undefined") {
     return Promise.resolve();
   }
@@ -30,6 +31,7 @@ function waitForTarget(target: string, timeoutMs = 5000): Promise<void> {
 
       if (Date.now() - startedAt >= timeoutMs) {
         console.warn("[Joyride] target not found after timeout", { target, timeoutMs });
+        stopTour?.();
         reject(new Error(`Joyride target not found: ${target}`));
         return;
       }
@@ -41,7 +43,7 @@ function waitForTarget(target: string, timeoutMs = 5000): Promise<void> {
   });
 }
 
-export function toJoyrideStep(step: ProductTourStep): Step {
+export function toJoyrideStep(step: ProductTourStep, stopTour?: () => void): Step {
   const buttons: ButtonType[] = step.hideFooterButton
     ? []
     : step.hideCloseButton
@@ -58,7 +60,7 @@ export function toJoyrideStep(step: ProductTourStep): Step {
     targetWaitTimeout: step.waitForElement ? 5000 : 1000,
     before: step.waitForElement
       ? async () => {
-          await waitForTarget(step.target, 5000);
+          await waitForTarget(step.target, 5000, stopTour);
         }
       : undefined,
     styles: {
@@ -76,6 +78,7 @@ export function toJoyrideStep(step: ProductTourStep): Step {
 export function ProductTourWrapper({
   tour,
   step,
+  stopTour,
   onComplete,
   onNext,
   onReset,
@@ -98,7 +101,7 @@ export function ProductTourWrapper({
     return null;
   }
 
-  const joyrideSteps = tour.steps.map(toJoyrideStep);
+  const joyrideSteps = tour.steps.map((step) => toJoyrideStep(step, stopTour));
 
   const handleJoyrideCallback = (data: EventData) => {
     console.debug("[Joyride onEvent] event", data);
@@ -131,6 +134,7 @@ export function ProductTourWrapper({
       debug={true}
       options={{
         skipScroll: true,
+        overlayClickAction: "close",
       }}
       onEvent={handleJoyrideCallback}
       locale={{ back: "Back", close: "Close", last: "Finish", next: "Next", skip: "Skip" }}

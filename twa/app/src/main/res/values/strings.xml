@@ -43,4 +43,5 @@
     <string name="btn_query">Query</string>
     <string name="btn_macro">Macro</string>
     <string name="desc_add_inbox">Add Inbox</string>
+    <string name="back_again"><![CDATA[Click \'<\' again]]></string>
 </resources>

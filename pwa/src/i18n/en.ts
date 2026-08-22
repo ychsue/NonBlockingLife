@@ -352,6 +352,7 @@ export const en = {
   'interrupt.confirm.title':     'What would you like to do?',
   'interrupt.confirm.cancel':    'Cancel',
   'interrupt.confirm.immediate': 'Interrupt Now',
+  'interrupt.confirm.notify': 'Interrupt task notification for ⚡{task}⚡',
   'interrupt.confirm.search':    'Search & Switch Task',
 
   // ── TaskSearchDialog ──────────────────────────────────────────

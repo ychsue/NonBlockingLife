@@ -356,6 +356,7 @@ export const zhTW: TranslationMap = {
   'interrupt.confirm.title':     '請選擇操作',
   'interrupt.confirm.cancel':    '取消',
   'interrupt.confirm.immediate': '立即中斷',
+  'interrupt.confirm.notify': '⚡{task}⚡ 的中斷任務通知',
   'interrupt.confirm.search':    '搜尋並切換任務',
 
   // ── TaskSearchDialog ──────────────────────────────────────────

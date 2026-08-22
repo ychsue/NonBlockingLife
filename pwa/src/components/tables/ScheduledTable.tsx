@@ -25,6 +25,7 @@ import { useSearchFilter, useHideDone } from '../../hooks/useSearchFilter'
 import { buildCronExpr, getCronParts, getPredictedNextRun, getUpcomingOccurrences } from '../../utils/cronUtils'
 import { interruptTask } from '../../utils/taskFlow'
 import { shouldOpenRowEdit } from './rowEditUtils'
+import { notifies } from '../../utils/notification'
 
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<ScheduledItem>()
@@ -58,6 +59,8 @@ function createNewScheduledRow(taskId?: string, title?: string): ScheduledItem {
 
 export function ScheduledTable() {
   const t = useT()
+  const locale = useAppStore((state) => state.locale)
+  
   const [rows, setRows] = useState<ScheduledItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showHelp, setShowHelp] = useState(false)
@@ -243,6 +246,7 @@ export function ScheduledTable() {
       console.error('Failed to interrupt/start from scheduled:', result.message)
       return
     }
+    notifies.taskStarted(item.title ?? item.taskId ?? '', locale);
     await loadRunningTask()
   }
 

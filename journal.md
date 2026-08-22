@@ -1,5 +1,14 @@
 # Journal
 
+## [2026-08-22] 準備實作 alarm 的批次處理(十)
+- [17:06] beta.11 的修正如下
+   1. 最後決定讓使用者可以退到 `activity_main.xml`，接下來可能在上面放按鈕嗎？
+   2. 將實驗放回 LauncherActivity.java 裡面，沒有繼承 androidBrowserHelper的 LauncherActivity，而是繼承 `androidx.appcompat.app.AppCompatActivity`，這樣就可以避免 androidBrowserHelper 的一些限制了。
+   3. 修正 `Joyride` 的一些 bug，添加了 stopTour()，然後，到每個 nextStep()，最好也確認是否現在的step就是現在在按的鈕，不然有可能亂跳。
+   4. 修改開始與結束的 Notification的方式，改由按鈕時來決定。
+   5. 將 `window.__NBL_TWA_BRIDGE__` 的 script 移到 `index.html` 的 body 的外面，希望他因此能先被loading。
+   6. 多加了 layout-land 目錄，好顯示橫放時的樣子。
+
 ## [2026-08-21] 準備實作 alarm 的批次處理(九)
 - [10:34] beta.10 的修正如下
    1. Android 的 Notification 改走原生的，透過 schema `notification-settings` 來叫出設定，不能走 postMessage，因為沒有使用者互動，會被阻擋

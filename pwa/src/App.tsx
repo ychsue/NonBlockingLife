@@ -54,9 +54,8 @@ export default function App() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const productTourState = useProductTour(currentSheet);
-  const { activeTour, activeStep, isRunning, startTour, completeTour, nextStep, resetTour, tours } = productTourState;
+  const { activeTour, activeStep, isRunning, startTour, stopTour, completeTour, nextStep, resetTour, tours } = productTourState;
   const defaultTitleRef = useRef(BASE_TITLE);
-  const previousRunningTaskIdRef = useRef<string | null>(null);
   const { isMobile, isTooSmall } = useResponsiveTable();
 
   useEffect(() => {
@@ -105,6 +104,10 @@ export default function App() {
     defaultTitleRef.current = document.title || BASE_TITLE;
   }, [BASE_TITLE]);
 
+  /**
+   *  一開始打開 App 時，或runningTask有變化，
+   *  - 設定 BadgeNavigator 的 badge
+   */
   useEffect(() => {
     type BadgeNavigator = Navigator & {
       setAppBadge?: (contents?: number) => Promise<void>;
@@ -112,111 +115,12 @@ export default function App() {
     };
 
     const nav = navigator as BadgeNavigator;
-    /**
-     * 
-     * @param title 標題
-     * @param body 內文
-     * @param options dismissOnClick 是否點擊後關閉通知, url 點擊通知後要導向的網址, id 通知的唯一識別碼，
-     * id : 1: 任務狀態切換(開始&結束)通知
-     * @returns void
-     */
-    const notify = (
-      title: string,
-      body: string,
-      options?: { dismissOnClick?: boolean; url?: string; id?: number },
-    ) => {
-      const dismissOnClick = options?.dismissOnClick ?? true;
-      const twaPort = (window as unknown as {
-        __NBL_TWA_BRIDGE__?: { port: MessagePort | null };
-      }).__NBL_TWA_BRIDGE__?.port;
-
-      // Inside the TWA, let the Android app show a native notification instead of the
-      // web Notification API, since it has its own icon/channel and doesn't need permission.
-      if (twaPort) {
-        twaPort.postMessage(
-          JSON.stringify({
-            type: "nbl:notify",
-            title,
-            body,
-            id: options?.id ?? Date.now() & 0x7fffffff,
-            url: options?.url ?? window.location.href,
-            dismissOnClick,
-          }),
-        );
-        return;
-      }
-
-      if (typeof Notification === "undefined") return;
-      if (Notification.permission !== "granted") return;
-
-      const notificationOptions: NotificationOptions & {
-        data?: { url: string; dismissOnClick: boolean };
-      } = {
-        body,
-        tag: "nbl-running-task",
-        data: {
-          url: options?.url ?? window.location.href,
-          dismissOnClick,
-        },
-      };
-
-      const showViaServiceWorker = () => {
-        if (!navigator.serviceWorker) {
-          return;
-        }
-
-        void navigator.serviceWorker.ready
-          .then((reg) => {
-            reg.showNotification(title, notificationOptions);
-          })
-          .catch((err) =>
-            console.warn("Failed to show notification via service worker:", err),
-          );
-      };
-
-      try {
-        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-          showViaServiceWorker();
-          return;
-        }
-
-        const notification = new Notification(title, notificationOptions);
-        notification.onclick = () => {
-          if (dismissOnClick) {
-            notification.close();
-          }
-          window.focus();
-          window.location.assign(notificationOptions.data?.url ?? window.location.href);
-        };
-      } catch (e) {
-        console.warn("Unable to show notification:", e);
-        showViaServiceWorker();
-      }
-    };
 
     if (!runningTask) {
       document.title = defaultTitleRef.current;
       if (nav.clearAppBadge) {
         void nav.clearAppBadge().catch(() => undefined);
       }
-
-      if (previousRunningTaskIdRef.current) {
-        notify(
-          locale === "zh-TW"
-            ? "工作已結束"
-            : locale === "ja"
-              ? "作業が終了しました"
-              : "Work session ended",
-          locale === "zh-TW"
-            ? "Non-Blocking Life 已離開工作中狀態。"
-            : locale === "ja"
-              ? "Non-Blocking Life は作業中ステータスを終了しました。"
-              : "Non-Blocking Life is no longer in running mode.",
-          { dismissOnClick: true, id: 1 },
-        );
-      }
-
-      previousRunningTaskIdRef.current = null;
       return;
     }
 
@@ -234,24 +138,6 @@ export default function App() {
     if (nav.setAppBadge) {
       void nav.setAppBadge(1).catch(() => undefined);
     }
-
-    if (previousRunningTaskIdRef.current !== runningTask.taskId) {
-      notify(
-        locale === "zh-TW"
-          ? "工作進行中"
-          : locale === "ja"
-            ? "作業中"
-            : "Work session running",
-        locale === "zh-TW"
-          ? `${runningTask.title} 已開始，保持專注。`
-          : locale === "ja"
-            ? `${runningTask.title} を開始しました。`
-            : `${runningTask.title} has started. Stay focused.`,
-        { dismissOnClick: false, id:1 },
-      );
-    }
-
-    previousRunningTaskIdRef.current = runningTask.taskId;
 
     return () => {
       window.clearInterval(intervalId);
@@ -458,7 +344,7 @@ export default function App() {
                     <button
                       onClick={() => {
                         setCurrentSheet("debug");
-                        if (isRunning) {
+                        if (isRunning && activeStep?.target === "[data-tour='more-button']") {
                           nextStep();
                         }
                       }}
@@ -491,7 +377,7 @@ export default function App() {
               {/* 手機漢堡選單按鈕 */}
                 <button
                   onClick={() => {
-                    if (isRunning) {
+                    if (isRunning && activeStep?.target === "[data-tour='menu-button']") {
                       setShowMobileMenu(true);
                       nextStep();
                       return;
@@ -539,7 +425,7 @@ export default function App() {
             <button
               onClick={() => {
                 setCurrentSheet("debug");
-                if (isRunning) {
+                if (isRunning && activeStep?.target === "[data-tour='more-button']") {
                   nextStep();
                 }
               }}
@@ -622,6 +508,7 @@ export default function App() {
         tour={activeTour}
         step={activeStep}
         run={isRunning}
+        stopTour={stopTour}
         onComplete={() => completeTour(activeTour?.id ?? "")}
         onNext={nextStep}
         onReset={resetTour}

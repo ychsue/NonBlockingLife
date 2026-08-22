@@ -143,7 +143,7 @@ export function InboxTable() {
 
   const [createdNewRowId, setCreatedNewRowId] = useState("");
 
-  const { isRunning, nextStep,} = useProductTourContext();
+  const { isRunning, activeStep, nextStep,} = useProductTourContext();
 
   // 這是因為有可能透過useUrlAction加入 Inbox，所以，需要這兩個
   const currentSheet = useAppStore((state) => state.currentSheet)
@@ -234,7 +234,7 @@ export function InboxTable() {
 
     setEditingItem(newRow);
     // 如果有Joyride導覽，則執行nextStep，讓導覽可以繼續
-    if (isRunning) {
+    if (isRunning && activeStep?.target === "[data-tour='inbox-add-button']") {
       nextStep();
     }
   };
@@ -266,7 +266,7 @@ export function InboxTable() {
     await saveUpdate(editingItem.taskId, patch);
     setEditingItem(null);
     // 如果有Joyride導覽，則執行nextStep，讓導覽可以繼續
-    if (isRunning) {
+    if (isRunning && activeStep?.target === "[data-tour='edit-dialog-save-button']") {
       nextStep();
     }
   };

@@ -126,7 +126,7 @@ function SettingsPanel() {
   const setEnableExperimentalFeatures = useAppStore((state) => state.setExperimentalFeaturesEnabled);
   const androidTimerLaunchMode = useAppStore((state) => state.androidTimerLaunchMode);
   const setAndroidTimerLaunchMode = useAppStore((state) => state.setAndroidTimerLaunchMode);
-  const { startTour, activeTour, completedTours, tours, nextStep, isRunning, clearCompletedTours } = useProductTourContext();
+  const { startTour, activeTour, activeStep, completedTours, tours, nextStep, isRunning, clearCompletedTours } = useProductTourContext();
 
   const handleReplayTour = (tour: ProductTourConfig) => {
     if (tour.requiredSheet) {
@@ -164,7 +164,7 @@ function SettingsPanel() {
                   data-tour={option.value === "set_timer" ? "android-timer-set-timer-option" : undefined}
                   onChange={() => {
                     setAndroidTimerLaunchMode(option.value);
-                    if (option.value === "set_timer" && isRunning && activeTour?.id === "android-timer-setup") {
+                    if (option.value === "set_timer" && isRunning && activeStep?.id === "android-set-timer") {
                       nextStep();
                     }
                   }}
@@ -502,11 +502,11 @@ function ExperimentPanel() {
 
 export function MorePageContent() {
   const [activeTab, setActiveTab] = useState<MoreTab>("settings");
-  const { nextStep, isRunning, activeTour } = useProductTourContext();
+  const { nextStep, isRunning, activeStep, activeTour } = useProductTourContext();
 
   const handleTabChange = (tab: MoreTab) => {
     setActiveTab(tab);
-    if (tab === "settings" && isRunning) {
+    if (tab === "settings" && isRunning && activeStep?.target === "[data-tour='more-settings-tab']") {
       nextStep();
     }
   };

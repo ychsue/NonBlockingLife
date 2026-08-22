@@ -22,6 +22,7 @@ import microTasksHelpMarkdown from './MicroTasksHelp.md?raw'
 import { useSearchFilter, useHideDone } from '../../hooks/useSearchFilter'
 import { interruptTask } from '../../utils/taskFlow'
 import { shouldOpenRowEdit } from './rowEditUtils'
+import { notifies } from '../../utils/notification'
 
 const DEV_CLIENT_ID = 'dev-client'
 const columnHelper = createColumnHelper<MicroTaskItem>()
@@ -40,6 +41,7 @@ function createNewMicroTaskRow(): MicroTaskItem {
 
 export function MicroTasksTable() {
   const t = useT()
+  const locale = useAppStore((state) => state.locale)
   const [rows, setRows] = useState<MicroTaskItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showHelp, setShowHelp] = useState(false)
@@ -176,6 +178,7 @@ export function MicroTasksTable() {
       console.error('Failed to interrupt/start from micro tasks:', result.message)
       return
     }
+    notifies.taskStarted(item.title ?? item.taskId ?? '', locale);
     await loadRunningTask()
   }
 

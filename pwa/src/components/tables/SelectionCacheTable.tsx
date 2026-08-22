@@ -35,6 +35,7 @@ import {
 } from "../../utils/dialogInteractionUtils";
 import { useDialogStore } from '../../store/dialogStore';
 import { useDebouncedState } from '../../hooks/useDebouncedState';
+import { notifies } from '../../utils/notification';
 
 const DEV_CLIENT_ID = "dev-selection-cache";
 const columnHelper = createColumnHelper<SelectionCacheItem>();
@@ -99,6 +100,7 @@ export function SelectionCacheTable() {
 
   const globalDialogConfig = useDialogStore((state) => state.dialogConfig);
 
+  const locale = useAppStore((state) => state.locale);
   const handleDialogButtonTouchEnd = useCallback(
     (event: TouchEvent<HTMLButtonElement>, action: () => void) => {
       if (event.currentTarget.disabled) return;
@@ -192,12 +194,12 @@ export function SelectionCacheTable() {
       const timer = setTimeout(() => {
         const dialogRetry = endDialogRef.current;
         if (dialogRetry) {
-          handleDialogState(dialogRetry);
+          handleEndDialogState(dialogRetry);
         }
       }, 50);
       return () => clearTimeout(timer);
     }
-    handleDialogState(dialog);
+    handleEndDialogState(dialog);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showEndDialog, isInterruptMode, endDialogRef.current, showInterruptConfirmDialog, showTaskSearchDialog, globalDialogConfig]);
 
@@ -221,13 +223,13 @@ export function SelectionCacheTable() {
     };
   }, [showStartDialog, showEndDialog, showRecordDialog]);
 
-  const handleDialogState = (dialog: HTMLDialogElement) => {
+  const handleEndDialogState = (dialog: HTMLDialogElement) => {
     // Suppress native endDialog while InterruptConfirmDialog or TaskSearchDialog is on top
     if (showEndDialog && !showInterruptConfirmDialog && !showTaskSearchDialog && !!!globalDialogConfig) {
       if (!dialog.open) {
         dialog.showModal();
       }
-    } else if (dialog.open && !isInterruptMode) {
+    } else if (dialog.open && (!isInterruptMode || showInterruptConfirmDialog || showTaskSearchDialog || globalDialogConfig)) {
       dialog.close();
     }
   };
@@ -384,6 +386,7 @@ export function SelectionCacheTable() {
       setWarning("");
       await loadRunningTask();
 
+      notifies.taskStarted(selectedTask.title ?? selectedTask.taskId ?? '', locale);
       // 可選：自動刷新候選列表，或讓用戶手動刷新
       // await handleRefreshCandidates()
     } catch (err) {
@@ -438,6 +441,9 @@ export function SelectionCacheTable() {
 
   const handleConfirmEnd = async () => {
     try {
+      const title = "✅" + (runningTask?.title ?? runningTask?.taskId ?? '');
+      notifies.taskEnded(title, locale);
+
       const result = await endTask(endNote);
       if (result.status !== "success") {
         setWarning(result.message);
@@ -467,6 +473,9 @@ export function SelectionCacheTable() {
         setWarning(result.message);
         return;
       }
+      const body = t("interrupt.confirm.notify", { task: runningTask?.title ?? runningTask?.taskId ?? '🧠 ' });
+      const title = t("candidates.interrupt");
+      notifies.taskStarted(title, body);
       if ("payload" in result && result.payload) {
         setRunningTask(result.payload as Dashboard);
       }

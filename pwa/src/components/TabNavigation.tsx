@@ -23,11 +23,11 @@ export function TabNavigation() {
   const currentSheet = useAppStore((state) => state.currentSheet)
   const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
   const experimentalFeaturesEnabled = useAppStore((state) => state.experimentalFeaturesEnabled)
-  const { activeTour, isRunning, nextStep } = useProductTourContext()
+  const { activeStep, isRunning, nextStep } = useProductTourContext()
 
   const handleTabSelect = (sheet: AllPages) => {
     setCurrentSheet(sheet)
-    if (sheet === 'selection_cache' && isRunning && activeTour?.id === 'android-timer-setup') {
+    if (sheet === 'selection_cache' && isRunning && activeStep?.id === 'android-selection-cache') {
       nextStep()
     }
   }

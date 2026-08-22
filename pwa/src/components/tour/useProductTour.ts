@@ -12,6 +12,7 @@ type UseProductTourResult = {
   completedTours: string[];
   tours: ProductTourConfig[];
   startTour: (tourId: string, options?: { force?: boolean }) => void;
+  stopTour: () => void;
   completeTour: (tourId: string) => void;
   nextStep: () => void;
   resetTour: () => void;
@@ -98,6 +99,11 @@ export function useProductTour(currentSheet?: string): UseProductTourResult {
     setActiveStepIndex(0);
   }, [toursList]);
 
+  const stopTour = useCallback(() => {
+    setActiveTourId(null);
+    setActiveStepIndex(0);
+  }, []);
+
   const nextStep = useCallback(() => {
     if (!activeTour) return;
     if (activeStepIndex >= activeTour.steps.length - 1) {
@@ -166,6 +172,7 @@ export function useProductTour(currentSheet?: string): UseProductTourResult {
     completedTours,
     tours: toursList,
     startTour,
+    stopTour,
     completeTour,
     nextStep,
     resetTour,

@@ -1,6 +1,6 @@
 import type { ProductTourConfig } from "./productTourTypes";
 
-const REPLAY_DELAY_MS = 1000;
+const REPLAY_DELAY_MS = 60*1000; //免得一次學太多
 
 export function isTourCompleted(tourId: string, completedTours: string[]): boolean {
   return completedTours.includes(tourId);
