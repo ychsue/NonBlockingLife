@@ -329,6 +329,8 @@ public class LauncherActivity extends AppCompatActivity {
                         json.optBoolean("dismissOnClick", true));
             } else if (QUERY_NOTIFICATION_PERMISSION_TYPE.equals(type)) {
                 replyNotificationPermissionStatus();
+            } else if (AlarmMessageHandler.SET_ALARMS_MESSAGE_TYPE.equals(type)) {
+                AlarmMessageHandler.handle(this, json, mSession);
             }
         } catch (JSONException e) {
             // Not a JSON message we understand; ignore.

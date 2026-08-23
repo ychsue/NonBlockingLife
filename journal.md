@@ -1,5 +1,11 @@
 # Journal
 
+## [2026-08-23] 準備實作 alarm 的批次處理(十一) 
+- [12:18] 
+   * 在 [style.css](pwa\src\styles.css) 裡面，加入 `#joyride-tooltip-container { z-index: 9999; }`，這樣就可以讓 Joyride 的 tooltip 在最上層了。
+   * 同個檔案，加個 `overscroll-behavior-y: contain;`，這樣可以避免TWA上因為reload而導致Chrome 因此開出新的 Chrome tab 的問題，這個問題在 Android 14 上面會發生，Android 13 似乎不會。
+- [13:18] JAVA端大更改，現在有 AlarmMessageHandler 來處理 alarm 的訊息，然後可以走 `ClockAlarmScheduler` 或 `ExactAlarmScheduler` 來處理 alarm 的設定。
+
 ## [2026-08-22] 準備實作 alarm 的批次處理(十)
 - [17:06] beta.11 的修正如下
    1. 最後決定讓使用者可以退到 `activity_main.xml`，接下來可能在上面放按鈕嗎？

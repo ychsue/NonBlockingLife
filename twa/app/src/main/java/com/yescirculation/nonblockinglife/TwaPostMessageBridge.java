@@ -20,6 +20,7 @@ import androidx.browser.customtabs.CustomTabsServiceConnection;
 import androidx.browser.customtabs.CustomTabsSession;
 import androidx.browser.trusted.TrustedWebActivityIntentBuilder;
 import androidx.core.content.ContextCompat;
+import android.net.Uri;
 
 public class TwaPostMessageBridge {
     private static TwaPostMessageBridge instance;
@@ -27,6 +28,7 @@ public class TwaPostMessageBridge {
     private static final String TAG = "NBL/TwaBridge";
     private static final Uri TARGET_ORIGIN = Uri.parse("https://ychsue.github.io");
     private static final Uri URL = Uri.parse("https://ychsue.github.io/NonBlockingLife/");
+    private Uri launchUri = Uri.parse("https://ychsue.github.io/NonBlockingLife/");
 
     private final Activity context;
     private CustomTabsClient mClient;
@@ -53,8 +55,9 @@ public class TwaPostMessageBridge {
         this.context = activity;
     }
 
-    public static void bindFrom(Activity activity) {
+    public static void bindFrom(Activity activity, Uri launchUri) {
         instance = new TwaPostMessageBridge(activity);
+        instance.launchUri = launchUri;
         instance.bind();
     }
 
@@ -116,7 +119,7 @@ public class TwaPostMessageBridge {
     }
 
     private void launchTrustedWebActivity() {
-        TrustedWebActivityIntentBuilder builder = new TrustedWebActivityIntentBuilder(URL);
+        TrustedWebActivityIntentBuilder builder = new TrustedWebActivityIntentBuilder(launchUri);
         Intent intent = builder.build(mSession).getIntent();
         
         // // 指定使用的套件，避免出現 Intent Chooser
@@ -125,7 +128,7 @@ public class TwaPostMessageBridge {
         //     intent.setPackage(packageName);
         // }
         
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        // intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
 

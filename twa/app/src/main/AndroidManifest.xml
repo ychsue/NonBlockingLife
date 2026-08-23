@@ -26,6 +26,7 @@
         <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
 
   <queries>
     <intent>
@@ -230,6 +231,8 @@
         <meta-data android:name="android.appwidget.provider"
             android:resource="@xml/widget_combined_info" />
     </receiver>
+
+    <receiver android:name=".AlarmReceiver" android:exported="false" />
 
   </application>
 </manifest>
