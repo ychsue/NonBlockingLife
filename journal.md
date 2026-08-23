@@ -11,6 +11,7 @@
    * `selectClockApp()` 會讓使用者選擇要使用哪個 clock app 來設定 alarm
    * `requestExactAlarmPermission()` 會請使用者授權 exact alarm permission
 - [17:05] 在 EndDialog 的 ⌛ 按鈕上，加入 onClick={showTimer}，這樣就可以讓使用者如果想延長時間，可以直接開啟 timer 了。
+- [19:27] 在 EditDialog 的 cronExpr，加入兩個按鈕，一個是 `清除`，一個是 `九點`，這樣就可以讓使用者快速設定 cronExpr 了。
 
 ## [2026-08-22] 準備實作 alarm 的批次處理(十)
 - [17:06] beta.11 的修正如下

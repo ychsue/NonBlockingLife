@@ -212,9 +212,29 @@ export function EditDialog<T>({
         <div className="space-y-4 mb-6 flex-1 overflow-y-auto overflow-x-hidden pr-2">
           {fields.map((field) => (
             <div key={field.name}>
-              <label htmlFor={field.name} className="block text-sm font-medium text-gray-700 mb-1">
-                {field.label}
-              </label>
+              <div className="flex items-left flex-direction-row mb-2">
+                <label htmlFor={field.name} className="block text-sm font-medium text-gray-700 mb-1">
+                  {field.label}
+                </label>
+                {(field.type === 'cron')?(
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleChange(field.name, '')}
+                      className="px-2 py-1 text-xs text-blue-600 hover:underline"
+                    >
+                      {"🧹"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleChange(field.name, '0 9 * * *')}
+                      className="px-2 py-1 text-xs text-blue-600 hover:underline"
+                    >
+                      {"🕘"}
+                    </button>
+                  </>
+                ) : null}
+              </div>
 
               {field.type === 'select' ? (
                 <select
