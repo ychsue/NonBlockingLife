@@ -307,7 +307,7 @@ function ExperimentPanel() {
   const handleSyncAlarmQueue = async () => {
     const scheduledRows = await db.scheduled.toArray();
     const existingRows = await db.alarm_queue.orderBy("alarmAt").toArray();
-    const plan = syncAlarmQueueFromScheduled(scheduledRows, existingRows, new Date(), 30 * 24 * 60 * 60 * 1000);
+    const plan = syncAlarmQueueFromScheduled(scheduledRows, existingRows, new Date(), 100 * 365 * 24 * 60 * 60 * 1000); //就先考慮100年吧
 
     await applySyncPlan(plan);
     showGlobalToast({

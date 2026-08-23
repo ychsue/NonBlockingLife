@@ -10,6 +10,7 @@
    * `queryClockApps()` 會回傳目前手機上所有可以設定 alarm 的 app，並且會標示出目前選擇的 app
    * `selectClockApp()` 會讓使用者選擇要使用哪個 clock app 來設定 alarm
    * `requestExactAlarmPermission()` 會請使用者授權 exact alarm permission
+- [17:05] 在 EndDialog 的 ⌛ 按鈕上，加入 onClick={showTimer}，這樣就可以讓使用者如果想延長時間，可以直接開啟 timer 了。
 
 ## [2026-08-22] 準備實作 alarm 的批次處理(十)
 - [17:06] beta.11 的修正如下

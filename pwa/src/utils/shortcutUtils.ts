@@ -241,6 +241,26 @@ export function buildAndroidTimerUri(
   return "";
 }
 
+/**
+ * 純粹只為了顯示計時器，並不會觸發任何流程
+ * 主要用於在 iOS/Android/Windows 上顯示計時器，並不會啟動計時器流程
+ */
+export function showTimer(
+): void {
+  const deviceType = getDeviceType();
+  let timerUrl = "";
+  if (deviceType === "Shortcuts") {
+    timerUrl = "shortcuts://run-shortcut?name=Show_Timer";
+  } else if (deviceType === "Android") {
+    timerUrl = "nonblockinglife://show-clock";
+  } else if (deviceType === "Windows") {
+    timerUrl = "ms-clock:timer";
+  }
+  if (timerUrl) {
+    window.location.href = timerUrl;
+  }
+}
+
 export function triggerShortcutTimer(
   taskTitle: string,
   taskId: string,

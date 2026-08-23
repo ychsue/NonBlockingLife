@@ -36,6 +36,7 @@ import {
 import { useDialogStore } from '../../store/dialogStore';
 import { useDebouncedState } from '../../hooks/useDebouncedState';
 import { notifies } from '../../utils/notification';
+import { showTimer } from '../../utils/shortcutUtils';
 
 const DEV_CLIENT_ID = "dev-selection-cache";
 const columnHelper = createColumnHelper<SelectionCacheItem>();
@@ -48,7 +49,7 @@ function mapSourceToSheet(source?: string): SheetName | null {
 }
 
 export function SelectionCacheTable() {
-  const [rows, setRows] = useDebouncedState<SelectionCacheItem[]>([],300); // 防抖 300ms，避免頻繁更新 UI
+  const [rows, setRows] = useDebouncedState<SelectionCacheItem[]>([], 300); // 防抖 300ms，避免頻繁更新 UI
   const [loading, setLoading] = useState(true);
   const [columnVisibility, setColumnVisibility] = useState<
     Record<string, boolean>
@@ -200,7 +201,7 @@ export function SelectionCacheTable() {
       return () => clearTimeout(timer);
     }
     handleEndDialogState(dialog);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showEndDialog, isInterruptMode, endDialogRef.current, showInterruptConfirmDialog, showTaskSearchDialog, globalDialogConfig]);
 
   useEffect(() => {
@@ -255,7 +256,7 @@ export function SelectionCacheTable() {
   }, [setLoading, setRows]);
 
   // 刷新候選任務列表
-  const handleRefreshCandidates = useCallback( async () => {
+  const handleRefreshCandidates = useCallback(async () => {
     try {
       setRefreshing(true);
 
@@ -326,7 +327,7 @@ export function SelectionCacheTable() {
     } finally {
       setRefreshing(false);
     }
-  },[setRefreshing, loadCandidates, setConflictScheduled,]);
+  }, [setRefreshing, loadCandidates, setConflictScheduled,]);
 
 
   // 點擊任務行，開啟"開始任務"對話框
@@ -787,15 +788,13 @@ export function SelectionCacheTable() {
                       handleRowClick(row.original.taskId);
                     }
                   }}
-                  className={`border-b border-gray-200 transition-colors transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-1 ${
-                    row.original.status === 'INTERRUPTED'
-                      ? "bg-amber-50 border-l-4 border-l-amber-400"
-                      : ""
-                  } ${
-                    runningTask
+                  className={`border-b border-gray-200 transition-colors transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-1 ${row.original.status === 'INTERRUPTED'
+                    ? "bg-amber-50 border-l-4 border-l-amber-400"
+                    : ""
+                    } ${runningTask
                       ? "opacity-60 cursor-not-allowed"
                       : "hover:bg-blue-50 hover:shadow-sm cursor-pointer active:scale-95 active:bg-blue-100"
-                  }`}
+                    }`}
                   style={{ transformOrigin: "center" }}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -827,11 +826,15 @@ export function SelectionCacheTable() {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex items-center mb-4">
             {/* 若 isInterrupt === true 就顯示 interrupt 的 icon，否則顯示正在執行某任務中 */}
-            <span
-              className={`text-2xl mr-2 ${isInterruptMode ? "text-yellow-500" : "text-amber-500"}`}
-            >
-              {isInterruptMode ? "⚠️" : "⏳"}
-            </span>
+            {isInterruptMode ?
+              <span
+                className={`text-2xl mr-2 ${isInterruptMode ? "text-yellow-500" : "text-amber-500"}`}
+              >"⚠️"</span> :
+              <button
+                className={`text-2xl mr-2 ${isInterruptMode ? "text-yellow-500" : "text-amber-500"}`}
+                onClick={showTimer}
+              >⏳</button>
+            }
             <h2 className="text-lg font-bold mb-4 text-amber-900">{t('endTask.title')}</h2>
             <span className="ml-auto">
               {/* 擺到右邊 */}
