@@ -331,6 +331,14 @@ public class LauncherActivity extends AppCompatActivity {
                 replyNotificationPermissionStatus();
             } else if (AlarmMessageHandler.SET_ALARMS_MESSAGE_TYPE.equals(type)) {
                 AlarmMessageHandler.handle(this, json, mSession);
+            } else if (AlarmSetupMessageHandler.QUERY_ALARM_SETUP_TYPE.equals(type)) {
+                AlarmSetupMessageHandler.queryAlarmSetup(this, mSession);
+            } else if (AlarmSetupMessageHandler.QUERY_CLOCK_APPS_TYPE.equals(type)) {
+                AlarmSetupMessageHandler.queryClockApps(this, mSession);
+            } else if (AlarmSetupMessageHandler.SELECT_CLOCK_APP_TYPE.equals(type)) {
+                AlarmSetupMessageHandler.selectClockApp(this, json, mSession);
+            } else if (AlarmSetupMessageHandler.REQUEST_EXACT_ALARM_PERMISSION_TYPE.equals(type)) {
+                AlarmSetupMessageHandler.requestExactAlarmPermission(this);
             }
         } catch (JSONException e) {
             // Not a JSON message we understand; ignore.

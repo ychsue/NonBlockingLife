@@ -21,17 +21,17 @@ final class ExactAlarmScheduler {
     private ExactAlarmScheduler() {
     }
 
-    static boolean schedule(Context context, int id, JSONObject alarm) {
+    static AlarmScheduleResult schedule(Context context, int id, JSONObject alarm) {
         if (!ExactAlarmPermissionHelper.canScheduleExactAlarms(context)) {
             Log.w(TAG, "Missing SCHEDULE_EXACT_ALARM permission; opening settings for the user to grant it.");
             ExactAlarmPermissionHelper.requestPermission(context);
-            return false;
+            return AlarmScheduleResult.failure(AlarmScheduleResult.REASON_EXACT_ALARM_PERMISSION_REQUIRED);
         }
 
         JSONArray time = alarm.optJSONArray("time");
         if (time == null || time.length() < 5) {
             Log.w(TAG, "Alarm id=" + id + " is missing a [year, month, day, hour, minute] time array.");
-            return false;
+            return AlarmScheduleResult.failure(AlarmScheduleResult.REASON_INVALID_TIME);
         }
 
         Calendar calendar = Calendar.getInstance();
@@ -41,13 +41,13 @@ final class ExactAlarmScheduler {
         long triggerAtMillis = calendar.getTimeInMillis();
         if (triggerAtMillis <= System.currentTimeMillis()) {
             Log.w(TAG, "Alarm id=" + id + " time is in the past: " + calendar.getTime());
-            return false;
+            return AlarmScheduleResult.failure(AlarmScheduleResult.REASON_PAST_TIME);
         }
 
         AlarmManager alarmManager = context.getSystemService(AlarmManager.class);
         if (alarmManager == null) {
             Log.w(TAG, "AlarmManager unavailable.");
-            return false;
+            return AlarmScheduleResult.failure(AlarmScheduleResult.REASON_ALARM_MANAGER_UNAVAILABLE);
         }
 
         Intent fireIntent = new Intent(context, AlarmReceiver.class);
@@ -64,6 +64,6 @@ final class ExactAlarmScheduler {
 
         alarmManager.setAlarmClock(
                 new AlarmManager.AlarmClockInfo(triggerAtMillis, showPendingIntent), operation);
-        return true;
+        return AlarmScheduleResult.success();
     }
 }

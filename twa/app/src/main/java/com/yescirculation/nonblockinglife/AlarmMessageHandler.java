@@ -61,15 +61,15 @@ final class AlarmMessageHandler {
     private static JSONObject scheduleOne(Context context, JSONObject alarm) {
         String mode = alarm.optString("mode", "clock");
         int id = alarm.optInt("id", (int) System.currentTimeMillis());
-        boolean ok;
+        AlarmScheduleResult scheduleResult;
         String error = null;
         try {
-            ok = "exact".equals(mode)
+            scheduleResult = "exact".equals(mode)
                     ? ExactAlarmScheduler.schedule(context, id, alarm)
                     : ClockAlarmScheduler.schedule(context, id, alarm);
         } catch (Exception e) {
             Log.e(TAG, "Failed scheduling alarm id=" + id, e);
-            ok = false;
+            scheduleResult = AlarmScheduleResult.failure(null);
             error = e.getMessage();
         }
 
@@ -77,7 +77,10 @@ final class AlarmMessageHandler {
         try {
             result.put("id", id);
             result.put("mode", mode);
-            result.put("ok", ok);
+            result.put("ok", scheduleResult.ok);
+            if (scheduleResult.reason != null) {
+                result.put("reason", scheduleResult.reason);
+            }
             if (error != null) {
                 result.put("error", error);
             }

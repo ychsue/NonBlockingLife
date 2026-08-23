@@ -22,18 +22,18 @@ final class ClockAlarmScheduler {
     private ClockAlarmScheduler() {
     }
 
-    static boolean schedule(Context context, int id, JSONObject alarm) {
+    static AlarmScheduleResult schedule(Context context, int id, JSONObject alarm) {
         JSONArray time = alarm.optJSONArray("time");
         if (time == null || time.length() < 2) {
             Log.w(TAG, "Alarm id=" + id + " is missing a [hour, minute] time array.");
-            return false;
+            return AlarmScheduleResult.failure(AlarmScheduleResult.REASON_INVALID_TIME);
         }
 
         int hour = time.optInt(0, -1);
         int minute = time.optInt(1, -1);
         if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
             Log.w(TAG, "Alarm id=" + id + " has an invalid time: " + hour + ":" + minute);
-            return false;
+            return AlarmScheduleResult.failure(AlarmScheduleResult.REASON_INVALID_TIME);
         }
 
         Intent intent = new Intent(AlarmClock.ACTION_SET_ALARM);
@@ -58,12 +58,17 @@ final class ClockAlarmScheduler {
         // Context may not always be an Activity (e.g. called off a broadcast in the future).
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
+        String preferredPackage = ClockAppPreference.getSelectedPackage(context);
+        if (preferredPackage != null) {
+            intent.setPackage(preferredPackage);
+        }
+
         if (intent.resolveActivity(context.getPackageManager()) == null) {
-            Log.w(TAG, "No app can handle ACTION_SET_ALARM.");
-            return false;
+            Log.w(TAG, "No app can handle ACTION_SET_ALARM (preferredPackage=" + preferredPackage + ").");
+            return AlarmScheduleResult.failure(AlarmScheduleResult.REASON_NO_CLOCK_APP);
         }
 
         context.startActivity(intent);
-        return true;
+        return AlarmScheduleResult.success();
     }
 }

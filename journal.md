@@ -5,6 +5,11 @@
    * 在 [style.css](pwa\src\styles.css) 裡面，加入 `#joyride-tooltip-container { z-index: 9999; }`，這樣就可以讓 Joyride 的 tooltip 在最上層了。
    * 同個檔案，加個 `overscroll-behavior-y: contain;`，這樣可以避免TWA上因為reload而導致Chrome 因此開出新的 Chrome tab 的問題，這個問題在 Android 14 上面會發生，Android 13 似乎不會。
 - [13:18] JAVA端大更改，現在有 AlarmMessageHandler 來處理 alarm 的訊息，然後可以走 `ClockAlarmScheduler` 或 `ExactAlarmScheduler` 來處理 alarm 的設定。
+- [16:07] 簡單講透過postMessage在 `AlarmSetupMessageHandler.java` 裡面
+   * `queryAlarmSetup()` 會回傳目前的 alarm 設定，包含是否有 exact alarm permission 與目前選擇的 clock app
+   * `queryClockApps()` 會回傳目前手機上所有可以設定 alarm 的 app，並且會標示出目前選擇的 app
+   * `selectClockApp()` 會讓使用者選擇要使用哪個 clock app 來設定 alarm
+   * `requestExactAlarmPermission()` 會請使用者授權 exact alarm permission
 
 ## [2026-08-22] 準備實作 alarm 的批次處理(十)
 - [17:06] beta.11 的修正如下
