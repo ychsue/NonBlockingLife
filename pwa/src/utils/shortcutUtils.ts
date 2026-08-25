@@ -13,11 +13,13 @@ export type AndroidTimerLaunchMode = 'none' | 'show_clock' | 'set_timer'
 export function getDeviceType():
   | "Shortcuts"
   | "Android"
+  | "TWA"
   | "Windows"
   | "Linux"
   | "Unknown" {
   const userAgent = navigator.userAgent.toLowerCase();
   if (/iphone|ipad|ipod|mac/.test(userAgent)) return "Shortcuts";
+  if (/^android-app:\/\/com.yescirculation.nonblockinglife/.test(document.referrer)) return "TWA";
   if (/android/.test(userAgent)) return "Android";
   if (/win/.test(userAgent)) return "Windows";
   if (/linux/.test(userAgent)) return "Linux";
@@ -213,7 +215,7 @@ export function triggerAutomateFlow(
  * @param automateConfig Automate 配置（Android 用），若不傳則從 localStorage 讀取
  * @returns 是否成功触发
  */
-export function buildAndroidTimerUri(
+export function buildTwaTimerUri(
   taskTitle: string,
   timerMinutes: number,
   mode?: AndroidTimerLaunchMode,
@@ -251,7 +253,7 @@ export function showTimer(
   let timerUrl = "";
   if (deviceType === "Shortcuts") {
     timerUrl = "shortcuts://run-shortcut?name=Show_Timer";
-  } else if (deviceType === "Android") {
+  } else if (deviceType === "TWA") {
     timerUrl = "nonblockinglife://show-clock";
   } else if (deviceType === "Windows") {
     timerUrl = "ms-clock:timer";
@@ -284,8 +286,8 @@ export function triggerShortcutTimer(
       console.error("Failed to trigger shortcut:", error);
       return false;
     }
-  } else if (deviceType === "Android") {
-    const timerUri = buildAndroidTimerUri(taskTitle, config.timerMinutes, undefined, intent);
+  } else if (deviceType === "TWA") {
+    const timerUri = buildTwaTimerUri(taskTitle, config.timerMinutes, undefined, intent);
 
     if (!timerUri) {
       console.info("Android timer launch is disabled by current mode.");

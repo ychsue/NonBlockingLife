@@ -90,7 +90,8 @@ export function parseAlarmOffsets(offsets?: string | string[] | number[] | null)
 export function buildAlarmQueueEntries(
   scheduled: ScheduledItem[],
   now: Date = new Date(),
-  windowMs = 30 * 24 * 60 * 60 * 1000
+  windowMs = 30 * 24 * 60 * 60 * 1000,
+  syncTargets: { clock: boolean; exact: boolean } = { clock: false, exact: false }
 ): AlarmQueueItem[] {
   const nowMs = now.getTime()
   const futureCutoff = nowMs + windowMs
@@ -115,6 +116,8 @@ export function buildAlarmQueueEntries(
         alarmAt,
         offsetMinutes,
         state: 'pending',
+        clockState: syncTargets.clock ? 'pending' : 'not_applicable',
+        exactState: syncTargets.exact ? 'pending' : 'not_applicable',
         dedupeKey,
         createdAt: nowMs,
         updatedAt: nowMs,

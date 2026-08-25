@@ -1,5 +1,29 @@
 # Journal
 
+## [2026-08-25] 準備實作 alarm 的批次處理(十三)
+- [21:35] 
+   * 原本想要使用 `npm run dev -- --inspect` ，然後TWA則改 [strings.xml](twa\app\src\debug\res\values\strings.xml) 與 [build.gradle](twa\app\build.gradle) 好使用這個 local PWA，這樣，就比較好 debug
+      - 然而，試了半天，沒辦法讓 build 起來的使用這個 dev PWA，因為他會去抓 `https://ychsue.github.io/NonBlockingLife/` 
+      - 要改的地方感覺很多，所以後來作罷
+   * 所以，改成在 [useTwaBridge.ts#mimicTwaMessageChannel](pwa\src\hooks\useTwaBridge.ts) 來模擬 TWA 那一端的 postMessage 與 onMessage，這樣就可以在 PWA 端測試 TWA 的 postMessage 與 onMessage 了。
+   * [App.tsx](pwa\src\App.tsx) 裡面，加入 `mimicTwaMessageChannel()`，然後用 `if (import.meta.env.DEV) { mimicTwaMessageChannel() }`，這樣就可以在 PWA 端測試 TWA 的 postMessage 與 onMessage 了。
+   * [App.tsx](pwa\src\App.tsx) 已經將測試連通 port、取得必要Clock & Exact Alarm Permission，下一步就是整理 db.alarm_queue 的狀態與透過 postMessage 來同步到 TWA 端的 alarm 設定與再次更新 db.alarm_queue 的狀態了。
+
+## [2026-08-24] 準備實作 alarm 的批次處理(十二)
+- [12:01] 學習
+``` js
+// 1. 建 channel 並測試基本通訊
+const ch = new MessageChannel();
+ch.port1.onmessage = (e) => console.log('port1 got:', e.data);
+if (typeof ch.port1.start === 'function') ch.port1.start();
+ch.port2.postMessage('hello from port2');
+// 以下在測試
+window.__NBL_TWA_BRIDGE__.setPort(ch.port1);
+window.__NBL_TWA_BRIDGE__.sendDelegate = ch.port2;
+window.__NBL_TWA_BRIDGE__.subscribe((msg) => console.log('got msg:', msg));
+window.__NBL_TWA_BRIDGE__.postMessage({ hello: 'from bridge' });
+```
+
 ## [2026-08-23] 準備實作 alarm 的批次處理(十一) 
 - [12:18] 
    * 在 [style.css](pwa\src\styles.css) 裡面，加入 `#joyride-tooltip-container { z-index: 9999; }`，這樣就可以讓 Joyride 的 tooltip 在最上層了。
@@ -31,13 +55,13 @@
 ## [2026-08-20] 準備實作 alarm 的批次處理(八)
 - [09:40] 先不要使用 androidBrowserHelper 看看，
 - [12:08] 以下為要跟AI 討論的，先解以下兩個
-   1. [AndroidManifest.xml](twa\app\src\main\AndroidManifest.xml) 
+   1. [AndroidManifest.xml](twa/app/src/main/AndroidManifest.xml)
       * 使用 `android:theme="@android:style/Theme.Translucent.NoTitleBar"` 會閃退，得改 `android:theme="@style/Theme.AppCompat.NoActionBar"`，但是，這樣就會有黑色背景了
       * 有打開幾個 androidBrowserHelper 的 activity，有 ManageDataLauncherActivity， FocusActivity 與 WebViewFallbackActivity，這些 activity 都是由 androidBrowserHelper 提供的，不曉得影響如何
       * `NotificationPermissionRequestActivity` 與 `DelegationService` 被我關掉，因為若提供，連 Notification 都會出不來 
          - 但我需要，因為目前的 Notification 顯示的是 Chrome 的圖案，而非這個PWA原本設定的。
    2. `Notification` 希望能像先前 AndroidBrowserHelper 那樣可以像是 Native 的 Notification，而非像是被阻擋的 sw 送出的 Notification (因為title 相同時還會被他當垃圾資訊，icon也是 chrome)
-   3. 我把 [MacroWidgetProvider.java](twa\app\src\main\java\com\yescirculation\nonblockinglife\MacroWidgetProvider.java) 的 intent 改成給 `TwaPostMessageTesterActivity.class`，這樣就能打開 TWA 了，但是他卻會有網址列或者打開首頁而已。
+   3. 我把 [MacroWidgetProvider.java](twa/app/src/main/java/com/yescirculation/nonblockinglife/MacroWidgetProvider.java) 的 intent 改成給 `TwaPostMessageTesterActivity.class`，這樣就能打開 TWA 了，但是他卻會有網址列或者打開首頁而已。
       * 打開時，如果按手機右下的 `<`，會跳到這APP的先前動作(我希望是跳別的APP)，或者就直接顯示 `activity_main.xml` 而不bind chrome。
       * 如果移掉這個 instance (透過三條線，然後把它滑掉)，再按這個 widget，會重新打開 TWA，但不會跳到該頁面
       * 如果按這個 widget 時有 TWA 已經在跑了，會打開該頁面，但是會有個網址列 
@@ -58,7 +82,8 @@ gradlew.bat :app:signingReport
 ## [2026-08-16] 準備實作 alarm 的批次處理(五)
 - [09:17] 試著打通 PostMessage
 - [12:17] 藉由[範例的幫忙](https://github.com/GoogleChrome/android-browser-helper/tree/main/demos/twa-post-message)，後端似乎能動了，但是丟出去的前端收不到 
-   * [ ] [TwaPostMessageBridge.java](twa/app/src/main/java/com/yescirculation/nonblockinglife/TwaPostMessageBridge.java)裡面有用 `DEBUG` 來標示測試用的每兩秒丟前端，事後要移除，不過，前端收不到
+   * [x] [TwaPostMessageBridge.java](twa/app/src/main/java/com/yescirculation/nonblockinglife/TwaPostMessageBridge.java)裡面有用 `DEBUG` 來標示測試用的每兩秒丟前端，事後要移除，不過，前端收不到
+      - 已經打通
 - [13:16] 加 listen at App.tsx ，然後頁面起始於 MorePageContent.tsx，偶而可以取得 port 的樣子，但還是不能傳輸。 -_-
 - [13:46] beta.3 加些 debug 看看
 - [14:08] beta.5 改由 index.html 來初始化 port看看
@@ -98,7 +123,7 @@ adb shell pm get-app-links com.yescirculation.nonblockinglife
 
 ## [2026-08-11] !!嚴重的問題，share-to-inbox突然失效，改成 `https://ychsue.github.io/NonBlockingLife/?action=share-to-inbox` 看看
 - [x] 先部署到 GitHub Pages，然後再測試 TWA 與 PWA 的 share-to-inbox 是否正常
-- [ ] 更新 Android aab 到 Play Store，看看是否正常，版本PWA 為 2.3.6，TWA 為 NBL-1.1.1 & 13
+- [x] 更新 Android aab 到 Play Store，看看是否正常，版本PWA 為 2.3.6，TWA 為 NBL-1.1.1 & 13
 
 ## [2026-08-11] 當 cronExpr 被修改後，會詢問使用者是否要將 nextRun 也改成預測的時間，這樣就可以避免使用者忘記修改 nextRun 的問題了。謝謝 MAI-Code1-Flash
 
@@ -279,7 +304,7 @@ docker run -it --rm -v %cd%:/app -w /app ghcr.io/googlechromelabs/bubblewrap:lat
 ```
 
 3. versionName: NBL-1.0.6
-4. [ ] 需要多一個useUrlAction 來處理 share-to-inbox 然後需要判斷 title, text & url
+4. [x] 需要多一個useUrlAction 來處理 share-to-inbox 然後需要判斷 title, text & url
 5. 切換到 Android Studio 打開 twa 目錄
 6. 換到 Android Studio 後，版本太舊，先commit 現在的狀態，然後再更新 Android Studio 到最新版本，最後，再打開 twa 目錄
 
@@ -668,7 +693,7 @@ Gemini 有回答
 
 [Logic.js](gas\src\Logic.js) 的 `handleEnd` 宣告此要求。
 
-[ ] TODO TODO TODO [加強提醒功能建議](./Discussion/6th_discussion.md#2026-01-25-ychsue-我目前是使用-start-時他會設定一個30分鐘的鬧鐘提醒我該起來了還是您有更好的建議)
+[x] [加強提醒功能建議](./Discussion/6th_discussion.md#2026-01-25-ychsue-我目前是使用-start-時他會設定一個30分鐘的鬧鐘提醒我該起來了還是您有更好的建議)
 
    - 值得做，現在先不要。
 

@@ -90,6 +90,10 @@ export interface MicroTaskItem {
   deadline?: number
 }
 
+// Tracks whether this queue entry has been (or needs to be) sent to the Android TWA for the given
+// target; 'not_applicable' means the user hasn't asked to sync this entry to that target.
+export type AlarmSyncState = 'not_applicable' | 'pending' | 'set' | 'failed'
+
 export interface AlarmQueueItem {
   id?: number
   title?: string
@@ -97,6 +101,8 @@ export interface AlarmQueueItem {
   alarmAt: number
   offsetMinutes: number
   state: 'pending' | 'triggered' | 'expired' | 'dismissed'
+  clockState: AlarmSyncState
+  exactState: AlarmSyncState
   dedupeKey: string
   createdAt: number
   updatedAt: number
@@ -235,6 +241,31 @@ export class AppDB extends Dexie {
       })
       .upgrade(() => {
         // Reserved for future alarm queue data backfill.
+      })
+
+    this.version(4)
+      .stores({
+        log: 'id, timestamp, taskId, action, state, title',
+        dashboard: 'taskId, systemStatus',
+        inbox: 'taskId, receivedAt, title',
+        task_pool: 'taskId, status, project, priority, lastRunDate, title, note, url',
+        scheduled: 'taskId, status, nextRun, title, reminderOffsets',
+        selection_cache: 'taskId, score, source, title',
+        micro_tasks: 'taskId, status, lastRunDate, title',
+        alarm_queue: '++id, taskId, alarmAt, dedupeKey, state, clockState, exactState, createdAt, updatedAt',
+        change_log: 'id, table, recordId, op, status, createdAt',
+        sync_state: 'key',
+        resource: 'taskId, category, receivedAt, title',
+        macro: 'taskId, name, updatedAt, createdAt',
+        macro_execution: 'macroId, status, lockOwner, lockExpiresAt, updatedAt',
+        app_log: 'id, timestamp, level, scope'
+      })
+      .upgrade((tx) => {
+        // Pre-existing rows predate the TWA clock/exact-alarm sync feature, so nothing was ever sent.
+        return tx.table('alarm_queue').toCollection().modify((item) => {
+          item.clockState = item.clockState ?? 'not_applicable'
+          item.exactState = item.exactState ?? 'not_applicable'
+        })
       })
   }
 }

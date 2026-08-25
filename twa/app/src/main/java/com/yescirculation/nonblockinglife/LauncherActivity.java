@@ -339,6 +339,12 @@ public class LauncherActivity extends AppCompatActivity {
                 AlarmSetupMessageHandler.selectClockApp(this, json, mSession);
             } else if (AlarmSetupMessageHandler.REQUEST_EXACT_ALARM_PERMISSION_TYPE.equals(type)) {
                 AlarmSetupMessageHandler.requestExactAlarmPermission(this);
+            } else if ("nbl:ping".equals(type)) {
+                if (mSession != null) {
+                    mSession.postMessage("{\"type\":\"nbl:pong\"}", null);
+                }
+            } else {
+                Log.w(TAG, "Unknown message type: " + type);
             }
         } catch (JSONException e) {
             // Not a JSON message we understand; ignore.

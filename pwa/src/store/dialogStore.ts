@@ -16,10 +16,18 @@ interface DialogInputField {
   defaultValue?: string;
 }
 
+interface DialogSelectField {
+  name: string;
+  label: string;
+  options: { value: string; label: string }[];
+  defaultValue?: string;
+}
+
 export interface DialogConfig {
   title: string;
   message: string;
   inputs?: DialogInputField[];
+  selects?: DialogSelectField[];
   actions: DialogAction[];
   // 點擊按鈕後，回傳是哪顆按鈕被點了，以及表單填了什麼
   resolve: (value: {

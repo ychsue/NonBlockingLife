@@ -71,7 +71,7 @@ export function ScheduledTable() {
   const [sorting, setSorting] = useState<SortingState>([])
   const [sortMode, setSortMode] = useState<'none' | 'lastRunAsc' | 'lastRunDesc' | 'nextRunAsc' | 'nextRunDesc'>('none')
   const { isMobile } = useResponsiveTable()
-  const alarmTestMode = useAppStore((state) => state.alarmTestMode)
+  const alarmSyncTargets = useAppStore((state) => state.alarmSyncTargets)
 
   const [createdNewRowId, setCreatedNewRowId] = useState("");
   
@@ -517,7 +517,7 @@ export function ScheduledTable() {
           )
         },
       }),
-      ...(alarmTestMode !== 'none' ? [columnHelper.accessor('reminderOffsets', {
+      ...(alarmSyncTargets !== 0 ? [columnHelper.accessor('reminderOffsets', {
         header: t('table.scheduled.col.reminderOffsets'),
         cell: (info) => {
           const taskId = info.row.original.taskId
@@ -1026,7 +1026,7 @@ export function ScheduledTable() {
             label: t('table.scheduled.field.focusTime'),
             type: 'number' as FieldType,
           },
-          ...(alarmTestMode !== 'none'
+          ...(alarmSyncTargets !== 0
             ? [{
                 name: 'reminderOffsets',
                 label: t('table.scheduled.field.reminderOffsets'),

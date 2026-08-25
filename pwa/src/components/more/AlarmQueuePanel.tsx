@@ -44,6 +44,9 @@ export function AlarmQueuePanel({
                   <div className="mt-1 text-[11px] text-gray-500">
                     offset: {item.offsetMinutes} min · taskId: {item.taskId}
                   </div>
+                  <div className="mt-1 text-[11px] text-gray-500">
+                    clock: {item.clockState} · exact: {item.exactState}
+                  </div>
                 </div>
                 <div className="flex shrink-0 flex-wrap gap-2">
                   <button

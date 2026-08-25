@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import { DebugLogPage } from "../debug/DebugLogPage";
-import { useAppStore, type AlarmTestMode } from "../../store/appStore";
+import { useAppStore, ALARM_SYNC_TARGET_CLOCK, ALARM_SYNC_TARGET_EXACT } from "../../store/appStore";
 import { useProductTourContext } from "../tour/ProductTourContext";
 import type { ProductTourConfig } from "../tour/productTourTypes";
 import type { AndroidTimerLaunchMode } from "../../utils/shortcutUtils";
-import type { AlarmQueueItem } from "../../db/schema";
-import { triggerAlarmNotification } from "../../utils/alarmNotifications";
 import { syncAlarmQueueFromScheduled } from "../../utils/alarmQueue";
 import { useAlarmQueueWatcher } from "../../hooks/useAlarmQueueWatcher";
 import { AlarmQueuePanel } from "./AlarmQueuePanel";
@@ -67,39 +65,6 @@ const timerModeOptions: Array<{
     description: "Use a deep link to open the timer immediately with the task title.",
   },
 ];
-
-const alarmTestModeOptions: Array<{
-  value: AlarmTestMode;
-  label: string;
-  description: string;
-}> = [
-  {
-    value: "none",
-    label: "None",
-    description: "Disable the alarm test and keep the app quiet.",
-  },
-  {
-    value: "notification",
-    label: "Notification",
-    description: "Trigger a local browser notification for a quick device check.",
-  },
-  {
-    value: "system",
-    label: "System",
-    description: "Attempt to open the Android clock/timer intent for native checking.",
-  },
-];
-
-const alarmQueueSample: AlarmQueueItem = {
-  taskId: "test-alarm",
-  title: "NBL Alarm Test",
-  alarmAt: Date.now(),
-  offsetMinutes: 0,
-  state: "pending",
-  dedupeKey: `test-alarm:${Date.now()}`,
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-};
 
 function SettingsCard({
   title,
@@ -266,8 +231,7 @@ function SettingsPanel() {
 function ExperimentPanel() {
   const enableExperimentalFeatures = useAppStore((state) => state.experimentalFeaturesEnabled);
   const showGlobalToast = useAppStore((state) => state.showGlobalToast);
-  const alarmTestMode = useAppStore((state) => state.alarmTestMode);
-  const setAlarmTestMode = useAppStore((state) => state.setAlarmTestMode);
+  const alarmSyncTargets = useAppStore((state) => state.alarmSyncTargets);
   const { queueItems, refreshQueue, triggerItem, dismissItem, deleteItem, applySyncPlan } = useAlarmQueueWatcher(enableExperimentalFeatures);
   const [showDebug, setShowDebug] = useState(false);
   const [twaMessageLog, setTwaMessageLog] = useState<string[]>([]);
@@ -307,7 +271,11 @@ function ExperimentPanel() {
   const handleSyncAlarmQueue = async () => {
     const scheduledRows = await db.scheduled.toArray();
     const existingRows = await db.alarm_queue.orderBy("alarmAt").toArray();
-    const plan = syncAlarmQueueFromScheduled(scheduledRows, existingRows, new Date(), 100 * 365 * 24 * 60 * 60 * 1000); //就先考慮100年吧
+    const syncTargets = {
+      clock: (alarmSyncTargets & ALARM_SYNC_TARGET_CLOCK) !== 0,
+      exact: (alarmSyncTargets & ALARM_SYNC_TARGET_EXACT) !== 0,
+    };
+    const plan = syncAlarmQueueFromScheduled(scheduledRows, existingRows, new Date(), 100 * 365 * 24 * 60 * 60 * 1000, syncTargets); //就先考慮100年吧
 
     await applySyncPlan(plan);
     showGlobalToast({
@@ -317,47 +285,6 @@ function ExperimentPanel() {
   };
 
   const handleAlarmTest = async () => {
-    if (alarmTestMode === "none") {
-      showGlobalToast({
-        message: "Alarm test is disabled.",
-        duration: 2500,
-      });
-      return;
-    }
-
-    if (alarmTestMode === "notification") {
-      if (typeof Notification === "undefined") {
-        window.alert("This browser does not support Notification.");
-        return;
-      }
-
-      const permission = Notification.permission;
-      if (permission === "granted") {
-        triggerAlarmNotification(alarmQueueSample);
-        await refreshQueue();
-        return;
-      }
-
-      if (permission === "default") {
-        const nextPermission = await Notification.requestPermission();
-        if (nextPermission === "granted") {
-          triggerAlarmNotification(alarmQueueSample);
-        } else {
-          showGlobalToast({
-            message: "Notification permission was not granted.",
-            duration: 3000,
-          });
-        }
-        return;
-      }
-
-      showGlobalToast({
-        message: "Notification permission is blocked. Please allow it in browser settings.",
-        duration: 4000,
-      });
-      return;
-    }
-
     const testUrl = "nonblockinglife://show-clock";
     try {
       window.location.href = testUrl;
@@ -384,44 +311,19 @@ function ExperimentPanel() {
           </div>
         ) : (
           <div className="mt-4 space-y-4">
-            {/* {alarmTestMode !== "none" && ( */}
-              <div className="rounded-lg border border-amber-200 bg-white p-3">
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <h4 className="text-sm font-semibold text-gray-900">Alarm test</h4>
-                  <button
-                    type="button"
-                    onClick={() => void handleAlarmTest()}
-                    className="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
-                  >
-                    Test Alarm
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  {alarmTestModeOptions.map((option) => (
-                    <label
-                      key={option.value}
-                      className={`flex cursor-pointer items-start gap-2 rounded-md border p-3 text-sm ${
-                        alarmTestMode === option.value
-                          ? "border-amber-500 bg-amber-50"
-                          : "border-gray-200 bg-white"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="alarm-test-mode"
-                        checked={alarmTestMode === option.value}
-                        onChange={() => setAlarmTestMode(option.value)}
-                      />
-                      <span>
-                        <span className="font-medium">{option.label}</span>
-                        <span className="mt-1 block text-gray-600">{option.description}</span>
-                      </span>
-                    </label>
-                  ))}
-                </div>
+            <div className="rounded-lg border border-amber-200 bg-white p-3">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <h4 className="text-sm font-semibold text-gray-900">Alarm test</h4>
+                <button
+                  type="button"
+                  onClick={() => void handleAlarmTest()}
+                  className="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+                >
+                  Test Alarm
+                </button>
               </div>
-            {/* )} */}
+              <p className="text-xs text-gray-500">Attempts to open the Android clock UI for a native connectivity check.</p>
+            </div>
 
             <div className="rounded-lg border border-amber-200 bg-white p-3">
               <div className="mb-2 flex items-center justify-between gap-3">

@@ -18,7 +18,12 @@ function getInitialLocale(): SupportedLocale {
 }
 
 export type AndroidTimerLaunchMode = 'none' | 'show_clock' | 'set_timer'
-export type AlarmTestMode = 'none' | 'notification' | 'system'
+
+// Bit flags for which system alarm targets db.alarm_queue entries should be synced to.
+export const ALARM_SYNC_TARGET_NONE = 0
+export const ALARM_SYNC_TARGET_CLOCK = 1
+export const ALARM_SYNC_TARGET_EXACT = 2
+export const ALARM_SYNC_TARGET_BOTH = ALARM_SYNC_TARGET_CLOCK | ALARM_SYNC_TARGET_EXACT
 
 type AppSheet = SheetName | 'selection_cache' | 'log' | 'guide' | 'macro' | 'debug'
 export type StartupPreference = 'guide' | 'selection_cache' | 'last_visited'
@@ -28,7 +33,7 @@ const LAST_VISITED_SHEET_KEY = 'nbl_last_visited_sheet'
 export const DEBUG_MODE_KEY = 'nbl_debug_mode'
 const ENABLE_EXPERIMENTAL_FEATURES_KEY = 'nbl_enable_experimental_features'
 const ANDROID_TIMER_LAUNCH_MODE_KEY = 'nbl_android_timer_launch_mode'
-const ALARM_TEST_MODE_KEY = 'nbl_alarm_test_mode'
+const ALARM_SYNC_TARGETS_KEY = 'nbl_alarm_sync_targets'
 
 function getStorage(): Storage | null {
   if (typeof window !== 'undefined' && window.localStorage) {
@@ -71,12 +76,16 @@ function getInitialAndroidTimerLaunchMode(): AndroidTimerLaunchMode {
   return 'show_clock'
 }
 
-function getInitialAlarmTestMode(): AlarmTestMode {
-  const stored = getStorage()?.getItem(ALARM_TEST_MODE_KEY)
-  if (stored === 'none' || stored === 'notification' || stored === 'system') {
+function getInitialAlarmSyncTargets(): number {
+  if (import.meta.env.DEV) {
+    // 開發模式下，預設同步到兩個目標（方便測試）
+    return ALARM_SYNC_TARGET_BOTH
+  }
+  const stored = Number(getStorage()?.getItem(ALARM_SYNC_TARGETS_KEY))
+  if (Number.isInteger(stored) && stored >= ALARM_SYNC_TARGET_NONE && stored <= ALARM_SYNC_TARGET_BOTH) {
     return stored
   }
-  return 'none'
+  return ALARM_SYNC_TARGET_NONE;
 }
 
 function getInitialStartupPreference(): StartupPreference {
@@ -88,7 +97,7 @@ function getInitialStartupPreference(): StartupPreference {
 }
 
 function getLastVisitedSheet(): AppSheet | null {
-  const stored = getStorage()?.getItem(LAST_VISITED_SHEET_KEY)??null
+  const stored = getStorage()?.getItem(LAST_VISITED_SHEET_KEY) ?? null
   if (isAppSheet(stored)) return stored
   return null
 }
@@ -177,9 +186,9 @@ interface AppState {
   androidTimerLaunchMode: AndroidTimerLaunchMode
   setAndroidTimerLaunchMode: (mode: AndroidTimerLaunchMode) => void
 
-  // alarm test mode
-  alarmTestMode: AlarmTestMode
-  setAlarmTestMode: (mode: AlarmTestMode) => void
+  // which system alarm targets (Clock app / Exact alarm) db.alarm_queue should sync to
+  alarmSyncTargets: number
+  setAlarmSyncTargets: (targets: number) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -256,9 +265,9 @@ export const useAppStore = create<AppState>((set) => ({
     set({ androidTimerLaunchMode: mode })
   },
 
-  alarmTestMode: getInitialAlarmTestMode(),
-  setAlarmTestMode: (mode) => {
-    getStorage()?.setItem(ALARM_TEST_MODE_KEY, mode)
-    set({ alarmTestMode: mode })
+  alarmSyncTargets: getInitialAlarmSyncTargets(),
+  setAlarmSyncTargets: (targets) => {
+    getStorage()?.setItem(ALARM_SYNC_TARGETS_KEY, String(targets))
+    set({ alarmSyncTargets: targets })
   },
 }))

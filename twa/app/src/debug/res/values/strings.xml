@@ -1,0 +1,5 @@
+<resources>
+    <string name="launchUrl">http://192.168.1.110:5173</string>
+    <string name="hostName">http://192.168.1.110:5173</string>
+    <string name="webManifestUrl">http://192.168.1.110:5173/manifest.webmanifest</string>
+</resources>

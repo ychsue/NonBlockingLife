@@ -9,6 +9,8 @@ const baseItem: AlarmQueueItem = {
   alarmAt: Date.now() + 60000,
   offsetMinutes: 5,
   state: 'pending',
+  clockState: 'not_applicable',
+  exactState: 'not_applicable',
   dedupeKey: 'T-42:123',
   createdAt: Date.now(),
   updatedAt: Date.now(),

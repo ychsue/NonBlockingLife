@@ -30,7 +30,6 @@ describe("MorePageContent", () => {
     useAppStore.setState({
       experimentalFeaturesEnabled: true,
       androidTimerLaunchMode: "show_clock",
-      alarmTestMode: "none",
     } as Partial<ReturnType<typeof useAppStore.getState>>);
   });
 
@@ -40,12 +39,5 @@ describe("MorePageContent", () => {
     expect(html).toContain("Local preferences");
     expect(html).toContain("Android TWA timer launch");
     expect(html).toContain("Do not show timer automatically");
-  });
-
-  it("hides the alarm test controls when the global alarm test mode is none", () => {
-    const html = renderWithTour();
-
-    expect(html).not.toContain("Test Alarm");
-    expect(html).not.toContain("Alarm test");
   });
 });

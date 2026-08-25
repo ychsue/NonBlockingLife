@@ -11,12 +11,12 @@ export interface TwaBridgeState {
   lastMessage: TwaBridgeMessage | null
 }
 
-const TWA_BRIDGE_STATE: TwaBridgeState = (window as any).__NBL_TWA_BRIDGE__;
-// {
-//   port: null,
-//   connected: false,
-//   lastMessage: null,
-// }
+const TWA_BRIDGE_STATE: TwaBridgeState = 
+{
+  port: null,
+  connected: false,
+  lastMessage: null,
+}
 
 function isMessageEvent(value: unknown): value is MessageEvent {
   return typeof value === 'object' && value !== null && 'data' in value
