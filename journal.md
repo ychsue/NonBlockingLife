@@ -1,5 +1,10 @@
 # Journal
 
+## [2026-08-28] (2.3.7-beta.12) 準備實作 alarm 的批次處理(十四) -> 準備先PWA測一天看看
+1. [ScheduledTable.tsx](pwa\src\components\tables\ScheduledTable.tsx) 裡面顯示 alarmQueueItem 的狀態，並且可以點擊 `查看排程` 來查看該 alarmQueueItem 對應的 scheduledItem
+2. [App.tsx](pwa\src\App.tsx) 裡面，將 [AlarmQueueWatcherProvider](pwa\src\components\tour\AlarmQueueWatcher.tsx) 掛上，然後將 [useAlarmQueueWatcher(true)](pwa\src\hooks\useAlarmQueueWatcher.ts) 傳入，這樣，在 App.tsx 來做全域的 AlarmQueueWatcher，與其他子元件共用同一個 hook。
+
+
 ## [2026-08-25] 準備實作 alarm 的批次處理(十三)
 - [21:35] 
    * 原本想要使用 `npm run dev -- --inspect` ，然後TWA則改 [strings.xml](twa\app\src\debug\res\values\strings.xml) 與 [build.gradle](twa\app\build.gradle) 好使用這個 local PWA，這樣，就比較好 debug

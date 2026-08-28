@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import type { AlarmQueueItem, ScheduledItem } from '../../db/schema'
-import { getDueAlarmQueueEntries, mergeAlarmQueueEntries, syncAlarmQueueFromScheduled } from '../alarmQueue'
+import { getDueAlarmQueueEntries, mergeAlarmQueueEntries, genAlarmQueueFromScheduledPlan } from '../alarmQueue'
 
 describe('alarmQueue helpers', () => {
   test('應僅回傳已到時且仍 pending 的提醒', () => {
@@ -32,7 +32,7 @@ describe('alarmQueue helpers', () => {
     expect(merged.filter((item) => item.taskId === 'A')).toHaveLength(1)
   })
 
-  test('syncAlarmQueueFromScheduled 應產出新增/更新/刪除計畫，不直接清空 existing', () => {
+  test('genAlarmQueueFromScheduledPlan 應產出新增/更新/刪除計畫，不直接清空 existing', () => {
     const now = new Date('2026-08-15T12:00:00Z')
     const scheduled: ScheduledItem[] = [
       {
@@ -72,7 +72,7 @@ describe('alarmQueue helpers', () => {
       },
     ]
 
-    const plan = syncAlarmQueueFromScheduled(scheduled, existing, now)
+    const plan = genAlarmQueueFromScheduledPlan(scheduled, existing, now)
 
     expect(plan.toAdd.length).toBeGreaterThan(0)
     expect(plan.toDelete).toEqual([2])

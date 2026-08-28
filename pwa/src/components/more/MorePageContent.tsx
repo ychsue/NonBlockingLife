@@ -1,45 +1,50 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DebugLogPage } from "../debug/DebugLogPage";
-import { useAppStore, ALARM_SYNC_TARGET_CLOCK, ALARM_SYNC_TARGET_EXACT } from "../../store/appStore";
+import { useAppStore } from "../../store/appStore";
 import { useProductTourContext } from "../tour/ProductTourContext";
 import type { ProductTourConfig } from "../tour/productTourTypes";
-import type { AndroidTimerLaunchMode } from "../../utils/shortcutUtils";
-import { syncAlarmQueueFromScheduled } from "../../utils/alarmQueue";
-import { useAlarmQueueWatcher } from "../../hooks/useAlarmQueueWatcher";
-import { AlarmQueuePanel } from "./AlarmQueuePanel";
-import { db } from "../../db";
-import { buildTwaBridgePayload, listenForTwaMessages, sendTwaBridgeTestMessage, getTwaBridgeState, postMessageToTwa } from "../../utils/twaBridge";
+import {
+  getDeviceType,
+  type AndroidTimerLaunchMode,
+} from "../../utils/shortcutUtils";
 
 type MoreTab = "settings" | "experiment";
 
 const copy = {
   heading: "More",
-  description: "Control local preferences, future global sync options, and experimental tools.",
+  description:
+    "Control local preferences, future global sync options, and experimental tools.",
   tabs: {
     settings: "Settings",
     experiment: "Experiment",
   },
   settings: {
     localTitle: "Local preferences",
-    localDescription: "Stored on this device and scoped to the current app installation.",
+    localDescription:
+      "Stored on this device and scoped to the current app installation.",
     globalTitle: "Global preferences",
-    globalDescription: "Reserved for future sync and cloud-backed configuration.",
+    globalDescription:
+      "Reserved for future sync and cloud-backed configuration.",
     timerTitle: "Android TWA timer launch",
-    timerDescription: "Choose how the Android TWA should react when a task timer is triggered.",
+    timerDescription:
+      "Choose how the Android TWA should react when a task timer is triggered.",
     toursTitle: "Guided tours",
-    toursDescription: "Each tour is shown as its own card with its completion state, description, and replay action.",
+    toursDescription:
+      "Each tour is shown as its own card with its completion state, description, and replay action.",
     completedLabel: "已學",
     pendingLabel: "未學",
     learnLabel: "學習",
     replayLabel: "重播",
     anyPageLabel: "任何頁面可開啟",
     experimentalTitle: "Experimental access",
-    experimentalDescription: "Enable experimental tools to reveal the advanced workflows and debug panels.",
+    experimentalDescription:
+      "Enable experimental tools to reveal the advanced workflows and debug panels.",
   },
   experiment: {
     title: "Experimental tools",
     description: "Temporary features for testing and debugging advanced flows.",
-    disabledMessage: "Enable experimental features first to unlock the advanced tools.",
+    disabledMessage:
+      "Enable experimental features first to unlock the advanced tools.",
     debugLabel: "Show debug information",
   },
 } as const;
@@ -62,7 +67,8 @@ const timerModeOptions: Array<{
   {
     value: "set_timer",
     label: "Create timer directly",
-    description: "Use a deep link to open the timer immediately with the task title.",
+    description:
+      "Use a deep link to open the timer immediately with the task title.",
   },
 ];
 
@@ -87,11 +93,28 @@ function SettingsCard({
 }
 
 function SettingsPanel() {
-  const enableExperimentalFeatures = useAppStore((state) => state.experimentalFeaturesEnabled);
-  const setEnableExperimentalFeatures = useAppStore((state) => state.setExperimentalFeaturesEnabled);
-  const androidTimerLaunchMode = useAppStore((state) => state.androidTimerLaunchMode);
-  const setAndroidTimerLaunchMode = useAppStore((state) => state.setAndroidTimerLaunchMode);
-  const { startTour, activeTour, activeStep, completedTours, tours, nextStep, isRunning, clearCompletedTours } = useProductTourContext();
+  const enableExperimentalFeatures = useAppStore(
+    (state) => state.experimentalFeaturesEnabled,
+  );
+  const setEnableExperimentalFeatures = useAppStore(
+    (state) => state.setExperimentalFeaturesEnabled,
+  );
+  const androidTimerLaunchMode = useAppStore(
+    (state) => state.androidTimerLaunchMode,
+  );
+  const setAndroidTimerLaunchMode = useAppStore(
+    (state) => state.setAndroidTimerLaunchMode,
+  );
+  const {
+    startTour,
+    activeTour,
+    activeStep,
+    completedTours,
+    tours,
+    nextStep,
+    isRunning,
+    clearCompletedTours,
+  } = useProductTourContext();
 
   const handleReplayTour = (tour: ProductTourConfig) => {
     if (tour.requiredSheet) {
@@ -110,8 +133,12 @@ function SettingsPanel() {
         description={copy.settings.localDescription}
       >
         <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
-          <h4 className="text-sm font-medium text-gray-900">{copy.settings.timerTitle}</h4>
-          <p className="mt-1 text-sm text-gray-600">{copy.settings.timerDescription}</p>
+          <h4 className="text-sm font-medium text-gray-900">
+            {copy.settings.timerTitle}
+          </h4>
+          <p className="mt-1 text-sm text-gray-600">
+            {copy.settings.timerDescription}
+          </p>
           <div className="mt-3 space-y-2">
             {timerModeOptions.map((option) => (
               <label
@@ -126,17 +153,27 @@ function SettingsPanel() {
                   type="radio"
                   name="android-timer-launch-mode"
                   checked={androidTimerLaunchMode === option.value}
-                  data-tour={option.value === "set_timer" ? "android-timer-set-timer-option" : undefined}
+                  data-tour={
+                    option.value === "set_timer"
+                      ? "android-timer-set-timer-option"
+                      : undefined
+                  }
                   onChange={() => {
                     setAndroidTimerLaunchMode(option.value);
-                    if (option.value === "set_timer" && isRunning && activeStep?.id === "android-set-timer") {
+                    if (
+                      option.value === "set_timer" &&
+                      isRunning &&
+                      activeStep?.id === "android-set-timer"
+                    ) {
                       nextStep();
                     }
                   }}
                 />
                 <span>
                   <span className="font-medium">{option.label}</span>
-                  <span className="mt-1 block text-gray-600">{option.description}</span>
+                  <span className="mt-1 block text-gray-600">
+                    {option.description}
+                  </span>
                 </span>
               </label>
             ))}
@@ -149,7 +186,8 @@ function SettingsPanel() {
         description={copy.settings.globalDescription}
       >
         <div className="rounded-md border border-dashed border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
-          Planned: sync selected preferences to Google Sheets via Dexie-backed storage.
+          Planned: sync selected preferences to Google Sheets via Dexie-backed
+          storage.
         </div>
       </SettingsCard>
 
@@ -157,10 +195,7 @@ function SettingsPanel() {
         title={copy.settings.toursTitle}
         description={copy.settings.toursDescription}
       >
-        <div
-          className="space-y-3"
-          data-tour="more-settings-tours-card"
-        >
+        <div className="space-y-3" data-tour="more-settings-tours-card">
           <div className="flex justify-end">
             <button
               type="button"
@@ -175,26 +210,39 @@ function SettingsPanel() {
             const isBusy = Boolean(activeTour);
 
             return (
-              <div key={tour.id} className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+              <div
+                key={tour.id}
+                className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h4 className="text-sm font-semibold text-gray-900">{tour.title}</h4>
+                      <h4 className="text-sm font-semibold text-gray-900">
+                        {tour.title}
+                      </h4>
                       <span
                         className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                          isCompleted ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"
+                          isCompleted
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-gray-100 text-gray-600"
                         }`}
                       >
-                        {isCompleted ? copy.settings.completedLabel : copy.settings.pendingLabel}
+                        {isCompleted
+                          ? copy.settings.completedLabel
+                          : copy.settings.pendingLabel}
                       </span>
                     </div>
-                    <p className="mt-1 text-sm text-gray-600">{tour.description}</p>
+                    <p className="mt-1 text-sm text-gray-600">
+                      {tour.description}
+                    </p>
                   </div>
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                   <span className="text-xs text-gray-500">
-                    {tour.requiredSheet ? `頁面: ${tour.requiredSheet}` : copy.settings.anyPageLabel}
+                    {tour.requiredSheet
+                      ? `頁面: ${tour.requiredSheet}`
+                      : copy.settings.anyPageLabel}
                   </span>
                   <button
                     type="button"
@@ -202,7 +250,9 @@ function SettingsPanel() {
                     disabled={isBusy}
                     className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400"
                   >
-                    {isCompleted ? copy.settings.replayLabel : copy.settings.learnLabel}
+                    {isCompleted
+                      ? copy.settings.replayLabel
+                      : copy.settings.learnLabel}
                   </button>
                 </div>
               </div>
@@ -229,60 +279,11 @@ function SettingsPanel() {
 }
 
 function ExperimentPanel() {
-  const enableExperimentalFeatures = useAppStore((state) => state.experimentalFeaturesEnabled);
+  const enableExperimentalFeatures = useAppStore(
+    (state) => state.experimentalFeaturesEnabled,
+  );
   const showGlobalToast = useAppStore((state) => state.showGlobalToast);
-  const alarmSyncTargets = useAppStore((state) => state.alarmSyncTargets);
-  const { queueItems, refreshQueue, triggerItem, dismissItem, deleteItem, applySyncPlan } = useAlarmQueueWatcher(enableExperimentalFeatures);
   const [showDebug, setShowDebug] = useState(false);
-  const [twaMessageLog, setTwaMessageLog] = useState<string[]>([]);
-  const [twaBridgeReady, setTwaBridgeReady] = useState(false);
-
-  useEffect(() => {
-    const cleanup = listenForTwaMessages((event) => {
-      const payload = typeof event.data === 'object' && event.data ? (event.data as Record<string, unknown>) : { raw: String(event.data ?? '') };
-      const message = `Received from TWA: ${JSON.stringify(payload)}`;
-      setTwaMessageLog((current) => [message, ...current].slice(0, 10));
-      setTwaBridgeReady(true);
-    });
-
-    return cleanup;
-  }, []);
-
-  const handleTwaBridgePing = () => {
-    const success = sendTwaBridgeTestMessage('pwa->twa bridge check');
-    setTwaMessageLog((current) => [
-      success ? 'Sent PWA test message via TWA bridge.' : 'TWA bridge port not ready yet.',
-      ...current,
-    ].slice(0, 10));
-  };
-
-  const handleSendTwaBridgeMessage = () => {
-    const payload = buildTwaBridgePayload('nbl:probe', { action: 'hello', from: 'pwa', time: Date.now() });
-    const port = getTwaBridgeState().port;
-    if (port) {
-      postMessageToTwa(port, payload);
-      setTwaMessageLog((current) => [`Sent two-way probe via port: ${JSON.stringify(payload)}`, ...current].slice(0, 10));
-      return;
-    }
-
-    setTwaMessageLog((current) => ['No TWA message port ready yet; waiting for Android bridge setup.', ...current].slice(0, 10));
-  };
-
-  const handleSyncAlarmQueue = async () => {
-    const scheduledRows = await db.scheduled.toArray();
-    const existingRows = await db.alarm_queue.orderBy("alarmAt").toArray();
-    const syncTargets = {
-      clock: (alarmSyncTargets & ALARM_SYNC_TARGET_CLOCK) !== 0,
-      exact: (alarmSyncTargets & ALARM_SYNC_TARGET_EXACT) !== 0,
-    };
-    const plan = syncAlarmQueueFromScheduled(scheduledRows, existingRows, new Date(), 100 * 365 * 24 * 60 * 60 * 1000, syncTargets); //就先考慮100年吧
-
-    await applySyncPlan(plan);
-    showGlobalToast({
-      message: `${plan.toAdd.length + plan.toUpdate.length} alarm queue entries synced; ${plan.toDelete.length} removed.`,
-      duration: 2500,
-    });
-  };
 
   const handleAlarmTest = async () => {
     const testUrl = "nonblockinglife://show-clock";
@@ -293,7 +294,9 @@ function ExperimentPanel() {
         duration: 3000,
       });
     } catch {
-      window.alert("Unable to launch the Android clock intent from this environment.");
+      window.alert(
+        "Unable to launch the Android clock intent from this environment.",
+      );
     }
   };
 
@@ -301,8 +304,12 @@ function ExperimentPanel() {
     <div className="space-y-4">
       <section className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
         <div className="space-y-1">
-          <h3 className="font-semibold text-amber-900">{copy.experiment.title}</h3>
-          <p className="text-sm text-amber-800">{copy.experiment.description}</p>
+          <h3 className="font-semibold text-amber-900">
+            {copy.experiment.title}
+          </h3>
+          <p className="text-sm text-amber-800">
+            {copy.experiment.description}
+          </p>
         </div>
 
         {!enableExperimentalFeatures ? (
@@ -311,79 +318,26 @@ function ExperimentPanel() {
           </div>
         ) : (
           <div className="mt-4 space-y-4">
-            <div className="rounded-lg border border-amber-200 bg-white p-3">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <h4 className="text-sm font-semibold text-gray-900">Alarm test</h4>
-                <button
-                  type="button"
-                  onClick={() => void handleAlarmTest()}
-                  className="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
-                >
-                  Test Alarm
-                </button>
-              </div>
-              <p className="text-xs text-gray-500">Attempts to open the Android clock UI for a native connectivity check.</p>
-            </div>
-
-            <div className="rounded-lg border border-amber-200 bg-white p-3">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <h4 className="text-sm font-semibold text-gray-900">TWA bridge probe</h4>
-                <div className="flex gap-2">
+            {getDeviceType() === "TWA" ? (
+              <div className="rounded-lg border border-amber-200 bg-white p-3">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <h4 className="text-sm font-semibold text-gray-900">
+                    Alarm test
+                  </h4>
                   <button
                     type="button"
-                    onClick={handleTwaBridgePing}
-                    className="rounded-md border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+                    onClick={() => void handleAlarmTest()}
+                    className="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
                   >
-                    Send test
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSendTwaBridgeMessage}
-                    className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100"
-                  >
-                    Two-way probe
+                    Test Alarm
                   </button>
                 </div>
+                <p className="text-xs text-gray-500">
+                  Attempts to open the Android clock UI for a native
+                  connectivity check.
+                </p>
               </div>
-              <p className="text-xs text-gray-500">
-                {twaBridgeReady ? 'TWA bridge is receiving messages.' : 'Waiting for TWA bridge connection to be ready.'}
-              </p>
-              <div className="mt-3 space-y-1">
-                {twaMessageLog.length === 0 ? (
-                  <div className="text-xs text-gray-500">No messages yet.</div>
-                ) : (
-                  twaMessageLog.map((message, index) => (
-                    <div key={`${message}-${index}`} className="rounded border border-gray-200 bg-gray-50 px-2 py-1 text-[11px] text-gray-700">
-                      {message}
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-amber-200 bg-white p-3">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <h4 className="text-sm font-semibold text-gray-900">Alarm queue sync</h4>
-                <button
-                  type="button"
-                  onClick={() => void handleSyncAlarmQueue()}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-                >
-                  Sync from scheduled
-                </button>
-              </div>
-              <p className="text-xs text-gray-500">
-                Rebuild the derived queue from scheduled items and keep future reminders in the local queue.
-              </p>
-            </div>
-
-            <AlarmQueuePanel
-              items={queueItems}
-              onRefresh={() => refreshQueue()}
-              onTrigger={triggerItem}
-              onDismiss={dismissItem}
-              onDelete={deleteItem}
-            />
+            ) : null}
 
             <label className="flex items-center gap-2 text-sm text-gray-700">
               <input
@@ -404,11 +358,16 @@ function ExperimentPanel() {
 
 export function MorePageContent() {
   const [activeTab, setActiveTab] = useState<MoreTab>("settings");
-  const { nextStep, isRunning, activeStep, activeTour } = useProductTourContext();
+  const { nextStep, isRunning, activeStep, activeTour } =
+    useProductTourContext();
 
   const handleTabChange = (tab: MoreTab) => {
     setActiveTab(tab);
-    if (tab === "settings" && isRunning && activeStep?.target === "[data-tour='more-settings-tab']") {
+    if (
+      tab === "settings" &&
+      isRunning &&
+      activeStep?.target === "[data-tour='more-settings-tab']"
+    ) {
       nextStep();
     }
   };

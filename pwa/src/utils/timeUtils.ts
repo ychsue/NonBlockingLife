@@ -3,6 +3,8 @@
  * 處理本地時區的日期時間轉換
  */
 
+export const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000; // 一年的毫秒數
+
 /**
  * 取得使用者所在的時區 offset（單位：分鐘）
  * 例如：UTC+8 時區會返回 -480（因為 JavaScript Date 中 getter 返回相反值）

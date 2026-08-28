@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, type FocusEvent } from 'react'
+import { useMemo, useState, useEffect, type FocusEvent, useRef } from "react";
 import {
   createColumnHelper,
   flexRender,
@@ -6,265 +6,311 @@ import {
   getSortedRowModel,
   useReactTable,
   type SortingState,
-} from '@tanstack/react-table'
-import { applyChange, db } from '../../db/index'
-import type { ScheduledItem, SelectionCacheItem } from '../../db/schema'
-import Utils from '../../../../gas/src/Utils'
+} from "@tanstack/react-table";
+import { applyChange, db } from "../../db/index";
+import type {
+  AlarmQueueItem,
+  ScheduledItem,
+  SelectionCacheItem,
+} from "../../db/schema";
+import Utils from "../../../../gas/src/Utils";
 import {
   formatToDateTimeLocal,
+  ONE_YEAR_MS,
   parseFromDateTimeLocal,
-} from '../../utils/timeUtils'
-import { useResponsiveTable } from '../../hooks/useResponsiveTable'
-import { useAppStore } from '../../store/appStore'
-import { useT } from '../../i18n'
-import { TableCard } from '../TableCard'
-import { EditDialog, type FieldType } from '../EditDialog'
-import { TableHelpDialog } from '../TableHelpDialog'
-import scheduledHelpMarkdown from './ScheduledHelp.md?raw'
-import { useSearchFilter, useHideDone } from '../../hooks/useSearchFilter'
-import { buildCronExpr, getCronParts, getPredictedNextRun, getUpcomingOccurrences } from '../../utils/cronUtils'
-import { interruptTask } from '../../utils/taskFlow'
-import { shouldOpenRowEdit } from './rowEditUtils'
-import { notifies } from '../../utils/notification'
+} from "../../utils/timeUtils";
+import { useResponsiveTable } from "../../hooks/useResponsiveTable";
+import { useAppStore } from "../../store/appStore";
+import { useT } from "../../i18n";
+import { TableCard } from "../TableCard";
+import { EditDialog, type FieldType } from "../EditDialog";
+import { TableHelpDialog } from "../TableHelpDialog";
+import scheduledHelpMarkdown from "./ScheduledHelp.md?raw";
+import { useSearchFilter, useHideDone } from "../../hooks/useSearchFilter";
+import {
+  buildCronExpr,
+  getCronParts,
+  getPredictedNextRun,
+  getUpcomingOccurrences,
+} from "../../utils/cronUtils";
+import { interruptTask } from "../../utils/taskFlow";
+import { shouldOpenRowEdit } from "./rowEditUtils";
+import { notifies } from "../../utils/notification";
+import { getDeviceType } from "../../utils/shortcutUtils";
+import { AlarmQueuePanel } from "../more/AlarmQueuePanel";
+import { useAlarmQueueWatcherContext } from "../tour/AlarmQueueWatcher";
+import _ from "lodash";
 
-const DEV_CLIENT_ID = 'dev-client'
-const columnHelper = createColumnHelper<ScheduledItem>()
+const DEV_CLIENT_ID = "dev-client";
+const columnHelper = createColumnHelper<ScheduledItem>();
 
 interface CronPreviewState {
-  taskId: string
-  title: string
-  cronExpr: string
-  runs: number[]
+  taskId: string;
+  title: string;
+  cronExpr: string;
+  runs: number[];
 }
 
 function createNewScheduledRow(taskId?: string, title?: string): ScheduledItem {
-  taskId = taskId || Utils.generateId('S')
-  const cronExpr = '0 9 * * *' // 預設每天早上9點執行
+  taskId = taskId || Utils.generateId("S");
+  const cronExpr = "0 9 * * *"; // 預設每天早上9點執行
   return {
     taskId,
-    title: title || '',
-    status: 'WAITING',
+    title: title || "",
+    status: "WAITING",
     focusTime: undefined,
     cronExpr: cronExpr,
-    remindBefore: '',
-    remindAfter: '',
-    reminderOffsets: '',
-    callback: '',
+    remindBefore: "",
+    remindAfter: "",
+    reminderOffsets: "",
+    callback: "",
     lastRun: undefined,
-    note: '',
+    note: "",
     nextRun: Utils.getNextOccurrence(cronExpr, new Date())?.getTime(),
-    url: '',
-  }
+    url: "",
+  };
 }
 
 export function ScheduledTable() {
-  const t = useT()
-  const locale = useAppStore((state) => state.locale)
-  
-  const [rows, setRows] = useState<ScheduledItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showHelp, setShowHelp] = useState(false)
-  const [cronPreview, setCronPreview] = useState<CronPreviewState | null>(null)
-  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
+  const t = useT();
+  const locale = useAppStore((state) => state.locale);
+
+  const [rows, setRows] = useState<ScheduledItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showHelp, setShowHelp] = useState(false);
+  const [cronPreview, setCronPreview] = useState<CronPreviewState | null>(null);
+  const [columnVisibility, setColumnVisibility] = useState<
+    Record<string, boolean>
+  >({
     taskId: false,
-  })
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [sortMode, setSortMode] = useState<'none' | 'lastRunAsc' | 'lastRunDesc' | 'nextRunAsc' | 'nextRunDesc'>('none')
-  const { isMobile } = useResponsiveTable()
-  const alarmSyncTargets = useAppStore((state) => state.alarmSyncTargets)
+  });
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sortMode, setSortMode] = useState<
+    "none" | "lastRunAsc" | "lastRunDesc" | "nextRunAsc" | "nextRunDesc"
+  >("none");
+  const { isMobile } = useResponsiveTable();
+  const alarmSyncTargets = useAppStore((state) => state.alarmSyncTargets);
+  const setAlarmSyncTargets = useAppStore((state) => state.setAlarmSyncTargets);
 
   const [createdNewRowId, setCreatedNewRowId] = useState("");
-  
-  const [editingItem, setEditingItem] = useState<ScheduledItem | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [isOrMode, setIsOrMode] = useState(true)
-  const [hideDone, setHideDone] = useState(true)
-  const [showMobileFilters, setShowMobileFilters] = useState(false)
-  const currentSheet = useAppStore((state) => state.currentSheet)
-  const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
-  const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
-  const runningTask = useAppStore((state) => state.runningTask)
-  const loadRunningTask = useAppStore((state) => state.loadRunningTask)
-  const text = {
-    subtitle: t('table.scheduled.subtitle'),
-    help: t('table.help'),
-    searchPlaceholder: t('table.scheduled.searchPlaceholder'),
-    hideDone: t('table.scheduled.hideDone'),
-    open: t('table.open'),
-    loading: t('table.loading'),
-    editTitle: t('table.scheduled.editTitle'),
-    titlePlaceholder: t('table.scheduled.titlePlaceholder'),
-    cronPlaceholder: t('table.scheduled.cronPlaceholder'),
-    helpTitle: t('table.scheduled.helpTitle'),
-    sortLabel: t('table.scheduled.sortLabel'),
-    searchMode: t('table.scheduled.searchMode'),
-  }
 
+  const [editingItem, setEditingItem] = useState<ScheduledItem | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isOrMode, setIsOrMode] = useState(true);
+  const [hideDone, setHideDone] = useState(true);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const currentSheet = useAppStore((state) => state.currentSheet);
+  const pendingEditIntent = useAppStore((state) => state.pendingEditIntent);
+  const clearPendingEditIntent = useAppStore(
+    (state) => state.clearPendingEditIntent,
+  );
+  const runningTask = useAppStore((state) => state.runningTask);
+  const loadRunningTask = useAppStore((state) => state.loadRunningTask);
+  const AQWatcher = useAlarmQueueWatcherContext();
+  const {
+    resetItemsStates,
+    queueItems,
+    clearQueue,
+    updateTableBasedOnScheduled,
+  } = AQWatcher;
+
+  const alarmQueueDialogRef = useRef<HTMLDialogElement | null>(null);
+  const [openAlarmQueueDialog, setOpenAlarmQueueDialog] = useState(false);
+
+  const text = {
+    subtitle: t("table.scheduled.subtitle"),
+    help: t("table.help"),
+    searchPlaceholder: t("table.scheduled.searchPlaceholder"),
+    hideDone: t("table.scheduled.hideDone"),
+    open: t("table.open"),
+    loading: t("table.loading"),
+    editTitle: t("table.scheduled.editTitle"),
+    titlePlaceholder: t("table.scheduled.titlePlaceholder"),
+    cronPlaceholder: t("table.scheduled.cronPlaceholder"),
+    helpTitle: t("table.scheduled.helpTitle"),
+    sortLabel: t("table.scheduled.sortLabel"),
+    searchMode: t("table.scheduled.searchMode"),
+  };
+
+  useEffect(() => {
+    if (openAlarmQueueDialog) {
+      alarmQueueDialogRef.current?.showModal();
+    } else {
+      alarmQueueDialogRef.current?.close();
+    }
+  }, [openAlarmQueueDialog]);
   // 根据 sortMode 更新 sorting 状态
   useEffect(() => {
     switch (sortMode) {
-      case 'lastRunAsc':
-        setSorting([{ id: 'lastRun', desc: false }])
-        break
-      case 'lastRunDesc':
-        setSorting([{ id: 'lastRun', desc: true }])
-        break
-      case 'nextRunAsc':
-        setSorting([{ id: 'nextRun', desc: false }])
-        break
-      case 'nextRunDesc':
-        setSorting([{ id: 'nextRun', desc: true }])
-        break
+      case "lastRunAsc":
+        setSorting([{ id: "lastRun", desc: false }]);
+        break;
+      case "lastRunDesc":
+        setSorting([{ id: "lastRun", desc: true }]);
+        break;
+      case "nextRunAsc":
+        setSorting([{ id: "nextRun", desc: false }]);
+        break;
+      case "nextRunDesc":
+        setSorting([{ id: "nextRun", desc: true }]);
+        break;
       default:
-        setSorting([])
+        setSorting([]);
     }
-  }, [sortMode])
+  }, [sortMode]);
 
   // 初始載入（不自動更新）
   useEffect(() => {
-    let active = true
+    let active = true;
     db.scheduled
       .toArray()
       .then(async (data) => {
-        if (!active) return
+        if (!active) return;
 
-        let loadedRows = data
+        let loadedRows = data;
 
         // 如果 scheduled 為空，就補一筆「定時檢查 Inbox」示範資料
         // 注意：不能直接呼叫 addRow 後再用舊的 data setRows，否則會被空陣列覆蓋
         if (loadedRows.length === 0) {
-          const starterRow = createNewScheduledRow('S0', 'Check out the Inbox table!')
+          const starterRow = createNewScheduledRow(
+            "S0",
+            "Check out the Inbox table!",
+          );
 
           await applyChange({
-            table: 'scheduled',
+            table: "scheduled",
             recordId: starterRow.taskId,
-            op: 'add',
+            op: "add",
             patch: starterRow as unknown as Record<string, unknown>,
             clientId: DEV_CLIENT_ID,
-          }).catch((err) => console.error('Failed to add starter scheduled row:', err))
+          }).catch((err) =>
+            console.error("Failed to add starter scheduled row:", err),
+          );
 
-          loadedRows = await db.scheduled.toArray()
+          loadedRows = await db.scheduled.toArray();
           if (loadedRows.length === 0) {
-            loadedRows = [starterRow]
+            loadedRows = [starterRow];
           }
         }
 
         // taskId 降序排列（新的在前面）
-        const sorted = [...loadedRows].sort((a, b) => b.taskId.localeCompare(a.taskId))
-        setRows(sorted)
-        setLoading(false)
+        const sorted = [...loadedRows].sort((a, b) =>
+          b.taskId.localeCompare(a.taskId),
+        );
+        setRows(sorted);
+        setLoading(false);
       })
       .catch((err) => {
-        console.error('Failed to load scheduled:', err)
+        console.error("Failed to load scheduled:", err);
         if (active) {
-          setRows([])
-          setLoading(false)
+          setRows([]);
+          setLoading(false);
         }
-      })
+      });
 
     return () => {
-      active = false
-    }
-  }, [])
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
-    if (!pendingEditIntent || pendingEditIntent.sheet !== 'scheduled') return
-    if (currentSheet !== 'scheduled') return
+    if (!pendingEditIntent || pendingEditIntent.sheet !== "scheduled") return;
+    if (currentSheet !== "scheduled") return;
 
-    const targetRow = rows.find((row) => row.taskId === pendingEditIntent.taskId)
-    if (!targetRow) return
+    const targetRow = rows.find(
+      (row) => row.taskId === pendingEditIntent.taskId,
+    );
+    if (!targetRow) return;
 
-    setEditingItem(targetRow)
-    setSearchQuery(targetRow.title || '')
-    clearPendingEditIntent()
-  }, [rows, pendingEditIntent, currentSheet, clearPendingEditIntent])
+    setEditingItem(targetRow);
+    setSearchQuery(targetRow.title || "");
+    clearPendingEditIntent();
+  }, [rows, pendingEditIntent, currentSheet, clearPendingEditIntent]);
 
-  const updateLocalRow = (
-    taskId: string,
-    patch: Partial<ScheduledItem>
-  ) => {
+  const updateLocalRow = (taskId: string, patch: Partial<ScheduledItem>) => {
     setRows((prev) =>
-      prev.map((row) =>
-        row.taskId === taskId ? { ...row, ...patch } : row
-      )
-    )
-  }
+      prev.map((row) => (row.taskId === taskId ? { ...row, ...patch } : row)),
+    );
+  };
 
-  const saveUpdate = async (
-    taskId: string,
-    patch: Partial<ScheduledItem>
-  ) => {
+  const saveUpdate = async (taskId: string, patch: Partial<ScheduledItem>) => {
     await applyChange({
-      table: 'scheduled',
+      table: "scheduled",
       recordId: taskId,
-      op: 'update',
+      op: "update",
       patch: patch as Record<string, unknown>,
       clientId: DEV_CLIENT_ID,
-    }).catch((err) => console.error('Failed to save update:', err))
-  }
+    }).catch((err) => console.error("Failed to save update:", err));
+  };
 
   const addRow = async (taskId?: string, title?: string) => {
-    const newRow = createNewScheduledRow(taskId, title)
-    setRows((prev) => [newRow, ...prev])
+    const newRow = createNewScheduledRow(taskId, title);
+    setRows((prev) => [newRow, ...prev]);
 
     await applyChange({
-      table: 'scheduled',
+      table: "scheduled",
       recordId: newRow.taskId,
-      op: 'add',
+      op: "add",
       patch: newRow as unknown as Record<string, unknown>,
       clientId: DEV_CLIENT_ID,
-    }).catch((err) => console.error('Failed to add row:', err))
+    }).catch((err) => console.error("Failed to add row:", err));
 
-    setEditingItem(newRow)
-    setCreatedNewRowId(newRow.taskId)
-  }
+    setEditingItem(newRow);
+    setCreatedNewRowId(newRow.taskId);
+  };
 
   const deleteRow = async (taskId: string) => {
-    setRows((prev) => prev.filter((row) => row.taskId !== taskId))
+    setRows((prev) => prev.filter((row) => row.taskId !== taskId));
 
     await applyChange({
-      table: 'scheduled',
+      table: "scheduled",
       recordId: taskId,
-      op: 'delete',
+      op: "delete",
       patch: {} as Record<string, unknown>,
       clientId: DEV_CLIENT_ID,
-    }).catch((err) => console.error('Failed to delete row:', err))
-  }
+    }).catch((err) => console.error("Failed to delete row:", err));
+  };
 
   const toSelectionCandidate = (item: ScheduledItem): SelectionCacheItem => ({
     taskId: item.taskId,
     title: item.title,
-    source: 'Scheduled',
+    source: "Scheduled",
     status: item.status,
     url: item.url,
     deadline: item.deadline,
-  })
+  });
 
   const handleInterruptOrStart = async (item: ScheduledItem) => {
-    const result = await interruptTask('', toSelectionCandidate(item))
-    if (result.status !== 'success') {
-      console.error('Failed to interrupt/start from scheduled:', result.message)
-      return
+    const result = await interruptTask("", toSelectionCandidate(item));
+    if (result.status !== "success") {
+      console.error(
+        "Failed to interrupt/start from scheduled:",
+        result.message,
+      );
+      return;
     }
-    notifies.taskStarted(item.title ?? item.taskId ?? '', locale);
-    await loadRunningTask()
-  }
+    notifies.taskStarted(item.title ?? item.taskId ?? "", locale);
+    await loadRunningTask();
+  };
 
   const handleEditSave = async (data: Record<string, any>) => {
-    if (!editingItem) return
+    if (!editingItem) return;
 
-    const rawAlarmOffsets = data.reminderOffsets ?? ''
+    const rawAlarmOffsets = data.reminderOffsets ?? "";
     const normalizedAlarmOffsets =
-      typeof rawAlarmOffsets === 'string'
-        ? rawAlarmOffsets.trim() === ''
+      typeof rawAlarmOffsets === "string"
+        ? rawAlarmOffsets.trim() === ""
           ? undefined
           : rawAlarmOffsets
-        : rawAlarmOffsets
+        : rawAlarmOffsets;
 
     const patch = {
       title: data.title,
       status: data.status,
-      focusTime: data.focusTime === '' || data.focusTime == null ? undefined : parseInt(data.focusTime) || 0,
+      focusTime:
+        data.focusTime === "" || data.focusTime == null
+          ? undefined
+          : parseInt(data.focusTime) || 0,
       cronExpr: data.cronExpr,
       remindBefore: data.remindBefore,
       remindAfter: data.remindAfter,
@@ -274,15 +320,17 @@ export function ScheduledTable() {
       nextRun: data.nextRun ? parseFromDateTimeLocal(data.nextRun) : undefined,
       note: data.note,
       url: data.url,
-      deadline: data.deadline ? parseFromDateTimeLocal(data.deadline) : undefined,
-    }
+      deadline: data.deadline
+        ? parseFromDateTimeLocal(data.deadline)
+        : undefined,
+    };
 
     // 立刻更新本地状态
-    updateLocalRow(editingItem.taskId, patch)
+    updateLocalRow(editingItem.taskId, patch);
     // 再异步保存到数据库
-    await saveUpdate(editingItem.taskId, patch)
-    setEditingItem(null)
-  }
+    await saveUpdate(editingItem.taskId, patch);
+    setEditingItem(null);
+  };
 
   const handleCloseEditDialog = (isSaved?: boolean) => {
     if (isSaved) {
@@ -301,25 +349,25 @@ export function ScheduledTable() {
   const openCronPreview = (item: ScheduledItem, cronExpr: string) => {
     setCronPreview({
       taskId: item.taskId,
-      title: item.title ?? '',
+      title: item.title ?? "",
       cronExpr,
       runs: getUpcomingOccurrences(cronExpr),
-    })
-  }
+    });
+  };
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('taskId', {
-        header: t('table.scheduled.col.taskId'),
+      columnHelper.accessor("taskId", {
+        header: t("table.scheduled.col.taskId"),
         cell: (info) => (
           <span className="text-xs text-gray-500">{info.getValue()}</span>
         ),
       }),
-      columnHelper.accessor('title', {
-        header: t('table.scheduled.col.title'),
+      columnHelper.accessor("title", {
+        header: t("table.scheduled.col.title"),
         cell: (info) => {
-          const taskId = info.row.original.taskId
-          const value = info.getValue() ?? ''
+          const taskId = info.row.original.taskId;
+          const value = info.getValue() ?? "";
 
           return (
             <input
@@ -332,14 +380,14 @@ export function ScheduledTable() {
                 saveUpdate(taskId, { title: event.target.value })
               }
             />
-          )
+          );
         },
       }),
-      columnHelper.accessor('status', {
-        header: t('table.scheduled.col.status'),
+      columnHelper.accessor("status", {
+        header: t("table.scheduled.col.status"),
         cell: (info) => {
-          const taskId = info.row.original.taskId
-          const value = info.getValue() ?? ''
+          const taskId = info.row.original.taskId;
+          const value = info.getValue() ?? "";
 
           return (
             <select
@@ -357,196 +405,218 @@ export function ScheduledTable() {
               <option value="DONE">DONE</option>
               <option value="INTERRUPTED">INTERRUPTED</option>
             </select>
-          )
+          );
         },
       }),
-      columnHelper.accessor('focusTime', {
-        header: t('table.scheduled.col.focusTime'),
+      columnHelper.accessor("focusTime", {
+        header: t("table.scheduled.col.focusTime"),
         cell: (info) => {
-          const taskId = info.row.original.taskId
-          const value = info.getValue()
+          const taskId = info.row.original.taskId;
+          const value = info.getValue();
 
           return (
             <input
               className="w-24 px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
               type="number"
               min={0}
-              value={value ?? ''}
+              value={value ?? ""}
               placeholder="mins"
               onChange={(event) => {
-                const raw = event.target.value
-                updateLocalRow(taskId, { focusTime: raw === '' ? undefined : parseInt(raw) || 0 })
+                const raw = event.target.value;
+                updateLocalRow(taskId, {
+                  focusTime: raw === "" ? undefined : parseInt(raw) || 0,
+                });
               }}
               onBlur={(event) => {
-                const raw = event.target.value
-                saveUpdate(taskId, { focusTime: raw === '' ? undefined : parseInt(raw) || 0 })
+                const raw = event.target.value;
+                saveUpdate(taskId, {
+                  focusTime: raw === "" ? undefined : parseInt(raw) || 0,
+                });
               }}
             />
-          )
+          );
         },
       }),
-      columnHelper.accessor('cronExpr', {
-        header: t('table.scheduled.cronHeader'),
+      columnHelper.accessor("cronExpr", {
+        header: t("table.scheduled.cronHeader"),
         cell: (info) => {
-          const taskId = info.row.original.taskId
-          const fullValue = info.getValue() ?? ''
-          const [minute, hour, day, month, weekday] = getCronParts(fullValue)
-          const parts = [minute, hour, day, month, weekday]
-          const currentNextRun = info.row.original.nextRun
+          const taskId = info.row.original.taskId;
+          const fullValue = info.getValue() ?? "";
+          const [minute, hour, day, month, weekday] = getCronParts(fullValue);
+          const parts = [minute, hour, day, month, weekday];
+          const currentNextRun = info.row.original.nextRun;
 
           const updateCronPart = (index: number, newValue: string) => {
-            const updated = [...parts]
-            while (updated.length < 5) updated.push('*')
-            updated[index] = newValue
-            const cronExpr = updated.join(' ')
-            updateLocalRow(taskId, { cronExpr })
-          }
+            const updated = [...parts];
+            while (updated.length < 5) updated.push("*");
+            updated[index] = newValue;
+            const cronExpr = updated.join(" ");
+            updateLocalRow(taskId, { cronExpr });
+          };
 
           const saveCronPart = (index: number, newValue: string) => {
-            const updated = [...parts]
-            while (updated.length < 5) updated.push('*')
-            updated[index] = newValue
-            const cronExpr = updated.join(' ')
-            saveUpdate(taskId, { cronExpr })
-          }
+            const updated = [...parts];
+            while (updated.length < 5) updated.push("*");
+            updated[index] = newValue;
+            const cronExpr = updated.join(" ");
+            saveUpdate(taskId, { cronExpr });
+          };
 
           const inputWidth = (value: string) => {
-            const length = Math.max(3, value.length)
-            return `${length + 1}ch`
-          }
+            const length = Math.max(3, value.length);
+            return `${length + 1}ch`;
+          };
 
           const composeCronExpr = () => {
-            return buildCronExpr(parts)
-          }
+            return buildCronExpr(parts);
+          };
 
-          const previewCronExpr = composeCronExpr()
+          const previewCronExpr = composeCronExpr();
 
           const maybeAutoFillNextRun = () => {
-            const predictedNextRun = getPredictedNextRun(previewCronExpr, new Date())
-            if (predictedNextRun == null) return
+            const predictedNextRun = getPredictedNextRun(
+              previewCronExpr,
+              new Date(),
+            );
+            if (predictedNextRun == null) return;
 
             if (currentNextRun == null) {
-              updateLocalRow(taskId, { nextRun: predictedNextRun })
-              saveUpdate(taskId, { nextRun: predictedNextRun })
-              return
+              updateLocalRow(taskId, { nextRun: predictedNextRun });
+              saveUpdate(taskId, { nextRun: predictedNextRun });
+              return;
             }
 
-            if (currentNextRun === predictedNextRun) return
+            if (currentNextRun === predictedNextRun) return;
 
             const shouldApply = window.confirm(
-              t('table.scheduled.nextRunConfirm', {
-                current: currentNextRun ? new Date(currentNextRun).toLocaleString() : t('table.notSet'),
+              t("table.scheduled.nextRunConfirm", {
+                current: currentNextRun
+                  ? new Date(currentNextRun).toLocaleString()
+                  : t("table.notSet"),
                 predicted: new Date(predictedNextRun).toLocaleString(),
-              })
-            )
+              }),
+            );
 
-            if (!shouldApply) return
+            if (!shouldApply) return;
 
-            updateLocalRow(taskId, { nextRun: predictedNextRun })
-            saveUpdate(taskId, { nextRun: predictedNextRun })
-          }
+            updateLocalRow(taskId, { nextRun: predictedNextRun });
+            saveUpdate(taskId, { nextRun: predictedNextRun });
+          };
 
           const handleCronGroupBlur = (event: FocusEvent<HTMLDivElement>) => {
-            const nextTarget = event.relatedTarget as Node | null
+            const nextTarget = event.relatedTarget as Node | null;
             if (nextTarget && event.currentTarget.contains(nextTarget)) {
-              return
+              return;
             }
-            maybeAutoFillNextRun()
-          }
+            maybeAutoFillNextRun();
+          };
 
           return (
             <div
               className="flex flex-wrap items-center gap-1"
-              style={{ minWidth: '10rem' }}
+              style={{ minWidth: "10rem" }}
               onBlur={handleCronGroupBlur}
             >
               <input
                 className="px-1 py-1 border rounded focus:outline-none focus:border-blue-500 font-mono text-xs"
-                style={{ minWidth: '1rem', width: inputWidth(minute) }}
+                style={{ minWidth: "1rem", width: inputWidth(minute) }}
                 value={minute}
                 placeholder="0"
-                title={t('table.scheduled.cronMinute')}
+                title={t("table.scheduled.cronMinute")}
                 onChange={(e) => updateCronPart(0, e.target.value)}
                 onBlur={(e) => saveCronPart(0, e.target.value)}
               />
               <input
                 className="px-1 py-1 border rounded focus:outline-none focus:border-blue-500 font-mono text-xs"
-                style={{ minWidth: '1rem', width: inputWidth(hour) }}
+                style={{ minWidth: "1rem", width: inputWidth(hour) }}
                 value={hour}
                 placeholder="9"
-                title={t('table.scheduled.cronHour')}
+                title={t("table.scheduled.cronHour")}
                 onChange={(e) => updateCronPart(1, e.target.value)}
                 onBlur={(e) => saveCronPart(1, e.target.value)}
               />
               <input
                 className="px-1 py-1 border rounded focus:outline-none focus:border-blue-500 font-mono text-xs"
-                style={{ minWidth: '1rem', width: inputWidth(day) }}
+                style={{ minWidth: "1rem", width: inputWidth(day) }}
                 value={day}
                 placeholder="*"
-                title={t('table.scheduled.cronDay')}
+                title={t("table.scheduled.cronDay")}
                 onChange={(e) => updateCronPart(2, e.target.value)}
                 onBlur={(e) => saveCronPart(2, e.target.value)}
               />
               <input
                 className="px-1 py-1 border rounded focus:outline-none focus:border-blue-500 font-mono text-xs"
-                style={{ minWidth: '1rem', width: inputWidth(month) }}
+                style={{ minWidth: "1rem", width: inputWidth(month) }}
                 value={month}
                 placeholder="*"
-                title={t('table.scheduled.cronMonth')}
+                title={t("table.scheduled.cronMonth")}
                 onChange={(e) => updateCronPart(3, e.target.value)}
                 onBlur={(e) => saveCronPart(3, e.target.value)}
               />
               <input
                 className="px-1 py-1 border rounded focus:outline-none focus:border-blue-500 font-mono text-xs"
-                style={{ minWidth: '1rem', width: inputWidth(weekday) }}
+                style={{ minWidth: "1rem", width: inputWidth(weekday) }}
                 value={weekday}
                 placeholder="*"
-                title={t('table.scheduled.cronWeekday')}
+                title={t("table.scheduled.cronWeekday")}
                 onChange={(e) => updateCronPart(4, e.target.value)}
                 onBlur={(e) => saveCronPart(4, e.target.value)}
               />
               <button
                 type="button"
                 className="px-2 py-1 border border-gray-300 rounded text-xs whitespace-nowrap hover:bg-gray-100"
-                onClick={() => openCronPreview(info.row.original, previewCronExpr)}
-                title={t('table.scheduled.previewButton')}
+                onClick={() =>
+                  openCronPreview(info.row.original, previewCronExpr)
+                }
+                title={t("table.scheduled.previewButton")}
               >
-                {t('table.scheduled.previewButton')}
+                {t("table.scheduled.previewButton")}
               </button>
             </div>
-          )
+          );
         },
       }),
-      ...(alarmSyncTargets !== 0 ? [columnHelper.accessor('reminderOffsets', {
-        header: t('table.scheduled.col.reminderOffsets'),
-        cell: (info) => {
-          const taskId = info.row.original.taskId
-          const rawValue = info.getValue()
-          const value = typeof rawValue === 'string' ? rawValue : Array.isArray(rawValue) ? rawValue.join(',') : ''
+      ...(alarmSyncTargets !== 0
+        ? [
+            columnHelper.accessor("reminderOffsets", {
+              header: t("table.scheduled.col.reminderOffsets"),
+              cell: (info) => {
+                const taskId = info.row.original.taskId;
+                const rawValue = info.getValue();
+                const value =
+                  typeof rawValue === "string"
+                    ? rawValue
+                    : Array.isArray(rawValue)
+                      ? rawValue.join(",")
+                      : "";
 
-          return (
-            <input
-              className="w-28 min-w-28 px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-xs"
-              value={value}
-              placeholder="1d,2h,30m"
-              onChange={(event) =>
-                updateLocalRow(taskId, { reminderOffsets: event.target.value })
-              }
-              onBlur={(event) => {
-                const nextValue = event.target.value.trim()
-                saveUpdate(taskId, {
-                  reminderOffsets: nextValue ? nextValue : undefined,
-                })
-              }}
-            />
-          )
-        },
-      })] : []),
-      columnHelper.accessor('remindBefore', {
-        header: t('table.scheduled.col.remindBefore'),
+                return (
+                  <input
+                    className="w-28 min-w-28 px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-xs"
+                    value={value}
+                    placeholder="1d,2h,30m"
+                    onChange={(event) =>
+                      updateLocalRow(taskId, {
+                        reminderOffsets: event.target.value,
+                      })
+                    }
+                    onBlur={(event) => {
+                      const nextValue = event.target.value.trim();
+                      saveUpdate(taskId, {
+                        reminderOffsets: nextValue ? nextValue : undefined,
+                      });
+                    }}
+                  />
+                );
+              },
+            }),
+          ]
+        : []),
+      columnHelper.accessor("remindBefore", {
+        header: t("table.scheduled.col.remindBefore"),
         cell: (info) => {
-          const taskId = info.row.original.taskId
-          const value = info.getValue() ?? ''
+          const taskId = info.row.original.taskId;
+          const value = info.getValue() ?? "";
 
           return (
             <input
@@ -560,14 +630,14 @@ export function ScheduledTable() {
                 saveUpdate(taskId, { remindBefore: event.target.value })
               }
             />
-          )
+          );
         },
       }),
-      columnHelper.accessor('remindAfter', {
-        header: t('table.scheduled.col.remindAfter'),
+      columnHelper.accessor("remindAfter", {
+        header: t("table.scheduled.col.remindAfter"),
         cell: (info) => {
-          const taskId = info.row.original.taskId
-          const value = info.getValue() ?? ''
+          const taskId = info.row.original.taskId;
+          const value = info.getValue() ?? "";
 
           return (
             <input
@@ -581,14 +651,14 @@ export function ScheduledTable() {
                 saveUpdate(taskId, { remindAfter: event.target.value })
               }
             />
-          )
+          );
         },
       }),
-      columnHelper.accessor('callback', {
-        header: t('table.scheduled.col.callback'),
+      columnHelper.accessor("callback", {
+        header: t("table.scheduled.col.callback"),
         cell: (info) => {
-          const taskId = info.row.original.taskId
-          const value = info.getValue() ?? ''
+          const taskId = info.row.original.taskId;
+          const value = info.getValue() ?? "";
 
           return (
             <input
@@ -602,14 +672,14 @@ export function ScheduledTable() {
                 saveUpdate(taskId, { callback: event.target.value })
               }
             />
-          )
+          );
         },
       }),
-      columnHelper.accessor('note', {
-        header: t('table.scheduled.col.note'),
+      columnHelper.accessor("note", {
+        header: t("table.scheduled.col.note"),
         cell: (info) => {
-          const taskId = info.row.original.taskId
-          const value = info.getValue() ?? ''
+          const taskId = info.row.original.taskId;
+          const value = info.getValue() ?? "";
 
           return (
             <input
@@ -622,15 +692,15 @@ export function ScheduledTable() {
                 saveUpdate(taskId, { note: event.target.value })
               }
             />
-          )
+          );
         },
       }),
-      columnHelper.accessor('url', {
-        header: t('table.scheduled.col.url'),
+      columnHelper.accessor("url", {
+        header: t("table.scheduled.col.url"),
         cell: (info) => {
-          const taskId = info.row.original.taskId
-          const value = info.getValue() ?? ''
-          const hasValidUrl = value && value !== 'None'
+          const taskId = info.row.original.taskId;
+          const value = info.getValue() ?? "";
+          const hasValidUrl = value && value !== "None";
 
           return (
             <div className="flex items-center gap-2">
@@ -655,15 +725,15 @@ export function ScheduledTable() {
                 </a>
               )}
             </div>
-          )
+          );
         },
       }),
-      columnHelper.accessor('deadline', {
-        header: t('table.scheduled.col.deadline'),
+      columnHelper.accessor("deadline", {
+        header: t("table.scheduled.col.deadline"),
         cell: (info) => {
-          const taskId = info.row.original.taskId
-          const rawValue = info.getValue()
-          const value = rawValue ? formatToDateTimeLocal(rawValue) : ''
+          const taskId = info.row.original.taskId;
+          const rawValue = info.getValue();
+          const value = rawValue ? formatToDateTimeLocal(rawValue) : "";
 
           return (
             <input
@@ -671,24 +741,26 @@ export function ScheduledTable() {
               type="datetime-local"
               value={value}
               onChange={(event) => {
-                const nextValue = parseFromDateTimeLocal(event.target.value)
-                updateLocalRow(taskId, { deadline: nextValue })
+                const nextValue = parseFromDateTimeLocal(event.target.value);
+                updateLocalRow(taskId, { deadline: nextValue });
               }}
               onBlur={(event) => {
-                const nextValue = event.target.value ? parseFromDateTimeLocal(event.target.value) : undefined
-                saveUpdate(taskId, { deadline: nextValue })
+                const nextValue = event.target.value
+                  ? parseFromDateTimeLocal(event.target.value)
+                  : undefined;
+                saveUpdate(taskId, { deadline: nextValue });
               }}
             />
-          )
+          );
         },
       }),
-      columnHelper.accessor('nextRun', {
-        header: t('table.scheduled.col.nextRun'),
-        sortingFn: 'datetime',
+      columnHelper.accessor("nextRun", {
+        header: t("table.scheduled.col.nextRun"),
+        sortingFn: "datetime",
         cell: (info) => {
-          const taskId = info.row.original.taskId
-          const rawValue = info.getValue()
-          const value = formatToDateTimeLocal(rawValue)
+          const taskId = info.row.original.taskId;
+          const rawValue = info.getValue();
+          const value = formatToDateTimeLocal(rawValue);
 
           return (
             <input
@@ -696,54 +768,54 @@ export function ScheduledTable() {
               type="datetime-local"
               value={value}
               onChange={(event) => {
-                const nextValue = parseFromDateTimeLocal(event.target.value)
-                updateLocalRow(taskId, { nextRun: nextValue })
+                const nextValue = parseFromDateTimeLocal(event.target.value);
+                updateLocalRow(taskId, { nextRun: nextValue });
               }}
               onBlur={(event) => {
-                const nextValue = parseFromDateTimeLocal(event.target.value)
-                saveUpdate(taskId, { nextRun: nextValue })
+                const nextValue = parseFromDateTimeLocal(event.target.value);
+                saveUpdate(taskId, { nextRun: nextValue });
               }}
             />
-          )
+          );
         },
       }),
       // Hidden column for lastRun sorting
-      columnHelper.accessor('lastRun', {
-        id: 'lastRun',
+      columnHelper.accessor("lastRun", {
+        id: "lastRun",
         header: () => null,
         cell: () => null,
-        sortingFn: 'datetime',
+        sortingFn: "datetime",
       }),
       columnHelper.display({
-        id: 'actions',
-        header: t('table.scheduled.col.actions'),
+        id: "actions",
+        header: t("table.scheduled.col.actions"),
         cell: (info) => (
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleInterruptOrStart(info.row.original)}
               className="px-2 py-1 text-xs bg-amber-500 text-white rounded hover:bg-amber-600 whitespace-nowrap"
             >
-              {runningTask ? t('table.quickSwitch') : t('table.quickStart')}
+              {runningTask ? t("table.quickSwitch") : t("table.quickStart")}
             </button>
             <button
               onClick={() => deleteRow(info.row.original.taskId)}
               className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
             >
-              {t('table.scheduled.col.delete')}
+              {t("table.scheduled.col.delete")}
             </button>
           </div>
         ),
       }),
     ],
-    [t, runningTask]
-  )
+    [t, runningTask],
+  );
 
   const searchFiltered = useSearchFilter(
     rows,
     { query: searchQuery, isOrMode },
-    ['title', 'note', 'url', 'callback'] as (keyof ScheduledItem)[]
-  )
-  const filteredRows = useHideDone(searchFiltered, hideDone)
+    ["title", "note", "url", "callback"] as (keyof ScheduledItem)[],
+  );
+  const filteredRows = useHideDone(searchFiltered, hideDone);
 
   const table = useReactTable({
     data: filteredRows,
@@ -760,18 +832,18 @@ export function ScheduledTable() {
     // Undefined values should appear first
     sortingFns: {
       datetime: (rowA, rowB, columnId) => {
-        const a = rowA.getValue<number | undefined>(columnId)
-        const b = rowB.getValue<number | undefined>(columnId)
-        
+        const a = rowA.getValue<number | undefined>(columnId);
+        const b = rowB.getValue<number | undefined>(columnId);
+
         // Undefined values go first
-        if (a === undefined && b === undefined) return 0
-        if (a === undefined) return -1
-        if (b === undefined) return 1
-        
-        return a - b
+        if (a === undefined && b === undefined) return 0;
+        if (a === undefined) return -1;
+        if (b === undefined) return 1;
+
+        return a - b;
       },
     },
-  })
+  });
 
   return (
     <div className="p-4">
@@ -791,7 +863,7 @@ export function ScheduledTable() {
             onClick={() => addRow()}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            {t('table.add')}
+            {t("table.add")}
           </button>
         </div>
       </div>
@@ -803,7 +875,7 @@ export function ScheduledTable() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={text.searchPlaceholder}
-          className={`px-3 py-2 border rounded focus:outline-none focus:border-blue-500 ${isMobile ? 'flex-1 min-w-0' : 'flex-1'}`}
+          className={`px-3 py-2 border rounded focus:outline-none focus:border-blue-500 ${isMobile ? "flex-1 min-w-0" : "flex-1"}`}
         />
 
         {!isMobile && (
@@ -812,11 +884,11 @@ export function ScheduledTable() {
               onClick={() => setIsOrMode(!isOrMode)}
               className={`px-3 py-2 rounded ${
                 isOrMode
-                  ? 'bg-blue-500 text-white hover:bg-blue-600'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  ? "bg-blue-500 text-white hover:bg-blue-600"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
-              {isOrMode ? 'OR' : 'AND'}
+              {isOrMode ? "OR" : "AND"}
             </button>
             <label className="flex items-center gap-1 px-3 py-2 border rounded cursor-pointer select-none text-sm text-gray-700 hover:bg-gray-50">
               <input
@@ -836,26 +908,45 @@ export function ScheduledTable() {
             className="px-3 py-2 border rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
             title="Toggle filters"
           >
-            {showMobileFilters ? 'Hide Filters' : 'Show Filters'}
+            {showMobileFilters ? "Hide Filters" : "Show Filters"}
           </button>
         )}
       </div>
 
       {/* 桌面版排序選項 */}
       {!isMobile && (
-        <div className="mb-4 flex gap-2 items-center">
-          <label className="text-sm text-gray-700 font-semibold">{text.sortLabel}:</label>
-          <select
-            value={sortMode}
-            onChange={(e) => setSortMode(e.target.value as typeof sortMode)}
-            className="px-3 py-2 border rounded focus:outline-none focus:border-blue-500 text-sm"
-          >
-            <option value="none">{t('table.scheduled.sort.none')}</option>
-            <option value="lastRunAsc">{t('table.scheduled.sort.lastRunAsc')}</option>
-            <option value="lastRunDesc">{t('table.scheduled.sort.lastRunDesc')}</option>
-            <option value="nextRunAsc">{t('table.scheduled.sort.nextRunAsc')}</option>
-            <option value="nextRunDesc">{t('table.scheduled.sort.nextRunDesc')}</option>
-          </select>
+        <div className="mb-4 flex justify-between gap-2 items-center">
+          <label className="text-sm text-gray-700 font-semibold">
+            {text.sortLabel}:
+            <select
+              value={sortMode}
+              onChange={(e) => setSortMode(e.target.value as typeof sortMode)}
+              className="px-3 py-2 border rounded focus:outline-none focus:border-blue-500 text-sm"
+            >
+              <option value="none">{t("table.scheduled.sort.none")}</option>
+              <option value="lastRunAsc">
+                {t("table.scheduled.sort.lastRunAsc")}
+              </option>
+              <option value="lastRunDesc">
+                {t("table.scheduled.sort.lastRunDesc")}
+              </option>
+              <option value="nextRunAsc">
+                {t("table.scheduled.sort.nextRunAsc")}
+              </option>
+              <option value="nextRunDesc">
+                {t("table.scheduled.sort.nextRunDesc")}
+              </option>
+            </select>
+          </label>
+
+          {(import.meta.env.DEV || getDeviceType() === "TWA") && (
+            <AlarmSyncTargetsCheckList
+              onChange={(v) => setAlarmSyncTargets(v)}
+              alarmSyncTargets={alarmSyncTargets}
+              openDialogClicked={() => setOpenAlarmQueueDialog(true)}
+              resetItemsStates={resetItemsStates} //這個目前除錯用
+            />
+          )}
         </div>
       )}
 
@@ -864,32 +955,54 @@ export function ScheduledTable() {
         <div className="mb-4 rounded-lg border bg-gray-50 p-3">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-semibold text-gray-700">{text.searchMode}:</label>
+              <label className="text-sm font-semibold text-gray-700">
+                {text.searchMode}:
+              </label>
               <button
                 onClick={() => setIsOrMode(!isOrMode)}
                 className={`px-3 py-1 rounded text-sm ${
                   isOrMode
-                    ? 'bg-blue-500 text-white hover:bg-blue-600'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? "bg-blue-500 text-white hover:bg-blue-600"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
               >
-                {isOrMode ? 'OR' : 'AND'}
+                {isOrMode ? "OR" : "AND"}
               </button>
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">{text.sortLabel}:</label>
-              <select
-                value={sortMode}
-                onChange={(e) => setSortMode(e.target.value as typeof sortMode)}
-                className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-sm"
-              >
-                <option value="none">{t('table.scheduled.sort.none')}</option>
-                <option value="lastRunAsc">{t('table.scheduled.sort.lastRunAsc')}</option>
-                <option value="lastRunDesc">{t('table.scheduled.sort.lastRunDesc')}</option>
-                <option value="nextRunAsc">{t('table.scheduled.sort.nextRunAsc')}</option>
-                <option value="nextRunDesc">{t('table.scheduled.sort.nextRunDesc')}</option>
-              </select>
+              <label className="mb-2 block text-sm font-semibold text-gray-700">
+                {text.sortLabel}:
+                <select
+                  value={sortMode}
+                  onChange={(e) =>
+                    setSortMode(e.target.value as typeof sortMode)
+                  }
+                  className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-sm"
+                >
+                  <option value="none">{t("table.scheduled.sort.none")}</option>
+                  <option value="lastRunAsc">
+                    {t("table.scheduled.sort.lastRunAsc")}
+                  </option>
+                  <option value="lastRunDesc">
+                    {t("table.scheduled.sort.lastRunDesc")}
+                  </option>
+                  <option value="nextRunAsc">
+                    {t("table.scheduled.sort.nextRunAsc")}
+                  </option>
+                  <option value="nextRunDesc">
+                    {t("table.scheduled.sort.nextRunDesc")}
+                  </option>
+                </select>
+              </label>
+              {(import.meta.env.DEV || getDeviceType() === "TWA") && (
+                <AlarmSyncTargetsCheckList
+                  onChange={(v) => setAlarmSyncTargets(v)}
+                  alarmSyncTargets={alarmSyncTargets}
+                  openDialogClicked={() => setOpenAlarmQueueDialog(true)}
+                  resetItemsStates={resetItemsStates} //這個目前除錯用
+                />
+              )}
             </div>
 
             <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -908,43 +1021,53 @@ export function ScheduledTable() {
       {loading ? (
         <div className="text-center text-gray-500">{text.loading}</div>
       ) : rows.length === 0 ? (
-        <div className="text-center text-gray-500">{t('table.noItemsYet')}</div>
+        <div className="text-center text-gray-500">{t("table.noItemsYet")}</div>
       ) : filteredRows.length === 0 ? (
-        <div className="text-center text-gray-500">{t('table.noMatchingItems')}</div>
+        <div className="text-center text-gray-500">
+          {t("table.noMatchingItems")}
+        </div>
       ) : isMobile ? (
         // 移動視圖 - 卡片
         <div className="grid grid-cols-1 gap-3">
           {table.getRowModel().rows.map((row) => {
-            const item = row.original
+            const item = row.original;
             return (
-            <TableCard
-              key={item.taskId}
-              item={item}
+              <TableCard
+                key={item.taskId}
+                item={item}
                 fields={[
-                  { label: t('col.title'), value: item.title || t('table.empty') },
-                  { label: t('card.status'), value: item.status },
                   {
-                    label: t('card.focusTime'),
-                    value: item.focusTime == null ? t('card.default30Mins') : t('card.default30MinsUnit', { n: item.focusTime }),
+                    label: t("col.title"),
+                    value: item.title || t("table.empty"),
                   },
-                  { label: t('card.cron'), value: item.cronExpr },
+                  { label: t("card.status"), value: item.status },
                   {
-                    label: t('card.nextRun'),
+                    label: t("card.focusTime"),
+                    value:
+                      item.focusTime == null
+                        ? t("card.default30Mins")
+                        : t("card.default30MinsUnit", { n: item.focusTime }),
+                  },
+                  { label: t("card.cron"), value: item.cronExpr },
+                  {
+                    label: t("card.nextRun"),
                     value: item.nextRun
-                      ? new Date(item.nextRun).toLocaleString('zh-TW')
-                      : t('table.notSet'),
+                      ? new Date(item.nextRun).toLocaleString("zh-TW")
+                      : t("table.notSet"),
                   },
                 ]}
                 onEdit={setEditingItem}
                 onDelete={(item) => deleteRow(item.taskId)}
                 quickAction={{
-                  label: runningTask ? t('table.quickSwitch') : t('table.quickStart'),
+                  label: runningTask
+                    ? t("table.quickSwitch")
+                    : t("table.quickStart"),
                   onClick: handleInterruptOrStart,
                 }}
               />
-            )
+            );
           })}
-          </div>
+        </div>
       ) : (
         // 桌面視圖 - 表格
         <div className="overflow-x-auto border rounded-lg">
@@ -961,7 +1084,7 @@ export function ScheduledTable() {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </th>
                   ))}
@@ -973,8 +1096,8 @@ export function ScheduledTable() {
                 <tr
                   key={row.id}
                   onClick={(event) => {
-                    if (!shouldOpenRowEdit(event.target)) return
-                    setEditingItem(row.original)
+                    if (!shouldOpenRowEdit(event.target)) return;
+                    setEditingItem(row.original);
                   }}
                   className="border-b hover:bg-gray-50 cursor-pointer"
                 >
@@ -982,7 +1105,7 @@ export function ScheduledTable() {
                     <td key={cell.id} className="px-4 py-2">
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </td>
                   ))}
@@ -999,81 +1122,83 @@ export function ScheduledTable() {
         item={editingItem}
         fields={[
           {
-            name: 'title',
-            label: t('table.scheduled.field.title'),
-            type: 'text' as FieldType,
+            name: "title",
+            label: t("table.scheduled.field.title"),
+            type: "text" as FieldType,
             placeholder: text.titlePlaceholder,
           },
           {
-            name: 'status',
-            label: t('table.scheduled.field.status'),
-            type: 'select' as FieldType,
+            name: "status",
+            label: t("table.scheduled.field.status"),
+            type: "select" as FieldType,
             options: [
-              { label: 'WAITING', value: 'WAITING' },
-              { label: 'PENDING', value: 'PENDING' },
-              { label: 'DONE', value: 'DONE' },
-              { label: 'INTERRUPTED', value: 'INTERRUPTED' },
+              { label: "WAITING", value: "WAITING" },
+              { label: "PENDING", value: "PENDING" },
+              { label: "DONE", value: "DONE" },
+              { label: "INTERRUPTED", value: "INTERRUPTED" },
             ],
           },
           {
-            name: 'cronExpr',
-            label: t('table.scheduled.field.cronExpr'),
-            type: 'cron' as FieldType,
+            name: "cronExpr",
+            label: t("table.scheduled.field.cronExpr"),
+            type: "cron" as FieldType,
             placeholder: text.cronPlaceholder,
           },
           {
-            name: 'focusTime',
-            label: t('table.scheduled.field.focusTime'),
-            type: 'number' as FieldType,
+            name: "focusTime",
+            label: t("table.scheduled.field.focusTime"),
+            type: "number" as FieldType,
           },
           ...(alarmSyncTargets !== 0
-            ? [{
-                name: 'reminderOffsets',
-                label: t('table.scheduled.field.reminderOffsets'),
-                type: 'text' as FieldType,
-                placeholder: '1d,2h,30m',
-              }]
+            ? [
+                {
+                  name: "reminderOffsets",
+                  label: t("table.scheduled.field.reminderOffsets"),
+                  type: "text" as FieldType,
+                  placeholder: "1d,2h,30m",
+                },
+              ]
             : []),
           {
-            name: 'remindBefore',
-            label: t('table.scheduled.field.remindBefore'),
-            type: 'text' as FieldType,
+            name: "remindBefore",
+            label: t("table.scheduled.field.remindBefore"),
+            type: "text" as FieldType,
           },
           {
-            name: 'remindAfter',
-            label: t('table.scheduled.field.remindAfter'),
-            type: 'text' as FieldType,
+            name: "remindAfter",
+            label: t("table.scheduled.field.remindAfter"),
+            type: "text" as FieldType,
           },
           {
-            name: 'callback',
-            label: t('table.scheduled.field.callback'),
-            type: 'text' as FieldType,
+            name: "callback",
+            label: t("table.scheduled.field.callback"),
+            type: "text" as FieldType,
           },
           {
-            name: 'lastRun',
-            label: t('table.scheduled.field.lastRun'),
-            type: 'datetime' as FieldType,
+            name: "lastRun",
+            label: t("table.scheduled.field.lastRun"),
+            type: "datetime" as FieldType,
           },
           {
-            name: 'nextRun',
-            label: t('table.scheduled.field.nextRun'),
-            type: 'datetime' as FieldType,
+            name: "nextRun",
+            label: t("table.scheduled.field.nextRun"),
+            type: "datetime" as FieldType,
           },
           {
-            name: 'note',
-            label: t('table.scheduled.field.note'),
-            type: 'text' as FieldType,
+            name: "note",
+            label: t("table.scheduled.field.note"),
+            type: "text" as FieldType,
           },
           {
-            name: 'url',
-            label: t('table.scheduled.field.url'),
-            type: 'text' as FieldType,
-            placeholder: 'https://...',
+            name: "url",
+            label: t("table.scheduled.field.url"),
+            type: "text" as FieldType,
+            placeholder: "https://...",
           },
           {
-            name: 'deadline',
-            label: t('table.scheduled.field.deadline'),
-            type: 'datetime' as FieldType,
+            name: "deadline",
+            label: t("table.scheduled.field.deadline"),
+            type: "datetime" as FieldType,
           },
         ]}
         onSave={handleEditSave}
@@ -1098,35 +1223,39 @@ export function ScheduledTable() {
           >
             <div className="mb-4 flex items-start gap-3">
               <div>
-                <h3 className="text-lg font-bold">{t('table.scheduled.previewTitle')}</h3>
+                <h3 className="text-lg font-bold">
+                  {t("table.scheduled.previewTitle")}
+                </h3>
                 <p className="text-sm text-gray-600">
                   {cronPreview.title || cronPreview.taskId}
                 </p>
-                <p className="mt-1 font-mono text-xs text-gray-500">{cronPreview.cronExpr}</p>
+                <p className="mt-1 font-mono text-xs text-gray-500">
+                  {cronPreview.cronExpr}
+                </p>
               </div>
               <button
                 type="button"
                 className="ml-auto px-3 py-1 border border-gray-300 rounded hover:bg-gray-100"
                 onClick={() => setCronPreview(null)}
               >
-                {t('dialog.cancel')}
+                {t("dialog.cancel")}
               </button>
             </div>
 
             {cronPreview.runs.length === 0 ? (
               <p className="text-sm text-red-600">
-                {t('table.scheduled.previewEmpty')}
+                {t("table.scheduled.previewEmpty")}
               </p>
             ) : (
               <div>
                 <p className="mb-3 text-sm text-gray-600">
-                  {t('table.scheduled.previewCount', { n: cronPreview.runs.length })}
+                  {t("table.scheduled.previewCount", {
+                    n: cronPreview.runs.length,
+                  })}
                 </p>
                 <ol className="max-h-[60vh] list-decimal space-y-2 overflow-y-auto pl-5 text-sm text-gray-800">
                   {cronPreview.runs.map((run) => (
-                    <li key={run}>
-                      {new Date(run).toLocaleString()}
-                    </li>
+                    <li key={run}>{new Date(run).toLocaleString()}</li>
                   ))}
                 </ol>
               </div>
@@ -1134,6 +1263,102 @@ export function ScheduledTable() {
           </div>
         </div>
       )}
+      {openAlarmQueueDialog && (
+        <dialog
+          id="alarm-queue-dialog"
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0 w-[90%] max-w-[500px] border-none rounded-lg bg-white shadow-xl backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+          ref={alarmQueueDialogRef}
+          closedby="any"
+          onCancel={(e) => {
+            e.preventDefault();
+            setOpenAlarmQueueDialog(false);
+          }}
+        >
+          <AlarmQueuePanel
+            items={queueItems}
+            onClearQueue={clearQueue}
+            onUpdateItems={async () => {
+              await updateTableBasedOnScheduled(alarmSyncTargets, ONE_YEAR_MS);
+            }}
+          />
+        </dialog>
+      )}
     </div>
-  )
+  );
+}
+
+/**
+ * 用來讓使用者設定 alarmSyncTargets 的CheckList，
+ * (開發時使用)外加一個根據 alarmSyncTargets 利用resetItemsStates來重設所有的提醒設定的按鈕
+ */
+function AlarmSyncTargetsCheckList({
+  alarmSyncTargets,
+  onChange,
+  openDialogClicked,
+  resetItemsStates,
+}: {
+  alarmSyncTargets: number;
+  onChange: (newValue: number) => void;
+  openDialogClicked: () => void;
+  resetItemsStates: (tempST: number) => Promise<void>;
+}) {
+  const [tempST, setTempST] = useState(alarmSyncTargets);
+  return (
+    <div className="flex flex-row justify-between gap-2">
+      <form
+        className="flex flex-row gap-2 text-sm text-gray-700 font-semibold"
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={(e) => {
+          e.preventDefault();
+        }}
+      >
+        <h3>設定排程鬧鐘</h3>
+        <div className="flex flex-row gap-2 items-center">
+          <label className="flex items-center gap-2">
+            {/* 兩個checkboxes 為輸入源 和一個 ok 將結果透過onChange 送出 */}
+            <input
+              type="checkbox"
+              checked={(tempST & 1) !== 0}
+              onChange={(e) =>
+                setTempST((prev) => (e.target.checked ? prev | 1 : prev & ~1))
+              }
+            />
+            ⏰
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={(tempST & 2) !== 0}
+              onChange={(e) =>
+                setTempST((prev) => (e.target.checked ? prev | 2 : prev & ~2))
+              }
+            />
+            🪧
+          </label>
+          <button
+            type="button"
+            className={`px-3 py-1 text-white rounded ${_.isEqual(tempST, alarmSyncTargets) ? "opacity-50 cursor-not-allowed bg-blue-500" : "bg-blue-500 hover:bg-blue-600"}`}
+            onClick={() => onChange(tempST)}
+          >
+            確定
+          </button>
+        </div>
+      </form>
+      <button
+        onClick={openDialogClicked}
+        className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+      >
+        查看排程
+      </button>
+      {import.meta.env.DEV ? (
+        <button
+          type="button"
+          className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+          onClick={() => resetItemsStates(tempST)}
+        >
+          重設
+        </button>
+      ) : null}
+    </div>
+  );
 }

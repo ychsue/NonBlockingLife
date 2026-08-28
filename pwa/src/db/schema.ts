@@ -102,7 +102,7 @@ export interface AlarmQueueItem {
   offsetMinutes: number
   state: 'pending' | 'triggered' | 'expired' | 'dismissed'
   clockState: AlarmSyncState
-  exactState: AlarmSyncState
+  exactState: AlarmSyncState | 'forbidden' | 'wrong_time'
   dedupeKey: string
   createdAt: number
   updatedAt: number

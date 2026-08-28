@@ -77,10 +77,6 @@ function getInitialAndroidTimerLaunchMode(): AndroidTimerLaunchMode {
 }
 
 function getInitialAlarmSyncTargets(): number {
-  if (import.meta.env.DEV) {
-    // 開發模式下，預設同步到兩個目標（方便測試）
-    return ALARM_SYNC_TARGET_BOTH
-  }
   const stored = Number(getStorage()?.getItem(ALARM_SYNC_TARGETS_KEY))
   if (Number.isInteger(stored) && stored >= ALARM_SYNC_TARGET_NONE && stored <= ALARM_SYNC_TARGET_BOTH) {
     return stored
