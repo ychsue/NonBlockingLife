@@ -37,13 +37,14 @@ final class AlarmSetupMessageHandler {
     private AlarmSetupMessageHandler() {
     }
 
-    static void queryAlarmSetup(Context context, @Nullable CustomTabsSession session) {
+    static void queryAlarmSetup(Context context, @Nullable CustomTabsSession session, String requestId) {
         if (session == null) {
             return;
         }
         JSONObject reply = new JSONObject();
         try {
             reply.put("type", "nbl:alarm-setup");
+            reply.put("requestId", requestId);
             reply.put("selectedClockApp", describeSelectedClockApp(context));
             reply.put("exactAlarmAllowed", ExactAlarmPermissionHelper.canScheduleExactAlarms(context));
         } catch (JSONException e) {
@@ -53,7 +54,7 @@ final class AlarmSetupMessageHandler {
         session.postMessage(reply.toString(), null);
     }
 
-    static void queryClockApps(Context context, @Nullable CustomTabsSession session) {
+    static void queryClockApps(Context context, @Nullable CustomTabsSession session, String requestId) {
         if (session == null) {
             return;
         }
@@ -61,6 +62,7 @@ final class AlarmSetupMessageHandler {
         try {
             JSONArray apps = listClockApps(context);
             reply.put("type", "nbl:clock-apps");
+            reply.put("requestId", requestId);
             reply.put("apps", apps);
             reply.put("selectedPackageName", ClockAppPreference.getSelectedPackage(context));
         } catch (JSONException e) {
@@ -72,6 +74,7 @@ final class AlarmSetupMessageHandler {
 
     static void selectClockApp(Context context, JSONObject message, @Nullable CustomTabsSession session) {
         String packageName = message.optString("packageName", null);
+        String requestId = message.optString("requestId", null);
         ClockAppPreference.setSelectedPackage(context, packageName);
 
         if (session == null) {
@@ -80,6 +83,7 @@ final class AlarmSetupMessageHandler {
         JSONObject reply = new JSONObject();
         try {
             reply.put("type", "nbl:select-clock-app-result");
+            reply.put("requestId", requestId);
             reply.put("selectedClockApp", describeSelectedClockApp(context));
         } catch (JSONException e) {
             Log.e(TAG, "Failed building nbl:select-clock-app-result payload", e);

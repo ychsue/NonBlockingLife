@@ -347,6 +347,8 @@ export const en = {
   'task.timeRemaining':    'In',
   'time.hoursMinutes':     '{h}h {m}min',
   'time.minutesOnly':      '{m}min',
+  'time.hoursOnly':        '{h}h',
+  'time.rightNow':          'Right Now',
 
   // ── InterruptConfirmDialog ────────────────────────────────────
   'interrupt.confirm.title':     'What would you like to do?',
@@ -369,6 +371,12 @@ export const en = {
   'taskSearch.source.microTasks':  'Micro Tasks',
   'taskSearch.source.scheduled':   'Scheduled',
   'taskSearch.adding':             'Adding...',
+
+  // ── AlarmQueuePanel ──────────────────────────────────────────
+  'aqPanel.title':                 'Alarm Queue',
+  'aqPanel.noEntries':             'No alarm queue entries yet.',
+  'aqPanel.updateBtn':             'Update Alarm Queue',
+  'aqPanel.clearBtn':              'Clear Queue',
 
   // ── Language toggle (shows the OTHER language label) ──────────
   'lang.toggle': '中文',

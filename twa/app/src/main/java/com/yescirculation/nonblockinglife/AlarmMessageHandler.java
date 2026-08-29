@@ -29,6 +29,7 @@ final class AlarmMessageHandler {
 
     static void handle(Context context, JSONObject message, @Nullable CustomTabsSession session) {
         JSONArray alarms = message.optJSONArray("alarms");
+        String requestId = message.optString("requestId", null);
         if (alarms == null) {
             Log.w(TAG, "nbl:set-alarms received without an alarms array.");
             return;
@@ -50,6 +51,7 @@ final class AlarmMessageHandler {
         JSONObject reply = new JSONObject();
         try {
             reply.put("type", "nbl:set-alarms-result");
+            reply.put("requestId", requestId);
             reply.put("results", results);
         } catch (JSONException e) {
             Log.e(TAG, "Failed building set-alarms-result payload", e);

@@ -1280,6 +1280,11 @@ export function ScheduledTable() {
             onUpdateItems={async () => {
               await updateTableBasedOnScheduled(alarmSyncTargets, ONE_YEAR_MS);
             }}
+            onClickItem={(item)=> {
+              setSearchQuery(item.title || "");
+              // close the dialog after clicking an item
+              setOpenAlarmQueueDialog(false);
+            }}
           />
         </dialog>
       )}

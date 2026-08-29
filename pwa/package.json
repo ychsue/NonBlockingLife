@@ -1,7 +1,7 @@
 {
   "name": "nonblockinglife-pwa",
   "private": true,
-  "version": "2.3.7-beta.12",
+  "version": "2.3.7-beta.13",
   "type": "module",
   "scripts": {
     "dev": "vite",

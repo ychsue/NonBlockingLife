@@ -1,5 +1,17 @@
 # Journal
 
+## [2026-08-29] (2.3.7-beta.13) 準備實作 alarm 的批次處理(十五) -> 測試發現與改良
+1. **發現clock鬧鐘設置會打開鬧鐘，以至於不確定會有幾個鬧鐘設定完成**
+   - [App.tsx](pwa\src\App.tsx) 因此，改成一次只要求設置一個 clock，並且跳出 alert免得使用者嚇到
+2. **發現會出現亂觸發postMessage的情況** (謝謝Gemini的辦法)
+   - [useTwaRpc.ts](pwa\src\hooks\useTwaRpc.ts) 因此，改成在PWA收到訊息(onmessage)時，先檢查是否有 requestId，若沒有，就不處理，若有，就拿出他的 resolve，把它完成。
+   - 好處是，這樣就變得有點像 `fetch`，透過 `await twaRpc(...)` 來等待回傳，這樣就不會有亂觸發的情況了。
+   - TWA端也就要修改，多加 `reply.put("requestId", requestId)`，這樣就可以讓PWA端知道這個訊息是回覆哪一個請求的。
+3. **Exact Alarm 重開機後會消失**
+   - [ ] 下一個再處理，使用 Gemini 教的 Room + 重開機放回的機制，完全TWA端，可以後測
+4. **更新db.alarm_queue 的時機**
+   - 想一想還是主要先就只在App.tsx 與按鈕做，因為常常會有關閉再打開的機會。
+
 ## [2026-08-28] (2.3.7-beta.12) 準備實作 alarm 的批次處理(十四) -> 準備先PWA測一天看看
 1. [ScheduledTable.tsx](pwa\src\components\tables\ScheduledTable.tsx) 裡面顯示 alarmQueueItem 的狀態，並且可以點擊 `查看排程` 來查看該 alarmQueueItem 對應的 scheduledItem
 2. [App.tsx](pwa\src\App.tsx) 裡面，將 [AlarmQueueWatcherProvider](pwa\src\components\tour\AlarmQueueWatcher.tsx) 掛上，然後將 [useAlarmQueueWatcher(true)](pwa\src\hooks\useAlarmQueueWatcher.ts) 傳入，這樣，在 App.tsx 來做全域的 AlarmQueueWatcher，與其他子元件共用同一個 hook。

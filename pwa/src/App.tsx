@@ -32,8 +32,14 @@ import { canAutoStartTour } from "./components/tour/productTourUtils";
 import { mimicTwaMessageChannel, useTwaBridge } from "./hooks/useTwaBridge";
 import { sleep } from "./utils/timeUtils";
 import { useAlarmQueueWatcher } from "./hooks/useAlarmQueueWatcher";
-import { getAlarmItems2TWA, getPlanFromTWAResults } from "./utils/alarmQueue";
+import {
+  AlarmItem2TWA,
+  getAlarmItems2TWA,
+  getPlanFromTWAResults,
+} from "./utils/alarmQueue";
 import { AlarmQueueWatcherProvider } from "./components/tour/AlarmQueueWatcher";
+import { useTwaRpc } from "./hooks/useTwaRpc";
+import _ from "lodash";
 
 type AllPages =
   | SheetName
@@ -93,6 +99,55 @@ export default function App() {
 
   const AQWatcher = useAlarmQueueWatcher(true);
   const { updateTableBasedOnScheduled, queueItems, applySyncPlan } = AQWatcher;
+  const { sendRequest } = useTwaRpc();
+
+  function textToLocale(text: string): string {
+    switch (locale) {
+      case "zh-TW":
+        switch (text) {
+          case "useTwaBridge.twaNotAvailable":
+            return "請使用者滑掉這個APP，再重開，好修復這個channel斷掉的問題";
+          case "即將設定：":
+            return "即將設定：";
+          case "鬧鐘:":
+            return "鬧鐘:";
+          case "通知:(可能因重開機等因素丟失)":
+            return "通知:(可能因重開機等因素丟失)";
+          case "若想更動，請到Scheduled頁面修改。":
+            return "若想更動，請到Scheduled頁面修改。";
+        }
+        break;
+      case "ja":
+        switch (text) {
+          case "useTwaBridge.twaNotAvailable":
+            return "このアプリをスワイプして閉じ、再度開いてください。これにより、TWAとの接続が復元されます。";
+          case "即將設定：":
+            return "設定予定：";
+          case "鬧鐘:":
+            return "アラーム：";
+          case "通知:(可能因重開機等因素丟失)":
+            return "通知：（再起動などの要因で失われる可能性があります）";
+          case "若想更動，請到Scheduled頁面修改。":
+            return "変更したい場合は、Scheduledページで修正してください。";
+        }
+        break;
+      case "en":
+        switch (text) {
+          case "useTwaBridge.twaNotAvailable":
+            return "Please swipe away this app and reopen it to restore the connection with TWA.";
+          case "即將設定：":
+            return "Setting up:";
+          case "鬧鐘:":
+            return "Alarm:";
+          case "通知:(可能因重開機等因素丟失)":
+            return "Notification: (may be lost due to reboot or other factors)";
+          case "若想更動，請到Scheduled頁面修改。":
+            return "If you want to make changes, please modify it on the Scheduled page.";
+        }
+        break;
+    }
+    return text; // Fallback to the original text if no translation is found
+  }
 
   // 與 TWA 相關
   const [isTwaAvailable, setIsTwaAvailable] = useState(false);
@@ -110,17 +165,12 @@ export default function App() {
     label: string;
   } | null>(null);
 
-  const [twaAlarmsResponse, setTwaAlarmsResponse] = useState<{
-    results: {
-      id: number;
-      mode: "exact" | "clock";
-      ok: boolean;
-      reason?: string;
-    }[];
-  } | null>(null);
-
   // Alarm Queue Watcher
   const alarmSyncTargets = useAppStore((state) => state.alarmSyncTargets);
+  const AQ2TWA = useRef<{
+    earliestClockItem?: AlarmItem2TWA;
+    exactItems: AlarmItem2TWA[];
+  }>({ earliestClockItem: undefined, exactItems: [] });
 
   // 如果 alarmSyncTargets 有變化，則更新 db.alarm_queue 的狀態
   useEffect(() => {
@@ -134,178 +184,187 @@ export default function App() {
       mimicTwaMessageChannel();
     }, []);
   }
-  const bridge = useTwaBridge((data, ev) => {
-    console.log("Received message from TWA:", data, ev);
+
+  // 如果 alarmSyncTargets !=0 && isTwaAvailable === false，那就10秒後再嘗試一次，因為 TWA 可能還沒啟動，若還是沒有，那就告知使用者，請使用者滑掉這個APP，再重開，好修復這個channel斷掉的問題
+  useEffect(() => {
+    if (alarmSyncTargets !== ALARM_SYNC_TARGET_NONE && !isTwaAvailable) {
+      const timer = setTimeout(() => {
+        console.warn("[App.tsx] TWA is not available after 10 seconds");
+        alert(textToLocale("useTwaBridge.twaNotAvailable"));
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [alarmSyncTargets, isTwaAvailable]);
+
+  const syncTwaSettings = useCallback(async () => {
     try {
-      const dataObj = typeof data === "string" ? JSON.parse(data) : data;
-      switch (dataObj.type) {
-        case "nbl:pong":
-          setIsTwaAvailable(true);
-          console.log("[App.tsx] 1. TWA is available");
-          break;
-        case "nbl:query-notification-permission":
-          console.log(
-            "[App.tsx] 2. TWA notification permission status:",
-            dataObj.granted,
-          );
-          break;
-        case "nbl:set-alarms-result":
-          setTwaAlarmsResponse({
-            results: dataObj.results || [],
-          });
-          break;
-        case "nbl:alarm-setup":
-          setAlarmSetup({
-            selectedClockApp: dataObj.selectedClockApp || null,
-            exactAlarmAllowed: dataObj.exactAlarmAllowed || false,
-          });
-          setTwaSelectedClockAppResult(dataObj.selectedClockApp || null);
-          break;
-        case "nbl:clock-apps":
-          setTwaClocks({
-            apps: dataObj.apps || [],
-            selectedPackageName: dataObj.selectedPackageName || "",
-          });
-          break;
-        case "nbl:select-clock-app-result":
+      let res: unknown = null;
+      // 1. 確認 TWA 連線狀態，若尚未連線則嘗試重新連線
+      res = await sendRequest(
+        "nbl:ping",
+        {},
+        { timeoutMs: 2000, expectResponse: true },
+      );
+      if (!res || (res as any).type !== "nbl:pong") {
+        console.warn("[App.tsx] 1. TWA is not available");
+        setIsTwaAvailable(false);
+        return;
+      }
+      setIsTwaAvailable(true);
+      console.log("[App.tsx] 1. TWA is available");
+
+      //2. 若 TWA 已連線，且尚未取得鬧鐘(clock & exact alarm)設定狀態，則嘗試查詢鬧鐘設定狀態
+      res = await sendRequest(
+        "nbl:query-alarm-setup",
+        {},
+        { timeoutMs: 1000, expectResponse: true },
+      );
+      if (!res || (res as any).type !== "nbl:alarm-setup") {
+        console.warn("[App.tsx] 2. Failed to query alarm setup from TWA");
+        return;
+      }
+      setAlarmSetup({
+        selectedClockApp: (res as any).selectedClockApp || null,
+        exactAlarmAllowed: (res as any).exactAlarmAllowed || false,
+      });
+      setTwaSelectedClockAppResult((res as any).selectedClockApp || null);
+      let selectedClockApp = (res as any).selectedClockApp || null;
+      let exactAlarmAllowed = (res as any).exactAlarmAllowed || false;
+
+      //3. 若 TWA 已連線，且已取得鬧鐘設定狀態，若沒有selectedClockApp，則查詢可用的鬧鐘應用程式列表讓使用者選
+      if (
+        (alarmSyncTargets & ALARM_SYNC_TARGET_CLOCK) !== 0 &&
+        !selectedClockApp?.packageName
+      ) {
+        res = await sendRequest(
+          "nbl:query-clock-apps",
+          {},
+          { timeoutMs: 1000, expectResponse: true },
+        );
+        if (!res || (res as any).type !== "nbl:clock-apps") {
+          console.warn("[App.tsx] 3. Failed to query clock apps from TWA");
+          return;
+        }
+        const resTwaClocks = {
+          apps: (res as any).apps || [],
+          selectedPackageName: (res as any).selectedPackageName || "",
+        };
+        setTwaClocks(resTwaClocks);
+        // 4. 叫出 openDialog 讓使用者選擇 Clock App
+        const clockAppResult = await openDialog({
+          title: "TWA Clock App Not Selected",
+          message:
+            "Please select a clock app in TWA settings to enable alarm sync.",
+          actions: [{ id: "ok", label: "OK" }],
+          selects: [
+            {
+              name: "clockApp",
+              label: "Clock App",
+              options:
+                resTwaClocks.apps.map(
+                  (app: { packageName: string; label: string }) => ({
+                    value: app.packageName,
+                    label: app.label,
+                  }),
+                ) ?? [],
+              defaultValue: resTwaClocks.selectedPackageName || "",
+            },
+          ],
+        });
+        if (
+          clockAppResult.actionId === "ok" &&
+          clockAppResult.formData.clockApp
+        ) {
+          const selectedPackageName = clockAppResult.formData.clockApp;
           setTwaSelectedClockAppResult({
-            packageName: dataObj.selectedClockApp?.packageName || "",
-            label: dataObj.selectedClockApp?.label || "",
+            packageName: selectedPackageName,
+            label:
+              resTwaClocks.apps.find(
+                (app: { packageName: string; label: string }) =>
+                  app.packageName === selectedPackageName,
+              )?.label || "",
           });
-          break;
-        default:
-          console.warn("Unhandled TWA message type:", dataObj.type);
+        }
+      }
+      // 5. 若 TWA 已連線，且已取得鬧鐘設定狀態，若沒有 exactAlarmAllowed，則要求 TWA 端的精確鬧鐘權限
+      if (
+        (alarmSyncTargets & ALARM_SYNC_TARGET_CLOCK) !== 0 &&
+        !exactAlarmAllowed
+      ) {
+        res = await sendRequest(
+          "nbl:request-exact-alarm-permission",
+          {},
+          { timeoutMs: 1000, expectResponse: false },
+        );
+        // 6. 由於他是默默地做，所以需要 openDialog 告知使用者若選用Notification提醒，就必須允許精確鬧鐘的權限
+        openDialog({
+          title: "Enable Exact Alarm Permission",
+          message:
+            "To ensure accurate notifications, please enable the exact alarm permission in your TWA settings.",
+          actions: [{ id: "ok", label: "OK" }],
+        });
+      }
+
+      // 7. 現在可以同步鬧鐘了，將 queueItems 轉換為 TWA 所需的格式，並發送給 TWA
+      if (queueItems.length > 0) {
+        const { earliestClockItem, exactItems } = getAlarmItems2TWA(queueItems);
+        if (
+          _.isEqual(AQ2TWA.current.earliestClockItem, earliestClockItem) &&
+          _.isEqual(AQ2TWA.current.exactItems, exactItems)
+        ) {
+          console.log("[App.tsx] 7. Alarms are already up to date in TWA");
+          return;
+        }
+        AQ2TWA.current = { earliestClockItem, exactItems };
+        // 7.1 丟出 alert 提醒使用者鬧鐘準備設定
+        if (!earliestClockItem && exactItems.length === 0) {
+          console.log("[App.tsx] 7. No alarms to set in TWA");
+          return;
+        }
+        function padZero(num: number): string {
+          return num.toString().padStart(2, "0");
+        }
+        alert(
+          textToLocale("即將設定：") +
+            "\n\r" +
+            (earliestClockItem
+              ? textToLocale("鬧鐘:") +
+                "\n\r" +
+                `  [${padZero(earliestClockItem.time[0])}:${padZero(earliestClockItem.time[1])}] ${earliestClockItem.label}` +
+                "\n\r"
+              : "") +
+            (exactItems.length > 0
+                ? textToLocale("通知:(可能因重開機等因素丟失)") +
+                "\n\r" +
+                `${exactItems.map((item) => `  [${item.time[0]}-${padZero(item.time[1])}-${padZero(item.time[2])} ${padZero(item.time[3])}:${padZero(item.time[4])}] ${item.label}`).join("\n\r")}`
+              : "") +
+            "\n\r" +
+            textToLocale("若想更動，請到Scheduled頁面修改。"),
+        );
+
+        res = await sendRequest(
+          "nbl:set-alarms",
+          { alarms: [earliestClockItem, ...exactItems].filter(Boolean) },
+          { timeoutMs: 10000, expectResponse: true },
+        );
+        if (!res || (res as any).type !== "nbl:set-alarms-result") {
+          console.warn("[App.tsx] 7. Failed to set alarms in TWA");
+          return;
+        }
+        // 7.2 處理 TWA 回傳的結果，並更新 db.alarm_queue 的 clockState 與 exactState
+        const twaResults = (res as any).results || [];
+        const syncPlan = getPlanFromTWAResults(twaResults, queueItems);
+        await applySyncPlan(syncPlan);
+        console.log("[App.tsx] 7. Sync plan applied:", syncPlan);
       }
     } catch (e) {
-      console.error("Failed to parse TWA message data:", e);
+      console.error("Failed to sync TWA settings:", e);
     }
-  });
+  }, [queueItems, alarmSyncTargets, sendRequest, applySyncPlan, openDialog]);
 
-  /**
-   * 1. 一開始打開 App 時，或 alarmSyncTargets 有變化，
-   * 2. 若 TWA 尚未連線，則嘗試重新連線
-   * 3. 若 TWA 已連線，且
-   */
   useEffect(() => {
-    if (alarmSyncTargets === ALARM_SYNC_TARGET_NONE) return;
-    if (!isTwaAvailable) {
-      // 1. 確認 TWA 連線狀態，若尚未連線則嘗試重新連線
-      sleep(200).then(() => {
-        bridge?.postMessage(JSON.stringify({ type: "nbl:ping" }));
-      });
-    } else if (alarmSetup === null) {
-      // 2. 若 TWA 已連線，且尚未取得鬧鐘(clock & exact alarm)設定狀態，則嘗試查詢鬧鐘設定狀態
-      bridge.postMessage(JSON.stringify({ type: "nbl:query-alarm-setup" }));
-    } else {
-      // 3. 若 TWA 已連線，且已取得鬧鐘設定狀態，則檢查是否需要查詢可用的鬧鐘應用程式列表
-      function shouldQueryClockApps() {
-        return (
-          (alarmSyncTargets & ALARM_SYNC_TARGET_CLOCK) !== 0 &&
-          !twaSelectedClockAppResult?.packageName
-        );
-      }
-      if (shouldQueryClockApps()) {
-        // 4. 若需要查詢可用的鬧鐘應用程式列表，則發送查詢請求給 TWA
-        bridge.postMessage(JSON.stringify({ type: "nbl:query-clock-apps" }));
-      } else {
-        // 5. 設定完 Clock App 後，來判定是否需要要求 TWA 端的精確鬧鐘權限
-        function shouldRequestExactAlarmPermission() {
-          return (
-            (alarmSyncTargets & ALARM_SYNC_TARGET_EXACT) !== 0 &&
-            !alarmSetup?.exactAlarmAllowed
-          );
-        }
-        if (shouldRequestExactAlarmPermission()) {
-          // 6. 若需要要求 TWA 端的精確鬧鐘權限，則發送查詢請求給 TWA
-          bridge.postMessage(
-            JSON.stringify({ type: "nbl:request-exact-alarm-permission" }),
-          );
-          // 6.1 然而，這個只會默默地做，不會回傳結果給 PWA 端，所以要顯現 Global Dialog 告知若選用Notification提醒，就必須允許精確鬧鐘的權限
-          openDialog({
-            title: "Enable Exact Alarm Permission",
-            message:
-              "To ensure accurate notifications, please enable the exact alarm permission in your TWA settings.",
-            actions: [{ id: "ok", label: "OK" }],
-          });
-        } else {
-          // 7. 到這步，代表 TWA 端的鬧鐘設定已經符合 PWA 端的需求，這時候就可以放心地同步鬧鐘了
-          if (queueItems.length > 0) {
-            const itemsToTWA = getAlarmItems2TWA(queueItems);
-            bridge.postMessage(
-              JSON.stringify({ type: "nbl:set-alarms", alarms: itemsToTWA }),
-            );
-          }
-        }
-      }
-    }
-  }, [
-    isTwaAvailable,
-    bridge,
-    alarmSyncTargets,
-    alarmSetup,
-    queueItems,
-    twaSelectedClockAppResult,
-  ]);
-
-  // 監聽 twaSelectedClockAppResult 變化，若有變化則更新 twaSelectedClockAppResult
-  useEffect(() => {
-    if (!isTwaAvailable) return;
-    function shouldQueryClockApps() {
-      return (
-        !twaSelectedClockAppResult?.packageName &&
-        (twaClocks?.apps.length ?? 0) > 0 &&
-        (alarmSyncTargets & ALARM_SYNC_TARGET_CLOCK) !== 0
-      );
-    }
-    if (shouldQueryClockApps()) {
-      openDialog({
-        title: "TWA Clock App Not Selected",
-        message:
-          "Please select a clock app in TWA settings to enable alarm sync.",
-        actions: [{ id: "ok", label: "OK" }],
-        selects: [
-          {
-            name: "clockApp",
-            label: "Clock App",
-            options:
-              twaClocks?.apps.map((app) => ({
-                value: app.packageName,
-                label: app.label,
-              })) ?? [],
-            defaultValue: twaSelectedClockAppResult?.packageName || "",
-          },
-        ],
-      }).then((result) => {
-        if (result.actionId === "ok" && result.formData.clockApp) {
-          bridge.postMessage(
-            JSON.stringify({
-              type: "nbl:select-clock-app",
-              packageName: result.formData.clockApp,
-            }),
-          );
-        }
-        return;
-      });
-    }
-    console.log(
-      "[App.tsx] 3. TWA selected clock app result:",
-      twaSelectedClockAppResult,
-    );
-  }, [isTwaAvailable, twaSelectedClockAppResult, twaClocks, openDialog]);
-
-  // 監聽 twaAlarmsResponse 變化，若有變化則更新 db.alarm_queue 的狀態
-  useEffect(() => {
-    if ((twaAlarmsResponse?.results?.length ?? 0) === 0) return;
-    if (queueItems.length === 0) return;
-    // 這裡要把 twaAlarmsResponse.results 的結果，更新到 db.alarm_queue 的狀態
-    const plan = getPlanFromTWAResults(
-      twaAlarmsResponse?.results ?? [],
-      queueItems,
-    );
-    applySyncPlan(plan).then((plan) => {
-      console.log("[App.tsx] Applied sync plan:", plan);
-    });
-  }, [twaAlarmsResponse, queueItems]);
+    void syncTwaSettings();
+  }, [syncTwaSettings]);
 
   // For Global Dialog
   useEffect(() => {

@@ -351,7 +351,8 @@ export const zhTW: TranslationMap = {
   'task.timeRemaining':    '還有',
   'time.hoursMinutes':     '{h} 小時 {m} 分鐘',
   'time.minutesOnly':      '{m} 分鐘',
-
+  'time.hoursOnly':        '{h} 小時',
+  'time.rightNow':          '此刻',
   // ── InterruptConfirmDialog ────────────────────────────────────
   'interrupt.confirm.title':     '請選擇操作',
   'interrupt.confirm.cancel':    '取消',
@@ -373,6 +374,13 @@ export const zhTW: TranslationMap = {
   'taskSearch.source.microTasks':  'Micro Tasks',
   'taskSearch.source.scheduled':   'Scheduled',
   'taskSearch.adding':             '新增中...',
+
+  // ── AlarmQueuePanel ──────────────────────────────────────────
+  'aqPanel.title':                 '鬧鐘序列',
+  'aqPanel.noEntries':             '暫無鬧鐘序列項目。',
+  'aqPanel.updateBtn':             '更新鬧鐘序列',
+  'aqPanel.clearBtn':              '清空序列',
+
 
   // ── Language toggle (shows the OTHER language label) ──────────
   'lang.toggle': 'EN',

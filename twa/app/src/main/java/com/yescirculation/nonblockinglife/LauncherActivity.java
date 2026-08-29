@@ -231,7 +231,7 @@ public class LauncherActivity extends AppCompatActivity {
                 int result = mSession.postMessage("{\"type\":\"android-ready\"}", null);
                 Log.d(TAG, "postMessage result: " + result);
             }
-            replyNotificationPermissionStatus();
+            replyNotificationPermissionStatus(null);
         }
     };
 
@@ -321,6 +321,7 @@ public class LauncherActivity extends AppCompatActivity {
         try {
             JSONObject json = new JSONObject(message);
             String type = json.optString("type");
+            String requestId = json.optString("requestId", null);
             if (NOTIFY_MESSAGE_TYPE.equals(type)) {
                 showNativeNotification(json.optString("title", getString(R.string.appName)),
                         json.optString("body", ""),
@@ -328,20 +329,20 @@ public class LauncherActivity extends AppCompatActivity {
                         json.has("url") ? json.optString("url") : null,
                         json.optBoolean("dismissOnClick", true));
             } else if (QUERY_NOTIFICATION_PERMISSION_TYPE.equals(type)) {
-                replyNotificationPermissionStatus();
+                replyNotificationPermissionStatus(requestId);
             } else if (AlarmMessageHandler.SET_ALARMS_MESSAGE_TYPE.equals(type)) {
                 AlarmMessageHandler.handle(this, json, mSession);
             } else if (AlarmSetupMessageHandler.QUERY_ALARM_SETUP_TYPE.equals(type)) {
-                AlarmSetupMessageHandler.queryAlarmSetup(this, mSession);
+                AlarmSetupMessageHandler.queryAlarmSetup(this, mSession, requestId);
             } else if (AlarmSetupMessageHandler.QUERY_CLOCK_APPS_TYPE.equals(type)) {
-                AlarmSetupMessageHandler.queryClockApps(this, mSession);
+                AlarmSetupMessageHandler.queryClockApps(this, mSession, requestId);
             } else if (AlarmSetupMessageHandler.SELECT_CLOCK_APP_TYPE.equals(type)) {
                 AlarmSetupMessageHandler.selectClockApp(this, json, mSession);
             } else if (AlarmSetupMessageHandler.REQUEST_EXACT_ALARM_PERMISSION_TYPE.equals(type)) {
                 AlarmSetupMessageHandler.requestExactAlarmPermission(this);
             } else if ("nbl:ping".equals(type)) {
                 if (mSession != null) {
-                    mSession.postMessage("{\"type\":\"nbl:pong\"}", null);
+                    mSession.postMessage("{\"type\":\"nbl:pong\",\"requestId\":\"" + requestId + "\"}", null);
                 }
             } else {
                 Log.w(TAG, "Unknown message type: " + type);
@@ -351,14 +352,14 @@ public class LauncherActivity extends AppCompatActivity {
         }
     }
 
-    private void replyNotificationPermissionStatus() {
+    private void replyNotificationPermissionStatus(String requestId) {
         if (mSession == null) {
             return;
         }
         boolean granted = ActivityCompat.checkSelfPermission(getApplicationContext(),
                 Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
         mSession.postMessage(
-                "{\"type\":\"nbl:notification-permission-status\",\"granted\":" + granted + "}", null);
+                "{\"type\":\"nbl:notification-permission-status\",\"granted\":" + granted + ",\"requestId\":\"" + requestId + "\"}", null);
     }
 
     private void showNativeNotification(String title, String body, int notificationId,

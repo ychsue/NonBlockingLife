@@ -65,6 +65,7 @@ export function mimicTwaMessageChannel() {
   // 2. 設定 channel.port2 的 onmessage handler，當收到訊息時，根據 handleIncomingMessage 的邏輯，postMessage 回去給 bridge.port
   channel.port2.onmessage = (ev) => {
     const data = JSON.parse(ev.data);
+    const requestId = data.requestId;
     let responseType = "";
     switch (data?.type) {
       case "nbl:ping":
@@ -73,6 +74,7 @@ export function mimicTwaMessageChannel() {
         channel.port2.postMessage(
           JSON.stringify({
             type: responseType,
+            requestId,
           }),
         );
         break;
@@ -86,6 +88,7 @@ export function mimicTwaMessageChannel() {
           JSON.stringify({
             type: responseType,
             granted: permission === "granted",
+            requestId,
           }),
         );
         break;
@@ -108,7 +111,7 @@ export function mimicTwaMessageChannel() {
             return {
               id: alarm.id,
               mode: alarm.mode,
-              ok: false,
+              ok: true, //false,
               reason: "permission_required",
             };
           } else {
@@ -119,6 +122,7 @@ export function mimicTwaMessageChannel() {
           JSON.stringify({
             type: responseType,
             results,
+            requestId,
           }),
         );
         break;
@@ -133,6 +137,7 @@ export function mimicTwaMessageChannel() {
               label: "鬧鐘時鐘",
             },
             exactAlarmAllowed: true,
+            requestId,
           }),
         );
         break;
@@ -150,6 +155,7 @@ export function mimicTwaMessageChannel() {
               },
             ],
             selectedPackageName: "com.android.deskclock",
+            requestId,
           }),
         );
         break;
@@ -163,6 +169,7 @@ export function mimicTwaMessageChannel() {
               packageName: "com.android.deskclock",
               label: "鬧鐘時鐘",
             },
+            requestId,
           }),
         );
         break;

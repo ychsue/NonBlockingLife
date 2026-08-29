@@ -29,9 +29,10 @@ export interface AlarmItemFromTWA {
 export function getAlarmItems2TWA(
   items: AlarmQueueItem[],
   now: Date = new Date(),
-): AlarmItem2TWA[] {
+): { earliestClockItem?: AlarmItem2TWA; exactItems: AlarmItem2TWA[] } {
   const nowMs = now.getTime();
-  const itemsToTWA: AlarmItem2TWA[] = [];
+  // 比 AlarmItem2TWA 多一個 alarmAt 屬性，方便排序
+  let itemsToTWA: (AlarmItem2TWA & { alarmAt?: number })[] = [];
   // 過濾出未過期的鬧鐘項目，並轉換為 TWA 所需的格式，注意， clock 與 exact 由 clockState 與 exactState 來決定，若為 'not_applicable' 則不加入 TWA，所以，一個原本的 item 可能有兩個 TWA 項目，分別對應 clock 與 exact，也可能都沒有。
   // 然後，clock 只取由現在起 24小時內的鬧鐘，exact 就全取
   // label 的話，就 title 加上 offsetMinutes 的字串，方便 TWA 端顯示
@@ -50,8 +51,9 @@ export function getAlarmItems2TWA(
         id: item.id,
         mode: "clock",
         time: [hour, minute],
-        label: `${item.title || "Unnamed task"} (${minutesToTimeString(item.offsetMinutes)})`,
+        label: `(${minutesToTimeString(item.offsetMinutes)}) ${item.title || "Unnamed task"}`,
         skipUi: true,
+        alarmAt: item.alarmAt,
       });
     }
     if (["pending", "failed", "forbidden"].includes(item.exactState)) {
@@ -62,11 +64,23 @@ export function getAlarmItems2TWA(
         id: item.id,
         mode: "exact",
         time: [year, month, day, hour, minute],
-        label: `${item.title || "Unnamed task"} (${minutesToTimeString(item.offsetMinutes)})`,
+        label: `(${minutesToTimeString(item.offsetMinutes)}) ${item.title || "Unnamed task"}`,
+        alarmAt: item.alarmAt,
       });
     }
   });
-  return itemsToTWA;
+
+  //由於Android手機會強制跳到鬧鐘畫面，因此，很容易造成Clock設定未必全部都能設定到，因此，只好一個一個設，因此，mode="clock" 只能最多一個
+  const clockItems = itemsToTWA.filter((item) => item.mode === "clock");
+  const earliestClockItem = _.minBy(clockItems, "alarmAt");
+  if (earliestClockItem) {
+    delete earliestClockItem.alarmAt;
+  }
+  const exactItems = itemsToTWA.filter((item) => item.mode === "exact");
+  exactItems.forEach((item) => {
+    delete item.alarmAt;
+  });
+  return {earliestClockItem, exactItems};
 }
 
 /**

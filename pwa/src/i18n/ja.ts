@@ -327,6 +327,8 @@ export const ja: TranslationMap = {
   'task.timeRemaining':    'あと',
   'time.hoursMinutes':     '{h} 時間 {m} 分',
   'time.minutesOnly':      '{m} 分',
+  'time.hoursOnly':        '{h} 時間',
+  'time.rightNow':          '今すぐ',
 
   // ── InterruptConfirmDialog ────────────────────────────────────
   'interrupt.confirm.title':     '操作を選択してください',
@@ -349,6 +351,12 @@ export const ja: TranslationMap = {
   'taskSearch.source.microTasks':  'Micro Tasks',
   'taskSearch.source.scheduled':   'Scheduled',
   'taskSearch.adding':             '追加中...',
+
+  // ── AlarmQueuePanel ──────────────────────────────────────────
+  'aqPanel.title':                 'アラームキュー',
+  'aqPanel.noEntries':             'アラームキューの項目はまだありません。',
+  'aqPanel.updateBtn':             'アラームキューを更新',
+  'aqPanel.clearBtn':              'キューをクリア',
 
   'lang.toggle': 'EN',
 }
