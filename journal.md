@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-08-30] (2.3.7-beta.14) 準備實作 alarm 的批次處理(十六) -> 測試發現與改良
+App.tsx 裡面檢查 `isTwaAvailable`的部分有寫錯，已經在 setTimeout 裡面去設定 setIsTwaAvailable(true)，應該正常了
+
 ## [2026-08-29] (2.3.7-beta.13) 準備實作 alarm 的批次處理(十五) -> 測試發現與改良
 1. **發現clock鬧鐘設置會打開鬧鐘，以至於不確定會有幾個鬧鐘設定完成**
    - [App.tsx](pwa\src\App.tsx) 因此，改成一次只要求設置一個 clock，並且跳出 alert免得使用者嚇到

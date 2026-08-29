@@ -189,8 +189,19 @@ export default function App() {
   useEffect(() => {
     if (alarmSyncTargets !== ALARM_SYNC_TARGET_NONE && !isTwaAvailable) {
       const timer = setTimeout(() => {
-        console.warn("[App.tsx] TWA is not available after 10 seconds");
-        alert(textToLocale("useTwaBridge.twaNotAvailable"));
+        sendRequest("nbl:ping", {}, { timeoutMs: 2000, expectResponse: true }).then((res) => {
+          if ((res as any)?.type === "nbl:pong") {
+            setIsTwaAvailable(true);
+            console.log("[App.tsx] TWA is available after retry");
+          } else {
+            setIsTwaAvailable(false);
+            console.warn("[App.tsx] TWA is not available after 10 seconds");
+            alert(textToLocale("useTwaBridge.twaNotAvailable"));
+          }
+        }).catch((err) => {
+          setIsTwaAvailable(false)
+          console.error("[App.tsx] Error pinging TWA after 10 seconds:", err);
+        });
       }, 10000);
       return () => clearTimeout(timer);
     }
