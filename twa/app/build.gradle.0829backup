@@ -18,6 +18,7 @@ import groovy.xml.MarkupBuilder
 
 plugins {
     id 'com.android.application'
+    id 'com.google.devtools.ksp'
 }
 
 def twaManifest = [
@@ -230,5 +231,12 @@ dependencies {
         implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.2'
 
     implementation 'androidx.appcompat:appcompat:1.7.1'
+
+    // Room Database 宣告
+    def room_version = "3.0.1"
+    implementation "androidx.room3:room3-runtime:$room_version"
+    
+    // 直接呼叫 ksp，AGP 9.x 內建機制會自動接管編譯！
+    ksp "androidx.room3:room3-compiler:$room_version"
     
 }

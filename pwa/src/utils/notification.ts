@@ -1,3 +1,5 @@
+import {useAppStore} from '../store/appStore'
+
 /**
  * 
  * @param title 標題
@@ -19,6 +21,7 @@ export const notify = (
     // Inside the TWA, let the Android app show a native notification instead of the
     // web Notification API, since it has its own icon/channel and doesn't need permission.
     if (twaPort) {
+        useAppStore.getState().setNeedToCheckTwaChannelDebounced(true); // 因為要發送通知給 TWA，所以需要檢查 TWA channel 是否正常
         twaPort.postMessage(
             JSON.stringify({
                 type: "nbl:notify",

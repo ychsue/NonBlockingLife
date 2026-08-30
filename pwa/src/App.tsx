@@ -40,6 +40,7 @@ import {
 import { AlarmQueueWatcherProvider } from "./components/tour/AlarmQueueWatcher";
 import { useTwaRpc } from "./hooks/useTwaRpc";
 import _ from "lodash";
+import { useTWithMaps } from "./i18n";
 
 type AllPages =
   | SheetName
@@ -101,56 +102,49 @@ export default function App() {
   const { updateTableBasedOnScheduled, queueItems, applySyncPlan } = AQWatcher;
   const { sendRequest } = useTwaRpc();
 
-  function textToLocale(text: string): string {
-    switch (locale) {
-      case "zh-TW":
-        switch (text) {
-          case "useTwaBridge.twaNotAvailable":
-            return "請使用者滑掉這個APP，再重開，好修復這個channel斷掉的問題";
-          case "即將設定：":
-            return "即將設定：";
-          case "鬧鐘:":
-            return "鬧鐘:";
-          case "通知:(可能因重開機等因素丟失)":
-            return "通知:(可能因重開機等因素丟失)";
-          case "若想更動，請到Scheduled頁面修改。":
-            return "若想更動，請到Scheduled頁面修改。";
-        }
-        break;
-      case "ja":
-        switch (text) {
-          case "useTwaBridge.twaNotAvailable":
-            return "このアプリをスワイプして閉じ、再度開いてください。これにより、TWAとの接続が復元されます。";
-          case "即將設定：":
-            return "設定予定：";
-          case "鬧鐘:":
-            return "アラーム：";
-          case "通知:(可能因重開機等因素丟失)":
-            return "通知：（再起動などの要因で失われる可能性があります）";
-          case "若想更動，請到Scheduled頁面修改。":
-            return "変更したい場合は、Scheduledページで修正してください。";
-        }
-        break;
-      case "en":
-        switch (text) {
-          case "useTwaBridge.twaNotAvailable":
-            return "Please swipe away this app and reopen it to restore the connection with TWA.";
-          case "即將設定：":
-            return "Setting up:";
-          case "鬧鐘:":
-            return "Alarm:";
-          case "通知:(可能因重開機等因素丟失)":
-            return "Notification: (may be lost due to reboot or other factors)";
-          case "若想更動，請到Scheduled頁面修改。":
-            return "If you want to make changes, please modify it on the Scheduled page.";
-        }
-        break;
-    }
-    return text; // Fallback to the original text if no translation is found
-  }
+  const fontSizeScale = useAppStore((state) => state.fontSizeScale);
+
+  const t = useTWithMaps({
+    en: {
+      "useTwaBridge.twaNotAvailable":
+        "There might be an update that caused the channel to break.\n\r" +
+        "Please swipe away this app and reopen it to fix this issue.",
+      "即將設定：": "Setting up:",
+      "鬧鐘:": "Alarm:",
+      "通知:(可能因重開機等因素丟失)":
+        "Notification: (may be lost due to reboot or other factors)",
+      "若想更動，請到Scheduled頁面修改。":
+        "If you want to make changes, please modify it on the Scheduled page.",
+    },
+    "zh-TW": {
+      "useTwaBridge.twaNotAvailable":
+        "可能有更新，導致channel斷掉。\n\r" +
+        "請滑掉這個APP，再重開，好修復這個的問題。",
+      "即將設定：": "即將設定：",
+      "鬧鐘:": "鬧鐘:",
+      "通知:(可能因重開機等因素丟失)": "通知:(可能因重開機等因素丟失)",
+      "若想更動，請到Scheduled頁面修改。": "若想更動，請到Scheduled頁面修改。",
+    },
+    ja: {
+      "useTwaBridge.twaNotAvailable":
+        "更新の影響でchannelが切断されている可能性があります。\n\r" +
+        "このアプリをスワイプして閉じ、再度開くことで問題を修復してください。",
+      "即將設定：": "設定予定：",
+      "鬧鐘:": "アラーム：",
+      "通知:(可能因重開機等因素丟失)":
+        "通知：（再起動などの要因で失われる可能性があります）",
+      "若想更動，請到Scheduled頁面修改。":
+        "変更したい場合は、Scheduledページで修正してください。", 
+    },
+  });
 
   // 與 TWA 相關
-  const [isTwaAvailable, setIsTwaAvailable] = useState(false);
+  const needToCheckTwaChannel = useAppStore(
+    (state) => state.needToCheckTwaChannel,
+  );
+  const setNeedToCheckTwaChannel = useAppStore(
+    (state) => state.setNeedToCheckTwaChannelDebounced,
+  );
   const [alarmSetup, setAlarmSetup] = useState<{
     selectedClockApp: { packageName: string; label: string } | null;
     exactAlarmAllowed: boolean;
@@ -187,25 +181,32 @@ export default function App() {
 
   // 如果 alarmSyncTargets !=0 && isTwaAvailable === false，那就10秒後再嘗試一次，因為 TWA 可能還沒啟動，若還是沒有，那就告知使用者，請使用者滑掉這個APP，再重開，好修復這個channel斷掉的問題
   useEffect(() => {
-    if (alarmSyncTargets !== ALARM_SYNC_TARGET_NONE && !isTwaAvailable) {
+    if (needToCheckTwaChannel) {
       const timer = setTimeout(() => {
-        sendRequest("nbl:ping", {}, { timeoutMs: 2000, expectResponse: true }).then((res) => {
-          if ((res as any)?.type === "nbl:pong") {
-            setIsTwaAvailable(true);
-            console.log("[App.tsx] TWA is available after retry");
-          } else {
-            setIsTwaAvailable(false);
-            console.warn("[App.tsx] TWA is not available after 10 seconds");
-            alert(textToLocale("useTwaBridge.twaNotAvailable"));
-          }
-        }).catch((err) => {
-          setIsTwaAvailable(false)
-          console.error("[App.tsx] Error pinging TWA after 10 seconds:", err);
-        });
+        sendRequest("nbl:ping", {}, { timeoutMs: 2000, expectResponse: true })
+          .then((res) => {
+            if ((res as any)?.type === "nbl:pong") {
+              console.log("[App.tsx] TWA is available after retry");
+            } else {
+              console.warn("[App.tsx] TWA is not available after 10 seconds");
+              alert(t("useTwaBridge.twaNotAvailable"));
+            }
+          })
+          .catch((err) => {
+            console.error("[App.tsx] Error pinging TWA after 10 seconds:", err);
+            alert(t("useTwaBridge.twaNotAvailable"));
+          })
+          .finally(() => {
+            setNeedToCheckTwaChannel(false);
+          });
       }, 10000);
       return () => clearTimeout(timer);
     }
-  }, [alarmSyncTargets, isTwaAvailable]);
+  }, [needToCheckTwaChannel, alarmSyncTargets, sendRequest]);
+
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${fontSizeScale * 100}%`;
+  }, [fontSizeScale]);
 
   const syncTwaSettings = useCallback(async () => {
     try {
@@ -218,10 +219,10 @@ export default function App() {
       );
       if (!res || (res as any).type !== "nbl:pong") {
         console.warn("[App.tsx] 1. TWA is not available");
-        setIsTwaAvailable(false);
+        setNeedToCheckTwaChannel(true);
         return;
       }
-      setIsTwaAvailable(true);
+      setNeedToCheckTwaChannel(false);
       console.log("[App.tsx] 1. TWA is available");
 
       //2. 若 TWA 已連線，且尚未取得鬧鐘(clock & exact alarm)設定狀態，則嘗試查詢鬧鐘設定狀態
@@ -336,21 +337,21 @@ export default function App() {
           return num.toString().padStart(2, "0");
         }
         alert(
-          textToLocale("即將設定：") +
+          t("即將設定：") +
             "\n\r" +
             (earliestClockItem
-              ? textToLocale("鬧鐘:") +
+                ?t("鬧鐘:") +
                 "\n\r" +
                 `  [${padZero(earliestClockItem.time[0])}:${padZero(earliestClockItem.time[1])}] ${earliestClockItem.label}` +
                 "\n\r"
               : "") +
             (exactItems.length > 0
-                ? textToLocale("通知:(可能因重開機等因素丟失)") +
+                ? t("通知:(可能因重開機等因素丟失)") +
                 "\n\r" +
                 `${exactItems.map((item) => `  [${item.time[0]}-${padZero(item.time[1])}-${padZero(item.time[2])} ${padZero(item.time[3])}:${padZero(item.time[4])}] ${item.label}`).join("\n\r")}`
               : "") +
             "\n\r" +
-            textToLocale("若想更動，請到Scheduled頁面修改。"),
+            t("若想更動，請到Scheduled頁面修改。"),
         );
 
         res = await sendRequest(

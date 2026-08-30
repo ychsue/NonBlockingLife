@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { SheetName } from '../hooks/useUrlAction'
 import { Dashboard, db } from '../db/schema'
 import type { SupportedLocale } from '../i18n'
+import {debounce} from 'lodash'
 
 function getInitialLocale(): SupportedLocale {
   const storage = typeof globalThis !== 'undefined' && 'localStorage' in globalThis
@@ -34,6 +35,8 @@ export const DEBUG_MODE_KEY = 'nbl_debug_mode'
 const ENABLE_EXPERIMENTAL_FEATURES_KEY = 'nbl_enable_experimental_features'
 const ANDROID_TIMER_LAUNCH_MODE_KEY = 'nbl_android_timer_launch_mode'
 const ALARM_SYNC_TARGETS_KEY = 'nbl_alarm_sync_targets'
+
+const FONT_SIZE_SCALE_KEY = 'nbl_font_size_scale';
 
 function getStorage(): Storage | null {
   if (typeof window !== 'undefined' && window.localStorage) {
@@ -185,6 +188,13 @@ interface AppState {
   // which system alarm targets (Clock app / Exact alarm) db.alarm_queue should sync to
   alarmSyncTargets: number
   setAlarmSyncTargets: (targets: number) => void
+
+  needToCheckTwaChannel: boolean
+  setNeedToCheckTwaChannelDebounced: (need: boolean) => void
+  setNeedToCheckTwaChannel: (need: boolean) => void
+
+  fontSizeScale: number
+  setFontSizeScale: (scale: number) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -265,5 +275,15 @@ export const useAppStore = create<AppState>((set) => ({
   setAlarmSyncTargets: (targets) => {
     getStorage()?.setItem(ALARM_SYNC_TARGETS_KEY, String(targets))
     set({ alarmSyncTargets: targets })
+  },
+
+  needToCheckTwaChannel: false,
+  setNeedToCheckTwaChannelDebounced: debounce((need) => set({ needToCheckTwaChannel: need }), 3000),
+  setNeedToCheckTwaChannel: (need) => set({ needToCheckTwaChannel: need }),
+
+  fontSizeScale: getStorage()?.getItem(FONT_SIZE_SCALE_KEY) ? parseFloat(getStorage()!.getItem(FONT_SIZE_SCALE_KEY)!) : 1,
+  setFontSizeScale: (scale) => {
+    getStorage()?.setItem(FONT_SIZE_SCALE_KEY, String(scale))
+    set({ fontSizeScale: scale })
   },
 }))

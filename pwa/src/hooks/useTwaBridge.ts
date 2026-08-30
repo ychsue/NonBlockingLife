@@ -79,6 +79,15 @@ export function mimicTwaMessageChannel() {
         );
         break;
       case "nbl:notify":
+        responseType = "nbl:notification-shown";
+        // 回傳給 PWA 端，模擬 TWA 端的通知已顯示訊息
+        channel.port2.postMessage(
+          JSON.stringify({
+            type: responseType,
+            notificationId: data.id,
+            requestId,
+          }),
+        );
         break; // TWA 端的通知訊息不需要回傳給 PWA
       case "nbl:query-notification-permission":
         responseType = "nbl:notification-permission-status";

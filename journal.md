@@ -1,5 +1,10 @@
 # Journal
 
+## [2026-08-30] (2.3.8) 準備實作 alarm 的批次處理(十七)
+1. 做了 useTWithMaps 來取代 textToLocale，這樣就可以在各個網頁 i18n 裡面使用 maps 了。
+2. 使用 needToCheckTwaChannel 來避免在 TWA 不可用時，還去 ping TWA，造成不必要的錯誤訊息。
+3. 加入了文字縮放的功能，所以，得改成使用 rem 才行
+
 ## [2026-08-30] (2.3.7-beta.14) 準備實作 alarm 的批次處理(十六) -> 測試發現與改良
 App.tsx 裡面檢查 `isTwaAvailable`的部分有寫錯，已經在 setTimeout 裡面去設定 setIsTwaAvailable(true)，應該正常了
 

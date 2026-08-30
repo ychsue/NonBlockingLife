@@ -21,7 +21,7 @@ import {
 } from "../../utils/timeUtils";
 import { useResponsiveTable } from "../../hooks/useResponsiveTable";
 import { useAppStore } from "../../store/appStore";
-import { useT } from "../../i18n";
+import { useT, useTWithMaps } from "../../i18n";
 import { TableCard } from "../TableCard";
 import { EditDialog, type FieldType } from "../EditDialog";
 import { TableHelpDialog } from "../TableHelpDialog";
@@ -1308,6 +1308,29 @@ function AlarmSyncTargetsCheckList({
   resetItemsStates: (tempST: number) => Promise<void>;
 }) {
   const [tempST, setTempST] = useState(alarmSyncTargets);
+  const t = useTWithMaps({
+    "zh-TW": {
+      "設定排程鬧鐘": "設定排程鬧鐘",
+      "查看鬧鐘": "查看鬧鐘",
+      "確定": "確定",
+      "重設": "重設",
+      "確認exactAlarm": "⚠️ 這個選項實驗中，有可能因重開機等因素而收不到通知，確定要選嗎？",
+    },
+    "en": {
+      "設定排程鬧鐘": "Set Scheduled Alarm",
+      "查看鬧鐘": "View Alarms",
+      "確定": "Confirm",
+      "重設": "Reset",
+      "確認exactAlarm": "⚠️ This option is experimental and may not receive notifications due to factors such as rebooting. Are you sure you want to select it?",
+    },
+    ja: {
+      "設定排程鬧鐘": "スケジュールアラームを設定",
+      "查看鬧鐘": "アラームを表示",
+      "確定": "確認",
+      "重設": "リセット",
+      "確認exactAlarm": "⚠️ このオプションは実験的であり、再起動などの要因により通知を受け取れない場合があります。本当に選択しますか？",
+    },
+  });
   return (
     <div className="flex flex-row justify-between gap-2">
       <form
@@ -1317,7 +1340,7 @@ function AlarmSyncTargetsCheckList({
           e.preventDefault();
         }}
       >
-        <h3>設定排程鬧鐘</h3>
+        <h3>{t("設定排程鬧鐘")}</h3>
         <div className="flex flex-row gap-2 items-center">
           <label className="flex items-center gap-2">
             {/* 兩個checkboxes 為輸入源 和一個 ok 將結果透過onChange 送出 */}
@@ -1335,7 +1358,11 @@ function AlarmSyncTargetsCheckList({
               type="checkbox"
               checked={(tempST & 2) !== 0}
               onChange={(e) =>
-                setTempST((prev) => (e.target.checked ? prev | 2 : prev & ~2))
+                {
+                  if (!e.target.checked || confirm(t("確認exactAlarm"))) {
+                    setTempST((prev) => (e.target.checked ? prev | 2 : prev & ~2));
+                  }
+                }
               }
             />
             🪧
@@ -1345,7 +1372,7 @@ function AlarmSyncTargetsCheckList({
             className={`px-3 py-1 text-white rounded ${_.isEqual(tempST, alarmSyncTargets) ? "opacity-50 cursor-not-allowed bg-blue-500" : "bg-blue-500 hover:bg-blue-600"}`}
             onClick={() => onChange(tempST)}
           >
-            確定
+            {t("確定")}
           </button>
         </div>
       </form>
@@ -1353,7 +1380,7 @@ function AlarmSyncTargetsCheckList({
         onClick={openDialogClicked}
         className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
       >
-        查看排程
+        {t("查看鬧鐘")}
       </button>
       {import.meta.env.DEV ? (
         <button
@@ -1361,7 +1388,7 @@ function AlarmSyncTargetsCheckList({
           className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
           onClick={() => resetItemsStates(tempST)}
         >
-          重設
+          {t("重設")}
         </button>
       ) : null}
     </div>

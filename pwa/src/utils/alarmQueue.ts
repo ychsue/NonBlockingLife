@@ -56,7 +56,8 @@ export function getAlarmItems2TWA(
         alarmAt: item.alarmAt,
       });
     }
-    if (["pending", "failed", "forbidden"].includes(item.exactState)) {
+    // 由於怕使用者可能日後有修改，所以，也只鎖定一天內的 exact 鬧鐘，避免 TWA 端設定太多 exact 鬧鐘，造成使用者困擾
+    if (["pending", "failed", "forbidden"].includes(item.exactState) && item.alarmAt <= nowMs + 24 * 60 * 60 * 1000) {
       const year = alarmDate.getFullYear();
       const month = alarmDate.getMonth() + 1;
       const day = alarmDate.getDate();

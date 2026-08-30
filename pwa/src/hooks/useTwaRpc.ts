@@ -1,5 +1,6 @@
 import { useRef, useCallback } from 'react';
 import { useTwaBridge } from './useTwaBridge';
+import { useAppStore } from '../store/appStore';
 
 interface PendingRequest {
   resolve: (value: any) => void;
@@ -16,10 +17,12 @@ interface SendRequestOptions {
 
 export function useTwaRpc() {
   const pendingRequests = useRef<Map<string, PendingRequest>>(new Map());
+  const setNeedToCheckTwaChannelDebounced = useAppStore((state) => state.setNeedToCheckTwaChannelDebounced);
 
   // 監聽來自 TWA 的回應
   const bridge = useTwaBridge((data) => {
     try {
+      setNeedToCheckTwaChannelDebounced(false); // 因為有收到 TWA 回應，所以不需要再檢查 TWA channel
       const dataObj = typeof data === 'string' ? JSON.parse(data) : data;
       // 假設 TWA 回傳的資料中有帶 requestId
       // console.debug('useTwaRpc::Received message from TWA:', dataObj);

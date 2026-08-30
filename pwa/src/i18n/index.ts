@@ -54,6 +54,19 @@ export function useT() {
   }, [map])
 }
 
+export function useTWithMaps<T extends string>(maps: Record<SupportedLocale, Record<T, string>>) {
+  const locale = useAppStore((s) => s.locale)
+  return useCallback((key: T, vars?: Record<string, string | number>): string => {
+    let str: string = maps[locale]?.[key] ?? String(key)
+    if (vars) {
+      for (const [k, v] of Object.entries(vars)) {
+        str = str.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v))
+      }
+    }
+    return str
+  }, [locale])
+}
+
 /**
  * Non-hook translation function for use outside React components.
  * Reads the current locale directly from the Zustand store state.

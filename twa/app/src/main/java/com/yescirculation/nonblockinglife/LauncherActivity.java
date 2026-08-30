@@ -327,7 +327,7 @@ public class LauncherActivity extends AppCompatActivity {
                         json.optString("body", ""),
                         json.optInt("id", (int) System.currentTimeMillis()),
                         json.has("url") ? json.optString("url") : null,
-                        json.optBoolean("dismissOnClick", true));
+                        json.optBoolean("dismissOnClick", true), requestId);
             } else if (QUERY_NOTIFICATION_PERMISSION_TYPE.equals(type)) {
                 replyNotificationPermissionStatus(requestId);
             } else if (AlarmMessageHandler.SET_ALARMS_MESSAGE_TYPE.equals(type)) {
@@ -363,7 +363,7 @@ public class LauncherActivity extends AppCompatActivity {
     }
 
     private void showNativeNotification(String title, String body, int notificationId,
-            @Nullable String url, boolean dismissOnClick) {
+            @Nullable String url, boolean dismissOnClick, String requestId) {
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
             Log.w(TAG, "POST_NOTIFICATIONS not granted; dropping native notification.");
@@ -388,5 +388,6 @@ public class LauncherActivity extends AppCompatActivity {
         }
 
         NotificationManagerCompat.from(getApplicationContext()).notify(notificationId, builder.build());
+        mSession.postMessage("{\"type\":\"nbl:notification-shown\",\"notificationId\":" + notificationId + ",\"requestId\":\"" + requestId + "\"}", null);
     }
 }
