@@ -31,7 +31,7 @@ function parseToMinutes(takesTime) {
     return parsedNum;
   }
   // 簡單的 mhdMw 的解析器，轉換為分鐘數
-  const regex = /^(\d+)([mhdMw])$/;
+  const regex = /^(-?\d+)([mhdMw])$/;
   const match = takesTime.match(regex);
   if (!match) return null;
   const value = parseInt(match[1], 10);

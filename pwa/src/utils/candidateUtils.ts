@@ -37,7 +37,7 @@ export function parseToMinutes(takesTime?: string | number): number | null {
   }
 
   // 字串解析：mhdMw 格式
-  const regex = /^(\d+)([mhdMw])$/;
+  const regex = /^(-?\d+)([mhdMw])$/;
   const match = String(takesTime).match(regex);
   if (!match) return null;
 
@@ -156,14 +156,16 @@ export function buildAlarmQueueEntries(
  */
 export function minutesToTimeString(totalMinutes: number): string {
   const t = getT();
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = Math.floor(totalMinutes % 60);
+  const sign = totalMinutes < 0 ? "-" : "";
+  const absoluteMinutes = Math.abs(totalMinutes);
+  const hours = Math.floor(absoluteMinutes / 60);
+  const minutes = Math.floor(absoluteMinutes % 60);
   if (hours > 0) {
-    if (minutes > 0) return t("time.hoursMinutes", { h: hours, m: minutes });
-    return t("time.hoursOnly", { h: hours });
+    if (minutes > 0) return sign + t("time.hoursMinutes", { h: hours, m: minutes });
+    return sign + t("time.hoursOnly", { h: hours });
   }
-  if (minutes > 0) return t("time.minutesOnly", { m: minutes });
-  return t("time.rightNow");
+  if (minutes > 0) return sign + t("time.minutesOnly", { m: minutes });
+  return sign + t("time.rightNow");
 }
 
 /**
