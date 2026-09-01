@@ -598,12 +598,14 @@ export function InboxTable() {
             <tbody>
               {table.getRowModel().rows.map((row) => (
                 <tr
+                  role="button"
+                  tabIndex={0}
                   key={row.id}
                   onClick={(event) => {
                     if (!shouldOpenRowEdit(event.target)) return;
                     setEditingItem(row.original);
                   }}
-                  className="border-b hover:bg-gray-50 cursor-pointer"
+                  className="border-b hover:bg-gray-50 cursor-pointer touch-manipulation transition"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-2">

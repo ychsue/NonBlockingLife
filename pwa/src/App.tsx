@@ -506,6 +506,10 @@ export default function App() {
   }, [TUTORIAL_SESSION_KEY]);
 
   useEffect(() => {
+    if (showTutorial) {
+      stopTour();
+      return; // 因為正在跑 tutorial，所以不需要再跑 product tour，會互相干擾
+      }
     if (!currentSheet || activeTour) return;
     const completedTours = JSON.parse(
       window.localStorage.getItem("completed_tours") ?? "[]",
@@ -519,7 +523,7 @@ export default function App() {
     if (eligibleTour) {
       startTour(eligibleTour.id);
     }
-  }, [activeTour, currentSheet, startTour, tours]);
+  }, [activeTour, currentSheet, startTour, tours, showTutorial]);
 
   const handleOpenTutorialSheet = useCallback(
     (sheet: SheetName) => {
@@ -622,7 +626,7 @@ export default function App() {
               <div
                 className={`max-w-7xl mx-auto px-4 py-4 flex justify-between items-center gap-3`}
               >
-                <div className="min-w-0 flex flex-col flex-shrink-1">
+                <div className="min-w-0 flex flex-col shrink">
                   {isTooSmall && (
                     <h2 className="text-l font-bold text-gray-800 truncate">
                       📱 Non-Blocking Life
@@ -652,7 +656,7 @@ export default function App() {
                               nextStep();
                             }
                           }}
-                          className="px-3 py-2 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100 flex-shrink-1"
+                          className="px-3 py-2 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100 shrink"
                           aria-label="Open debug logs"
                           title="Open debug logs"
                           data-tour="more-button"
@@ -663,7 +667,7 @@ export default function App() {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 ml-auto flex-shrink-0">
+                <div className="flex items-center gap-2 ml-auto shrink-0">
                   {/* Language toggle */}
                   <button
                     onClick={() => setLocale(nextLocale)}
@@ -742,7 +746,7 @@ export default function App() {
                       nextStep();
                     }
                   }}
-                  className="px-3 py-2 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100 flex-shrink-1"
+                  className="px-3 py-2 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100 shrink"
                   aria-label="Open debug logs"
                   title="Open debug logs"
                   data-tour="more-button"

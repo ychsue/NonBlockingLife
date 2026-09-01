@@ -384,12 +384,14 @@ export function MacroTable() {
           {rows.map((item) => {
             const execution = executionMap[item.taskId]
             return (
-              <button key={item.taskId}
+              <div key={item.taskId}
+                role="button"
+                tabIndex={0}
                 onClick={() => void runMacro(item, 'normal')}
                 className={`px-3 py-2 text-sm rounded ${(selectedMacroId === item.taskId && !!!['completed','aborted'].includes(selectedExecution?.status ?? '')) ? 'bg-blue-500' : 'bg-green-500'} text-white hover:bg-green-600 w-30 h-30 relative`}>
                 {item.name}
                 {/* 此按鈕內的左下角編輯按鈕icon，右下角刪除按鈕icon */}
-                <span
+                <button
                   onClick={(e) => {
                     e.stopPropagation()
                     setEditingItem(item)
@@ -398,8 +400,8 @@ export function MacroTable() {
                   className="absolute bottom-0 left-0 p-1 text-sm"
                 >
                   <EditIcon />
-                </span>
-                <span
+                </button>
+                <button
                   onClick={(e) => {
                     e.stopPropagation()
                     void deleteRow(item)
@@ -407,8 +409,8 @@ export function MacroTable() {
                   className="absolute bottom-0 right-0 p-1 text-sm"
                 >
                   <DeleteIcon />
-                </span>
-              </button>
+                </button>
+              </div>
             )
           })}
         </div>
@@ -492,8 +494,12 @@ export function MacroTable() {
       />
 
       {inputRequest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={cancelInput}>
-          <form className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}
+        <div
+          role="dialog"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={cancelInput}>
+          <form 
+          role="form"
+          className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}
             onSubmit={(e) => {
               const fd = new FormData(e.currentTarget)
               let values: Record<string, FormDataEntryValue> = {};

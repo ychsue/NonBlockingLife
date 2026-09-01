@@ -788,7 +788,7 @@ export function SelectionCacheTable() {
                       handleRowClick(row.original.taskId);
                     }
                   }}
-                  className={`border-b border-gray-200 transition-colors transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-1 ${row.original.status === 'INTERRUPTED'
+                  className={`border-b border-gray-200 touch-manipulation transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-1 ${row.original.status === 'INTERRUPTED'
                     ? "bg-amber-50 border-l-4 border-l-amber-400"
                     : ""
                     } ${runningTask

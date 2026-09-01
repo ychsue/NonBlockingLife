@@ -13,15 +13,35 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   overscroll-behavior-y: contain;
   font-size: 16px;
 }
 
-#joyride-tooltip-container { z-index: 9999; }
+#joyride-tooltip-container {
+  z-index: 9999;
+}
 
 body {
   margin: 0;
+}
+
+/* 1. 在 v4 中，使用 @theme 來定義/延伸主題顏色 */
+@theme {
+  --color-main: #0f172a;
+  --color-darkblue: #1e293b;
+  --color-lightblue: #3b82f6;
+  --color-lightgray: #f1f5f9;
+  --color-test-debug: #ff0000; /* 這樣 bg-test-debug 就會立刻生效！ */
+}
+
+button,
+a,
+[role="button"] {
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .page {

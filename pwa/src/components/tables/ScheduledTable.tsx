@@ -391,7 +391,7 @@ export function ScheduledTable() {
 
           return (
             <select
-              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 min-w-[7rem]"
+              className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 min-w-28"
               value={value}
               onChange={(event) =>
                 updateLocalRow(taskId, { status: event.target.value })
@@ -1094,12 +1094,14 @@ export function ScheduledTable() {
             <tbody>
               {table.getRowModel().rows.map((row) => (
                 <tr
+                  role="button"
+                  tabIndex={0}
                   key={row.id}
                   onClick={(event) => {
                     if (!shouldOpenRowEdit(event.target)) return;
                     setEditingItem(row.original);
                   }}
-                  className="border-b hover:bg-gray-50 cursor-pointer"
+                  className="border-b hover:bg-gray-50 cursor-pointer touch-manipulation transition"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-2">
@@ -1214,6 +1216,7 @@ export function ScheduledTable() {
 
       {cronPreview && (
         <div
+          role="dialog"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           onClick={() => setCronPreview(null)}
         >
@@ -1266,7 +1269,7 @@ export function ScheduledTable() {
       {openAlarmQueueDialog && (
         <dialog
           id="alarm-queue-dialog"
-          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0 w-[90%] max-w-[500px] border-none rounded-lg bg-white shadow-xl backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0 w-[90%] max-w-125 border-none rounded-lg bg-white shadow-xl backdrop:bg-black/50 backdrop:backdrop-blur-sm"
           ref={alarmQueueDialogRef}
           closedby="any"
           onCancel={(e) => {

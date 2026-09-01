@@ -47,8 +47,10 @@ export function AlarmQueuePanel({
         <div className="space-y-2">
           {items.slice(0, 8).map((item) => (
             <div
+              role="button"
+              tabIndex={0}
               key={item.id ?? item.dedupeKey}
-              className="rounded border border-gray-200 bg-gray-50 p-3 hover:bg-gray-100 cursor-pointer transition"
+              className="rounded border border-gray-200 bg-gray-50 p-3 hover:bg-gray-100 cursor-pointer touch-manipulation transition"
               onClick={() => onClickItem?.(item)}
             >
               <div className="flex items-start justify-between gap-3">

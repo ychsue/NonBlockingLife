@@ -13,5 +13,10 @@ const INTERACTIVE_SELECTOR = [
 
 export function shouldOpenRowEdit(target: EventTarget | null): boolean {
   if (!(target instanceof Element)) return true
-  return target.closest(INTERACTIVE_SELECTOR) == null
+  const interactiveEL = target.closest(INTERACTIVE_SELECTOR);
+  if (!interactiveEL) return true;
+  if (interactiveEL.tagName === 'TR') {
+    return true;
+  }
+  return false;
 }

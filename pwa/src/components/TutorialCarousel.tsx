@@ -251,7 +251,7 @@ export function TutorialCarousel({
           <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-8 sm:py-8">
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] lg:items-center">
               <div
-                className={`relative aspect-square overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-br ${slide.visual.accent} p-6 shadow-inner sm:p-8`}
+                className={`relative aspect-square overflow-hidden rounded-[28px] border border-slate-200 bg-linear-to-br ${slide.visual.accent} p-6 shadow-inner sm:p-8`}
               >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.92),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.7),transparent_34%)]" />
                 <div

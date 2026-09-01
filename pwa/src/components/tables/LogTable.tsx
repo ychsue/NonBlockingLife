@@ -178,7 +178,7 @@ export function LogTable() {
             </select>
           </div>
           
-          <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+          <div className="flex items-center gap-2 flex-1 min-w-50">
             <label className="text-sm text-gray-600">{text.search}</label>
             <input
               type="text"

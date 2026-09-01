@@ -37,7 +37,7 @@ export const GlobalDialog = forwardRef<HTMLDialogElement>((props, ref) => {
     // 放到桌面正中央
     <dialog
       ref={ref}
-      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0 w-[90%] max-w-[500px] border-none rounded-lg bg-white shadow-xl backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0 w-[90%] max-w-125 border-none rounded-lg bg-white shadow-xl backdrop:bg-black/50 backdrop:backdrop-blur-sm"
     >
       <h3 className="text-lg p-4 font-semibold mb-4 bg-blue-500 text-white text-center">
         {dialogConfig.title}

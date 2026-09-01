@@ -205,9 +205,9 @@ export function EditDialog<T>({
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center items-center bg-black/50 pointer-events-auto" onClick={() => onClose(false)}>
       <div className="bg-white w-full sm:max-w-md rounded-t-lg sm:rounded-lg p-6 shadow-lg max-h-[90vh] sm:max-h-[80vh] flex flex-col overflow-y-auto overflow-x-hidden pointer-events-auto" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-lg font-bold mb-4 flex-shrink-0">{title}</h2>
+        <h2 className="text-lg font-bold mb-4 shrink-0">{title}</h2>
 
-        {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded text-sm flex-shrink-0">{error}</div>}
+        {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded text-sm shrink-0">{error}</div>}
 
         <div className="space-y-4 mb-6 flex-1 overflow-y-auto overflow-x-hidden pr-2">
           {fields.map((field) => (
@@ -287,7 +287,7 @@ export function EditDialog<T>({
           ))}
         </div>
 
-        <div className="flex items-center justify-between gap-3 flex-shrink-0 pt-4 border-t">
+        <div className="flex items-center justify-between gap-3 shrink-0 pt-4 border-t">
           <div className="flex items-center gap-2">{footerLeft}</div>
           <div className="flex gap-3 justify-end">
             <button

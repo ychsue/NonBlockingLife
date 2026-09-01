@@ -1,5 +1,52 @@
 # Journal
 
+## [2026-08-31] (2.3.10) 加了一些修正
+1. [notification.ts](pwa\src\utils\notification.ts) 在 TWA 發生跑到一般的 Notification 去了，所以，需要做個說明，好讓使用者知道需要重啟這個APP
+2. 設法讓 carosel 在跑的時候， Joyride 就不會跑，方法是在 [App.tsx](pwa\src\App.tsx) 加入
+``` ts
+  useEffect(() => {
+    if (showTutorial) {
+      stopTour();
+      return; // 因為正在跑 tutorial，所以不需要再跑 product tour，會互相干擾
+    }
+   // ... 其他原本的程式碼
+}, [activeTour, currentSheet, startTour, tours, showTutorial]);
+```
+3. 設法消除 iPhone 上按鈕常常無效的問題：主要在 [styles.css](pwa\src\styles.css) 裡面加上
+``` css
+button, a, [role="button"] {
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover:hover) and (pointer:fine) {
+  button:hover, a:hover, [role="button"]:hover {
+    opacity: 0.8;
+  }
+}
+
+```
+還有在 [index.html](pwa\public\index.html) 裡面加上
+``` html
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+```
+
+**此外，tailwind.config.js** 在新版裡面被刪除，都用import 到比如 styles.css 的方式存在了。
+所以，刪掉這個檔案，免得誤解。
+
+然後，尚未測試
+[ ] 方案三：防止 React Re-render 導致 DOM 節點丟失 (key / memo Optimization)
+1. 如果您的按鈕元件會頻繁因為 State 改變而重新渲染，請檢查：
+
+2. 確保列表中的按鈕使用穩定且唯一的 key，不要用 array index。
+
+避免在 render 函式內部動態宣告按鈕組件（這會導致每一次渲染都銷毀並重新建立新的 DOM 節點，讓 iOS 的點擊事件斷鏈）。
+
+
+[參考連結](https://share.gemini.google/07LqfcsYnRjB)
+
+
 ## [2026-08-31] (2.3.9) 準備再次上傳 Play console
 讓 [candidateUtils.ts#parseToMinutes](pwa\src\utils\candidateUtils.ts) 有能力處理 `-` 號，也讓 `minutesToTimeString` 能正確顯示 `-` 號
 
