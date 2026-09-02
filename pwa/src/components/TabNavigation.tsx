@@ -33,7 +33,8 @@ export function TabNavigation() {
       isRunning &&
       ((sheet === "selection_cache" &&
         activeStep?.id === "android-selection-cache") ||
-        (sheet === "scheduled" && activeStep?.id === "open-scheduled"))
+        (sheet === "scheduled" && activeStep?.id === "open-scheduled")||
+        (sheet === "guide" && activeStep?.id === "open-guide"))
     ) {
       nextStep();
     }
@@ -54,7 +55,9 @@ export function TabNavigation() {
                 ? "selection-cache-tab"
                 : sheet === "scheduled"
                   ? "scheduled-tab"
-                  : undefined
+                  : sheet === "guide"
+                    ? "guide-tab"
+                    : undefined
             }
             className={`px-3 py-2 text-sm whitespace-nowrap rounded-t-md border-b-2 transition-colors ${
               currentSheet === sheet

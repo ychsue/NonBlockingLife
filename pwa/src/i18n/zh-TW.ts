@@ -139,6 +139,13 @@ export const zhTW: TranslationMap = {
   // EditDialog field labels
   'table.inbox.field.title':        '標題',
 
+  'tour.installIphoneShortcuts.title': '安裝 iPhone 捷徑',
+  'tour.installIphoneShortcuts.description': '了解如何安裝 iPhone 捷徑。',
+  'tour.installIphoneShortcuts.step1.title': '安裝 iPhone 捷徑(開啟使用說明)',
+  'tour.installIphoneShortcuts.step1.content': '點擊使用說明標籤以查看安裝說明。',
+  'tour.installIphoneShortcuts.step2.title': '下載捷徑',
+  'tour.installIphoneShortcuts.step2.content': '點擊下載按鈕以取得 iPhone 捷徑。',
+
   'tour.changeFontSize.title': '更改字體大小',
   'tour.changeFontSize.description': '了解如何更改字體大小。',
   'tour.changeFontSize.step1.title': '更改字體大小(開啟選單)',

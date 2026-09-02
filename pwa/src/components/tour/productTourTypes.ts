@@ -29,10 +29,14 @@ export interface ProductTourConfig {
   app?: ReturnType<typeof getAppType>;
 }
 
-export function getAppType(): "pwa" | "extension" | "twa" {
+export function getAppType(): "pwa" | "extension" | "twa" | "shortcuts" {
   const deviceType = getDeviceType();
-  if (deviceType === "TWA") {
-    return "twa";
+  switch (deviceType) {
+    case "TWA":
+      return "twa";
+    case "Shortcuts":
+      return "shortcuts";
+    default:
+      return "pwa";
   }
-  return "pwa";
 }

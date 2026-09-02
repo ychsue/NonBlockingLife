@@ -337,7 +337,7 @@ export function SyncStatus({
             handleSetGasUrl((e.target as HTMLInputElement).value);
           }
         }}
-        className="w-80 px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500"
+        className="min-w-10 px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500"
       />
       <button
         onClick={(e) => {

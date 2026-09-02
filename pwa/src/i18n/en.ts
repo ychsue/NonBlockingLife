@@ -136,6 +136,13 @@ export const en = {
   // EditDialog field labels
   'table.inbox.field.title':        'Title',
 
+  'tour.installIphoneShortcuts.title': 'Install iPhone Shortcuts',
+  'tour.installIphoneShortcuts.description': 'Install iPhone Shortcuts (Learn how to install iPhone shortcuts.)',
+  'tour.installIphoneShortcuts.step1.title': 'Open the guide',
+  'tour.installIphoneShortcuts.step1.content': 'Tap the guide tab to access the installation instructions.',
+  'tour.installIphoneShortcuts.step2.title': 'Download the shortcuts',
+  'tour.installIphoneShortcuts.step2.content': 'Tap the download button to get the iPhone shortcuts.',
+
   'tour.changeFontSize.title': 'Change Font Size',
   'tour.changeFontSize.description': 'Learn how to change the font size.',
   'tour.changeFontSize.step1.title': 'Change font size (Open the menu)',

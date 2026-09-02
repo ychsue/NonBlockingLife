@@ -415,7 +415,7 @@ export function MicroTasksTable() {
       </div>
 
       {/* 搜尋欄 */}
-      <div className="mb-4 flex gap-2">
+      <div className="mb-4 flex gap-2 flex-row flex-wrap">
         <input
           type="text"
           value={searchQuery}

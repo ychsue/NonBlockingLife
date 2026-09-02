@@ -124,6 +124,13 @@ export const ja: TranslationMap = {
   'table.inbox.col.delete': '削除',
   'table.inbox.field.title': 'タイトル',
 
+  'tour.installIphoneShortcuts.title': 'iPhoneショートカットをインストールしよう',
+  'tour.installIphoneShortcuts.description': 'iPhoneショートカットのインストール方法を学びます。',
+  'tour.installIphoneShortcuts.step1.title': 'iPhoneショートカットをインストールしよう(使用説明を開く)',
+  'tour.installIphoneShortcuts.step1.content': '使用説明タブをタップして、インストール手順にアクセスします。',
+  'tour.installIphoneShortcuts.step2.title': 'ショートカットをダウンロード',
+  'tour.installIphoneShortcuts.step2.content': 'ダウンロードボタンをタップして、iPhoneショートカットを取得します。',
+
   'tour.changeFontSize.title': 'フォントサイズの変更',
   'tour.changeFontSize.description': 'フォントサイズの変更方法を学びます。',
   'tour.changeFontSize.step1.title': 'フォントサイズの変更(メニューを開く)',

@@ -43,18 +43,18 @@ export const notify = (
   if (deviceType === "TWA") {
     alert(
       locale == "zh-TW"
-        ? `[TWA] 看到這個訊息，表示APP內通路可能出問題，請關閉所有背景中的此APP，然後再重啟這個APP。謝謝。`
+        ? `[TWA] 看到這個訊息，表示APP內通路可能出問題，PWA版本(${import.meta.env.__APP_VERSION__})更新也會導致通路斷掉，請關閉所有背景中的此APP，然後再重啟這個APP。謝謝。`
         : locale == "ja"
-          ? `[TWA] このメッセージが表示された場合、アプリ内の通知経路に問題がある可能性があります。すべてのバックグラウンドでこのアプリを閉じてから、再起動してください。ありがとうございます。`
-          : `[TWA] If you see this message, it means that there may be a problem with the notification path in the app. Please close all background instances of this app and then restart this app. Thank you.`,
+          ? `[TWA] このメッセージが表示された場合、アプリの通知経路に問題がある可能性があります。PWAバージョン(${import.meta.env.__APP_VERSION__})の更新でもチャネルが切断されることがあります。アプリのバックグラウンドで動作している全てのインスタンスを閉じてから、アプリを再起動してください。ありがとうございます。`
+          : `[TWA] If you see this message, it means that there may be a problem with the notification path in the app. Updating the PWA version (${import.meta.env.__APP_VERSION__}) can also cause the channels to be disconnected. Please close all background instances of this app and then restart this app. Thank you.`,
     );
   } else if (deviceType === "Android") {
     alert(
       locale == "zh-TW"
-        ? `[Android] 若您正參與Play商店的封閉測試卻看到這訊息，那表示APP內通路可能出問題，請重啟這個APP。若不是，等通過封閉測試後，安裝此APP就可以主動提醒您。`
+        ? `[Android] 若您正參與Play商店的封閉測試卻看到這訊息，那表示APP內通路可能出問題，PWA版本(${import.meta.env.__APP_VERSION__})更新也會導致通路斷掉，請重啟這個APP。若不是，等通過封閉測試後，安裝此APP就可以主動提醒您。`
         : locale == "ja"
-          ? `[Android] Playストアのクローズドテストに参加している場合にこのメッセージが表示された場合、アプリ内の通知経路に問題がある可能性があります。アプリを再起動してください。そうでない場合は、クローズドテストを通過した後、このアプリをインストールすると、通知が届くようになります。`
-          : `[Android] If you are participating in the Play Store closed test and see this message, it means that there may be a problem with the notification path in the app. Please restart this app. If not, after passing the closed test, installing this app will allow you to receive notifications.`,
+          ? `[Android] Playストアのクローズドテストに参加していてこのメッセージが表示されたら、アプリの通知経路に問題があるかもしれません。アプリを再起動してください。PWAバージョン(${import.meta.env.__APP_VERSION__})の更新でもチャンネルが切断されることがあります。それ以外の場合は、クローズドテストを通過した後にこのアプリをインストールすると通知を受け取れるようになります。`
+          : `[Android] If you are participating in the Play Store closed test and see this message, it means that there may be a problem with the notification path in the app. Please restart this app. Updating the PWA version (${import.meta.env.__APP_VERSION__}) can also cause the channels to be disconnected. If not, after passing the closed test, installing this app will allow you to receive notifications.`,
     );
   }
 

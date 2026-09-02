@@ -20,6 +20,35 @@ export function getToursList(
 
   const ideaTours: ProductTourConfig[] = [
     {
+      id: "install-iphone-shortcuts",
+      version: 1,
+      title: map["tour.installIphoneShortcuts.title"],
+      description: map["tour.installIphoneShortcuts.description"],
+      app: 'shortcuts',
+      steps: [
+        {
+          id: "open-guide",
+          title: map["tour.installIphoneShortcuts.step1.title"],
+          content: map["tour.installIphoneShortcuts.step1.content"],
+          target: "[data-tour='guide-tab']",
+          placement: "bottom",
+          hideFooterButton: true,
+          waitForElement: true,
+          spotlightPadding: 8,
+        },
+        {
+          id: "download-shortcuts",
+          title: map["tour.installIphoneShortcuts.step2.title"],
+          content: map["tour.installIphoneShortcuts.step2.content"],
+          target: "[data-tour='iphone-shortcuts']",
+          placement: "bottom",
+          hideFooterButton: false,
+          waitForElement: true,
+          spotlightPadding: 8,
+        },
+      ],
+    },
+    {
       id: "change-font-size",
       version: 1,
       title: map["tour.changeFontSize.title"],

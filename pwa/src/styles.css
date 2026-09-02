@@ -16,7 +16,10 @@
 html,
 body {
   overscroll-behavior-y: contain;
-  overscroll-behavior-x: none;
+  overscroll-behavior-x: contain;
+  /* 強制切除 X 軸任何超出邊界的元件 */
+  /* max-width: 100%; */
+  overflow-x: clip; 
   font-size: 16px;
 }
 
