@@ -40,6 +40,7 @@ import { getDeviceType } from "../../utils/shortcutUtils";
 import { AlarmQueuePanel } from "../more/AlarmQueuePanel";
 import { useAlarmQueueWatcherContext } from "../tour/AlarmQueueWatcher";
 import _ from "lodash";
+import { useProductTourContext } from "../tour/ProductTourContext";
 
 const DEV_CLIENT_ID = "dev-client";
 const columnHelper = createColumnHelper<ScheduledItem>();
@@ -114,8 +115,8 @@ export function ScheduledTable() {
     updateTableBasedOnScheduled,
   } = AQWatcher;
 
-  const alarmQueueDialogRef = useRef<HTMLDialogElement | null>(null);
   const [openAlarmQueueDialog, setOpenAlarmQueueDialog] = useState(false);
+  const { nextStep, isRunning, activeStep } = useProductTourContext();
 
   const text = {
     subtitle: t("table.scheduled.subtitle"),
@@ -132,13 +133,6 @@ export function ScheduledTable() {
     searchMode: t("table.scheduled.searchMode"),
   };
 
-  useEffect(() => {
-    if (openAlarmQueueDialog) {
-      alarmQueueDialogRef.current?.showModal();
-    } else {
-      alarmQueueDialogRef.current?.close();
-    }
-  }, [openAlarmQueueDialog]);
   // 根据 sortMode 更新 sorting 状态
   useEffect(() => {
     switch (sortMode) {
@@ -257,6 +251,9 @@ export function ScheduledTable() {
 
     setEditingItem(newRow);
     setCreatedNewRowId(newRow.taskId);
+    if (isRunning && activeStep?.id === "add-a-scheduled-task") {
+      nextStep();
+    }
   };
 
   const deleteRow = async (taskId: string) => {
@@ -862,6 +859,7 @@ export function ScheduledTable() {
           <button
             onClick={() => addRow()}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            data-tour="add-scheduled-task-button"
           >
             {t("table.add")}
           </button>
@@ -904,11 +902,18 @@ export function ScheduledTable() {
 
         {isMobile && (
           <button
-            onClick={() => setShowMobileFilters((prev) => !prev)}
+            onClick={() => {
+              setShowMobileFilters((prev) => !prev);
+              // Joyride
+              if (isRunning && activeStep?.id === "scheduled-more-button") {
+                nextStep();
+              }
+            }}
             className="px-3 py-2 border rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
             title="Toggle filters"
+            data-tour="scheduled-more-button"
           >
-            {showMobileFilters ? "Hide Filters" : "Show Filters"}
+            {showMobileFilters ? "Hide More" : "Show More"}
           </button>
         )}
       </div>
@@ -941,9 +946,21 @@ export function ScheduledTable() {
 
           {(import.meta.env.DEV || getDeviceType() === "TWA") && (
             <AlarmSyncTargetsCheckList
-              onChange={(v) => setAlarmSyncTargets(v)}
+              onChange={(v) => {
+                setAlarmSyncTargets(v);
+                if (
+                  isRunning &&
+                  activeStep?.id === "confirm-sync-targets-alarm"
+                ) {
+                  nextStep();
+                }
+              }}
               alarmSyncTargets={alarmSyncTargets}
-              openDialogClicked={() => setOpenAlarmQueueDialog(true)}
+              openDialogClicked={() => {setOpenAlarmQueueDialog(true);
+                if (isRunning && activeStep?.id === "show-alarms") {
+                  nextStep();
+                }
+              }}
               resetItemsStates={resetItemsStates} //這個目前除錯用
             />
           )}
@@ -997,9 +1014,22 @@ export function ScheduledTable() {
               </label>
               {(import.meta.env.DEV || getDeviceType() === "TWA") && (
                 <AlarmSyncTargetsCheckList
-                  onChange={(v) => setAlarmSyncTargets(v)}
+                  onChange={(v) => {
+                    setAlarmSyncTargets(v);
+                    if (
+                      isRunning &&
+                      activeStep?.id === "confirm-sync-targets-alarm"
+                    ) {
+                      nextStep();
+                    }
+                  }}
                   alarmSyncTargets={alarmSyncTargets}
-                  openDialogClicked={() => setOpenAlarmQueueDialog(true)}
+                  openDialogClicked={() => {
+                    setOpenAlarmQueueDialog(true);
+                    if (isRunning && activeStep?.id === "show-alarms") {
+                      nextStep();
+                    }
+                  }}
                   resetItemsStates={resetItemsStates} //這個目前除錯用
                 />
               )}
@@ -1267,15 +1297,12 @@ export function ScheduledTable() {
         </div>
       )}
       {openAlarmQueueDialog && (
-        <dialog
-          id="alarm-queue-dialog"
-          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0 w-[90%] max-w-125 border-none rounded-lg bg-white shadow-xl backdrop:bg-black/50 backdrop:backdrop-blur-sm"
-          ref={alarmQueueDialogRef}
-          closedby="any"
-          onCancel={(e) => {
-            e.preventDefault();
-            setOpenAlarmQueueDialog(false);
-          }}
+        // 這dialog改成用自制的組件來實現，是自制的
+        <>
+        <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+        role="button" onClick={() => setOpenAlarmQueueDialog(false)}></div>
+        <div
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0 w-[90%] max-w-125 max-h-[90%] border-none rounded-lg bg-white shadow-xl z-50 overflow-y-none"
         >
           <AlarmQueuePanel
             items={queueItems}
@@ -1283,13 +1310,14 @@ export function ScheduledTable() {
             onUpdateItems={async () => {
               await updateTableBasedOnScheduled(alarmSyncTargets, ONE_YEAR_MS);
             }}
-            onClickItem={(item)=> {
+            onClickItem={(item) => {
               setSearchQuery(item.title || "");
               // close the dialog after clicking an item
               setOpenAlarmQueueDialog(false);
             }}
           />
-        </dialog>
+        </div>
+        </>
       )}
     </div>
   );
@@ -1313,25 +1341,28 @@ function AlarmSyncTargetsCheckList({
   const [tempST, setTempST] = useState(alarmSyncTargets);
   const t = useTWithMaps({
     "zh-TW": {
-      "設定排程鬧鐘": "設定排程鬧鐘",
-      "查看鬧鐘": "查看鬧鐘",
-      "確定": "確定",
-      "重設": "重設",
-      "確認exactAlarm": "⚠️ 這個選項實驗中，有可能因重開機等因素而收不到通知，確定要選嗎？",
+      設定排程鬧鐘: "設定排程鬧鐘",
+      查看鬧鐘: "查看鬧鐘",
+      確定: "確定",
+      重設: "重設",
+      確認exactAlarm:
+        "⚠️ 這個選項實驗中，有可能因重開機等因素而收不到通知，確定要選嗎？",
     },
-    "en": {
-      "設定排程鬧鐘": "Set Scheduled Alarm",
-      "查看鬧鐘": "View Alarms",
-      "確定": "Confirm",
-      "重設": "Reset",
-      "確認exactAlarm": "⚠️ This option is experimental and may not receive notifications due to factors such as rebooting. Are you sure you want to select it?",
+    en: {
+      設定排程鬧鐘: "Set Scheduled Alarm",
+      查看鬧鐘: "View Alarms",
+      確定: "Confirm",
+      重設: "Reset",
+      確認exactAlarm:
+        "⚠️ This option is experimental and may not receive notifications due to factors such as rebooting. Are you sure you want to select it?",
     },
     ja: {
-      "設定排程鬧鐘": "スケジュールアラームを設定",
-      "查看鬧鐘": "アラームを表示",
-      "確定": "確認",
-      "重設": "リセット",
-      "確認exactAlarm": "⚠️ このオプションは実験的であり、再起動などの要因により通知を受け取れない場合があります。本当に選択しますか？",
+      設定排程鬧鐘: "スケジュールアラームを設定",
+      查看鬧鐘: "アラームを表示",
+      確定: "確認",
+      重設: "リセット",
+      確認exactAlarm:
+        "⚠️ このオプションは実験的であり、再起動などの要因により通知を受け取れない場合があります。本当に選択しますか？",
     },
   });
   return (
@@ -1353,6 +1384,7 @@ function AlarmSyncTargetsCheckList({
               onChange={(e) =>
                 setTempST((prev) => (e.target.checked ? prev | 1 : prev & ~1))
               }
+              data-tour="toggle-reminder-alarm-button"
             />
             ⏰
           </label>
@@ -1360,13 +1392,13 @@ function AlarmSyncTargetsCheckList({
             <input
               type="checkbox"
               checked={(tempST & 2) !== 0}
-              onChange={(e) =>
-                {
-                  if (!e.target.checked || confirm(t("確認exactAlarm"))) {
-                    setTempST((prev) => (e.target.checked ? prev | 2 : prev & ~2));
-                  }
+              onChange={(e) => {
+                if (!e.target.checked || confirm(t("確認exactAlarm"))) {
+                  setTempST((prev) =>
+                    e.target.checked ? prev | 2 : prev & ~2,
+                  );
                 }
-              }
+              }}
             />
             🪧
           </label>
@@ -1374,6 +1406,7 @@ function AlarmSyncTargetsCheckList({
             type="button"
             className={`px-3 py-1 text-white rounded ${_.isEqual(tempST, alarmSyncTargets) ? "opacity-50 cursor-not-allowed bg-blue-500" : "bg-blue-500 hover:bg-blue-600"}`}
             onClick={() => onChange(tempST)}
+            data-tour="confirm-sync-targets-alarm-button"
           >
             {t("確定")}
           </button>
@@ -1381,6 +1414,7 @@ function AlarmSyncTargetsCheckList({
       </form>
       <button
         onClick={openDialogClicked}
+        data-tour="view-alarms-button"
         className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
       >
         {t("查看鬧鐘")}

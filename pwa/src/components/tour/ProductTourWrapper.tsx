@@ -135,7 +135,9 @@ export function ProductTourWrapper({
       options={{
         skipScroll: true,
         overlayClickAction: "close",
+        zIndex: 9999,
       }}
+      portalElement={step?.portalElement ?? document.body}
       onEvent={handleJoyrideCallback}
       locale={{ back: "Back", close: "Close", last: "Finish", next: "Next", skip: "Skip" }}
     />

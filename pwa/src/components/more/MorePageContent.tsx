@@ -54,11 +54,17 @@ function SettingsPanel() {
       "settings.experimentalTitle": "Experimental access",
       "settings.experimentalDescription":
         "Enable access to experimental features.",
-      "settings.enableExperimentalFeaturesLabel": "Enable Experimental Features", 
+      "settings.enableExperimentalFeaturesLabel":
+        "Enable Experimental Features",
+      "settings.fontsizeTitle": "Font Size",
+      "settings.fontsizeDescription":
+        "Adjust the font size for better readability.",
       "timerMode.none.label": "Do not show timer automatically",
-      "timerMode.none.description": "Skip the automatic clock/timer launch entirely.",
+      "timerMode.none.description":
+        "Skip the automatic clock/timer launch entirely.",
       "timerMode.show_clock.label": "Show clock/timer UI",
-      "timerMode.show_clock.description": "Open the native clock UI after the task starts.",
+      "timerMode.show_clock.description":
+        "Open the native clock UI after the task starts.",
       "timerMode.set_timer.label": "Create timer directly",
       "timerMode.set_timer.description":
         "Use a deep link to open the timer immediately with the task title.",
@@ -68,8 +74,7 @@ function SettingsPanel() {
       "settings.localDescription":
         "儲存在此裝置上，並限定於目前的應用程式安裝。",
       "settings.globalTitle": "全域偏好設定",
-      "settings.globalDescription":
-        "保留給未來的同步與雲端支援設定。",
+      "settings.globalDescription": "保留給未來的同步與雲端支援設定。",
       "settings.timerTitle": "Android TWA 計時器啟動",
       "settings.timerDescription":
         "選擇當任務計時器觸發時，Android TWA 應如何反應。",
@@ -82,9 +87,10 @@ function SettingsPanel() {
       "settings.replayLabel": "重播",
       "settings.anyPageLabel": "任何頁面可開啟",
       "settings.experimentalTitle": "實驗性功能",
-      "settings.experimentalDescription":
-        "啟用對實驗性功能的存取權限。",
+      "settings.experimentalDescription": "啟用對實驗性功能的存取權限。",
       "settings.enableExperimentalFeaturesLabel": "啟用實驗性功能",
+      "settings.fontsizeTitle": "字體大小",
+      "settings.fontsizeDescription": "調整字體大小以提高可讀性。",
       "timerMode.none.label": "完全跳過自動開啟時鐘/計時器",
       "timerMode.none.description": "完全跳過自動開啟時鐘/計時器。",
       "timerMode.show_clock.label": "顯示時鐘/計時器介面",
@@ -115,10 +121,15 @@ function SettingsPanel() {
       "settings.experimentalDescription":
         "実験的機能へのアクセスを有効にします。",
       "settings.enableExperimentalFeaturesLabel": "実験的機能を有効にする",
+      "settings.fontsizeTitle": "フォントサイズ",
+      "settings.fontsizeDescription":
+        "読みやすさを向上させるためにフォントサイズを調整します。",
       "timerMode.none.label": "タイマーを自動的に表示しない",
-      "timerMode.none.description": "タスクタイマーがトリガーされたときに、Android TWA がどのように反応するかを選択します。",
+      "timerMode.none.description":
+        "タスクタイマーがトリガーされたときに、Android TWA がどのように反応するかを選択します。",
       "timerMode.show_clock.label": "時計/タイマーUIを表示",
-      "timerMode.show_clock.description": "タスクが開始された後、ネイティブの時計UIを開きます。",
+      "timerMode.show_clock.description":
+        "タスクが開始された後、ネイティブの時計UIを開きます。",
       "timerMode.set_timer.label": "直接タイマーを作成",
       "timerMode.set_timer.description":
         "ディープリンクを使用して、タスクのタイトルでタイマーを即座に開きます。",
@@ -126,26 +137,26 @@ function SettingsPanel() {
   });
 
   const timerModeOptions: Array<{
-  value: AndroidTimerLaunchMode;
-  label: string;
-  description: string;
-}> = [
-  {
-    value: "none",
-    label: t("timerMode.none.label"),
-    description: t("timerMode.none.description"),
-  },
-  {
-    value: "show_clock",
-    label: t("timerMode.show_clock.label"),
-    description: t("timerMode.show_clock.description"),
-  },
-  {
-    value: "set_timer",
-    label: t("timerMode.set_timer.label"),
-    description: t("timerMode.set_timer.description"),
-  },
-];
+    value: AndroidTimerLaunchMode;
+    label: string;
+    description: string;
+  }> = [
+    {
+      value: "none",
+      label: t("timerMode.none.label"),
+      description: t("timerMode.none.description"),
+    },
+    {
+      value: "show_clock",
+      label: t("timerMode.show_clock.label"),
+      description: t("timerMode.show_clock.description"),
+    },
+    {
+      value: "set_timer",
+      label: t("timerMode.set_timer.label"),
+      description: t("timerMode.set_timer.description"),
+    },
+  ];
 
   const enableExperimentalFeatures = useAppStore(
     (state) => state.experimentalFeaturesEnabled,
@@ -186,10 +197,13 @@ function SettingsPanel() {
   return (
     <div className="space-y-4">
       <SettingsCard
-        title={"fontSize"}
-        description={"fontSizeDescription"}
+        title={t("settings.fontsizeTitle")}
+        description={t("settings.fontsizeDescription")}
       >
-        <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+        <div
+          className="rounded-lg border border-gray-100 bg-gray-50 p-3"
+          data-tour="change-font-size-card"
+        >
           {/* scroll from 50% ~ 200% 顯示50 100, 150, 200*/}
           <input
             type="range"
@@ -374,10 +388,8 @@ function ExperimentPanel() {
     },
     "zh-TW": {
       "experiment.title": "實驗性工具",
-      "experiment.description":
-        "用於測試和調試高級流程的臨時功能。",
-      "experiment.disabledMessage":
-        "請先啟用實驗性功能以解鎖高級工具。",
+      "experiment.description": "用於測試和調試高級流程的臨時功能。",
+      "experiment.disabledMessage": "請先啟用實驗性功能以解鎖高級工具。",
       "experiment.debugLabel": "顯示除錯資訊",
     },
     ja: {
@@ -469,22 +481,21 @@ function ExperimentPanel() {
 export function MorePageContent() {
   const t = useTWithMaps({
     en: {
-      "heading": "More",
-      "description":
+      heading: "More",
+      description:
         "Control local preferences, future global sync options, and experimental tools.",
       "tabs.settings": "Settings",
       "tabs.experiment": "Experiment",
     },
     "zh-TW": {
-      "heading": "更多",
-      "description":
-        "控制本地偏好設定、未來的全域同步選項，以及實驗性工具。",
+      heading: "更多",
+      description: "控制本地偏好設定、未來的全域同步選項，以及實驗性工具。",
       "tabs.settings": "設定",
       "tabs.experiment": "實驗",
-      },
+    },
     ja: {
-      "heading": "その他",
-      "description":
+      heading: "その他",
+      description:
         "ローカル設定、将来のグローバル同期オプション、および実験的なツールを制御します。",
       "tabs.settings": "設定",
       "tabs.experiment": "実験",

@@ -1,4 +1,5 @@
 import { StepTarget } from "react-joyride";
+import { getDeviceType } from "../../utils/shortcutUtils";
 
 export type TourSheet = "inbox" | "selection_cache" | "guide" | "macro" | "debug" | "scheduled" | "task_pool" | "micro_tasks" | "resource" | "log";
 
@@ -15,6 +16,7 @@ export interface ProductTourStep {
   hideFooterButton?: boolean;
   device?: "desktop" | "mobile";
   scrollTarget?: StepTarget;
+  portalElement?: HTMLElement | string | null;
 }
 
 export interface ProductTourConfig {
@@ -24,4 +26,13 @@ export interface ProductTourConfig {
   description: string;
   requiredSheet?: TourSheet;
   steps: ProductTourStep[];
+  app?: ReturnType<typeof getAppType>;
+}
+
+export function getAppType(): "pwa" | "extension" | "twa" {
+  const deviceType = getDeviceType();
+  if (deviceType === "TWA") {
+    return "twa";
+  }
+  return "pwa";
 }

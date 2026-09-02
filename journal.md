@@ -1,5 +1,12 @@
 # Journal
 
+## [2026-09-02] (2.3.11) 主要是加了 fontsize 與 alarm_queue 的相關功能的 Joyride
+1. [AlarmQueuePanel.tsx](pwa\src\components\more\AlarmQueuePanel.tsx) 原本 `slice(0,8)` 我把它改到 `slice(0,20)`，以便一次顯示更多的鬧鐘項目。也有 joyride說明。
+2. [ScheduledTable.tsx](pwa\src\components\tables\ScheduledTable.tsx) 補上Joyride的提示。為了這點，將其中一個 dialog 改為 <div>，因為 dialog 上面放 Joyride 太難搞了。
+3. [MorePageContent.tsx](pwa\src\components\more\MorePageContent.tsx) 新增了調整fontsize的能力。
+4. [productTours.ts](pwa\src\components\tour\productTours.ts) 新增了fontsize 與 alarm_queue的設定與說明。
+5. [productTourTypes.ts](pwa\src\components\tour\productTourTypes.ts) 每個 tour 可以設定是用哪種 appType，例如 PWA 或 TWA。
+
 ## [2026-08-31] (2.3.10) 加了一些修正
 1. [notification.ts](pwa\src\utils\notification.ts) 在 TWA 發生跑到一般的 Notification 去了，所以，需要做個說明，好讓使用者知道需要重啟這個APP
 2. 設法讓 carosel 在跑的時候， Joyride 就不會跑，方法是在 [App.tsx](pwa\src\App.tsx) 加入

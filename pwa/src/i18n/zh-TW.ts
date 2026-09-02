@@ -138,6 +138,14 @@ export const zhTW: TranslationMap = {
   'table.inbox.col.delete':         '刪除',
   // EditDialog field labels
   'table.inbox.field.title':        '標題',
+
+  'tour.changeFontSize.title': '更改字體大小',
+  'tour.changeFontSize.description': '了解如何更改字體大小。',
+  'tour.changeFontSize.step1.title': '更改字體大小(開啟選單)',
+  'tour.changeFontSize.step1.content': '點擊右上角選單按鈕，顯示應用捷徑。',
+  'tour.changeFontSize.step4.title': '調整字體大小',
+  'tour.changeFontSize.step4.content': '使用滑桿調整字體大小以符合您的偏好。',
+
   'tour.tourReplay.title': '互動教學重播',
   'tour.tourReplay.description': '了解如何重播互動教學。',
   'tour.tourReplay.step1.title': '(互動教學重播) 開啟選單',
@@ -171,6 +179,31 @@ export const zhTW: TranslationMap = {
   'tour.androidTimerSetup.step5.content': '前往 Candidates，確認自動計時將套用的位置。',
   'tour.androidTimerSetup.step6.title': '自動計時已就緒',
   'tour.androidTimerSetup.step6.content': '從現在開始，任何已確認的任務都可以自動觸發計時。',
+
+  'tour.setReminderOffset.title': '設定提醒偏移',
+  'tour.setReminderOffset.description': '了解如何為任務設定提醒偏移。',
+  'tour.setReminderOffset.step1.title': '設定提醒偏移（開啟排程標籤）',
+  'tour.setReminderOffset.step1.content': '點擊排程標籤以查看您的排程任務。\n 比方會議前後可以使用系統鬧鐘提醒您預備與結束會議，無論這個APP是否在運行。',
+  'tour.setReminderOffset.step2.title': '更多選項',
+  'tour.setReminderOffset.step2.content': '點擊此按鈕以進入更多選項。',
+  'tour.setReminderOffset.step3.title': '勾選 ⏰ 提醒',
+  'tour.setReminderOffset.step3.content': '勾選 ⏰ 提醒選項以啟用此任務的提醒偏移。',
+  'tour.setReminderOffset.step4.title': '確認提醒類型',
+  'tour.setReminderOffset.step4.content': '只有在您啟用了其中一種提醒類型時，提醒偏移才會適用於每個排程任務。',
+  'tour.setReminderOffset.step5.title': '新增排程任務',
+  'tour.setReminderOffset.step5.content': '點擊新增按鈕以建立新的排程任務。您可以在任務設定中設定提醒偏移。',
+  'tour.setReminderOffset.step6.title': '設定提醒偏移',
+  'tour.setReminderOffset.step6.content': '在此輸入提醒偏移的時間，系統將根據此設定提前提醒您。    d,h,m 分別代表天、時、分。   可以用","一次設定多個，甚至可以是負數。  為了測試，請輸入 "1m,-1m" 讓他設定兩個鬧鐘，一個在任務前一分鐘，一個在任務後一分鐘。',
+  'tour.setReminderOffset.step7.title': '設定下次執行時間',
+  'tour.setReminderOffset.step7.content': '這個值是這個任務預定執行的時間，減掉提醒偏移的時間，就是鬧鐘會被設定的時間。\n\r為了測試，請輸入現在時刻再加上3分鐘，讓他前後各設一個鬧鐘。\n\r例如，若預定時間是10:00，提醒偏移是5分鐘，鬧鐘會被設定在9:55。若提醒偏移是-5分鐘，鬧鐘會被設定在10:05。',
+  'tour.setReminderOffset.step8.title': '提醒偏移設定完成',
+  'tour.setReminderOffset.step8.content': '現在，提醒偏移的設定已完成。系統將在您再次打開此APP時設定這些鬧鐘，或者按一下的鈕也可以。',
+  'tour.setReminderOffset.showAlarms.title': '查看鬧鐘',
+  'tour.setReminderOffset.showAlarms.content': '點擊此按鈕以查看為您的排程任務設定的鬧鐘。',
+  'tour.setReminderOffset.updateAlarms.title': '更新鬧鐘(每次喚醒此APP也會自動更新)',
+  'tour.setReminderOffset.updateAlarms.content': '點擊此按鈕立即更新您的排程任務的鬧鐘。不然也可等下次重新喚醒此APP時自動更新。',
+
+
   'table.inbox.field.receivedAt':   '接收時間',
   'table.inbox.field.url':          'URL',
 

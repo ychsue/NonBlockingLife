@@ -8,6 +8,7 @@ import {
   resetDialogTextInteractionState,
 } from '../utils/dialogInteractionUtils'
 import _ from 'lodash'
+import { useProductTourContext } from './tour/ProductTourContext'
 
 export type FieldType = 'text' | 'number' | 'datetime' | 'select' | 'cron'
 
@@ -50,6 +51,8 @@ export function EditDialog<T>({
   //為了避免同樣的item來亂
   const [lastItem, setLastItem] = useState<T | null>(null)
   const [lastFields, setLastFields] = useState<DialogField[]>([])
+  
+  const { activeStep, isRunning, nextStep } = useProductTourContext();
 
   // 當 item 或 fields 改變時，更新 formData
   useEffect(() => {
@@ -126,6 +129,22 @@ export function EditDialog<T>({
       setError(err instanceof Error ? err.message : t('dialog.saveFailed'))
     } finally {
       setIsSaving(false)
+      if (isRunning && activeStep?.id === "edit-dialog-save-button") {
+        nextStep();
+      }
+    }
+  }
+
+  function dataTourForField(field: DialogField): string | undefined {
+    switch (field.name) {
+      case 'title':
+        return 'edit-dialog-title-input'
+      case 'reminderOffsets':
+        return 'edit-dialog-reminder-offset-input'
+      case 'nextRun':
+        return 'edit-dialog-next-run-input'
+      default:
+        return undefined
     }
   }
 
@@ -256,6 +275,7 @@ export function EditDialog<T>({
                 <input
                   id={field.name}
                   type="datetime-local"
+                  data-tour={dataTourForField(field)}
                   value={typeof formData[field.name] === "number" ? formatToDateTimeLocal(formData[field.name]) : formData[field.name] ?? ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
                   className="w-full min-w-0 max-w-full box-border px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -274,7 +294,7 @@ export function EditDialog<T>({
               ) : (
                 <textarea
                   id={field.name}
-                  data-tour={field.name === 'title' ? 'edit-dialog-title-input' : undefined}
+                  data-tour={dataTourForField(field)}
                   value={formData[field.name] ?? ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
                   onBlur={handleDialogTextFieldInteractionEnd}

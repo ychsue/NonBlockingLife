@@ -18,7 +18,7 @@ export function AlarmQueuePanel({
   const t = useT();
 
   return (
-    <div className="rounded-lg border border-amber-200 bg-white p-3">
+    <div className="rounded-lg border border-amber-200 bg-white p-3 flex flex-col gap-3 max-h-[80vh] overflow-y-none">
       <div className="mb-2 flex items-center justify-between gap-3">
         <h4 className="text-sm font-semibold text-gray-900">
           {t("aqPanel.title")}
@@ -35,7 +35,8 @@ export function AlarmQueuePanel({
         <button
           type="button"
           onClick={onUpdateItems}
-          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+          data-tour="update-alarms-button"
+          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600   alarm-queue-panel"
         >
           {t("aqPanel.updateBtn")}
         </button>
@@ -44,8 +45,8 @@ export function AlarmQueuePanel({
       {items.length === 0 ? (
         <div className="text-sm text-gray-500">{t("aqPanel.noEntries")}</div>
       ) : (
-        <div className="space-y-2">
-          {items.slice(0, 8).map((item) => (
+        <div className="space-y-2 flex flex-col grow overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          {items.slice(0, 20).map((item) => (
             <div
               role="button"
               tabIndex={0}
@@ -66,7 +67,7 @@ export function AlarmQueuePanel({
                   </div>
                   <div className="mt-1 text-[11px] text-gray-500 flex gap-4 flex-row">
                     <p
-                      className={`${item.clockState === "not_applicable" ? "line-through" : ""}`}
+                      className={`${item.clockState === "not_applicable" ? "line-through hidden" : ""}`}
                     >
                       ⏰: {item.clockState}{" "}
                       {item.clockState === "set"
@@ -77,7 +78,7 @@ export function AlarmQueuePanel({
                     </p>
                     ·
                     <p
-                      className={`${item.exactState === "not_applicable" ? "line-through" : ""}`}
+                      className={`${item.exactState === "not_applicable" ? "line-through hidden" : ""}`}
                     >
                       🪧: {item.exactState}{" "}
                       {item.exactState === "set"
