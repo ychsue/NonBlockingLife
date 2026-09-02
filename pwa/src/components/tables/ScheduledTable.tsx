@@ -1366,7 +1366,7 @@ function AlarmSyncTargetsCheckList({
     },
   });
   return (
-    <div className="flex flex-row justify-between gap-2">
+    <div className="flex flex-row justify-between gap-2 flex-wrap">
       <form
         className="flex flex-row gap-2 text-sm text-gray-700 font-semibold"
         onClick={(e) => e.stopPropagation()}

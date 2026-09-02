@@ -23,8 +23,16 @@ body {
   font-size: 16px;
 }
 
+.react-joyride__tooltip {
+  max-width: calc(100vw - 40px) !important;
+}
+
 #joyride-tooltip-container {
   z-index: 9999;
+}
+
+div#joyride-tooltip-content {
+  white-space: pre-line;
 }
 
 body {

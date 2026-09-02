@@ -4,6 +4,7 @@
 1. 修正有的Joyride Tooltip 顯示問題
 2. 調整了 iPhone 捷徑安裝流程的 Joyride 步驟顯示。
 3. 調整iPhone 上面 SET_TIMERS 與 SHOW_TIMER 的 Shortcuts。
+4. 再做一些調整 (2.3.13)
 
 ## [2026-09-02] (2.3.11) 主要是加了 fontsize 與 alarm_queue 的相關功能的 Joyride
 1. [AlarmQueuePanel.tsx](pwa\src\components\more\AlarmQueuePanel.tsx) 原本 `slice(0,8)` 我把它改到 `slice(0,20)`，以便一次顯示更多的鬧鐘項目。也有 joyride說明。
