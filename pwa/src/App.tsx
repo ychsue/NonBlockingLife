@@ -39,7 +39,7 @@ import {
 } from "./utils/alarmQueue";
 import { AlarmQueueWatcherProvider } from "./components/tour/AlarmQueueWatcher";
 import { useTwaRpc } from "./hooks/useTwaRpc";
-import _ from "lodash";
+import _, { last } from "lodash";
 import { useTWithMaps } from "./i18n";
 
 type AllPages =
@@ -104,6 +104,10 @@ export default function App() {
 
   const fontSizeScale = useAppStore((state) => state.fontSizeScale);
 
+  //1. 定義 Ref 紀錄Visibile時間與狀態 DEBUG
+  const lastVisibleTimeRef = useRef<number>(Date.now());
+  const hasLeftForegroundRef = useRef(false);
+
   const t = useTWithMaps({
     en: {
       "useTwaBridge.twaNotAvailable":
@@ -165,6 +169,24 @@ export default function App() {
     earliestClockItem?: AlarmItem2TWA;
     exactItems: AlarmItem2TWA[];
   }>({ earliestClockItem: undefined, exactItems: [] });
+
+  //2. 監聽 Visible DEBUG
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const now = Date.now();
+      if (document.hidden) {
+        console.log(`[Inspect-Log] 頁面進入背景/離開前景 at ${new Date(now).toISOString()}`)
+        hasLeftForegroundRef.current = true; //標註曾離開前景
+        lastVisibleTimeRef.current = now;
+      } else {
+        console.log(`[Inspect-Log] 頁面回到前景 at ${new Date(now).toISOString()}`);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   // 如果 alarmSyncTargets 有變化，則更新 db.alarm_queue 的狀態
   useEffect(() => {
@@ -327,7 +349,6 @@ export default function App() {
           console.log("[App.tsx] 7. Alarms are already up to date in TWA");
           return;
         }
-        AQ2TWA.current = { earliestClockItem, exactItems };
         // 7.1 丟出 alert 提醒使用者鬧鐘準備設定
         if (!earliestClockItem && exactItems.length === 0) {
           console.log("[App.tsx] 7. No alarms to set in TWA");
@@ -336,6 +357,16 @@ export default function App() {
         function padZero(num: number): string {
           return num.toString().padStart(2, "0");
         }
+
+        const startTime = Date.now(); //DEBUG
+        DEBUG1: {
+          console.log("%c[Inspect-Test] 🚀 開始處理鬧鐘設定流程", "color: green; font-weight: bold;");
+          // 1. 標記
+          hasLeftForegroundRef.current = false;
+          //2. 準備跳出 confirm
+          console.log("%c[Inspect-Test] ⏱️ 觸發 Confirm 前的時間: " + new Date(startTime).toISOString(), "color: green; font-weight: bold;");
+        }
+
         const userConfirmed = confirm(
           t("即將設定：") +
             "\n\r" +
@@ -353,10 +384,38 @@ export default function App() {
             "\n\r" +
             t("若想更動，請到Scheduled頁面修改。"),
         );
+
+        const endTime = Date.now(); //DEBUG
+        DEBUG2: {
+          const timeDiffMs = endTime - startTime;
+          // 3. 印詳細的 Confirm 互動結果
+          console.group("%c[Inspect-Test] 📊 Confirm 互動結果分析", "color: #ff9900; font-weight: bold;");
+          console.log(`使用者點擊了 ${userConfirmed ? "確認" : "取消"} 按鈕，耗時 ${timeDiffMs} ms`);
+          console.log(`離開前景時間 (Last Visible): ${new Date(lastVisibleTimeRef.current).toISOString()}`);
+          console.log(`期間是否曾離開前景(hasLeftForeground): ${hasLeftForegroundRef.current}`);
+          console.groupEnd();
+
+          // 4. 判斷是否"中斷後續設定"的核心邏輯
+          if (!userConfirmed) {
+            console.log("%c[Inspect-Test] ❌ 使用者取消了鬧鐘設定，終止後續流程", "color: red; font-weight: bold;");
+            return;
+          }
+
+          // 關鍵判斷：若使用者按下確定，但中間頁面曾經切換到系統鬧鐘/背景
+          if(hasLeftForegroundRef.current) {
+            console.warn("%c[Inspect-Test] ⚠️ 偵測到跳轉至系統鬧鐘/切換背景！強制【中斷】下一個鬧鐘設定。", "color: orange; font-weight: bold;");
+            return; // 強制中斷下一個鬧鐘設定
+          }
+
+          // 5. 若使用者確認且未中斷，則繼續後續鬧鐘設定流程
+          console.log("%c[Inspect-Test] ✅ 未跳轉背景，繼續執行設定...", "color: green; font-weight: bold;");
+        }
         if (!userConfirmed) {
           console.log("[App.tsx] 7. User cancelled setting alarms in TWA 因為跳轉到系統時鐘應該要取消");
           return;
         }
+
+        AQ2TWA.current = { earliestClockItem, exactItems }; // 這很重要，必須在 confirm 之下，免得先被更新
         res = await sendRequest(
           "nbl:set-alarms",
           { alarms: [earliestClockItem, ...exactItems].filter(Boolean) },

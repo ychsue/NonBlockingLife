@@ -2,6 +2,7 @@
 
 ## [2026-09-03] (2.3.14) 發現如果跳轉到系統鬧鐘，下一個鬧鐘會是假性配置
 先將alert改成 confirm，反正又被play商店要求14天了
+(2.3.15) 發現 confirm 取消後就回不來，應該是 `AQ2TWA.current` 不該早於 confirm 被確定，因為根本就還沒改。
 
 ## [2026-09-02] (2.3.12) 設法修正有的Joyride Tooltip 顯示問題
 1. 修正有的Joyride Tooltip 顯示問題

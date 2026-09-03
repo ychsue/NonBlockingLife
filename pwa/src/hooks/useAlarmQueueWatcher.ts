@@ -54,9 +54,12 @@ export function useAlarmQueueWatcher(enabled: boolean) {
           console.warn("Already updating alarm queue, skipping applySyncPlan");
           return;
         }
-        isUpdatingRef.current = true;
-        await db.alarm_queue.bulkPut([...plan.toAdd, ...plan.toUpdate]);
-        isUpdatingRef.current = false;
+        try {
+          isUpdatingRef.current = true;
+          await db.alarm_queue.bulkPut([...plan.toAdd, ...plan.toUpdate]);
+        } finally {
+          isUpdatingRef.current = false;
+        }
       }
 
       await refreshQueue();
