@@ -113,7 +113,8 @@ export default function App() {
       "useTwaBridge.twaNotAvailable":
         "There might be an update that caused the channel to break.\n\r" +
         "Please swipe away this app and reopen it to fix this issue.",
-      "即將設定：": "Setting up: (Note, if it jumps to the system clock, please press cancel, otherwise the alarm may not be set correctly)",
+      "即將設定：":
+        "Setting up: (Note, if it jumps to the system clock, please press cancel, otherwise the alarm may not be set correctly)",
       "鬧鐘:": "Alarm:",
       "通知:(可能因重開機等因素丟失)":
         "Notification: (may be lost due to reboot or other factors)",
@@ -124,7 +125,8 @@ export default function App() {
       "useTwaBridge.twaNotAvailable":
         "可能有更新，導致channel斷掉。\n\r" +
         "請滑掉這個APP，再重開，好修復這個的問題。",
-      "即將設定：": "即將設定：(注意，若他跳轉到系統時鐘，請按取消，否則鬧鐘可能無法正確設定)",
+      "即將設定：":
+        "即將設定：(注意，若他跳轉到系統時鐘，請按取消，否則鬧鐘可能無法正確設定)",
       "鬧鐘:": "鬧鐘:",
       "通知:(可能因重開機等因素丟失)": "通知:(可能因重開機等因素丟失)",
       "若想更動，請到Scheduled頁面修改。": "若想更動，請到Scheduled頁面修改。",
@@ -133,12 +135,13 @@ export default function App() {
       "useTwaBridge.twaNotAvailable":
         "更新の影響でchannelが切断されている可能性があります。\n\r" +
         "このアプリをスワイプして閉じ、再度開くことで問題を修復してください。",
-      "即將設定：": "設定予定：(注意、システム時計にジャンプした場合はキャンセルを押してください。そうしないとアラームが正しく設定されない可能性があります)",
+      "即將設定：":
+        "設定予定：(注意、システム時計にジャンプした場合はキャンセルを押してください。そうしないとアラームが正しく設定されない可能性があります)",
       "鬧鐘:": "アラーム：",
       "通知:(可能因重開機等因素丟失)":
         "通知：（再起動などの要因で失われる可能性があります）",
       "若想更動，請到Scheduled頁面修改。":
-        "変更したい場合は、Scheduledページで修正してください。", 
+        "変更したい場合は、Scheduledページで修正してください。",
     },
   });
 
@@ -175,11 +178,15 @@ export default function App() {
     const handleVisibilityChange = () => {
       const now = Date.now();
       if (document.hidden) {
-        console.log(`[Inspect-Log] 頁面進入背景/離開前景 at ${new Date(now).toISOString()}`)
+        console.log(
+          `[Inspect-Log] 頁面進入背景/離開前景 at ${new Date(now).toISOString()}`,
+        );
         hasLeftForegroundRef.current = true; //標註曾離開前景
         lastVisibleTimeRef.current = now;
       } else {
-        console.log(`[Inspect-Log] 頁面回到前景 at ${new Date(now).toISOString()}`);
+        console.log(
+          `[Inspect-Log] 頁面回到前景 at ${new Date(now).toISOString()}`,
+        );
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -360,24 +367,34 @@ export default function App() {
 
         const startTime = Date.now(); //DEBUG
         DEBUG1: {
-          console.log("%c[Inspect-Test] 🚀 開始處理鬧鐘設定流程", "color: green; font-weight: bold;");
+          console.log(
+            "%c[Inspect-Test] 🚀 開始處理鬧鐘設定流程",
+            "color: green; font-weight: bold;",
+          );
           // 1. 標記
           hasLeftForegroundRef.current = false;
           //2. 準備跳出 confirm
-          console.log("%c[Inspect-Test] ⏱️ 觸發 Confirm 前的時間: " + new Date(startTime).toISOString(), "color: green; font-weight: bold;");
+          console.log(
+            "%c[Inspect-Test] ⏱️ 觸發 Confirm 前的時間: " +
+              new Date(startTime).toISOString(),
+            "color: green; font-weight: bold;",
+          );
         }
 
+        // 備註：在獨立運作時，跳轉至系統鬧鐘返回後，Android WebView 會自動阻擋原生 confirm() 並回傳 false
+        // 這會剛好觸發 (!userConfirmed) return，達成「自動中斷佇列」的效果，屬預期內的系統防禦行為。
+        console.log("[App.tsx] 7.1 Triggering confirm for alarm setup");
         const userConfirmed = confirm(
           t("即將設定：") +
             "\n\r" +
             (earliestClockItem
-                ?t("鬧鐘:") +
+              ? t("鬧鐘:") +
                 "\n\r" +
                 `  [${padZero(earliestClockItem.time[0])}:${padZero(earliestClockItem.time[1])}] ${earliestClockItem.label}` +
                 "\n\r"
               : "") +
             (exactItems.length > 0
-                ? t("通知:(可能因重開機等因素丟失)") +
+              ? t("通知:(可能因重開機等因素丟失)") +
                 "\n\r" +
                 `${exactItems.map((item) => `  [${item.time[0]}-${padZero(item.time[1])}-${padZero(item.time[2])} ${padZero(item.time[3])}:${padZero(item.time[4])}] ${item.label}`).join("\n\r")}`
               : "") +
@@ -389,29 +406,49 @@ export default function App() {
         DEBUG2: {
           const timeDiffMs = endTime - startTime;
           // 3. 印詳細的 Confirm 互動結果
-          console.group("%c[Inspect-Test] 📊 Confirm 互動結果分析", "color: #ff9900; font-weight: bold;");
-          console.log(`使用者點擊了 ${userConfirmed ? "確認" : "取消"} 按鈕，耗時 ${timeDiffMs} ms`);
-          console.log(`離開前景時間 (Last Visible): ${new Date(lastVisibleTimeRef.current).toISOString()}`);
-          console.log(`期間是否曾離開前景(hasLeftForeground): ${hasLeftForegroundRef.current}`);
+          console.group(
+            "%c[Inspect-Test] 📊 Confirm 互動結果分析",
+            "color: #ff9900; font-weight: bold;",
+          );
+          console.log(
+            `使用者點擊了 ${userConfirmed ? "確認" : "取消"} 按鈕，耗時 ${timeDiffMs} ms`,
+          );
+          console.log(
+            `離開前景時間 (Last Visible): ${new Date(lastVisibleTimeRef.current).toISOString()}`,
+          );
+          console.log(
+            `期間是否曾離開前景(hasLeftForeground): ${hasLeftForegroundRef.current}`,
+          );
           console.groupEnd();
 
           // 4. 判斷是否"中斷後續設定"的核心邏輯
           if (!userConfirmed) {
-            console.log("%c[Inspect-Test] ❌ 使用者取消了鬧鐘設定，終止後續流程", "color: red; font-weight: bold;");
+            console.log(
+              "%c[Inspect-Test] ❌ 使用者取消了鬧鐘設定，終止後續流程",
+              "color: red; font-weight: bold;",
+            );
             return;
           }
 
           // 關鍵判斷：若使用者按下確定，但中間頁面曾經切換到系統鬧鐘/背景
-          if(hasLeftForegroundRef.current) {
-            console.warn("%c[Inspect-Test] ⚠️ 偵測到跳轉至系統鬧鐘/切換背景！強制【中斷】下一個鬧鐘設定。", "color: orange; font-weight: bold;");
+          if (hasLeftForegroundRef.current) {
+            console.warn(
+              "%c[Inspect-Test] ⚠️ 偵測到跳轉至系統鬧鐘/切換背景！強制【中斷】下一個鬧鐘設定。",
+              "color: orange; font-weight: bold;",
+            );
             return; // 強制中斷下一個鬧鐘設定
           }
 
           // 5. 若使用者確認且未中斷，則繼續後續鬧鐘設定流程
-          console.log("%c[Inspect-Test] ✅ 未跳轉背景，繼續執行設定...", "color: green; font-weight: bold;");
+          console.log(
+            "%c[Inspect-Test] ✅ 未跳轉背景，繼續執行設定...",
+            "color: green; font-weight: bold;",
+          );
         }
         if (!userConfirmed) {
-          console.log("[App.tsx] 7. User cancelled setting alarms in TWA 因為跳轉到系統時鐘應該要取消");
+          console.log(
+            "[App.tsx] 7. User cancelled setting alarms in TWA 因為跳轉到系統時鐘應該要取消",
+          );
           return;
         }
 
@@ -571,7 +608,7 @@ export default function App() {
     if (showTutorial) {
       stopTour();
       return; // 因為正在跑 tutorial，所以不需要再跑 product tour，會互相干擾
-      }
+    }
     if (!currentSheet || activeTour) return;
     const completedTours = JSON.parse(
       window.localStorage.getItem("completed_tours") ?? "[]",
@@ -682,7 +719,7 @@ export default function App() {
         <div className="min-h-screen bg-white flex flex-col">
           {/* Header */}
           <div
-            className={`sticky top-0 z-40 border-b border-gray-200 ${runningTask ? "bg-amber-50/95 backdrop-blur-sm" : "bg-white"}`}
+            className={`safe-padding-top sticky top-0 z-40 border-b border-gray-200 ${runningTask ? "bg-amber-50/95 backdrop-blur-sm" : "bg-white"}`}
           >
             <header className="border-b border-gray-200">
               <div

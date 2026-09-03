@@ -13,6 +13,20 @@
   box-sizing: border-box;
 }
 
+/* iPhone 所需 */
+/* 1. 全局或主要 Container 設定頂部安全邊界 */
+.safe-padding-top {
+  padding-top: env(safe-area-inset-top, 20px); /* 預設 20px 備用 */
+}
+
+/* 2. 全局四個方向的安全邊界（若包含底部 Home 條） */
+.safe-area-all {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
 html,
 body {
   overscroll-behavior-y: contain;

@@ -1,9 +1,24 @@
 # Journal
 
 ## [2026-09-03] (2.3.14) 發現如果跳轉到系統鬧鐘，下一個鬧鐘會是假性配置
-先將alert改成 confirm，反正又被play商店要求14天了
-(2.3.15) 發現 confirm 取消後就回不來，應該是 `AQ2TWA.current` 不該早於 confirm 被確定，因為根本就還沒改。
-
+* 先將alert改成 confirm，反正又被play商店要求14天了
+* (2.3.15) 發現 confirm 取消後就回不來，應該是 `AQ2TWA.current` 不該早於 confirm 被確定，因為根本就還沒改。
+- 結果：
+  * [ ] 備註：在獨立運作時，跳轉至系統鬧鐘返回後，Android WebView 會自動阻擋原生 confirm() 並回傳 false
+  * 這會剛好觸發 (!userConfirmed) return，達成「自動中斷佇列」的效果，屬預期內的系統防禦行為。
+* (2.3.16) 
+   * 針對 iPhone 的瀏海加防護，加入了 safe-padding-top 與 safe-area-all 的 CSS 設定，確保在瀏海區域的內容不會被遮擋。
+   * 而 Android App 突然變白頭，根據AI 的建議， 
+``` html
+``` bash
+adb shell am force-stop com.android.chrome
+adb shell pm clear-user-data-cache com.android.chrome
+adb shell pm clear com.yescirculation.nonblockinglife
+```
+這樣看看能否救回來
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: light)" />
+```
 ## [2026-09-02] (2.3.12) 設法修正有的Joyride Tooltip 顯示問題
 1. 修正有的Joyride Tooltip 顯示問題
 2. 調整了 iPhone 捷徑安裝流程的 Joyride 步驟顯示。
