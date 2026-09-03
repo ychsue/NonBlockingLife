@@ -109,7 +109,7 @@ export default function App() {
       "useTwaBridge.twaNotAvailable":
         "There might be an update that caused the channel to break.\n\r" +
         "Please swipe away this app and reopen it to fix this issue.",
-      "即將設定：": "Setting up:",
+      "即將設定：": "Setting up: (Note, if it jumps to the system clock, please press cancel, otherwise the alarm may not be set correctly)",
       "鬧鐘:": "Alarm:",
       "通知:(可能因重開機等因素丟失)":
         "Notification: (may be lost due to reboot or other factors)",
@@ -120,7 +120,7 @@ export default function App() {
       "useTwaBridge.twaNotAvailable":
         "可能有更新，導致channel斷掉。\n\r" +
         "請滑掉這個APP，再重開，好修復這個的問題。",
-      "即將設定：": "即將設定：",
+      "即將設定：": "即將設定：(注意，若他跳轉到系統時鐘，請按取消，否則鬧鐘可能無法正確設定)",
       "鬧鐘:": "鬧鐘:",
       "通知:(可能因重開機等因素丟失)": "通知:(可能因重開機等因素丟失)",
       "若想更動，請到Scheduled頁面修改。": "若想更動，請到Scheduled頁面修改。",
@@ -129,7 +129,7 @@ export default function App() {
       "useTwaBridge.twaNotAvailable":
         "更新の影響でchannelが切断されている可能性があります。\n\r" +
         "このアプリをスワイプして閉じ、再度開くことで問題を修復してください。",
-      "即將設定：": "設定予定：",
+      "即將設定：": "設定予定：(注意、システム時計にジャンプした場合はキャンセルを押してください。そうしないとアラームが正しく設定されない可能性があります)",
       "鬧鐘:": "アラーム：",
       "通知:(可能因重開機等因素丟失)":
         "通知：（再起動などの要因で失われる可能性があります）",
@@ -336,7 +336,7 @@ export default function App() {
         function padZero(num: number): string {
           return num.toString().padStart(2, "0");
         }
-        alert(
+        const userConfirmed = confirm(
           t("即將設定：") +
             "\n\r" +
             (earliestClockItem
@@ -353,7 +353,10 @@ export default function App() {
             "\n\r" +
             t("若想更動，請到Scheduled頁面修改。"),
         );
-
+        if (!userConfirmed) {
+          console.log("[App.tsx] 7. User cancelled setting alarms in TWA 因為跳轉到系統時鐘應該要取消");
+          return;
+        }
         res = await sendRequest(
           "nbl:set-alarms",
           { alarms: [earliestClockItem, ...exactItems].filter(Boolean) },

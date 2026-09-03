@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-09-03] (2.3.14) 發現如果跳轉到系統鬧鐘，下一個鬧鐘會是假性配置
+先將alert改成 confirm，反正又被play商店要求14天了
+
 ## [2026-09-02] (2.3.12) 設法修正有的Joyride Tooltip 顯示問題
 1. 修正有的Joyride Tooltip 顯示問題
 2. 調整了 iPhone 捷徑安裝流程的 Joyride 步驟顯示。
