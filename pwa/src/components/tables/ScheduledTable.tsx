@@ -944,7 +944,9 @@ export function ScheduledTable() {
             </select>
           </label>
 
-          {(import.meta.env.DEV || getDeviceType() === "TWA") && (
+          {(import.meta.env.DEV ||
+            getDeviceType() === "TWA" ||
+            getDeviceType() === "AndroidWebView") && (
             <AlarmSyncTargetsCheckList
               onChange={(v) => {
                 setAlarmSyncTargets(v);
@@ -956,7 +958,8 @@ export function ScheduledTable() {
                 }
               }}
               alarmSyncTargets={alarmSyncTargets}
-              openDialogClicked={() => {setOpenAlarmQueueDialog(true);
+              openDialogClicked={() => {
+                setOpenAlarmQueueDialog(true);
                 if (isRunning && activeStep?.id === "show-alarms") {
                   nextStep();
                 }
@@ -1012,7 +1015,9 @@ export function ScheduledTable() {
                   </option>
                 </select>
               </label>
-              {(import.meta.env.DEV || getDeviceType() === "TWA") && (
+              {(import.meta.env.DEV ||
+                getDeviceType() === "TWA" ||
+                getDeviceType() === "AndroidWebView") && (
                 <AlarmSyncTargetsCheckList
                   onChange={(v) => {
                     setAlarmSyncTargets(v);
@@ -1299,24 +1304,28 @@ export function ScheduledTable() {
       {openAlarmQueueDialog && (
         // 這dialog改成用自制的組件來實現，是自制的
         <>
-        <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-        role="button" onClick={() => setOpenAlarmQueueDialog(false)}></div>
-        <div
-          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0 w-[90%] max-w-125 max-h-[90%] border-none rounded-lg bg-white shadow-xl z-50 overflow-y-none"
-        >
-          <AlarmQueuePanel
-            items={queueItems}
-            onClearQueue={clearQueue}
-            onUpdateItems={async () => {
-              await updateTableBasedOnScheduled(alarmSyncTargets, ONE_YEAR_MS);
-            }}
-            onClickItem={(item) => {
-              setSearchQuery(item.title || "");
-              // close the dialog after clicking an item
-              setOpenAlarmQueueDialog(false);
-            }}
-          />
-        </div>
+          <div
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            role="button"
+            onClick={() => setOpenAlarmQueueDialog(false)}
+          ></div>
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 m-0 w-[90%] max-w-125 max-h-[90%] border-none rounded-lg bg-white shadow-xl z-50 overflow-y-none">
+            <AlarmQueuePanel
+              items={queueItems}
+              onClearQueue={clearQueue}
+              onUpdateItems={async () => {
+                await updateTableBasedOnScheduled(
+                  alarmSyncTargets,
+                  ONE_YEAR_MS,
+                );
+              }}
+              onClickItem={(item) => {
+                setSearchQuery(item.title || "");
+                // close the dialog after clicking an item
+                setOpenAlarmQueueDialog(false);
+              }}
+            />
+          </div>
         </>
       )}
     </div>

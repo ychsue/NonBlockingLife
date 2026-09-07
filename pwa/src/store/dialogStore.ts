@@ -24,8 +24,8 @@ interface DialogSelectField {
 }
 
 export interface DialogConfig {
-  title: string;
-  message: string;
+  title: string | JSX.Element;
+  message: string | JSX.Element;
   inputs?: DialogInputField[];
   selects?: DialogSelectField[];
   actions: DialogAction[];

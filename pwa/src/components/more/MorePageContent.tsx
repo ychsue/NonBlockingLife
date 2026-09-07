@@ -440,7 +440,7 @@ function ExperimentPanel() {
           </div>
         ) : (
           <div className="mt-4 space-y-4">
-            {getDeviceType() === "TWA" ? (
+            {["TWA","AndroidWebView"].includes(getDeviceType()) ? (
               <div className="rounded-lg border border-amber-200 bg-white p-3">
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <h4 className="text-sm font-semibold text-gray-900">

@@ -1,5 +1,24 @@
 # Journal
 
+## [2026-09-07] (2.3.16)
+``` bash
+adb kill-server
+adb start-server
+adb devices
+```
+這樣就可能解決 Chrome://inspect#devices 找不到的問題
+
+## [2026-09-05] (2.3.15)
+1. [x] Bottom Safe Area Adjustment for Android
+   * 已在 App.tsx 的 main 元素上加上 safe-padding-bottom 類別
+2. [ ] 跳去的頁面仍在這個APP，沒有使用 Chrome，也沒有超連結可以跳去，可能要安插一個改用Chrome 打開的方法嗎？
+3. [x] 沒有 bridge， `no port to postMessage`
+   * 用 inject 的方式即可，然後，不能 `postMessage = AndroidBridge.postMessage`，必須使用 `postMessage = (msg) => AndroidBridge.postMessage(msg)` 不然他會說不是呼叫 AndroidBridge 的方法。
+4. [x] 在自己的APP跳自己，沒影響
+5. [ ] 外部跳裡面(含 Widget) 會先開 chrome，再跳轉的樣子
+6. [ ] 因此，我可能要多個 intent， `nonblockinglife://pwa` 來對應 `https://ychsue.github.io/NonBlockingLife/` 的動作
+7. [x] 計時器不出現？ A: 因為 `document.referrer=''`，所以，不能以此來判斷，這個值就算我直接設也沒用，所以，必須宣告另一種類型。
+
 ## [2026-09-03] (2.3.14) 發現如果跳轉到系統鬧鐘，下一個鬧鐘會是假性配置
 * 先將alert改成 confirm，反正又被play商店要求14天了
 * (2.3.15) 發現 confirm 取消後就回不來，應該是 `AQ2TWA.current` 不該早於 confirm 被確定，因為根本就還沒改。

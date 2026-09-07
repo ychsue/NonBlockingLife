@@ -257,7 +257,7 @@ export function getToursList(
       version: 1,
       title: map["tour.setReminderOffset.title"],
       description: map["tour.setReminderOffset.description"],
-      app: "twa",
+      app: "androidWebView",
       steps: [
         {
           id: "open-scheduled",

@@ -20,6 +20,7 @@ function getInitialLocale(): SupportedLocale {
 
 export type AndroidTimerLaunchMode = 'none' | 'show_clock' | 'set_timer'
 
+export const PWA_VERSION_KEY = 'nbl_pwa_version'
 // Bit flags for which system alarm targets db.alarm_queue entries should be synced to.
 export const ALARM_SYNC_TARGET_NONE = 0
 export const ALARM_SYNC_TARGET_CLOCK = 1
@@ -115,6 +116,10 @@ function getInitialCurrentSheet(): AppSheet {
   return 'guide'
 }
 
+function getInitialPwaVersion(): string {
+  return getStorage()?.getItem(PWA_VERSION_KEY) ?? ''
+}
+
 export interface GlobalToast {
   id: number
   message: string
@@ -195,6 +200,9 @@ interface AppState {
 
   fontSizeScale: number
   setFontSizeScale: (scale: number) => void
+
+  pwaVersion: string
+  setPwaVersion: (version: string) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -285,5 +293,11 @@ export const useAppStore = create<AppState>((set) => ({
   setFontSizeScale: (scale) => {
     getStorage()?.setItem(FONT_SIZE_SCALE_KEY, String(scale))
     set({ fontSizeScale: scale })
+  },
+
+  pwaVersion: getInitialPwaVersion(),
+  setPwaVersion: (version: string) => {
+    getStorage()?.setItem(PWA_VERSION_KEY, version)
+    set({ pwaVersion: version })
   },
 }))

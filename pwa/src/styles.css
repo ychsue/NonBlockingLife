@@ -19,6 +19,10 @@
   padding-top: env(safe-area-inset-top, 20px); /* 預設 20px 備用 */
 }
 
+.safe-padding-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 20px); /* 預設 20px 備用 */
+}
+
 /* 2. 全局四個方向的安全邊界（若包含底部 Home 條） */
 .safe-area-all {
   padding-top: env(safe-area-inset-top, 0px);

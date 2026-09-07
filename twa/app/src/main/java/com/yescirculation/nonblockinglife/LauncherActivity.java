@@ -29,6 +29,15 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -37,7 +46,8 @@ public class LauncherActivity extends AppCompatActivity {
 
     private CustomTabsClient mClient;
     private CustomTabsSession mSession;
-    private final String TAG = "TwaPostMessageTester";
+    private final String TAG = "LauncherActivity";
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     // Use the same origin as your PWA host.
     private final Uri URL = Uri.parse("https://ychsue.github.io/NonBlockingLife/");
@@ -344,11 +354,64 @@ public class LauncherActivity extends AppCompatActivity {
                 if (mSession != null) {
                     mSession.postMessage("{\"type\":\"nbl:pong\",\"requestId\":\"" + requestId + "\"}", null);
                 }
+            } else if ("nbl:fetch-ics".equals(type)) {
+                String targetUrl = json.optString("url", null);
+                Log.d(TAG, "Fetching ICS from URL: " + targetUrl);
+                executorService.execute(()-> {
+                    fetchAndReplyIcs(requestId, targetUrl);
+                });
             } else {
                 Log.w(TAG, "Unknown message type: " + type);
             }
         } catch (JSONException e) {
             // Not a JSON message we understand; ignore.
+        }
+    }
+
+    private void fetchAndReplyIcs(String requestId, String targetUrl) {
+        // Implement the logic to fetch the ICS file from the target URL and reply to the session.
+        // This is a placeholder implementation.
+        if (mSession == null) {
+            return;
+        }
+        HttpURLConnection connection = null;
+        try {
+            URL url = new URL(targetUrl);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(10000);
+            int responseCode = connection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                Log.e(TAG, "Failed to fetch ICS: HTTP response code " + responseCode);
+                return;
+            }
+            // 讀取 ICS 內容
+            InputStream inputStream = connection.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuilder icsBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                icsBuilder.append(line).append("\n");
+            }
+            reader.close();
+            String icsContent = icsBuilder.toString();
+
+            // 準備回傳 ICS 內容
+            // 這裡可以添加額外的處理邏輯，例如日曆事件解析等。
+            JSONObject response = new JSONObject();
+            response.put("type", "nbl:fetch-ics-response");
+            response.put("requestId", requestId);
+            response.put("icsContent", icsContent);
+            mSession.postMessage(response.toString(), null);
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to create fetch-ics response", e);
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to fetch ICS content", e);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
     }
 

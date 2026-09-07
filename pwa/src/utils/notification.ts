@@ -40,7 +40,7 @@ export const notify = (
   }
 
   const deviceType = getDeviceType();
-  if (deviceType === "TWA") {
+  if (["TWA", "AndroidWebView"].includes(deviceType)) {
     alert(
       locale == "zh-TW"
         ? `[TWA] 看到這個訊息，表示APP內通路可能出問題，PWA版本(${import.meta.env.__APP_VERSION__})更新也會導致通路斷掉，請關閉所有背景中的此APP，然後再重啟這個APP。謝謝。`

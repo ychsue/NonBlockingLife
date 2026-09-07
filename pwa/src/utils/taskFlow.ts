@@ -6,7 +6,11 @@ import type {
   TaskPoolItem,
 } from "../db/schema";
 import Utils from "../../../gas/src/Utils";
-import { triggerShortcutTimer, getShortcutConfig, getDeviceType } from "./shortcutUtils";
+import {
+  triggerShortcutTimer,
+  getShortcutConfig,
+  getDeviceType,
+} from "./shortcutUtils";
 import { useDialogStore } from "../store/dialogStore";
 import { parseToMinutes } from "./candidateUtils";
 import { useAppStore } from "../store/appStore";
@@ -29,11 +33,17 @@ export async function getRunningTask(): Promise<Dashboard | null> {
   return rows[0] ?? null;
 }
 
-export function shouldPromptForTimerStart(deviceType: ReturnType<typeof getDeviceType>, plannedTimerMinutes: number): boolean {
-  
+export function shouldPromptForTimerStart(
+  deviceType: ReturnType<typeof getDeviceType>,
+  plannedTimerMinutes: number,
+): boolean {
   const timerLaunchMode = useAppStore.getState().androidTimerLaunchMode;
 
-  return deviceType === "TWA" && timerLaunchMode !== "none" && plannedTimerMinutes > 0;
+  return (
+    (deviceType === "TWA" || deviceType === "AndroidWebView") &&
+    timerLaunchMode !== "none" &&
+    plannedTimerMinutes > 0
+  );
 }
 
 export async function startTask(candidate: SelectionCacheItem, note: string) {
@@ -53,11 +63,11 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
     };
   }
 
-  const sourceTable = SOURCE_TABLE_MAP[source]
+  const sourceTable = SOURCE_TABLE_MAP[source];
 
   const now = Date.now();
-  const focusTime = await getFocusTimeBySource(sourceTable, candidate.taskId)
-  const plannedTimerMinutes = resolveStartTimerMinutes(focusTime)
+  const focusTime = await getFocusTimeBySource(sourceTable, candidate.taskId);
+  const plannedTimerMinutes = resolveStartTimerMinutes(focusTime);
   const dashboardRow: Dashboard = {
     taskId: candidate.taskId,
     title: candidate.title,
@@ -66,7 +76,10 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
     startAt: now,
     systemStatus: "DOING",
     // store the planned deadline so the end flow can decide whether the timer was exceeded
-    endAt: plannedTimerMinutes > 0 ? now + plannedTimerMinutes * 60 * 1000 : undefined,
+    endAt:
+      plannedTimerMinutes > 0
+        ? now + plannedTimerMinutes * 60 * 1000
+        : undefined,
   };
 
   await applyChange({
@@ -90,12 +103,17 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
   });
 
   // 如果是 Task_Pool 來源，累加今日使用次數
-  if (source === 'Task_Pool') {
+  if (source === "Task_Pool") {
     const poolTask = await db.task_pool.get(candidate.taskId);
     if (poolTask) {
-      const lastRun = poolTask.lastRunDate ? new Date(poolTask.lastRunDate) : null;
-      const isToday = lastRun && !isNaN(lastRun.getTime()) && lastRun.toDateString() === new Date(now).toDateString();
-      const prevCount = isToday ? (poolTask.usedTodayCount || 0) : 0;
+      const lastRun = poolTask.lastRunDate
+        ? new Date(poolTask.lastRunDate)
+        : null;
+      const isToday =
+        lastRun &&
+        !isNaN(lastRun.getTime()) &&
+        lastRun.toDateString() === new Date(now).toDateString();
+      const prevCount = isToday ? poolTask.usedTodayCount || 0 : 0;
       await applyChange({
         table: "task_pool",
         recordId: candidate.taskId,
@@ -127,20 +145,31 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
     shortcutConfig.timerMinutes = plannedTimerMinutes;
 
     if (shouldPromptForTimerStart(getDeviceType(), plannedTimerMinutes)) {
-      void useDialogStore.getState().openDialog({
-        title: "要不要開始計時器？",
-        message: "這段專注剛開始。要不要直接開啟計時器或時鐘介面？",
-        actions: [
-          { id: "cancel", label: "不用，謝謝" },
-          { id: "open", label: "開啟" },
-        ],
-      }).then(({ actionId }) => {
-        if (actionId === "open") {
-          triggerShortcutTimer(candidate.title ?? "", candidate.taskId, shortcutConfig);
-        }
-      });
+      void useDialogStore
+        .getState()
+        .openDialog({
+          title: "要不要開始計時器？",
+          message: "這段專注剛開始。要不要直接開啟計時器或時鐘介面？",
+          actions: [
+            { id: "cancel", label: "不用，謝謝" },
+            { id: "open", label: "開啟" },
+          ],
+        })
+        .then(({ actionId }) => {
+          if (actionId === "open") {
+            triggerShortcutTimer(
+              candidate.title ?? "",
+              candidate.taskId,
+              shortcutConfig,
+            );
+          }
+        });
     } else {
-      triggerShortcutTimer(candidate.title ?? "", candidate.taskId, shortcutConfig);
+      triggerShortcutTimer(
+        candidate.title ?? "",
+        candidate.taskId,
+        shortcutConfig,
+      );
     }
   }
 
@@ -261,23 +290,43 @@ export async function endTask(endNote: string, isInterrupt = false) {
 
     const timerLaunchMode = useAppStore.getState().androidTimerLaunchMode;
 
-    if (getDeviceType() === "TWA" && timerLaunchMode !== "none") {
-      void useDialogStore.getState().openDialog({
-        title: wasOverdue ? "時間已超過，是否要開始休息？" : "要不要開啟計時器？",
-        message: wasOverdue
-          ? "這段專注已超過預設時限。要不要直接開啟計時器或時鐘介面，幫自己進入休息模式？"
-          : "這段專注似乎提前結束。要不要直接開啟計時器或時鐘介面好結束他？",
-        actions: [
-          { id: "cancel", label: "不用，謝謝" },
-          { id: "open", label: "開啟" },
-        ],
-      }).then(({ actionId }) => {
-        if (actionId === "open") {
-          triggerShortcutTimer(running.title ?? "", running.taskId, shortcutConfig, undefined, "end");
-        }
-      });
+    if (
+      (getDeviceType() === "TWA" || getDeviceType() === "AndroidWebView") &&
+      timerLaunchMode !== "none"
+    ) {
+      void useDialogStore
+        .getState()
+        .openDialog({
+          title: wasOverdue
+            ? "時間已超過，是否要開始休息？"
+            : "要不要開啟計時器？",
+          message: wasOverdue
+            ? "這段專注已超過預設時限。要不要直接開啟計時器或時鐘介面，幫自己進入休息模式？"
+            : "這段專注似乎提前結束。要不要直接開啟計時器或時鐘介面好結束他？",
+          actions: [
+            { id: "cancel", label: "不用，謝謝" },
+            { id: "open", label: "開啟" },
+          ],
+        })
+        .then(({ actionId }) => {
+          if (actionId === "open") {
+            triggerShortcutTimer(
+              running.title ?? "",
+              running.taskId,
+              shortcutConfig,
+              undefined,
+              "end",
+            );
+          }
+        });
     } else {
-      triggerShortcutTimer(running.title ?? "", running.taskId, shortcutConfig, undefined, "end");
+      triggerShortcutTimer(
+        running.title ?? "",
+        running.taskId,
+        shortcutConfig,
+        undefined,
+        "end",
+      );
     }
   }
 
@@ -292,7 +341,14 @@ async function applySourceCompletionUpdates(params: {
   mode: "end" | "record";
   isInterrupt?: boolean;
 }): Promise<{ timerMinutes?: number }> {
-  const { source, taskId, now, duration = 0, mode, isInterrupt = false } = params;
+  const {
+    source,
+    taskId,
+    now,
+    duration = 0,
+    mode,
+    isInterrupt = false,
+  } = params;
 
   if (source === "Task_Pool") {
     if (mode === "record") {
@@ -562,29 +618,29 @@ async function getFocusTimeBySource(
   taskId: string,
 ): Promise<number | undefined> {
   if (sourceTable === "task_pool") {
-    const row = await db.task_pool.get(taskId)
-    return row?.focusTime
+    const row = await db.task_pool.get(taskId);
+    return row?.focusTime;
   }
 
   if (sourceTable === "scheduled") {
-    const row = await db.scheduled.get(taskId)
-    return row?.focusTime
+    const row = await db.scheduled.get(taskId);
+    return row?.focusTime;
   }
 
-  const row = await db.micro_tasks.get(taskId)
-  return row?.focusTime
+  const row = await db.micro_tasks.get(taskId);
+  return row?.focusTime;
 }
 
 function resolveStartTimerMinutes(focusTime: number | undefined): number {
   if (focusTime == null || Number.isNaN(focusTime)) {
-    return DEFAULT_FOCUS_TIME_MINUTES
+    return DEFAULT_FOCUS_TIME_MINUTES;
   }
 
   if (focusTime <= 0) {
-    return 0
+    return 0;
   }
 
-  return Math.floor(focusTime)
+  return Math.floor(focusTime);
 }
 
 function parseRecordMetadata(note: string): {
@@ -684,4 +740,4 @@ export const __taskFlowTestables = {
   resolveStartTimerMinutes,
   parseRecordMetadata,
   resolveRecordDuration,
-}
+};

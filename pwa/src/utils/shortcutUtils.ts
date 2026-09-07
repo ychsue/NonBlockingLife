@@ -1,10 +1,10 @@
-import { useAppStore } from '../store/appStore'
+import { useAppStore } from "../store/appStore";
 
 /**
  * iOS Shortcut 及 Android Automate 相關工具函數
  */
 
-export type AndroidTimerLaunchMode = 'none' | 'show_clock' | 'set_timer'
+export type AndroidTimerLaunchMode = "none" | "show_clock" | "set_timer";
 
 /**
  * 取得 device 資訊，看是 Apple系列 還是 Android 還是 Windows 還是 Linux
@@ -14,12 +14,19 @@ export function getDeviceType():
   | "Shortcuts"
   | "Android"
   | "TWA"
+  | "AndroidWebView"
   | "Windows"
   | "Linux"
   | "Unknown" {
   const userAgent = navigator.userAgent.toLowerCase();
   if (/iphone|ipad|ipod|mac/.test(userAgent)) return "Shortcuts";
-  if (/^android-app:\/\/com.yescirculation.nonblockinglife/.test(document.referrer)) return "TWA";
+  if (
+    /^android-app:\/\/com.yescirculation.nonblockinglife/.test(
+      document.referrer,
+    )
+  )
+    return "TWA";
+  if (window.hasOwnProperty("AndroidBridge")) return "AndroidWebView";
   if (/android/.test(userAgent)) return "Android";
   if (/win/.test(userAgent)) return "Windows";
   if (/linux/.test(userAgent)) return "Linux";
@@ -170,12 +177,12 @@ export function buildAutomateIntentUrl(config: AutomateConfig): string {
   const payloadObj = {
     started: config.started ? "true" : "false",
     timerMinutes: config.timerMinutes.toString(),
-    taskTitle: config.taskTitle ?? ""
+    taskTitle: config.taskTitle ?? "",
   };
-  
+
   // 2. 將物件轉為 JSON 字串並進行網址編碼
   const payloadJson = encodeURIComponent(JSON.stringify(payloadObj));
-  
+
   // 3. 確保您的 Flow 名稱與手機上完全一致（例如您的 Flow 叫 NBL Timer）
   const encodedFlowName = encodeURIComponent(config.flowName);
 
@@ -247,13 +254,12 @@ export function buildTwaTimerUri(
  * 純粹只為了顯示計時器，並不會觸發任何流程
  * 主要用於在 iOS/Android/Windows 上顯示計時器，並不會啟動計時器流程
  */
-export function showTimer(
-): void {
+export function showTimer(): void {
   const deviceType = getDeviceType();
   let timerUrl = "";
   if (deviceType === "Shortcuts") {
     timerUrl = "shortcuts://run-shortcut?name=Show_Timer";
-  } else if (deviceType === "TWA") {
+  } else if (deviceType === "TWA" || deviceType === "AndroidWebView") {
     timerUrl = "nonblockinglife://show-clock";
   } else if (deviceType === "Windows") {
     timerUrl = "ms-clock:timer";
@@ -286,8 +292,13 @@ export function triggerShortcutTimer(
       console.error("Failed to trigger shortcut:", error);
       return false;
     }
-  } else if (deviceType === "TWA") {
-    const timerUri = buildTwaTimerUri(taskTitle, config.timerMinutes, undefined, intent);
+  } else if (deviceType === "TWA" || deviceType === "AndroidWebView") {
+    const timerUri = buildTwaTimerUri(
+      taskTitle,
+      config.timerMinutes,
+      undefined,
+      intent,
+    );
 
     if (!timerUri) {
       console.info("Android timer launch is disabled by current mode.");

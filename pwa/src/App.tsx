@@ -41,6 +41,7 @@ import { AlarmQueueWatcherProvider } from "./components/tour/AlarmQueueWatcher";
 import { useTwaRpc } from "./hooks/useTwaRpc";
 import _, { last } from "lodash";
 import { useTWithMaps } from "./i18n";
+import { strToJsx } from "./components/strToJsx";
 
 type AllPages =
   | SheetName
@@ -65,6 +66,8 @@ export default function App() {
   const locale = useAppStore((state) => state.locale);
   const setLocale = useAppStore((state) => state.setLocale);
   const debugMode = useAppStore((state) => state.debugMode);
+  const pwaVersion = useAppStore((state) => state.pwaVersion);
+  const setPwaVersion = useAppStore((state) => state.setPwaVersion);
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -120,6 +123,8 @@ export default function App() {
         "Notification: (may be lost due to reboot or other factors)",
       "若想更動，請到Scheduled頁面修改。":
         "If you want to make changes, please modify it on the Scheduled page.",
+      "PWA Updated": "PWA Updated",
+      "To New Version": `The update is version ${import.meta.env.__APP_VERSION__}`+ "\n\r**Please note**: The app will soon transition from TWA to WebView to resolve postMessage-related issues and recent status bar color changes. Remember to sync your data to the cloud and then sync it back later.",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -130,6 +135,8 @@ export default function App() {
       "鬧鐘:": "鬧鐘:",
       "通知:(可能因重開機等因素丟失)": "通知:(可能因重開機等因素丟失)",
       "若想更動，請到Scheduled頁面修改。": "若想更動，請到Scheduled頁面修改。",
+      "PWA Updated": "PWA 已更新",
+      "To New Version": `此次更新為${import.meta.env.__APP_VERSION__}`+"\n\r**注意**：近期將會由原本的TWA轉移到WebView，好解決postMessage相關問題與最近狀態列變色的問題，所以，請記得同步您的資料到雲端，到時再同步下來即可。",
     },
     ja: {
       "useTwaBridge.twaNotAvailable":
@@ -142,6 +149,8 @@ export default function App() {
         "通知：（再起動などの要因で失われる可能性があります）",
       "若想更動，請到Scheduled頁面修改。":
         "変更したい場合は、Scheduledページで修正してください。",
+      "PWA Updated": "PWA が更新されました",
+      "To New Version": `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` + "\n\r**注意**：近日中にTWAからWebViewに移行し、postMessage関連の問題や最近のステータスバーの色変更の問題を解決する予定です。データをクラウドに同期し、後で再度同期してください。",
     },
   });
 
@@ -172,6 +181,23 @@ export default function App() {
     earliestClockItem?: AlarmItem2TWA;
     exactItems: AlarmItem2TWA[];
   }>({ earliestClockItem: undefined, exactItems: [] });
+
+  useEffect(() => {
+    if (pwaVersion !== import.meta.env.__APP_VERSION__) {
+      console.log("[App.tsx] AQ2TWA ref initialized:", AQ2TWA.current);
+      openDialog({ 
+        title: strToJsx(t("PWA Updated")), 
+        message: strToJsx(t("To New Version")),
+        actions: [
+          {
+            id: "ok",
+            label: "OK",
+          },
+        ]
+       })
+      setPwaVersion(import.meta.env.__APP_VERSION__);
+    }
+  }, [pwaVersion, setPwaVersion]);
 
   //2. 監聽 Visible DEBUG
   useEffect(() => {
@@ -860,7 +886,7 @@ export default function App() {
           </div>
 
           {/* Main Content */}
-          <main className="flex-1 bg-gray-50">{renderTable()}</main>
+          <main className="flex-1 bg-gray-50 safe-padding-bottom">{renderTable()}</main>
 
           {/* Footer with Dev Tools */}
           {import.meta.env.DEV && (
