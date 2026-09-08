@@ -182,6 +182,16 @@ export function mimicTwaMessageChannel() {
           }),
         );
         break;
+      case "nbl:version":
+        responseType = "nbl:version-response";
+        channel.port2.postMessage(
+          JSON.stringify({
+            type: responseType,
+            version: "NBL 1.2.1", // 模擬的 Android WebView 版本
+            requestId,
+          }),
+        );
+        break;
       default:
         break;
     }

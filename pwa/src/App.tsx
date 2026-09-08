@@ -124,7 +124,9 @@ export default function App() {
       "若想更動，請到Scheduled頁面修改。":
         "If you want to make changes, please modify it on the Scheduled page.",
       "PWA Updated": "PWA Updated",
-      "To New Version": `The update is version ${import.meta.env.__APP_VERSION__}`+ "\n\r**Please note**: The app will soon transition from TWA to WebView to resolve postMessage-related issues and recent status bar color changes. Remember to sync your data to the cloud and then sync it back later.",
+      "To New Version":
+        `The update is version ${import.meta.env.__APP_VERSION__}` +
+        "\n\r**Please note**: The app will soon transition from TWA to WebView to resolve postMessage-related issues and recent status bar color changes. Remember to sync your data to the cloud and then sync it back later.",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -136,7 +138,9 @@ export default function App() {
       "通知:(可能因重開機等因素丟失)": "通知:(可能因重開機等因素丟失)",
       "若想更動，請到Scheduled頁面修改。": "若想更動，請到Scheduled頁面修改。",
       "PWA Updated": "PWA 已更新",
-      "To New Version": `此次更新為${import.meta.env.__APP_VERSION__}`+"\n\r**注意**：近期將會由原本的TWA轉移到WebView，好解決postMessage相關問題與最近狀態列變色的問題，所以，請記得同步您的資料到雲端，到時再同步下來即可。",
+      "To New Version":
+        `此次更新為${import.meta.env.__APP_VERSION__}` +
+        "\n\r**注意**：近期將會由原本的TWA轉移到WebView，好解決postMessage相關問題與最近狀態列變色的問題，所以，請記得同步您的資料到雲端，到時再同步下來即可。",
     },
     ja: {
       "useTwaBridge.twaNotAvailable":
@@ -150,7 +154,9 @@ export default function App() {
       "若想更動，請到Scheduled頁面修改。":
         "変更したい場合は、Scheduledページで修正してください。",
       "PWA Updated": "PWA が更新されました",
-      "To New Version": `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` + "\n\r**注意**：近日中にTWAからWebViewに移行し、postMessage関連の問題や最近のステータスバーの色変更の問題を解決する予定です。データをクラウドに同期し、後で再度同期してください。",
+      "To New Version":
+        `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
+        "\n\r**注意**：近日中にTWAからWebViewに移行し、postMessage関連の問題や最近のステータスバーの色変更の問題を解決する予定です。データをクラウドに同期し、後で再度同期してください。",
     },
   });
 
@@ -185,16 +191,16 @@ export default function App() {
   useEffect(() => {
     if (pwaVersion !== import.meta.env.__APP_VERSION__) {
       console.log("[App.tsx] AQ2TWA ref initialized:", AQ2TWA.current);
-      openDialog({ 
-        title: strToJsx(t("PWA Updated")), 
+      openDialog({
+        title: strToJsx(t("PWA Updated")),
         message: strToJsx(t("To New Version")),
         actions: [
           {
             id: "ok",
             label: "OK",
           },
-        ]
-       })
+        ],
+      });
       setPwaVersion(import.meta.env.__APP_VERSION__);
     }
   }, [pwaVersion, setPwaVersion]);
@@ -238,7 +244,14 @@ export default function App() {
   useEffect(() => {
     if (needToCheckTwaChannel) {
       const timer = setTimeout(() => {
-        sendRequest("nbl:ping", {}, { timeoutMs: 2000, expectResponse: true })
+        sleep(10)
+          .then(() =>
+            sendRequest(
+              "nbl:ping",
+              {},
+              { timeoutMs: 2000, expectResponse: true },
+            ),
+          )
           .then((res) => {
             if ((res as any)?.type === "nbl:pong") {
               console.log("[App.tsx] TWA is available after retry");
@@ -267,6 +280,7 @@ export default function App() {
     try {
       let res: unknown = null;
       // 1. 確認 TWA 連線狀態，若尚未連線則嘗試重新連線
+      await sleep(10);
       res = await sendRequest(
         "nbl:ping",
         {},
@@ -886,7 +900,9 @@ export default function App() {
           </div>
 
           {/* Main Content */}
-          <main className="flex-1 bg-gray-50 safe-padding-bottom">{renderTable()}</main>
+          <main className="flex-1 bg-gray-50 safe-padding-bottom">
+            {renderTable()}
+          </main>
 
           {/* Footer with Dev Tools */}
           {import.meta.env.DEV && (

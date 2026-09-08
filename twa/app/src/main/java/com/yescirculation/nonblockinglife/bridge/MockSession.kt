@@ -1,7 +1,7 @@
 package com.yescirculation.nonblockinglife.bridge
 
 import android.os.Bundle
-import androidx.browser.customtabs.CustomTabsSession
+//import androidx.browser.customtabs.CustomTabsSession
 
 interface MessageSender {
     fun postMessage(message: String, extras: Bundle? = null): Int
@@ -15,8 +15,8 @@ class MockSession(private val bridge: AndroidBridge): MessageSender {
     }
 }
 
-class RealSessionAdapter(val realSession: CustomTabsSession): MessageSender {
-    override fun postMessage(message: String, extras: Bundle?): Int {
-        return realSession.postMessage(message, extras)
-    }
-}
+//class RealSessionAdapter(val realSession: CustomTabsSession): MessageSender {
+//    override fun postMessage(message: String, extras: Bundle?): Int {
+//        return realSession.postMessage(message, extras)
+//    }
+//}

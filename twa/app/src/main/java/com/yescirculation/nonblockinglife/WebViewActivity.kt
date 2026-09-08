@@ -3,35 +3,45 @@ package com.yescirculation.nonblockinglife
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.ApplicationInfo
-import android.media.metrics.Event
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import android.webkit.JavascriptInterface
-import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import com.yescirculation.nonblockinglife.bridge.AndroidBridge
-import com.yescirculation.nonblockinglife.notification.createNotificationChannel
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
+import com.yescirculation.nonblockinglife.bridge.AndroidBridge
+import com.yescirculation.nonblockinglife.notification.createNotificationChannel
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 class WebViewActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
     private lateinit var bridge: AndroidBridge
+    private var isWebLoaded = false
 
-    init {
-//        createNotificationChannel(this)
-    }
-
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 必須在 super.onCreate() 之前安裝 SplashScreen!
+        val splashScreen = installSplashScreen()
+
         super.onCreate(savedInstanceState)
+        // 保持 splashScreen 顯示，直到 WebView 網頁渲染完畢才退場
+        splashScreen.setKeepOnScreenCondition {
+            !isWebLoaded // 當 isWebLoaded 為 false 時，SplashScreen 會顯示
+        }
+
         //強制讓系統狀態列圖示永遠保持"深色"
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
         windowInsetsController.isAppearanceLightStatusBars = true
+
+        createNotificationChannel(this)
 
         webView = WebView(this)
         setContentView(webView)
@@ -44,6 +54,7 @@ class WebViewActivity : AppCompatActivity() {
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
+            cacheMode = android.webkit.WebSettings.LOAD_DEFAULT //善用 HTTP/ServiceWorker 快取
             mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
         }
 
@@ -61,6 +72,7 @@ class WebViewActivity : AppCompatActivity() {
             }
         }
 
+        val context = this
         webView.webViewClient = object : WebViewClient() {
             // 您可以在這裡加入 page finish 的處理，確保每次載入完都重新注入或檢查
 //            override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
@@ -71,6 +83,8 @@ class WebViewActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 bridge.injectAndroidPortMock()
+                // 當網頁載入完成，就將旗標設為true，Splash Screen 就會優雅地淡出關閉！
+                isWebLoaded = true
             }
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val url = request?.url?.toString() ?: return false
@@ -88,6 +102,15 @@ class WebViewActivity : AppCompatActivity() {
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
+                } else if (!url.startsWith(context.getString(R.string.launchUrl))) {
+                    try {
+                        // 建立一個標準的Intent，讓 Android 系統交給預設的 App 開啟(例如 YouTube or Chrome)
+                        val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                        view?.context?.startActivity(intent)
+                    } catch (e: Exception){
+                        e.printStackTrace()
+                    }
+                    return true
                 }
 
                 // 其他一般的 http/https 網址交給 WebView 正常載入
@@ -96,6 +119,73 @@ class WebViewActivity : AppCompatActivity() {
         }
 
         webView.loadUrl(this.getString(R.string.launchUrl)) // 換成您的網址
+
+        // 處理 Back 鍵
+        val backCallback = OnBackInvokedCallback {
+            if (webView.canGoBack()) {
+                webView.goBack()
+            } else {
+                finish()
+            }
+        }
+        onBackInvokedDispatcher.registerOnBackInvokedCallback((OnBackInvokedDispatcher.PRIORITY_DEFAULT), backCallback)
+
+
+        // 處理啟動時的 Intent
+        handleIntent(intent, webView)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        intent?.let { handleIntent(intent, webView) }
+    }
+    private fun handleIntent(intent: Intent?, webView: WebView): Uri? {
+        // 1. 處理分享 (Web Share Target 手動實現)
+        if (intent != null && Intent.ACTION_SEND == intent.action && intent.type != null) {
+            if ("text/plain" == intent.type) {
+                var text = intent.getStringExtra(Intent.EXTRA_TEXT)
+                var title = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+
+                // 當text不是以http開頭的話，需要調整 text 與 title，text原則上由選取的文字再加上http....，而title則是說明來自哪
+                // 所以，title -> text的上半部 + 原title ，而 text -> 原text 下半部，也就是 url 的部分
+                if (text != null && !text.startsWith("http")) {
+                    val indexUrl = text.indexOf("http")
+                    val url = text.substring(indexUrl)
+                    val titleUpper = text.substring(0, indexUrl - 1)
+                    title = titleUpper + (if (title != null && title.length > 10) "" else title)
+                    text = url
+                }
+
+                // 手動構建目標 URL，確保路徑正確
+                // 使用根路徑 + query 參數，避免 GitHub Pages 的子路徑 404
+                val builder =
+                    "https://ychsue.github.io/NonBlockingLife/?action=share-to-inbox".toUri()
+                        .buildUpon()
+
+                if (text != null) {
+                    //builder.appendQueryParameter("text", text);
+                    // 很多 Android App 會把 URL 放在 text 裡面傳過來
+                    builder.appendQueryParameter("url", text)
+                }
+                if (title != null) {
+                    builder.appendQueryParameter("title", title)
+                }
+
+                val url = builder.build()
+                webView.loadUrl(url.toString())
+                return url
+            }
+        }
+
+        // 2. 處理一般的 Deep Link (例如點擊連結開啟 App)
+        if (intent != null && intent.data != null) {
+            webView.loadUrl(intent.data.toString())
+            return intent.data
+        }
+
+        // 3. 預設行為
+        return this.getString(R.string.launchUrl).toUri()
     }
 }
 

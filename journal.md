@@ -1,5 +1,14 @@
 # Journal
 
+## [2026-09-08] (2.3.17)
+1. Notification 要讓前端可以調出來顯示
+2. 一些Dialog 太低，需要設定 `safe-padding-bottom`
+3. 需要 `sleep(10)` 再開始使用 `useTwaRpc()`，因為立即使用可能會導致 Bridge 尚未準備好，造成錯誤。
+4. 去除與 TWA 和 AndroidBrowserHelper 相關的冗餘程式碼
+5. 給予 Widget Provider 不同的 requestCode，避免不同 Widget 點擊時互相覆蓋。
+   * 目前是使用 `(int) System.currentTimeMillis()` 作為 requestCode。不曉得會不會有風險。
+6. 有 splashScreen了。
+
 ## [2026-09-07] (2.3.16)
 ``` bash
 adb kill-server
@@ -11,11 +20,12 @@ adb devices
 ## [2026-09-05] (2.3.15)
 1. [x] Bottom Safe Area Adjustment for Android
    * 已在 App.tsx 的 main 元素上加上 safe-padding-bottom 類別
-2. [ ] 跳去的頁面仍在這個APP，沒有使用 Chrome，也沒有超連結可以跳去，可能要安插一個改用Chrome 打開的方法嗎？
+2. [x] 跳去的YouTube頁面仍在這個APP，沒有使用 Chrome，也沒有超連結可以跳去，可能要安插一個改用Chrome 打開的方法嗎？
+   * 已經改用 YouTube，而其他網頁則使用 Chrome 打開。
 3. [x] 沒有 bridge， `no port to postMessage`
    * 用 inject 的方式即可，然後，不能 `postMessage = AndroidBridge.postMessage`，必須使用 `postMessage = (msg) => AndroidBridge.postMessage(msg)` 不然他會說不是呼叫 AndroidBridge 的方法。
 4. [x] 在自己的APP跳自己，沒影響
-5. [ ] 外部跳裡面(含 Widget) 會先開 chrome，再跳轉的樣子
+5. [x] 外部跳裡面(含 Widget) 會先開 chrome，再跳轉的樣子
 6. [ ] 因此，我可能要多個 intent， `nonblockinglife://pwa` 來對應 `https://ychsue.github.io/NonBlockingLife/` 的動作
 7. [x] 計時器不出現？ A: 因為 `document.referrer=''`，所以，不能以此來判斷，這個值就算我直接設也沒用，所以，必須宣告另一種類型。
 

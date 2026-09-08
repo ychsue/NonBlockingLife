@@ -124,6 +124,11 @@ class AndroidBridge (
                     "{\"type\":\"nbl:pong\",\"requestId\":\"$requestId\"}",
                     null
                 )
+            } else if ("nbl:version" == type) {
+                mSession.postMessage(
+                    "{\"type\":\"nbl:version-response\",\"requestId\":\"$requestId\",\"version\":\"${context.getString(R.string.versionName)}\"}",
+                    null
+                )
             } else if ("nbl:fetch-ics" == type) {
                 val targetUrl = json.optString("url", "")
                 Log.d(TAG, "Fetching ICS from URL: $targetUrl")

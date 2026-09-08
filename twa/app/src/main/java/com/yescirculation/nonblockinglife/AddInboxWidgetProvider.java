@@ -12,12 +12,15 @@ public class AddInboxWidgetProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
-            Intent intent = new Intent(context, LauncherActivity.class);
+            Intent intent = new Intent(context, WebViewActivity.class);
             intent.setData(Uri.parse("https://ychsue.github.io/NonBlockingLife/?action=add&sheet=inbox"));
             intent.setAction(Intent.ACTION_VIEW);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             
-            PendingIntent pendingIntent = PendingIntent.getActivity(context, 2, intent, 
+            // 確保從 Widget 點擊啟動 Activity 時，能夠在新的任務中啟動，並清除頂部的 Activity
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            
+            // requestCode 應該盡量不統一，避免不同 Widget 點擊時互相覆蓋
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, (int) System.currentTimeMillis(), intent, 
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_add_inbox);

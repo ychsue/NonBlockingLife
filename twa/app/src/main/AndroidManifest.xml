@@ -39,83 +39,26 @@
       android:allowBackup="true"
       android:icon="@mipmap/ic_launcher"
       android:label="@string/appName"
-        
-      android:manageSpaceActivity="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
-        
+      android:enableOnBackInvokedCallback="true"
       android:supportsRtl="true"
-      android:theme="@style/Theme.AppCompat.NoActionBar">
+      android:theme="@style/Theme.App.Starting">
         <meta-data
             android:name="asset_statements"
             android:resource="@string/assetStatements" />
-        <meta-data
-            android:name="web_manifest_url"
-            android:value="@string/webManifestUrl" />
-        <meta-data
-            android:name="twa_generator"
-            android:value="@string/generatorApp" />
 
-        <activity android:name="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
-            android:exported="false"
-            android:enabled="true"
-            android:excludeFromRecents="true">
-            <meta-data
-                android:name="android.support.customtabs.trusted.MANAGE_SPACE_URL"
-                android:value="@string/launchUrl" />
-            <intent-filter>
-                <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
+
+<!--      <activity-->
+<!--          android:name=".WebViewActivity"-->
+<!--          android:exported="true">-->
+<!--          &lt;!&ndash; 這裡暫時不加 LAUNCHER filter，避免桌面上出現兩個圖示 &ndash;&gt;-->
+<!--      </activity>-->
 
       <activity
-          android:name=".WebViewActivity"
-          android:exported="true">
-          <!-- 這裡暫時不加 LAUNCHER filter，避免桌面上出現兩個圖示 -->
-      </activity>
-
-      <activity
-        android:name=".LauncherActivity"
+        android:name=".WebViewActivity"
         android:launchMode="singleTask"
         android:label="@string/launcherName"
+        android:theme="@style/Theme.App.Starting"
         android:exported="true">
-
-        <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL"
-            android:value="@string/launchUrl" />
-        <meta-data
-            android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
-            android:resource="@color/colorPrimary" />
-        <meta-data
-            android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR_DARK"
-            android:resource="@color/colorPrimaryDark" />
-        <meta-data
-            android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
-            android:resource="@color/navigationColor" />
-        <meta-data
-            android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR_DARK"
-            android:resource="@color/navigationColorDark" />
-        <meta-data
-            android:name="androidx.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR"
-            android:resource="@color/navigationDividerColor" />
-        <meta-data
-            android:name="androidx.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR_DARK"
-            android:resource="@color/navigationDividerColorDark" />
-        <meta-data android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
-            android:resource="@drawable/splash"/>
-        <meta-data android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
-            android:resource="@color/backgroundColor"/>
-        <meta-data android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
-            android:value="@integer/splashScreenFadeOutDuration"/>
-        <meta-data android:name="android.support.customtabs.trusted.FILE_PROVIDER_AUTHORITY"
-            android:value="@string/providerAuthority"/>
-        <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
-        <meta-data android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
-            android:value="@string/fallbackType" />
-        <meta-data android:name="android.support.customtabs.trusted.SCREEN_ORIENTATION"
-            android:value="@string/orientation"/>
-
-        <meta-data
-            android:name="android.support.customtabs.trusted.METADATA_SHARE_TARGET"
-            android:value='{"action":"/NonBlockingLife/?action=share-to-inbox","method":"GET","enctype":"application/x-www-form-urlencoded","params":{"title":"title","text":"text","url":"url"}}' />
 
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
@@ -139,12 +82,6 @@
 
     </activity>
 
-    <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity" />
-
-    <activity android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
-            android:configChanges="orientation|screenSize" />
-
-
     <activity android:name=".ClockTriggerActivity" android:exported="true"
     android:launchMode="singleTask">
         <intent-filter android:label="Clock Router">
@@ -162,7 +99,7 @@
     </activity>
 
     <activity android:name=".NotificationSettingsActivity" android:exported="true"
-        android:theme="@android:style/Theme.Translucent.NoTitleBar"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar"
         android:excludeFromRecents="true">
         <intent-filter>
             <data android:scheme="nonblockinglife" android:host="notification-settings"/>
@@ -181,31 +118,6 @@
             android:name="android.support.FILE_PROVIDER_PATHS"
             android:resource="@xml/filepaths" />
     </provider>
-
-
-    <service android:name="androidx.browser.customtabs.PostMessageService"
-        android:exported="true"/>
-
-        <!-- Disabled: notification delegation split web/app permission state and kept using
-             Chrome's icon regardless. Replaced by a native postMessage-driven notification
-             in TwaPostMessageTesterActivity instead of TWA delegation.
-        <service
-            android:name=".DelegationService"
-            android:enabled="true"
-            android:exported="true">
-                <meta-data
-                    android:name="android.support.customtabs.trusted.SMALL_ICON"
-                    android:resource="@drawable/ic_notification_icon" />
-
-            <intent-filter>
-                <action android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_SERVICE"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-            </intent-filter>
-        </service>
-
-        <activity android:name="com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity"
-        android:theme="@android:style/Theme.Translucent.NoTitleBar"
-        android:excludeFromRecents="true" /> -->
 
     <receiver android:name=".QueryWidgetProvider" android:exported="true" android:label="NBL Query" android:icon="@android:drawable/ic_menu_search">
         <intent-filter>

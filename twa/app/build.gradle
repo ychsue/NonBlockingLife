@@ -76,9 +76,10 @@ android {
         applicationId "com.yescirculation.nonblockinglife"
         minSdkVersion 26
         targetSdkVersion 36
-        versionCode 14
-        versionName "NBL-1.1.2"
+        versionCode 15
+        versionName "NBL-1.2.1"
 
+        resValue "string", "versionName", versionName
         // The name for the application
         resValue "string", "appName", twaManifest.name
 
@@ -209,7 +210,7 @@ tasks.register('generateShortcutsFile') {
                     'intent'(
                             'android:action': 'android.intent.action.MAIN',
                             'android:targetPackage': twaManifest.applicationId,
-                            'android:targetClass': twaManifest.applicationId + '.LauncherActivity',
+                            'android:targetClass': twaManifest.applicationId + '.WebViewActivity',
                             'android:data': s.url)
                     'categories'('android:name': 'android.intent.category.LAUNCHER')
                 }
@@ -227,8 +228,7 @@ repositories {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     
-        implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.2'
-
     implementation 'androidx.appcompat:appcompat:1.7.1'
     
+    implementation "androidx.core:core-splashscreen:1.0.1"
 }

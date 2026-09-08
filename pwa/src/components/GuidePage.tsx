@@ -7,6 +7,8 @@ import {
   isValidICloudShortcutUrl,
   setNblTimerInstallUrl,
 } from "../utils/shortcutUtils";
+import { useTwaRpc } from "../hooks/useTwaRpc";
+import { sleep } from "../utils/timeUtils";
 
 const SHORTCUTS = [
   {
@@ -103,39 +105,32 @@ export function GuidePage() {
     boolean | null
   >(null);
 
-  const twaPort = useMemo(
-    () =>
-      (
-        window as unknown as {
-          __NBL_TWA_BRIDGE__?: { port: MessagePort | null };
-        }
-      ).__NBL_TWA_BRIDGE__?.port ?? null,
-    [],
-  );
+  const deviceType = useMemo(() => getDeviceType(), []);
+  const { sendRequest } = useTwaRpc();
+  const [androidWebViewVersion, setAndroidWebViewVersion] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!twaPort) return;
+    if (!import.meta.env.DEV && !["TWA", "AndroidWebView"].includes(deviceType))
+      return;
 
-    const handleBridgeMessage = (event: MessageEvent) => {
-      try {
-        const data =
-          typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-        if (data?.type === "nbl:notification-permission-status") {
-          setAndroidNotificationGranted(Boolean(data.granted));
+    // 改用 sendRequest 來取代 twaPort.postMessage
+    sleep(10)
+      .then(() => sendRequest("nbl:query-notification-permission", {}))
+      .then((response: any) => {
+        if (response?.type === "nbl:notification-permission-status") {
+          console.log("Notification permission status response:", response);
+          setAndroidNotificationGranted(Boolean(response.granted));
         }
-      } catch {
-        // Not a JSON message we understand; ignore.
-      }
-    };
-
-    twaPort.addEventListener("message", handleBridgeMessage);
-    twaPort.start?.();
-    twaPort.postMessage(
-      JSON.stringify({ type: "nbl:query-notification-permission" }),
-    );
-
-    return () => twaPort.removeEventListener("message", handleBridgeMessage);
-  }, [twaPort]);
+      });
+    sleep(20)
+      .then(() => sendRequest("nbl:version", {}))
+      .then((response: any) => {
+        if (response?.type === "nbl:version-response") {
+          console.log("Android WebView version response:", response);
+          setAndroidWebViewVersion(response.version ?? null);
+        }
+      });
+  }, [deviceType, sendRequest]);
 
   const handleOpenAndroidNotificationSettings = () => {
     // Chrome (foreground) must issue this navigation itself so Android treats the resulting
@@ -252,6 +247,11 @@ export function GuidePage() {
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <h2 className="text-xl font-bold text-gray-800 mb-2">📘 說明頁</h2>
           <div>version: {import.meta.env.__APP_VERSION__}</div>
+          {(import.meta.env.DEV || ["AndroidWebView"].includes(deviceType)) && (
+            <div className="text-gray-700 leading-relaxed">
+              [Android WebView] version: {androidWebViewVersion}
+            </div>
+          )}
           <p className="text-gray-700 leading-relaxed">
             Non-Blocking Life
             的目的是把任務管理做成「不打斷主線」的日常系統，讓你在 iPhone 與 PWA
@@ -303,7 +303,7 @@ export function GuidePage() {
           </p>
 
           <div className="mt-3">
-            {twaPort ? (
+            {["TWA", "AndroidWebView"].includes(deviceType) ? (
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <button
                   type="button"

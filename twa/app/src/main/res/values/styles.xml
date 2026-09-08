@@ -12,13 +12,21 @@
 -->
 
 <resources>
-    <!-- Theme to create a blank screen while the TWA is opening -->
-    <style name="Theme.LauncherActivity" parent="android:style/Theme.Translucent.NoTitleBar">
-        <item name="android:windowAnimationStyle">@null</item>
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:backgroundDimEnabled">false</item>
+    <!-- 原本的 App 主題 -->
+    <style name="Theme.AppCompat.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+    </style>
+
+    <!-- 🌟 新增：Splash Screen 專用主題 -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- 1. 啟動時的視窗背景顏色 (可設為純白 #FFFFFF 或您的 Brand Color) -->
+        <item name="windowSplashScreenBackground">#FFFFFF</item>
+
+        <!-- 2. 中間顯示的 App Logo 圖示 (預設可放大至 108dp x 108dp) -->
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+
+        <!-- 3. Splash Screen 結束後，自動切換回原本的 App 主題 -->
+        <item name="postSplashScreenTheme">@style/Theme.AppCompat.NoActionBar</item>
     </style>
 </resources>
