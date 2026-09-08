@@ -8,6 +8,10 @@
 5. 給予 Widget Provider 不同的 requestCode，避免不同 Widget 點擊時互相覆蓋。
    * 目前是使用 `(int) System.currentTimeMillis()` 作為 requestCode。不曉得會不會有風險。
 6. 有 splashScreen了。
+7. 補上一個錯誤修正，修正了 AlarmReceiver 在 WebView 中無法正確觸發通知的問題。要多 `.alarm` 才行，因為我放在 `alarm` 子目錄下。
+```xml
+    <receiver android:name=".alarm.AlarmReceiver" android:exported="false" />
+```
 
 ## [2026-09-07] (2.3.16)
 ``` bash

@@ -1,6 +1,7 @@
 package com.yescirculation.nonblockinglife.alarm
 
 import android.Manifest
+import android.util.Log
 import com.yescirculation.nonblockinglife.R
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -10,6 +11,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -17,16 +19,19 @@ import com.yescirculation.nonblockinglife.WebViewActivity
 
 /** Fires when an [ExactAlarmScheduler]-scheduled alarm is due; shows the alarm as a notification.  */
 class AlarmReceiver : BroadcastReceiver() {
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onReceive(context: Context, intent: Intent) {
         val id = intent.getIntExtra(EXTRA_ALARM_ID, System.currentTimeMillis().toInt())
         val label = intent.getStringExtra(EXTRA_LABEL)
+        Log.d("AlarmReceiver", "鬧鐘觸發！ID: $id, Label: $label")
         showAlarmNotification(context, id, label)
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun showAlarmNotification(context: Context, id: Int, label: String?) {
         ensureChannel(context)
-
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+        val permission =ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+        if (permission
             != PackageManager.PERMISSION_GRANTED
         ) {
             return

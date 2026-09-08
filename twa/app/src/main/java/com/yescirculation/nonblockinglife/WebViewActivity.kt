@@ -121,15 +121,19 @@ class WebViewActivity : AppCompatActivity() {
         webView.loadUrl(this.getString(R.string.launchUrl)) // 換成您的網址
 
         // 處理 Back 鍵
-        val backCallback = OnBackInvokedCallback {
-            if (webView.canGoBack()) {
-                webView.goBack()
-            } else {
-                finish()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val backCallback = OnBackInvokedCallback {
+                if (webView.canGoBack()) {
+                    webView.goBack()
+                } else {
+                    finish()
+                }
             }
+            onBackInvokedDispatcher.registerOnBackInvokedCallback(
+                (OnBackInvokedDispatcher.PRIORITY_DEFAULT),
+                backCallback
+            )
         }
-        onBackInvokedDispatcher.registerOnBackInvokedCallback((OnBackInvokedDispatcher.PRIORITY_DEFAULT), backCallback)
-
 
         // 處理啟動時的 Intent
         handleIntent(intent, webView)

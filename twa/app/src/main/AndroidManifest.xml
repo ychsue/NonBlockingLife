@@ -148,7 +148,7 @@
             android:resource="@xml/widget_combined_info" />
     </receiver>
 
-    <receiver android:name=".AlarmReceiver" android:exported="false" />
+    <receiver android:name=".alarm.AlarmReceiver" android:exported="false" />
 
   </application>
 </manifest>
