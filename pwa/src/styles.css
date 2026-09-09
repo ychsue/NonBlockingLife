@@ -70,6 +70,7 @@ body {
 
 button,
 a,
+dialog,
 [role="button"] {
   cursor: pointer;
   touch-action: manipulation;

@@ -49,6 +49,8 @@ function mapSourceToSheet(source?: string): SheetName | null {
 }
 
 export function SelectionCacheTable() {
+  console.log("[SelectionCacheTable] Re-render triggered!", new Date().toISOString());
+  
   const [rows, setRows] = useDebouncedState<SelectionCacheItem[]>([], 300); // 防抖 300ms，避免頻繁更新 UI
   const [loading, setLoading] = useState(true);
   const [columnVisibility, setColumnVisibility] = useState<
@@ -100,6 +102,7 @@ export function SelectionCacheTable() {
   const [conflictScheduled, setConflictScheduled] = useState<ScheduledItem[]>([]);
 
   const globalDialogConfig = useDialogStore((state) => state.dialogConfig);
+  const [isInitialLoaded, setIsInitialLoaded] = useState(false);
 
   const locale = useAppStore((state) => state.locale);
   const handleDialogButtonTouchEnd = useCallback(
@@ -127,6 +130,7 @@ export function SelectionCacheTable() {
       await loadCandidates();
       await loadRunningTask();
       await handleRefreshCandidates(); //想說當進入此頁面的一開始就讓它更新
+      setIsInitialLoaded(true);
     };
     refresh(); //進來就執行
     // 在 visibilitychange 與 focus 事件中也會觸發更新，避免長時間停留在此頁面時，候選任務列表過舊
@@ -155,9 +159,11 @@ export function SelectionCacheTable() {
 
   // 當有運行中的任務時，自動顯示 EndDialog（除非是通過 URL action 觸發）
   useEffect(() => {
+    if (!isInitialLoaded) return;
+    console.log("Initial load complete, updating end dialog state.");
     setShowEndDialog(!!runningTask || isInterruptMode);
     updateTakeTime(runningTask);
-  }, [runningTask, isInterruptMode, setShowEndDialog, updateTakeTime]);
+  }, [runningTask, isInterruptMode, isInitialLoaded, setShowEndDialog, updateTakeTime]);
 
   // 若使用者切到別的瀏覽器分頁再回來，或停留在本頁一段時間，仍可更新已執行時間
   useEffect(() => {
