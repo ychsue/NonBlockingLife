@@ -1,5 +1,12 @@
 # Journal
 
+## [2026-09-09] (2.3.18) & (NBL-1.2.1) 上傳
+1. [GuidePage.tsx](pwa\src\components\GuidePage.tsx) 通知權限更新後，不會更新的bug，修正看看。
+2. [App.tsx](pwa\src\App.tsx) 讓他當使用者回來時 (visibility change) 觸發相應的 queueItem更新，好觸發鬧鐘。
+3. [styles.css](pwa\src\styles.css) 調整了一些樣式，確保safe area 的內容不會被遮擋。
+4. [WebViewActivity.kt](twa\app\src\main\java\com\yescirculation\nonblockinglife\WebViewActivity.kt) 自己給底部 navigation bar 加上白色遮罩，還得跟著手機轉動而跑。
+5. 準備上傳到 play 商店封閉測試
+
 ## [2026-09-08] (2.3.17)
 1. Notification 要讓前端可以調出來顯示
 2. 一些Dialog 太低，需要設定 `safe-padding-bottom`

@@ -108,6 +108,7 @@ export function GuidePage() {
   const deviceType = useMemo(() => getDeviceType(), []);
   const { sendRequest } = useTwaRpc();
   const [androidWebViewVersion, setAndroidWebViewVersion] = useState<string | null>(null);
+  const [refreshAndroidWebViewInfo, setRefreshAndroidWebViewInfo] = useState(false);
 
   useEffect(() => {
     if (!import.meta.env.DEV && !["TWA", "AndroidWebView"].includes(deviceType))
@@ -130,12 +131,14 @@ export function GuidePage() {
           setAndroidWebViewVersion(response.version ?? null);
         }
       });
-  }, [deviceType, sendRequest]);
+    setRefreshAndroidWebViewInfo(false);
+  }, [deviceType, sendRequest, refreshAndroidWebViewInfo]);
 
   const handleOpenAndroidNotificationSettings = () => {
     // Chrome (foreground) must issue this navigation itself so Android treats the resulting
     // Activity start as user-initiated; a postMessage from our background process gets blocked.
     window.location.href = "nonblockinglife://notification-settings";
+    sleep(100).then(() => setRefreshAndroidWebViewInfo(true));
   };
 
   useEffect(() => {

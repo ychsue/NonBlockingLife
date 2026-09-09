@@ -3,21 +3,30 @@ package com.yescirculation.nonblockinglife
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.Gravity
+import android.view.View
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.FrameLayout
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
-import androidx.core.view.WindowCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import com.yescirculation.nonblockinglife.bridge.AndroidBridge
 import com.yescirculation.nonblockinglife.notification.createNotificationChannel
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.graphics.toColorInt
 
 class WebViewActivity : AppCompatActivity() {
 
@@ -31,20 +40,76 @@ class WebViewActivity : AppCompatActivity() {
         // 必須在 super.onCreate() 之前安裝 SplashScreen!
         val splashScreen = installSplashScreen()
 
+        // 啟用 Edge-to-Edge 並設定導覽列為半透明色 (例如 50% 透明的白色)
+        // 這能讓 WebView 延伸到導覽列下方，同時確保導覽按鈕清晰可見
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(
+                Color.TRANSPARENT,
+                Color.TRANSPARENT
+            ),
+//            navigationBarStyle = SystemBarStyle.light(
+//                Color.parseColor("#80FFFFFF"), // 淺色主題下的半透明背景
+//                Color.parseColor("#80000000")  // 深色主題下的半透明背景
+//            )
+        )
+
         super.onCreate(savedInstanceState)
         // 保持 splashScreen 顯示，直到 WebView 網頁渲染完畢才退場
         splashScreen.setKeepOnScreenCondition {
             !isWebLoaded // 當 isWebLoaded 為 false 時，SplashScreen 會顯示
         }
 
-        //強制讓系統狀態列圖示永遠保持"深色"
-        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-        windowInsetsController.isAppearanceLightStatusBars = true
-
         createNotificationChannel(this)
 
+        // 1. 建立根容器以支援自定義導覽列遮罩
+        val rootLayout = FrameLayout(this)
         webView = WebView(this)
-        setContentView(webView)
+        webView.layoutParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
+        rootLayout.addView(webView)
+
+        // 2. 建立自定義導覽列半透明遮罩 (Scrim)
+        val navBarScrim = View(this).apply {
+            // 根據主題設定半透明底色 (這裡預設淺色半透明，可視需求調整)
+            setBackgroundColor("#93FFFFFF".toColorInt())
+            isClickable = false
+            isFocusable = false
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        }
+        rootLayout.addView(navBarScrim)
+
+        setContentView(rootLayout)
+
+        // 3. 監聽導覽列位置，自動追蹤底部或側邊
+        ViewCompat.setOnApplyWindowInsetsListener(rootLayout) { _, insets ->
+            val navInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            navBarScrim.updateLayoutParams<FrameLayout.LayoutParams> {
+                when {
+                    navInsets.bottom > 0 -> {
+                        gravity = Gravity.BOTTOM
+                        width = FrameLayout.LayoutParams.MATCH_PARENT
+                        height = navInsets.bottom
+                    }
+                    navInsets.right > 0 -> {
+                        gravity = Gravity.END
+                        width = navInsets.right
+                        height = FrameLayout.LayoutParams.MATCH_PARENT
+                    }
+                    navInsets.left > 0 -> {
+                        gravity = Gravity.START
+                        width = navInsets.left
+                        height = FrameLayout.LayoutParams.MATCH_PARENT
+                    }
+                    else -> {
+                        width = 0
+                        height = 0
+                    }
+                }
+            }
+            insets
+        }
 
         // 開啟 WebView 遠端偵錯功能，Release 要拿掉
         if (0 != (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE)) {

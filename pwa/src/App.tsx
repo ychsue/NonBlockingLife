@@ -205,28 +205,6 @@ export default function App() {
     }
   }, [pwaVersion, setPwaVersion]);
 
-  //2. 監聽 Visible DEBUG
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      const now = Date.now();
-      if (document.hidden) {
-        console.log(
-          `[Inspect-Log] 頁面進入背景/離開前景 at ${new Date(now).toISOString()}`,
-        );
-        hasLeftForegroundRef.current = true; //標註曾離開前景
-        lastVisibleTimeRef.current = now;
-      } else {
-        console.log(
-          `[Inspect-Log] 頁面回到前景 at ${new Date(now).toISOString()}`,
-        );
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, []);
-
   // 如果 alarmSyncTargets 有變化，則更新 db.alarm_queue 的狀態
   useEffect(() => {
     if (alarmSyncTargets === ALARM_SYNC_TARGET_NONE) return;
@@ -515,6 +493,29 @@ export default function App() {
 
   useEffect(() => {
     void syncTwaSettings();
+  }, [syncTwaSettings]);
+
+  //2. 監聽 Visible DEBUG
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const now = Date.now();
+      if (document.hidden) {
+        console.log(
+          `[Inspect-Log] 頁面進入背景/離開前景 at ${new Date(now).toISOString()}`,
+        );
+        hasLeftForegroundRef.current = true; //標註曾離開前景
+        lastVisibleTimeRef.current = now;
+      } else {
+        console.log(
+          `[Inspect-Log] 頁面回到前景 at ${new Date(now).toISOString()}`,
+        );
+        void updateTableBasedOnScheduled(alarmSyncTargets); // 利用更新 alarm queueItems 的方式來同步 UI
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [syncTwaSettings]);
 
   // For Global Dialog
