@@ -126,7 +126,8 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: The app has just transitioned from TWA to WebView, and therefore no longer shares the database with Chrome. Remember to sync your data to the cloud and then sync it back later.",
+        "\n\r**Please note**: The app has just transitioned from TWA to WebView, and therefore no longer shares the database with Chrome. Remember to sync your data to the cloud and then sync it back later."+
+        "\n\r**Note 2**: Attempted to fix the issue where clicking on the Candidates page in WebView after a cold start does not work.",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -140,7 +141,8 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：剛剛由原本的TWA轉移到WebView，因此，與chrome的資料庫不再共用，所以，請記得同步您的資料到雲端，到時再同步下來即可。",
+        "\n\r**注意**：剛剛由原本的TWA轉移到WebView，因此，與Chrome的資料庫不再共用，所以，請記得同步您的資料到雲端，到時再同步下來即可。" +
+        "\n\r**注意2**：設法修正WebView 裡Candidates 頁面的冷啟動後點擊問題",
     },
     ja: {
       "useTwaBridge.twaNotAvailable":
@@ -156,7 +158,8 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：さっき元のTWAからWebViewに移行したので、Chromeのデータベースとはもはや共有されません。だから、データをクラウドに同期しておくのを忘れずに、後でまた同期すれば大丈夫です。",
+        "\n\r**注意**：さっき元のTWAからWebViewに移行したので、Chromeのデータベースとはもはや共有されません。だから、データをクラウドに同期しておくのを忘れずに、後でまた同期すれば大丈夫です。"+
+        "\n\r**注意2**：WebViewの中のCandidatesページで、コールドスタート後にクリックする問題をなんとか修正する予定です。",
     },
   });
 
@@ -189,7 +192,7 @@ export default function App() {
   }>({ earliestClockItem: undefined, exactItems: [] });
 
   useEffect(() => {
-    if (pwaVersion !== import.meta.env.__APP_VERSION__) {
+    if ( import.meta.env.DEV || pwaVersion !== import.meta.env.__APP_VERSION__) {
       console.log("[App.tsx] AQ2TWA ref initialized:", AQ2TWA.current);
       openDialog({
         title: strToJsx(t("PWA Updated")),

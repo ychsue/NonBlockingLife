@@ -6,7 +6,8 @@
 3. [styles.css](pwa\src\styles.css) 調整了一些樣式，確保safe area 的內容不會被遮擋。
 4. [WebViewActivity.kt](twa\app\src\main\java\com\yescirculation\nonblockinglife\WebViewActivity.kt) 自己給底部 navigation bar 加上白色遮罩，還得跟著手機轉動而跑。
 5. 準備上傳到 play 商店封閉測試
-6. [ ] 針對 SelectionCacheTable 的初始載入與重新渲染邏輯進行優化，確保在初始資料尚未加載完成前，不會觸發不必要的 UI 更新。
+6. [ ] (2.3.19) 針對 SelectionCacheTable 的初始載入與重新渲染邏輯進行優化，確保在初始資料尚未加載完成前，不會觸發不必要的 UI 更新。
+   * [SelectionCacheTable.tsx](pwa\src\components\tables\SelectionCacheTable.tsx) 不監聽 focus，因為在 WebView 中，頁面可能有存在但沒有獲得 focus，點了才會觸發相應的更新。這會造成不必要的重新 loading。
 
 ## [2026-09-08] (2.3.17)
 1. Notification 要讓前端可以調出來顯示

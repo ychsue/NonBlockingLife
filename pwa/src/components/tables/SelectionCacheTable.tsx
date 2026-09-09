@@ -1,6 +1,13 @@
-import { InterruptConfirmDialog } from '../InterruptConfirmDialog'
-import { TaskSearchDialog } from '../TaskSearchDialog'
-import { useMemo, useState, useEffect, useRef, useCallback, type TouchEvent } from "react";
+import { InterruptConfirmDialog } from "../InterruptConfirmDialog";
+import { TaskSearchDialog } from "../TaskSearchDialog";
+import {
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  type TouchEvent,
+} from "react";
 import {
   createColumnHelper,
   flexRender,
@@ -8,7 +15,11 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { applyChange, db } from "../../db/index";
-import type { Dashboard, SelectionCacheItem, ScheduledItem } from "../../db/schema";
+import type {
+  Dashboard,
+  SelectionCacheItem,
+  ScheduledItem,
+} from "../../db/schema";
 import {
   calculateCandidates,
   minutesToTimeString,
@@ -33,10 +44,10 @@ import {
   handleDialogTextFieldInteractionEnd,
   resetDialogTextInteractionState,
 } from "../../utils/dialogInteractionUtils";
-import { useDialogStore } from '../../store/dialogStore';
-import { useDebouncedState } from '../../hooks/useDebouncedState';
-import { notifies } from '../../utils/notification';
-import { showTimer } from '../../utils/shortcutUtils';
+import { useDialogStore } from "../../store/dialogStore";
+import { useDebouncedState } from "../../hooks/useDebouncedState";
+import { notifies } from "../../utils/notification";
+import { showTimer } from "../../utils/shortcutUtils";
 
 const DEV_CLIENT_ID = "dev-selection-cache";
 const columnHelper = createColumnHelper<SelectionCacheItem>();
@@ -49,8 +60,11 @@ function mapSourceToSheet(source?: string): SheetName | null {
 }
 
 export function SelectionCacheTable() {
-  console.log("[SelectionCacheTable] Re-render triggered!", new Date().toISOString());
-  
+  console.log(
+    "[SelectionCacheTable] Re-render triggered!",
+    new Date().toISOString(),
+  );
+
   const [rows, setRows] = useDebouncedState<SelectionCacheItem[]>([], 300); // 防抖 300ms，避免頻繁更新 UI
   const [loading, setLoading] = useState(true);
   const [columnVisibility, setColumnVisibility] = useState<
@@ -77,16 +91,26 @@ export function SelectionCacheTable() {
   const runningTask = useAppStore((state) => state.runningTask);
   const loadRunningTask = useAppStore((state) => state.loadRunningTask);
 
-  const setCurrentSheet = useAppStore((state) => state.setCurrentSheet)
-  const setPendingEditIntent = useAppStore((state) => state.setPendingEditIntent)
+  const currentSheet = useAppStore((state) => state.currentSheet);
+  const setCurrentSheet = useAppStore((state) => state.setCurrentSheet);
+  const setPendingEditIntent = useAppStore(
+    (state) => state.setPendingEditIntent,
+  );
 
-  const showTaskSearchDialog = useAppStore((state) => state.showTaskSearchDialog)
-  const setShowTaskSearchDialog = useAppStore((state) => state.setShowTaskSearchDialog)
-  const setTaskSearchInitQuery = useAppStore((state) => state.setTaskSearchInitQuery)
+  const showTaskSearchDialog = useAppStore(
+    (state) => state.showTaskSearchDialog,
+  );
+  const setShowTaskSearchDialog = useAppStore(
+    (state) => state.setShowTaskSearchDialog,
+  );
+  const setTaskSearchInitQuery = useAppStore(
+    (state) => state.setTaskSearchInitQuery,
+  );
 
-  const [showInterruptConfirmDialog, setShowInterruptConfirmDialog] = useState(false)
+  const [showInterruptConfirmDialog, setShowInterruptConfirmDialog] =
+    useState(false);
 
-  const t = useT()
+  const t = useT();
 
   // 本地狀態（非持久化）
   const [startNote, setStartNote] = useState("");
@@ -99,7 +123,9 @@ export function SelectionCacheTable() {
   const [takeTime, setTakeTime] = useState("");
   const [jumpToSourceChecked, setJumpToSourceChecked] = useState(false);
   const [showRecordDialog, setShowRecordDialog] = useState(false);
-  const [conflictScheduled, setConflictScheduled] = useState<ScheduledItem[]>([]);
+  const [conflictScheduled, setConflictScheduled] = useState<ScheduledItem[]>(
+    [],
+  );
 
   const globalDialogConfig = useDialogStore((state) => state.dialogConfig);
   const [isInitialLoaded, setIsInitialLoaded] = useState(false);
@@ -126,6 +152,7 @@ export function SelectionCacheTable() {
 
   // 初始載入
   useEffect(() => {
+    if (currentSheet !== "selection_cache") return; //因為 focus 會與WebView 的 focus 機制衝突，她可以有頁面，卻沒有 focus，點了才 focus
     const refresh = async () => {
       await loadCandidates();
       await loadRunningTask();
@@ -139,13 +166,13 @@ export function SelectionCacheTable() {
         refresh();
       }
     };
-    window.addEventListener("focus", refresh);
+    // window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
-      window.removeEventListener("focus", refresh);
+      // window.removeEventListener("focus", refresh);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [currentSheet]);
 
   useEffect(() => {
     const dialog = startDialogRef.current;
@@ -163,10 +190,17 @@ export function SelectionCacheTable() {
     console.log("Initial load complete, updating end dialog state.");
     setShowEndDialog(!!runningTask || isInterruptMode);
     updateTakeTime(runningTask);
-  }, [runningTask, isInterruptMode, isInitialLoaded, setShowEndDialog, updateTakeTime]);
+  }, [
+    runningTask,
+    isInterruptMode,
+    isInitialLoaded,
+    setShowEndDialog,
+    updateTakeTime,
+  ]);
 
   // 若使用者切到別的瀏覽器分頁再回來，或停留在本頁一段時間，仍可更新已執行時間
   useEffect(() => {
+    if (currentSheet !== "selection_cache") return; //因為 focus 會與WebView 的 focus 機制衝突，她可以有頁面，卻沒有 focus，點了才 focus
     if (!runningTask) {
       setTakeTime("");
       return;
@@ -184,15 +218,15 @@ export function SelectionCacheTable() {
       }
     };
 
-    window.addEventListener("focus", refresh);
+    // window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       window.clearInterval(intervalId);
-      window.removeEventListener("focus", refresh);
+      // window.removeEventListener("focus", refresh);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [runningTask, updateTakeTime]);
+  }, [runningTask, updateTakeTime, currentSheet]);
 
   useEffect(() => {
     const dialog = endDialogRef.current;
@@ -208,7 +242,14 @@ export function SelectionCacheTable() {
     }
     handleEndDialogState(dialog);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showEndDialog, isInterruptMode, endDialogRef.current, showInterruptConfirmDialog, showTaskSearchDialog, globalDialogConfig]);
+  }, [
+    showEndDialog,
+    isInterruptMode,
+    endDialogRef.current,
+    showInterruptConfirmDialog,
+    showTaskSearchDialog,
+    globalDialogConfig,
+  ]);
 
   useEffect(() => {
     const dialog = recordDialogRef.current;
@@ -232,11 +273,22 @@ export function SelectionCacheTable() {
 
   const handleEndDialogState = (dialog: HTMLDialogElement) => {
     // Suppress native endDialog while InterruptConfirmDialog or TaskSearchDialog is on top
-    if (showEndDialog && !showInterruptConfirmDialog && !showTaskSearchDialog && !!!globalDialogConfig) {
+    if (
+      showEndDialog &&
+      !showInterruptConfirmDialog &&
+      !showTaskSearchDialog &&
+      !!!globalDialogConfig
+    ) {
       if (!dialog.open) {
         dialog.showModal();
       }
-    } else if (dialog.open && (!isInterruptMode || showInterruptConfirmDialog || showTaskSearchDialog || globalDialogConfig)) {
+    } else if (
+      dialog.open &&
+      (!isInterruptMode ||
+        showInterruptConfirmDialog ||
+        showTaskSearchDialog ||
+        globalDialogConfig)
+    ) {
       dialog.close();
     }
   };
@@ -247,8 +299,8 @@ export function SelectionCacheTable() {
       const data = await db.selection_cache.toArray();
       // 按得分降序排列
       const sorted = data.sort((a, b) => {
-        const aInterrupted = a.status === 'INTERRUPTED' ? 1 : 0;
-        const bInterrupted = b.status === 'INTERRUPTED' ? 1 : 0;
+        const aInterrupted = a.status === "INTERRUPTED" ? 1 : 0;
+        const bInterrupted = b.status === "INTERRUPTED" ? 1 : 0;
         if (bInterrupted !== aInterrupted) return bInterrupted - aInterrupted;
         return (b.score || 0) - (a.score || 0);
       });
@@ -318,11 +370,11 @@ export function SelectionCacheTable() {
       const now = Date.now();
       const conflicts = scheduledData.filter(
         (t) =>
-          (t.status === 'WAITING' || t.status === 'PENDING') &&
+          (t.status === "WAITING" || t.status === "PENDING") &&
           t.nextRun != null &&
           t.deadline != null &&
           t.nextRun > t.deadline &&
-          t.deadline < now // 到期才展示，請使用者修改
+          t.deadline < now, // 到期才展示，請使用者修改
       );
       setConflictScheduled(conflicts);
 
@@ -333,13 +385,12 @@ export function SelectionCacheTable() {
     } finally {
       setRefreshing(false);
     }
-  }, [setRefreshing, loadCandidates, setConflictScheduled,]);
-
+  }, [setRefreshing, loadCandidates, setConflictScheduled]);
 
   // 點擊任務行，開啟"開始任務"對話框
   const handleRowClick = (taskId: string) => {
     if (runningTask) {
-      setWarning(t('candidates.warnAlreadyRunning'));
+      setWarning(t("candidates.warnAlreadyRunning"));
       return;
     }
     setEditingCandidate(taskId);
@@ -393,7 +444,10 @@ export function SelectionCacheTable() {
       setWarning("");
       await loadRunningTask();
 
-      notifies.taskStarted(selectedTask.title ?? selectedTask.taskId ?? '', locale);
+      notifies.taskStarted(
+        selectedTask.title ?? selectedTask.taskId ?? "",
+        locale,
+      );
       // 可選：自動刷新候選列表，或讓用戶手動刷新
       // await handleRefreshCandidates()
     } catch (err) {
@@ -448,7 +502,7 @@ export function SelectionCacheTable() {
 
   const handleConfirmEnd = async () => {
     try {
-      const title = "✅" + (runningTask?.title ?? runningTask?.taskId ?? '');
+      const title = "✅" + (runningTask?.title ?? runningTask?.taskId ?? "");
       notifies.taskEnded(title, locale);
 
       const result = await endTask(endNote);
@@ -480,7 +534,9 @@ export function SelectionCacheTable() {
         setWarning(result.message);
         return;
       }
-      const body = t("interrupt.confirm.notify", { task: runningTask?.title ?? runningTask?.taskId ?? '🧠 ' });
+      const body = t("interrupt.confirm.notify", {
+        task: runningTask?.title ?? runningTask?.taskId ?? "🧠 ",
+      });
       const title = t("candidates.interrupt");
       notifies.taskStarted(title, body);
       if ("payload" in result && result.payload) {
@@ -498,14 +554,13 @@ export function SelectionCacheTable() {
   };
 
   const handleInterruptClick = () => {
-    setShowInterruptConfirmDialog(true)
+    setShowInterruptConfirmDialog(true);
   };
 
   const handleOpenTaskSearch = () => {
-    setTaskSearchInitQuery('')
-    setShowTaskSearchDialog(true)
+    setTaskSearchInitQuery("");
+    setShowTaskSearchDialog(true);
   };
-
 
   const handleJumpToSourceEditor = useCallback(
     (item: SelectionCacheItem) => {
@@ -521,11 +576,11 @@ export function SelectionCacheTable() {
   const columns = useMemo(
     () => [
       columnHelper.accessor("taskId", {
-        header: t('col.taskId'),
+        header: t("col.taskId"),
         size: 90,
       }),
       columnHelper.accessor("title", {
-        header: t('col.title'),
+        header: t("col.title"),
         size: 300,
         cell: (info) => {
           const score = info.row.original.score ?? 0;
@@ -552,29 +607,30 @@ export function SelectionCacheTable() {
               titleClassName = "bg-red-600 text-white";
               deadlineBadge = (
                 <span className="ml-1 px-1.5 py-0.5 rounded text-xs font-bold bg-red-700 text-white whitespace-nowrap">
-                  🔴 {t('badge.overdue', { n: days })}
+                  🔴 {t("badge.overdue", { n: days })}
                 </span>
               );
             } else if (daysUntil < 1) {
               titleClassName = "bg-orange-400 text-white";
               deadlineBadge = (
                 <span className="ml-1 px-1.5 py-0.5 rounded text-xs font-bold bg-orange-500 text-white whitespace-nowrap">
-                  🟠 {t('badge.dueToday')}
+                  🟠 {t("badge.dueToday")}
                 </span>
               );
             } else if (daysUntil <= 3) {
-              if (titleClassName === "bg-white-900") titleClassName = "bg-orange-200";
+              if (titleClassName === "bg-white-900")
+                titleClassName = "bg-orange-200";
               const days = Math.ceil(daysUntil);
               deadlineBadge = (
                 <span className="ml-1 px-1.5 py-0.5 rounded text-xs font-semibold bg-yellow-200 text-yellow-800 whitespace-nowrap">
-                  🟡 {t('badge.dueDays', { n: days })}
+                  🟡 {t("badge.dueDays", { n: days })}
                 </span>
               );
             } else if (daysUntil <= 7) {
               const days = Math.ceil(daysUntil);
               deadlineBadge = (
                 <span className="ml-1 px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-500 whitespace-nowrap">
-                  {t('badge.dueDays', { n: days })}
+                  {t("badge.dueDays", { n: days })}
                 </span>
               );
             }
@@ -582,9 +638,11 @@ export function SelectionCacheTable() {
 
           const usedTodayCount = info.row.original.usedTodayCount;
           const usedTodayBadge =
-            info.row.original.source === "Task_Pool" && usedTodayCount != null && usedTodayCount > 0 ? (
+            info.row.original.source === "Task_Pool" &&
+            usedTodayCount != null &&
+            usedTodayCount > 0 ? (
               <span className="ml-1 px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 whitespace-nowrap">
-                {t('badge.todayCount', { n: usedTodayCount })}
+                {t("badge.todayCount", { n: usedTodayCount })}
               </span>
             ) : null;
 
@@ -612,7 +670,7 @@ export function SelectionCacheTable() {
         },
       }),
       columnHelper.accessor("score", {
-        header: t('col.score'),
+        header: t("col.score"),
         size: 70,
         cell: (info) => (
           <span className="font-semibold text-blue-600">
@@ -621,12 +679,12 @@ export function SelectionCacheTable() {
         ),
       }),
       columnHelper.accessor("source", {
-        header: t('col.source'),
+        header: t("col.source"),
         size: 100,
         cell: (info) => {
           const source = info.getValue();
           if (typeof source !== "string") {
-            return <span>{t('col.unknown')}</span>;
+            return <span>{t("col.unknown")}</span>;
           }
           const item = info.row.original;
           const sourceSheet = mapSourceToSheet(source);
@@ -667,7 +725,11 @@ export function SelectionCacheTable() {
   });
 
   if (loading) {
-    return <div className="p-4 text-center text-gray-500">{t('candidates.loading')}</div>;
+    return (
+      <div className="p-4 text-center text-gray-500">
+        {t("candidates.loading")}
+      </div>
+    );
   }
 
   return (
@@ -679,7 +741,9 @@ export function SelectionCacheTable() {
           disabled={refreshing}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
         >
-          {refreshing ? t('candidates.refreshing') : `🔄 ${t('candidates.refresh')}`}
+          {refreshing
+            ? t("candidates.refreshing")
+            : `🔄 ${t("candidates.refresh")}`}
         </button>
         {isMobile ? (
           <button
@@ -693,18 +757,18 @@ export function SelectionCacheTable() {
             onClick={() => setShowHelp(true)}
             className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
           >
-            {t('candidates.help')}
+            {t("candidates.help")}
           </button>
         )}
         <span className="text-sm text-gray-600">
-          {t('candidates.count', { n: rows.length })}
+          {t("candidates.count", { n: rows.length })}
         </span>
         {warning && <span className="text-sm text-red-600">{warning}</span>}
         <button
           onClick={handleInterruptClick}
           className="flex-1 px-4 py-2 border border-amber-300 text-amber-800 rounded hover:bg-amber-100"
         >
-          ⚡ {isMobile ? "" : t('candidates.interrupt')}
+          ⚡ {isMobile ? "" : t("candidates.interrupt")}
         </button>
       </div>
 
@@ -713,37 +777,53 @@ export function SelectionCacheTable() {
         <div className="mb-4 border border-amber-300 rounded-lg bg-amber-50">
           <div className="px-4 py-2 bg-amber-100 rounded-t-lg flex items-center gap-2">
             <span className="text-amber-700 font-semibold text-sm">
-              ⚠️ {t('conflict.warning', { n: conflictScheduled.length })}
+              ⚠️ {t("conflict.warning", { n: conflictScheduled.length })}
             </span>
-            <span className="text-xs text-amber-600">{t('conflict.hint')}</span>
+            <span className="text-xs text-amber-600">{t("conflict.hint")}</span>
           </div>
           <ul className="divide-y divide-amber-200">
             {conflictScheduled.map((t) => {
               const nextRunStr = t.nextRun
-                ? new Date(t.nextRun).toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-                : '?';
+                ? new Date(t.nextRun).toLocaleDateString("zh-TW", {
+                    month: "numeric",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "?";
               const deadlineStr = t.deadline
-                ? new Date(t.deadline).toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' })
-                : '?';
+                ? new Date(t.deadline).toLocaleDateString("zh-TW", {
+                    month: "numeric",
+                    day: "numeric",
+                  })
+                : "?";
               return (
                 <li
                   key={t.taskId}
                   onClick={() => {
-                    setPendingEditIntent({ sheet: 'scheduled', taskId: t.taskId });
-                    setCurrentSheet('scheduled');
+                    setPendingEditIntent({
+                      sheet: "scheduled",
+                      taskId: t.taskId,
+                    });
+                    setCurrentSheet("scheduled");
                   }}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
+                    if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
-                      setPendingEditIntent({ sheet: 'scheduled', taskId: t.taskId });
-                      setCurrentSheet('scheduled');
+                      setPendingEditIntent({
+                        sheet: "scheduled",
+                        taskId: t.taskId,
+                      });
+                      setCurrentSheet("scheduled");
                     }
                   }}
                   className="px-4 py-2 flex items-center gap-2 text-sm cursor-pointer hover:bg-amber-100 transition-colors"
                 >
-                  <span className="font-medium text-amber-900">{t.title || t.taskId}</span>
+                  <span className="font-medium text-amber-900">
+                    {t.title || t.taskId}
+                  </span>
                   <span className="text-amber-600 text-xs">
                     排程 {nextRunStr} &gt; 截止 {deadlineStr}
                   </span>
@@ -757,7 +837,7 @@ export function SelectionCacheTable() {
       {/* 表格 */}
       {rows.length === 0 ? (
         <div className="p-4 text-center text-gray-500">
-          {t('candidates.empty')}
+          {t("candidates.empty")}
         </div>
       ) : (
         <div className="overflow-x-auto border border-gray-200 rounded">
@@ -794,13 +874,15 @@ export function SelectionCacheTable() {
                       handleRowClick(row.original.taskId);
                     }
                   }}
-                  className={`border-b border-gray-200 touch-manipulation transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-1 ${row.original.status === 'INTERRUPTED'
-                    ? "bg-amber-50 border-l-4 border-l-amber-400"
-                    : ""
-                    } ${runningTask
+                  className={`border-b border-gray-200 touch-manipulation transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-1 ${
+                    row.original.status === "INTERRUPTED"
+                      ? "bg-amber-50 border-l-4 border-l-amber-400"
+                      : ""
+                  } ${
+                    runningTask
                       ? "opacity-60 cursor-not-allowed"
                       : "hover:bg-blue-50 hover:shadow-sm cursor-pointer active:scale-95 active:bg-blue-100"
-                    }`}
+                  }`}
                   style={{ transformOrigin: "center" }}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -832,26 +914,36 @@ export function SelectionCacheTable() {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex items-center mb-4">
             {/* 若 isInterrupt === true 就顯示 interrupt 的 icon，否則顯示正在執行某任務中 */}
-            {isInterruptMode ?
+            {isInterruptMode ? (
               <span
                 className={`text-2xl mr-2 ${isInterruptMode ? "text-yellow-500" : "text-amber-500"}`}
-              >"⚠️"</span> :
+              >
+                "⚠️"
+              </span>
+            ) : (
               <button
                 className={`text-2xl mr-2 ${isInterruptMode ? "text-yellow-500" : "text-amber-500"}`}
                 onClick={showTimer}
-              >⏳</button>
-            }
-            <h2 className="text-lg font-bold mb-4 text-amber-900">{t('endTask.title')}</h2>
+              >
+                ⏳
+              </button>
+            )}
+            <h2 className="text-lg font-bold mb-4 text-amber-900">
+              {t("endTask.title")}
+            </h2>
             <span className="ml-auto">
               {/* 擺到右邊 */}
-              {runningTask && takeTime ? t('endTask.elapsed', { time: takeTime }) : ""}
+              {runningTask && takeTime
+                ? t("endTask.elapsed", { time: takeTime })
+                : ""}
             </span>
           </div>
 
           {runningTask ? (
             <>
               <div className="text-sm text-amber-900 font-semibold">
-                {t('endTask.nowRunning')}{runningTask.taskId}
+                {t("endTask.nowRunning")}
+                {runningTask.taskId}
                 {runningTask.title ? ` - ${runningTask.title}` : ""}
               </div>
               <div className="mt-3">
@@ -859,7 +951,7 @@ export function SelectionCacheTable() {
                   htmlFor="note_end"
                   className="block text-sm font-semibold mb-1 text-amber-900"
                 >
-                  {t('endTask.noteLabel')}
+                  {t("endTask.noteLabel")}
                 </label>
                 <textarea
                   id="note_end"
@@ -868,7 +960,7 @@ export function SelectionCacheTable() {
                   onBlur={handleDialogTextFieldInteractionEnd}
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:border-amber-500"
                   rows={3}
-                  placeholder={t('endTask.notePlaceholder')}
+                  placeholder={t("endTask.notePlaceholder")}
                 />
               </div>
               {/* 新增 checkbox */}
@@ -877,36 +969,45 @@ export function SelectionCacheTable() {
                   id="jumpToSource"
                   type="checkbox"
                   checked={jumpToSourceChecked}
-                  onChange={e => setJumpToSourceChecked(e.target.checked)}
+                  onChange={(e) => setJumpToSourceChecked(e.target.checked)}
                   className="mr-2"
                 />
-                <label htmlFor="jumpToSource" className="text-sm text-amber-900 select-none cursor-pointer">
+                <label
+                  htmlFor="jumpToSource"
+                  className="text-sm text-amber-900 select-none cursor-pointer"
+                >
                   {/* 結束後自動跳轉到來源條目 */}
-                  {t('endTask.jumpToSource')}
+                  {t("endTask.jumpToSource")}
                 </label>
               </div>
               <div className="flex gap-2 mt-6">
                 <button
                   onClick={handleConfirmEnd}
-                  onTouchEnd={(event) => handleDialogButtonTouchEnd(event, handleConfirmEnd)}
+                  onTouchEnd={(event) =>
+                    handleDialogButtonTouchEnd(event, handleConfirmEnd)
+                  }
                   className="flex-1 px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
                 >
-                  {t('endTask.confirmBtn')}
+                  {t("endTask.confirmBtn")}
                 </button>
                 <button
                   onClick={() => {
                     setCurrentSheet("inbox");
                   }}
-                  onTouchEnd={(event) => handleDialogButtonTouchEnd(event, () => {
-                    setCurrentSheet("inbox");
-                  })}
+                  onTouchEnd={(event) =>
+                    handleDialogButtonTouchEnd(event, () => {
+                      setCurrentSheet("inbox");
+                    })
+                  }
                   className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors text-lg"
                 >
                   📭
                 </button>
                 <button
                   onClick={handleInterruptClick}
-                  onTouchEnd={(event) => handleDialogButtonTouchEnd(event, handleInterruptClick)}
+                  onTouchEnd={(event) =>
+                    handleDialogButtonTouchEnd(event, handleInterruptClick)
+                  }
                   className="flex-1 px-4 py-2 border border-amber-300 text-amber-800 rounded hover:bg-amber-100 transition-colors text-lg"
                 >
                   ⚡
@@ -914,7 +1015,7 @@ export function SelectionCacheTable() {
               </div>
             </>
           ) : (
-            <div className="text-sm text-gray-500">{t('endTask.noTask')}</div>
+            <div className="text-sm text-gray-500">{t("endTask.noTask")}</div>
           )}
         </div>
       </dialog>
@@ -930,7 +1031,7 @@ export function SelectionCacheTable() {
           <div className="flex items-center mb-4">
             {/* icon shows wanted to run selected task */}
             <span className="text-green-500 text-2xl mr-2">🚀</span>
-            <h2 className="text-lg font-bold mb-4">{t('startTask.title')}</h2>
+            <h2 className="text-lg font-bold mb-4">{t("startTask.title")}</h2>
           </div>
 
           <div className="space-y-4">
@@ -939,7 +1040,7 @@ export function SelectionCacheTable() {
                 htmlFor="task_id_start"
                 className="block text-sm font-semibold mb-1"
               >
-                {t('startTask.taskId')}
+                {t("startTask.taskId")}
               </label>
               <input
                 type="text"
@@ -955,7 +1056,7 @@ export function SelectionCacheTable() {
                 htmlFor="title_start"
                 className="block text-sm font-semibold mb-1"
               >
-                {t('startTask.taskTitle')}
+                {t("startTask.taskTitle")}
               </label>
               <input
                 type="text"
@@ -973,7 +1074,7 @@ export function SelectionCacheTable() {
                 htmlFor="note_start"
                 className="block text-sm font-semibold mb-1"
               >
-                {t('startTask.noteLabel')}
+                {t("startTask.noteLabel")}
               </label>
               <textarea
                 id="note_start"
@@ -982,7 +1083,7 @@ export function SelectionCacheTable() {
                 onBlur={handleDialogTextFieldInteractionEnd}
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
                 rows={3}
-                placeholder={t('startTask.notePlaceholder')}
+                placeholder={t("startTask.notePlaceholder")}
               />
             </div>
           </div>
@@ -993,31 +1094,37 @@ export function SelectionCacheTable() {
                 setShowStartDialog(false);
                 setRecordDuration("");
               }}
-              onTouchEnd={(event) => handleDialogButtonTouchEnd(event, () => {
-                setShowStartDialog(false);
-                setRecordDuration("");
-              })}
+              onTouchEnd={(event) =>
+                handleDialogButtonTouchEnd(event, () => {
+                  setShowStartDialog(false);
+                  setRecordDuration("");
+                })
+              }
               className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
             >
-              {t('startTask.cancelBtn')}
+              {t("startTask.cancelBtn")}
             </button>
             <button
               onClick={handleRecordOnly}
-              onTouchEnd={(event) => handleDialogButtonTouchEnd(event, () => {
-                void handleRecordOnly();
-              })}
+              onTouchEnd={(event) =>
+                handleDialogButtonTouchEnd(event, () => {
+                  void handleRecordOnly();
+                })
+              }
               className="flex-1 px-4 py-2 border border-indigo-300 text-indigo-700 rounded hover:bg-indigo-50"
             >
-              {t('startTask.logOnlyBtn')}
+              {t("startTask.logOnlyBtn")}
             </button>
             <button
               onClick={handleConfirmStart}
-              onTouchEnd={(event) => handleDialogButtonTouchEnd(event, () => {
-                void handleConfirmStart();
-              })}
+              onTouchEnd={(event) =>
+                handleDialogButtonTouchEnd(event, () => {
+                  void handleConfirmStart();
+                })
+              }
               className="flex-1 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
             >
-              {t('startTask.confirmBtn')}
+              {t("startTask.confirmBtn")}
             </button>
           </div>
         </div>
@@ -1031,12 +1138,14 @@ export function SelectionCacheTable() {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex items-center mb-4">
             <span className="text-indigo-500 text-2xl mr-2">📝</span>
-            <h2 className="text-lg font-bold">{t('recordOnly.title')}</h2>
+            <h2 className="text-lg font-bold">{t("recordOnly.title")}</h2>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold mb-1">{t('recordOnly.task')}</label>
+              <label className="block text-sm font-semibold mb-1">
+                {t("recordOnly.task")}
+              </label>
               <div className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100 text-sm">
                 {editingCandidate || "-"}
                 {editingCandidate
@@ -1050,7 +1159,7 @@ export function SelectionCacheTable() {
                 htmlFor="duration_record_only"
                 className="block text-sm font-semibold mb-1"
               >
-                {t('recordOnly.durationLabel')}
+                {t("recordOnly.durationLabel")}
               </label>
               <input
                 type="number"
@@ -1070,7 +1179,7 @@ export function SelectionCacheTable() {
                 htmlFor="note_record_only"
                 className="block text-sm font-semibold mb-1"
               >
-                {t('recordOnly.noteLabel')}
+                {t("recordOnly.noteLabel")}
               </label>
               <textarea
                 id="note_record_only"
@@ -1087,19 +1196,23 @@ export function SelectionCacheTable() {
           <div className="flex gap-2 mt-6">
             <button
               onClick={handleCancelRecordDialog}
-              onTouchEnd={(event) => handleDialogButtonTouchEnd(event, handleCancelRecordDialog)}
+              onTouchEnd={(event) =>
+                handleDialogButtonTouchEnd(event, handleCancelRecordDialog)
+              }
               className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
             >
-              {t('recordOnly.backBtn')}
+              {t("recordOnly.backBtn")}
             </button>
             <button
               onClick={handleConfirmRecordOnly}
-              onTouchEnd={(event) => handleDialogButtonTouchEnd(event, () => {
-                void handleConfirmRecordOnly();
-              })}
+              onTouchEnd={(event) =>
+                handleDialogButtonTouchEnd(event, () => {
+                  void handleConfirmRecordOnly();
+                })
+              }
               className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
             >
-              {t('recordOnly.confirmBtn')}
+              {t("recordOnly.confirmBtn")}
             </button>
           </div>
         </div>
