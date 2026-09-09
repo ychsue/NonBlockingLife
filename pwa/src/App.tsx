@@ -126,7 +126,7 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: The app will soon transition from TWA to WebView to resolve postMessage-related issues and recent status bar color changes. Remember to sync your data to the cloud and then sync it back later.",
+        "\n\r**Please note**: The app has just transitioned from TWA to WebView, and therefore no longer shares the database with Chrome. Remember to sync your data to the cloud and then sync it back later.",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -140,7 +140,7 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：近期將會由原本的TWA轉移到WebView，好解決postMessage相關問題與最近狀態列變色的問題，所以，請記得同步您的資料到雲端，到時再同步下來即可。",
+        "\n\r**注意**：剛剛由原本的TWA轉移到WebView，因此，與chrome的資料庫不再共用，所以，請記得同步您的資料到雲端，到時再同步下來即可。",
     },
     ja: {
       "useTwaBridge.twaNotAvailable":
@@ -156,7 +156,7 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：近日中にTWAからWebViewに移行し、postMessage関連の問題や最近のステータスバーの色変更の問題を解決する予定です。データをクラウドに同期し、後で再度同期してください。",
+        "\n\r**注意**：さっき元のTWAからWebViewに移行したので、Chromeのデータベースとはもはや共有されません。だから、データをクラウドに同期しておくのを忘れずに、後でまた同期すれば大丈夫です。",
     },
   });
 
