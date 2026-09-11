@@ -278,7 +278,7 @@ export function getToursList(
           hideFooterButton: true,
           waitForElement: true,
           spotlightPadding: 8,
-          device: "mobile",
+          // device: "mobile",
         },
         {
           id: "check-alarm-sync-targets",

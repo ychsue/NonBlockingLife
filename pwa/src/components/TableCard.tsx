@@ -1,146 +1,171 @@
-import { useEffect, useRef, useState, type ReactNode, type TouchEvent } from 'react'
-import { useT } from '../i18n'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type TouchEvent,
+} from "react";
+import { useT } from "../i18n";
 
 interface TableCardProps<T> {
-  item: T
+  item: T;
   fields: Array<{
-    label: string
-    value: ReactNode
-  }>
-  onEdit: (item: T) => void
-  onDelete: (item: T) => void
+    label: string;
+    value: ReactNode;
+  }>;
+  onEdit: (item: T) => void;
+  onDelete: (item: T) => void;
   quickAction?: {
-    label: string
-    onClick: (item: T) => void
-  }
+    label: string;
+    onClick: (item: T) => void;
+  };
+  editLabel?: string; // 🆕 自訂「編輯/管理」文字
+  isDisabled?: boolean; // 🆕 是否為停用狀態 (灰階/貫穿線)
+  accentColor?: string; // 🆕 左側顏色區塊標籤
 }
 
 function isUsableUrl(value: unknown): value is string {
-  return typeof value === 'string' && value.trim() !== '' && value !== 'None'
+  return typeof value === "string" && value.trim() !== "" && value !== "None";
 }
 
-export function TableCard<T extends { taskId?: string | number; url?: string }>({
+export function TableCard<
+  T extends { taskId?: string | number; url?: string },
+>({
   item,
   fields,
   onEdit,
   onDelete,
   quickAction,
+  editLabel,
+  isDisabled = false,
+  accentColor,
 }: TableCardProps<T>) {
-  const t = useT()
-  const [offsetX, setOffsetX] = useState(0)
-  const [pendingDeleteConfirm, setPendingDeleteConfirm] = useState(false)
-  const startRef = useRef<{ x: number; y: number } | null>(null)
-  const swipingRef = useRef(false)
-  const confirmTimerRef = useRef<number | null>(null)
+  const t = useT();
+  const displayEditLabel = editLabel ?? t("tableCard.edit");
+  const [offsetX, setOffsetX] = useState(0);
+  const [pendingDeleteConfirm, setPendingDeleteConfirm] = useState(false);
+  const startRef = useRef<{ x: number; y: number } | null>(null);
+  const swipingRef = useRef(false);
+  const confirmTimerRef = useRef<number | null>(null);
 
-  const SWIPE_MAX = 110
-  const SWIPE_TRIGGER = 70
-  const CONFIRM_WINDOW_MS = 3000
-  const itemUrl = isUsableUrl(item.url) ? item.url.trim() : null
-  const [isTouch] = useState(() => window.matchMedia('(hover: none) and (pointer: coarse)').matches)
+  const SWIPE_MAX = 110;
+  const SWIPE_TRIGGER = 70;
+  const CONFIRM_WINDOW_MS = 3000;
+  const itemUrl = isUsableUrl(item.url) ? item.url.trim() : null;
+  const [isTouch] = useState(
+    () => window.matchMedia("(hover: none) and (pointer: coarse)").matches,
+  );
 
   useEffect(() => {
     return () => {
       if (confirmTimerRef.current != null) {
-        window.clearTimeout(confirmTimerRef.current)
+        window.clearTimeout(confirmTimerRef.current);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   const clearDeleteConfirmTimer = () => {
     if (confirmTimerRef.current != null) {
-      window.clearTimeout(confirmTimerRef.current)
-      confirmTimerRef.current = null
+      window.clearTimeout(confirmTimerRef.current);
+      confirmTimerRef.current = null;
     }
-  }
+  };
 
   const beginDeleteConfirmation = () => {
-    setPendingDeleteConfirm(true)
-    clearDeleteConfirmTimer()
+    setPendingDeleteConfirm(true);
+    clearDeleteConfirmTimer();
     confirmTimerRef.current = window.setTimeout(() => {
-      setPendingDeleteConfirm(false)
-      confirmTimerRef.current = null
-    }, CONFIRM_WINDOW_MS)
-  }
+      setPendingDeleteConfirm(false);
+      confirmTimerRef.current = null;
+    }, CONFIRM_WINDOW_MS);
+  };
 
   const cancelDeleteConfirmation = () => {
-    setPendingDeleteConfirm(false)
-    clearDeleteConfirmTimer()
-  }
+    setPendingDeleteConfirm(false);
+    clearDeleteConfirmTimer();
+  };
 
   const resetSwipe = () => {
-    setOffsetX(0)
-    startRef.current = null
-    swipingRef.current = false
-  }
+    setOffsetX(0);
+    startRef.current = null;
+    swipingRef.current = false;
+  };
 
   const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
-    const touch = event.touches[0]
-    startRef.current = { x: touch.clientX, y: touch.clientY }
-    swipingRef.current = false
-  }
+    const touch = event.touches[0];
+    startRef.current = { x: touch.clientX, y: touch.clientY };
+    swipingRef.current = false;
+  };
 
   const handleTouchMove = (event: TouchEvent<HTMLDivElement>) => {
-    const start = startRef.current
-    if (!start) return
+    const start = startRef.current;
+    if (!start) return;
 
-    const touch = event.touches[0]
-    const deltaX = touch.clientX - start.x
-    const deltaY = touch.clientY - start.y
+    const touch = event.touches[0];
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
 
     if (!swipingRef.current) {
-      if (Math.abs(deltaX) < 10) return
+      if (Math.abs(deltaX) < 10) return;
       if (Math.abs(deltaY) > Math.abs(deltaX)) {
-        return
+        return;
       }
-      swipingRef.current = true
+      swipingRef.current = true;
     }
 
     if (event.cancelable) {
-      event.preventDefault()
+      event.preventDefault();
     }
 
-    const clamped = Math.max(-SWIPE_MAX, Math.min(SWIPE_MAX, deltaX))
-    setOffsetX(clamped)
-  }
+    const clamped = Math.max(-SWIPE_MAX, Math.min(SWIPE_MAX, deltaX));
+    setOffsetX(clamped);
+  };
 
   const handleTouchEnd = () => {
     if (offsetX >= SWIPE_TRIGGER) {
-      resetSwipe()
-      cancelDeleteConfirmation()
-      onEdit(item)
-      return
+      resetSwipe();
+      cancelDeleteConfirmation();
+      onEdit(item);
+      return;
     }
 
     if (offsetX <= -SWIPE_TRIGGER) {
-      resetSwipe()
+      resetSwipe();
       if (pendingDeleteConfirm) {
-        cancelDeleteConfirmation()
-        onDelete(item)
+        cancelDeleteConfirmation();
+        onDelete(item);
       } else {
-        beginDeleteConfirmation()
+        beginDeleteConfirmation();
       }
-      return
+      return;
     }
 
-    resetSwipe()
-  }
+    resetSwipe();
+  };
 
   return (
     <div
-      className={`relative overflow-hidden rounded-lg border ${pendingDeleteConfirm ? 'border-red-300' : 'border-gray-200'}`}
+      className={`relative overflow-hidden rounded-lg border ${pendingDeleteConfirm ? "border-red-300" : "border-gray-200"} ${isDisabled ? "bg-gray-300 opacity-50" : "bg-white"}`}
     >
-      <div className="absolute inset-0 flex text-white text-sm font-semibold">
+      {/* 左側顏色區塊標籤 */}
+      {accentColor && (
+        <div
+          className="absolute inset-y-0 left-0 w-2 rounded-l-lg z-10"
+          style={{ backgroundColor: accentColor }}
+        />
+      )}
+
+      <div className={`absolute inset-0 flex text-white text-sm font-semibold z-0`}>
         <div className="flex-1 bg-blue-500 flex items-center justify-start pl-4">
-          {t('tableCard.edit')}
+          {displayEditLabel}
         </div>
         <div className="flex-1 bg-red-500 flex items-center justify-end pr-4">
-          {t('tableCard.delete')}
+          {t("tableCard.delete")}
         </div>
       </div>
 
       <div
-        className="relative bg-white p-4 shadow-sm transition-transform duration-150"
+        className={`relative p-4 shadow-sm transition-transform duration-150 ${isDisabled ? "bg-gray-300" : "bg-white"}`}
         style={{ transform: `translateX(${offsetX}px)` }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -150,8 +175,12 @@ export function TableCard<T extends { taskId?: string | number; url?: string }>(
         <div className="space-y-3">
           {fields.map((field, index) => (
             <div key={index} className="flex justify-between items-start gap-2">
-              <span className="text-sm font-medium text-gray-600">{field.label}</span>
-              <span className="text-sm text-gray-900 text-right flex-1">{field.value}</span>
+              <span className="text-sm font-medium text-gray-600">
+                {field.label}
+              </span>
+              <span className="text-sm text-gray-900 text-right flex-1">
+                {field.value}
+              </span>
             </div>
           ))}
         </div>
@@ -168,7 +197,7 @@ export function TableCard<T extends { taskId?: string | number; url?: string }>(
               onTouchMove={(event) => event.stopPropagation()}
               onTouchEnd={(event) => event.stopPropagation()}
             >
-              {t('tableCard.openLink')}
+              {t("tableCard.openLink")}
             </a>
           </div>
         )}
@@ -178,9 +207,9 @@ export function TableCard<T extends { taskId?: string | number; url?: string }>(
             <button
               type="button"
               onClick={(event) => {
-                event.stopPropagation()
-                cancelDeleteConfirmation()
-                quickAction.onClick(item)
+                event.stopPropagation();
+                cancelDeleteConfirmation();
+                quickAction.onClick(item);
               }}
               className="px-3 py-1.5 text-xs font-medium rounded bg-amber-500 text-white hover:bg-amber-600"
             >
@@ -190,35 +219,44 @@ export function TableCard<T extends { taskId?: string | number; url?: string }>(
         )}
 
         {pendingDeleteConfirm && (
-          <div className="mt-3 text-xs text-red-600 text-right">{t('tableCard.swipeDeleteConfirm')}</div>
+          <div className="mt-3 text-xs text-red-600 text-right">
+            {t("tableCard.swipeDeleteConfirm")}
+          </div>
         )}
 
         {!isTouch && (
           <div className="mt-3 flex justify-end gap-2">
             <button
-              onClick={() => { cancelDeleteConfirmation(); onEdit(item) }}
+              onClick={() => {
+                cancelDeleteConfirmation();
+                onEdit(item);
+              }}
               className="px-3 py-1 text-xs font-medium rounded bg-blue-500 text-white hover:bg-blue-600"
             >
-              {t('tableCard.edit')}
+              {t("tableCard.edit")}
             </button>
             <button
               onClick={() => {
                 if (pendingDeleteConfirm) {
-                  cancelDeleteConfirmation()
-                  onDelete(item)
+                  cancelDeleteConfirmation();
+                  onDelete(item);
                 } else {
-                  beginDeleteConfirmation()
+                  beginDeleteConfirmation();
                 }
               }}
               className={`px-3 py-1 text-xs font-medium rounded text-white ${
-                pendingDeleteConfirm ? 'bg-red-600 hover:bg-red-700' : 'bg-red-400 hover:bg-red-500'
+                pendingDeleteConfirm
+                  ? "bg-red-600 hover:bg-red-700"
+                  : "bg-red-400 hover:bg-red-500"
               }`}
             >
-              {pendingDeleteConfirm ? t('tableCard.confirmDelete') : t('tableCard.delete')}
+              {pendingDeleteConfirm
+                ? t("tableCard.confirmDelete")
+                : t("tableCard.delete")}
             </button>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -192,6 +192,38 @@ export function mimicTwaMessageChannel() {
           }),
         );
         break;
+      case "nbl:fetch-ics":
+        responseType = "nbl:fetch-ics-response";
+        const url = data.url as string;
+
+        channel.port2.postMessage(
+          JSON.stringify({
+            type: responseType,
+            requestId,
+            icsContent: `
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Google Inc//Google Calendar 70.9054//EN
+BEGIN:VEVENT
+DTSTART:20260909T020000Z
+DTEND:20260909T030000Z
+DTSTAMP:20260909T100000Z
+UID:test-uid-123@google.com
+SUMMARY:線上產品設計會議
+DESCRIPTION:討論 NonBlockingLife 的 ics 設計\\n記得準備簡報。
+LOCATION:Google Meet
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260910
+DTEND;VALUE=DATE:20260911
+UID:all-day-uid-456@google.com
+SUMMARY:全天團隊聚餐
+END:VEVENT
+END:VCALENDAR
+    `.trim(), // 模擬的 ICS 內容
+          }),
+        );
+        break;
       default:
         break;
     }

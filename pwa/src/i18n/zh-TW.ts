@@ -360,6 +360,8 @@ export const zhTW: TranslationMap = {
   'table.scheduled.sort.nextRunAsc':    '最早要處理',
   'table.scheduled.sort.nextRunDesc':   '最晚要處理',
 
+  'table.scheduled.alarmSyncTargetsLabel': '設定排程鬧鐘',
+
   // ── Log ──────────────────────────────────────────────────────
   'table.log.confirmClear':         '確定要清除所有 Log 相關的 change_log 記錄嗎？',
   'table.log.clearedCount':         '已清除 {count} 筆 Log change_log 記錄',

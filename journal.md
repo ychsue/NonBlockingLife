@@ -1,5 +1,15 @@
 # Journal
 
+## [2026-09-10] (2.3.20-beta.1) 開始 ics 整合 [2026-09-11 15:09] 準備 commit
+1. [IcsSourceManagementDialog.tsx](pwa\src\components\ics\IcsSourceManagementDialog.tsx) 由這個 dialog 來設定 ics_sources table
+2. [ScheduledTable.tsx](pwa\src\components\tables\ScheduledTable.tsx) 修改 more 的顯示方式(改用 droplist 的方式)，然後裡面叫出 IcsSourceManagementDialog。
+3. [TableCard.tsx](pwa\src\components\TableCard.tsx) 讓他更彈性一點
+4. [schema.ts](pwa\src\db\schema.ts) 更新 ics_sources 與 ics_events tables 的 schema。
+5. [icsAdapter.ts](pwa\src\utils\icsAdapter.ts) 這是為了 ics_events 與 scheduled 要整合在一起在 ScheduledTable 顯示。
+6. [icsParser.ts](pwa\src\utils\icsParser.ts) 解析 ICS 文件的工具函式。
+7. [styles.css](pwa\src\styles.css) 補上 dropdown list 的樣式。
+8. 使用 `ical.js` 來解析 ICS 文件。
+
 ## [2026-09-09] (2.3.18) & (NBL-1.2.1) 上傳
 1. [GuidePage.tsx](pwa\src\components\GuidePage.tsx) 通知權限更新後，不會更新的bug，修正看看。
 2. [App.tsx](pwa\src\App.tsx) 讓他當使用者回來時 (visibility change) 觸發相應的 queueItem更新，好觸發鬧鐘。

@@ -355,6 +355,8 @@ export const en = {
   'table.scheduled.sort.nextRunAsc':    'Earliest to be processed',
   'table.scheduled.sort.nextRunDesc':   'Latest to be processed',
 
+  'table.scheduled.alarmSyncTargetsLabel': 'Setting Alarm Targets',
+
   // ── Log ──────────────────────────────────────────────────────
   'table.log.confirmClear':         'Are you sure you want to clear all change_log records related to Log?',
   'table.log.clearedCount':         'Cleared {count} Log change_log records',

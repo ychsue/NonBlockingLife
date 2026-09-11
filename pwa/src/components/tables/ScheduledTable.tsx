@@ -41,6 +41,8 @@ import { AlarmQueuePanel } from "../more/AlarmQueuePanel";
 import { useAlarmQueueWatcherContext } from "../tour/AlarmQueueWatcher";
 import _ from "lodash";
 import { useProductTourContext } from "../tour/ProductTourContext";
+import { SettingsCard } from "../SettingsCard";
+import { IcsSourceManagementDialog } from "../ics/IcsSourceManagementDialog";
 
 const DEV_CLIENT_ID = "dev-client";
 const columnHelper = createColumnHelper<ScheduledItem>();
@@ -75,6 +77,7 @@ function createNewScheduledRow(taskId?: string, title?: string): ScheduledItem {
 export function ScheduledTable() {
   const t = useT();
   const locale = useAppStore((state) => state.locale);
+  const experimentalFeaturesEnabled = useAppStore((state) => state.experimentalFeaturesEnabled);
 
   const [rows, setRows] = useState<ScheduledItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,6 +121,20 @@ export function ScheduledTable() {
   const [openAlarmQueueDialog, setOpenAlarmQueueDialog] = useState(false);
   const { nextStep, isRunning, activeStep } = useProductTourContext();
 
+  const [isIcsSourceManagementDialogOpen, setIcsSourceManagementDialogOpen] =
+    useState(false);
+
+  const handleIcsSourceManagementDialogClose = () => {
+    setIcsSourceManagementDialogOpen(false);
+  };
+
+  const handleIcsOnSynced = () => {
+    showGlobalToast({
+      message: "ICS sources have been successfully synced.",
+      duration: 3000,
+    });
+  };
+
   const text = {
     subtitle: t("table.scheduled.subtitle"),
     help: t("table.help"),
@@ -131,6 +148,7 @@ export function ScheduledTable() {
     helpTitle: t("table.scheduled.helpTitle"),
     sortLabel: t("table.scheduled.sortLabel"),
     searchMode: t("table.scheduled.searchMode"),
+    alarmSyncTargetsLabel: t("table.scheduled.alarmSyncTargetsLabel"),
   };
 
   // 根据 sortMode 更新 sorting 状态
@@ -846,7 +864,101 @@ export function ScheduledTable() {
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-xl font-bold">Scheduled Tasks</h2>
+          <div className="flex items-center gap-2">
+            <div className="dropdown">
+              <button
+                className={`${showMobileFilters ? "bg-green-500" : "bg-blue-500"} dropbtn `}
+                data-tour="scheduled-more-button"
+                onClick={() => {
+                  setShowMobileFilters((prev) => !prev);
+                  // Joyride
+                  if (isRunning && activeStep?.id === "scheduled-more-button") {
+                    nextStep();
+                  }
+                }}
+              >
+                ☰
+              </button>
+              <div
+                className={`dropdown-content w-[min(30rem,90vw)] ${showMobileFilters ? "show" : ""}`}
+              >
+                {/* 更多設定都放進來這裡 */}
+                <div className="m-2 flex flex-col justify-between gap-2">
+                  <SettingsCard title={text.sortLabel} description={null}>
+                    <label className="text-sm text-gray-700 font-semibold">
+                      {/* {text.sortLabel}: */}
+                      <select
+                        value={sortMode}
+                        onChange={(e) =>
+                          setSortMode(e.target.value as typeof sortMode)
+                        }
+                        className="px-3 py-2 border rounded focus:outline-none focus:border-blue-500 text-sm"
+                      >
+                        <option value="none">
+                          {t("table.scheduled.sort.none")}
+                        </option>
+                        <option value="lastRunAsc">
+                          {t("table.scheduled.sort.lastRunAsc")}
+                        </option>
+                        <option value="lastRunDesc">
+                          {t("table.scheduled.sort.lastRunDesc")}
+                        </option>
+                        <option value="nextRunAsc">
+                          {t("table.scheduled.sort.nextRunAsc")}
+                        </option>
+                        <option value="nextRunDesc">
+                          {t("table.scheduled.sort.nextRunDesc")}
+                        </option>
+                      </select>
+                    </label>
+                  </SettingsCard>
+
+                  {(import.meta.env.DEV ||
+                    getDeviceType() === "TWA" ||
+                    getDeviceType() === "AndroidWebView") && (
+                    <SettingsCard
+                      title={text.alarmSyncTargetsLabel}
+                      description={null}
+                    >
+                      <AlarmSyncTargetsCheckList
+                        onChange={(v) => {
+                          setAlarmSyncTargets(v);
+                          if (
+                            isRunning &&
+                            activeStep?.id === "confirm-sync-targets-alarm"
+                          ) {
+                            nextStep();
+                          }
+                        }}
+                        alarmSyncTargets={alarmSyncTargets}
+                        openDialogClicked={() => {
+                          setOpenAlarmQueueDialog(true);
+                          if (isRunning && activeStep?.id === "show-alarms") {
+                            nextStep();
+                          }
+                        }}
+                        resetItemsStates={resetItemsStates} //這個目前除錯用
+                      />
+                    </SettingsCard>
+                  )}
+
+                  { experimentalFeaturesEnabled && (
+                  <SettingsCard title="設定 ics 來源 (實驗中🧪)" description={null}>
+                    {/* 設定 ics 來源 */}
+                    <button
+                      type="button"
+                      onClick={() => setIcsSourceManagementDialogOpen(true)}
+                      className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                    >
+                      Manage ICS Sources
+                    </button>
+                  </SettingsCard>
+                  )}
+                </div>
+              </div>
+            </div>
+            <h2 className="text-xl font-bold">Scheduled Tasks</h2>
+          </div>
           <p className="text-sm text-gray-600">{text.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -876,182 +988,26 @@ export function ScheduledTable() {
           className={`px-3 py-2 border rounded focus:outline-none focus:border-blue-500 ${isMobile ? "flex-1 min-w-0" : "flex-1"}`}
         />
 
-        {!isMobile && (
-          <>
-            <button
-              onClick={() => setIsOrMode(!isOrMode)}
-              className={`px-3 py-2 rounded ${
-                isOrMode
-                  ? "bg-blue-500 text-white hover:bg-blue-600"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              {isOrMode ? "OR" : "AND"}
-            </button>
-            <label className="flex items-center gap-1 px-3 py-2 border rounded cursor-pointer select-none text-sm text-gray-700 hover:bg-gray-50">
-              <input
-                type="checkbox"
-                checked={hideDone}
-                onChange={(e) => setHideDone(e.target.checked)}
-                className="accent-blue-500"
-              />
-              {text.hideDone}
-            </label>
-          </>
-        )}
-
-        {isMobile && (
-          <button
-            onClick={() => {
-              setShowMobileFilters((prev) => !prev);
-              // Joyride
-              if (isRunning && activeStep?.id === "scheduled-more-button") {
-                nextStep();
-              }
-            }}
-            className="px-3 py-2 border rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
-            title="Toggle filters"
-            data-tour="scheduled-more-button"
-          >
-            {showMobileFilters ? "Hide More" : "Show More"}
-          </button>
-        )}
+        <button
+          onClick={() => setIsOrMode(!isOrMode)}
+          className={`px-3 py-2 rounded ${
+            isOrMode
+              ? "bg-blue-500 text-white hover:bg-blue-600"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          {isOrMode ? "OR" : "AND"}
+        </button>
+        <label className="flex items-center gap-1 px-3 py-2 border rounded cursor-pointer select-none text-sm text-gray-700 hover:bg-gray-50">
+          <input
+            type="checkbox"
+            checked={hideDone}
+            onChange={(e) => setHideDone(e.target.checked)}
+            className="accent-blue-500"
+          />
+          {text.hideDone}
+        </label>
       </div>
-
-      {/* 桌面版排序選項 */}
-      {!isMobile && (
-        <div className="mb-4 flex justify-between gap-2 items-center">
-          <label className="text-sm text-gray-700 font-semibold">
-            {text.sortLabel}:
-            <select
-              value={sortMode}
-              onChange={(e) => setSortMode(e.target.value as typeof sortMode)}
-              className="px-3 py-2 border rounded focus:outline-none focus:border-blue-500 text-sm"
-            >
-              <option value="none">{t("table.scheduled.sort.none")}</option>
-              <option value="lastRunAsc">
-                {t("table.scheduled.sort.lastRunAsc")}
-              </option>
-              <option value="lastRunDesc">
-                {t("table.scheduled.sort.lastRunDesc")}
-              </option>
-              <option value="nextRunAsc">
-                {t("table.scheduled.sort.nextRunAsc")}
-              </option>
-              <option value="nextRunDesc">
-                {t("table.scheduled.sort.nextRunDesc")}
-              </option>
-            </select>
-          </label>
-
-          {(import.meta.env.DEV ||
-            getDeviceType() === "TWA" ||
-            getDeviceType() === "AndroidWebView") && (
-            <AlarmSyncTargetsCheckList
-              onChange={(v) => {
-                setAlarmSyncTargets(v);
-                if (
-                  isRunning &&
-                  activeStep?.id === "confirm-sync-targets-alarm"
-                ) {
-                  nextStep();
-                }
-              }}
-              alarmSyncTargets={alarmSyncTargets}
-              openDialogClicked={() => {
-                setOpenAlarmQueueDialog(true);
-                if (isRunning && activeStep?.id === "show-alarms") {
-                  nextStep();
-                }
-              }}
-              resetItemsStates={resetItemsStates} //這個目前除錯用
-            />
-          )}
-        </div>
-      )}
-
-      {/* 手機版過濾面板 */}
-      {isMobile && showMobileFilters && (
-        <div className="mb-4 rounded-lg border bg-gray-50 p-3">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-semibold text-gray-700">
-                {text.searchMode}:
-              </label>
-              <button
-                onClick={() => setIsOrMode(!isOrMode)}
-                className={`px-3 py-1 rounded text-sm ${
-                  isOrMode
-                    ? "bg-blue-500 text-white hover:bg-blue-600"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                {isOrMode ? "OR" : "AND"}
-              </button>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                {text.sortLabel}:
-                <select
-                  value={sortMode}
-                  onChange={(e) =>
-                    setSortMode(e.target.value as typeof sortMode)
-                  }
-                  className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-sm"
-                >
-                  <option value="none">{t("table.scheduled.sort.none")}</option>
-                  <option value="lastRunAsc">
-                    {t("table.scheduled.sort.lastRunAsc")}
-                  </option>
-                  <option value="lastRunDesc">
-                    {t("table.scheduled.sort.lastRunDesc")}
-                  </option>
-                  <option value="nextRunAsc">
-                    {t("table.scheduled.sort.nextRunAsc")}
-                  </option>
-                  <option value="nextRunDesc">
-                    {t("table.scheduled.sort.nextRunDesc")}
-                  </option>
-                </select>
-              </label>
-              {(import.meta.env.DEV ||
-                getDeviceType() === "TWA" ||
-                getDeviceType() === "AndroidWebView") && (
-                <AlarmSyncTargetsCheckList
-                  onChange={(v) => {
-                    setAlarmSyncTargets(v);
-                    if (
-                      isRunning &&
-                      activeStep?.id === "confirm-sync-targets-alarm"
-                    ) {
-                      nextStep();
-                    }
-                  }}
-                  alarmSyncTargets={alarmSyncTargets}
-                  openDialogClicked={() => {
-                    setOpenAlarmQueueDialog(true);
-                    if (isRunning && activeStep?.id === "show-alarms") {
-                      nextStep();
-                    }
-                  }}
-                  resetItemsStates={resetItemsStates} //這個目前除錯用
-                />
-              )}
-            </div>
-
-            <label className="flex items-center gap-2 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                checked={hideDone}
-                onChange={(e) => setHideDone(e.target.checked)}
-                className="accent-blue-500"
-              />
-              {text.hideDone}
-            </label>
-          </div>
-        </div>
-      )}
 
       {loading ? (
         <div className="text-center text-gray-500">{text.loading}</div>
@@ -1152,6 +1108,12 @@ export function ScheduledTable() {
           </table>
         </div>
       )}
+
+      <IcsSourceManagementDialog
+        isOpen={isIcsSourceManagementDialogOpen}
+        onClose={handleIcsSourceManagementDialogClose}
+        onSynced={handleIcsOnSynced}
+      />
 
       <EditDialog
         isOpen={!!editingItem}
@@ -1383,7 +1345,7 @@ function AlarmSyncTargetsCheckList({
           e.preventDefault();
         }}
       >
-        <h3>{t("設定排程鬧鐘")}</h3>
+        {/* <h3>{t("設定排程鬧鐘")}</h3> */}
         <div className="flex flex-row gap-2 items-center">
           <label className="flex items-center gap-2">
             {/* 兩個checkboxes 為輸入源 和一個 ok 將結果透過onChange 送出 */}
@@ -1439,4 +1401,7 @@ function AlarmSyncTargetsCheckList({
       ) : null}
     </div>
   );
+}
+function showGlobalToast(arg0: { message: string; duration: number }) {
+  throw new Error("Function not implemented.");
 }

@@ -167,3 +167,53 @@ h1 {
     padding: 10px 6px;
   }
 }
+
+/* 下拉選單按鈕 */
+.dropbtn {
+  /* background-color: #3498DB; */
+  color: white;
+  padding: 0.8rem;
+  font-size: 0.8rem;
+  border-radius: .25rem;
+  border: none;
+  cursor: pointer;
+}
+
+/* 滑鼠懸停和聚焦下拉按鈕時 */
+/* .dropbtn:hover, .dropbtn:focus {
+  background-color: #2980B9;
+} */
+
+/* 容器 <div> - 用於定位下拉選單內容 */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* 下拉選單內容 (預設隱藏) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  /* min-width: 20rem; */
+  box-shadow: 0rem 0.5rem 1rem 0rem rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+/* 下拉選單中的連結 */
+.dropdown-content a {
+  color: black;
+  padding: 0.8rem 1rem;
+  text-decoration: none;
+  display: block;
+}
+
+/* 懸停時更改下拉菜單鏈接的顏色 */
+.dropdown-content a:hover {background-color: #ddd;}
+
+/* 顯示下拉選單（當用戶點選下拉按鈕時，使用 JS 為 .dropdown-content 容器新增此類） */
+.dropdown-content.show {display:block;}
+
+/* .dropdown:hover .dropdown-content {display: block;}
+
+.dropdown:hover .dropbtn {background-color: #3e8e41;} */

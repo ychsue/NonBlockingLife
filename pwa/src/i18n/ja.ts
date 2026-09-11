@@ -336,6 +336,9 @@ export const ja: TranslationMap = {
     'table.scheduled.sort.nextRunAsc': '次の処理：最も早い',
     'table.scheduled.sort.nextRunDesc': '次の処理：最も遅い',
 
+  'table.scheduled.alarmSyncTargetsLabel': 'アラームの目標を設定する',
+
+
   // ── Log ──────────────────────────────────────────────────────
   'table.log.confirmClear': 'Log 関連の change_log 記録をすべて削除してもよろしいですか？',
   'table.log.clearedCount': '{count} 件の Log change_log 記録を削除しました',

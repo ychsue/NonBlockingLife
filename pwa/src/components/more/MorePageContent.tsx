@@ -8,28 +8,9 @@ import {
   type AndroidTimerLaunchMode,
 } from "../../utils/shortcutUtils";
 import { useTWithMaps } from "../../i18n";
+import { SettingsCard } from "../SettingsCard";
 
 type MoreTab = "settings" | "experiment";
-
-function SettingsCard({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <div className="space-y-1">
-        <h3 className="font-semibold text-gray-900">{title}</h3>
-        <p className="text-sm text-gray-600">{description}</p>
-      </div>
-      <div className="mt-4 space-y-3">{children}</div>
-    </section>
-  );
-}
 
 function SettingsPanel() {
   const t = useTWithMaps({
@@ -440,7 +421,7 @@ function ExperimentPanel() {
           </div>
         ) : (
           <div className="mt-4 space-y-4">
-            {["TWA","AndroidWebView"].includes(getDeviceType()) ? (
+            {["TWA", "AndroidWebView"].includes(getDeviceType()) ? (
               <div className="rounded-lg border border-amber-200 bg-white p-3">
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <h4 className="text-sm font-semibold text-gray-900">

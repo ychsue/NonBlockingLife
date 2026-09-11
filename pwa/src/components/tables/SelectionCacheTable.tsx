@@ -60,10 +60,10 @@ function mapSourceToSheet(source?: string): SheetName | null {
 }
 
 export function SelectionCacheTable() {
-  console.log(
-    "[SelectionCacheTable] Re-render triggered!",
-    new Date().toISOString(),
-  );
+  // console.log(
+  //   "[SelectionCacheTable] Re-render triggered!",
+  //   new Date().toISOString(),
+  // );
 
   const [rows, setRows] = useDebouncedState<SelectionCacheItem[]>([], 300); // 防抖 300ms，避免頻繁更新 UI
   const [loading, setLoading] = useState(true);
