@@ -87,6 +87,7 @@ export interface IcsEventItem {
   startAt: number; // 開始時間戳 (DTSTART)
   endAt?: number; // 結束時間戳 (DTEND)
   isAllDay: boolean; // 是否為全天事件
+  reminderOffsets?: string | number[]; // 提醒的偏移量 (例如提前 10 分鐘)
   location?: string; // 地點
   description?: string; // 描述 (DESCRIPTION)
   url?: string; // 事件連結 (URL)

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { DebugLogPage } from "../debug/DebugLogPage";
 import { useAppStore } from "../../store/appStore";
 import { useProductTourContext } from "../tour/ProductTourContext";
@@ -9,6 +9,7 @@ import {
 } from "../../utils/shortcutUtils";
 import { useTWithMaps } from "../../i18n";
 import { SettingsCard } from "../SettingsCard";
+import { parseIcsContent } from "../../utils/icsParser";
 
 type MoreTab = "settings" | "experiment";
 
@@ -358,6 +359,8 @@ function SettingsPanel() {
 }
 
 function ExperimentPanel() {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const t = useTWithMaps({
     en: {
       "experiment.title": "Experimental tools",
@@ -403,6 +406,31 @@ function ExperimentPanel() {
     }
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result as string;
+        try {
+          const parsed = parseIcsContent(content, "testId");
+          console.log("Parsed ICS content:", parsed);
+          showGlobalToast({
+            message: "ICS content parsed successfully.",
+            duration: 3000,
+          });
+        } catch (error) {
+          console.error("Failed to parse ICS content:", error);
+          showGlobalToast({
+            message: "Failed to parse ICS content.",
+            duration: 3000,
+          });
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <section className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
@@ -421,12 +449,13 @@ function ExperimentPanel() {
           </div>
         ) : (
           <div className="mt-4 space-y-4">
-            {["TWA", "AndroidWebView"].includes(getDeviceType()) ? (
-              <div className="rounded-lg border border-amber-200 bg-white p-3">
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <h4 className="text-sm font-semibold text-gray-900">
-                    Alarm test
-                  </h4>
+            {import.meta.env.DEV ||
+            ["TWA", "AndroidWebView"].includes(getDeviceType()) ? (
+              <>
+                <SettingsCard
+                  title="Alarm Test"
+                  description="Test the Android alarm functionality."
+                >
                   <button
                     type="button"
                     onClick={() => void handleAlarmTest()}
@@ -434,13 +463,35 @@ function ExperimentPanel() {
                   >
                     Test Alarm
                   </button>
-                </div>
-                <p className="text-xs text-gray-500">
-                  Attempts to open the Android clock UI for a native
-                  connectivity check.
-                </p>
-              </div>
+                  <p className="text-xs text-gray-500">
+                    Attempts to open the Android clock UI for a native
+                    connectivity check.
+                  </p>
+                </SettingsCard>
+              </>
             ) : null}
+            <SettingsCard
+              title="Test parseIcsContent"
+              description="Test the parseIcsContent utility function."
+            >
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+              >
+                Test parseIcsContent
+              </button>
+              {/* 隱藏的 File Input */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept=".ics,text/calendar"
+                className="hidden"
+                onChange={(e) =>
+                  handleFileUpload(e)
+                }
+              />
+            </SettingsCard>
 
             <label className="flex items-center gap-2 text-sm text-gray-700">
               <input

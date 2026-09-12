@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-09-12] (2.3.20-beta.2) 先給 icsParser.ts 補上調整 nextRun, status 與 reminderOffsets 的能力，先求有，再求精
+
 ## [2026-09-10] (2.3.20-beta.1) 開始 ics 整合 [2026-09-11 15:09] 準備 commit
 1. [IcsSourceManagementDialog.tsx](pwa\src\components\ics\IcsSourceManagementDialog.tsx) 由這個 dialog 來設定 ics_sources table
 2. [ScheduledTable.tsx](pwa\src\components\tables\ScheduledTable.tsx) 修改 more 的顯示方式(改用 droplist 的方式)，然後裡面叫出 IcsSourceManagementDialog。
