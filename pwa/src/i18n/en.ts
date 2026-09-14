@@ -114,6 +114,7 @@ export const en = {
   'card.noCategory':          '(No category)',
   'card.noDate':              '(No date)',
   'card.noNote':              '(No note)',
+  'card.sourceName':           'Source Name',
 
   // ── Inbox ────────────────────────────────────────────────────
   'table.inbox.subtitle':           'Capture ideas and todos',
@@ -320,6 +321,7 @@ export const en = {
   'table.scheduled.cronWeekday':        'Weekday',
   // column headers
   'table.scheduled.col.taskId':         'Task ID',
+  'table.scheduled.col.sourceName':      'Source Name',
   'table.scheduled.col.title':          'Title',
   'table.scheduled.col.status':         'Status',
   'table.scheduled.col.focusTime':      'Focus Time',

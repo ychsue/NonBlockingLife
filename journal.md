@@ -1,5 +1,10 @@
 # Journal
 
+## [2026-09-14] (2.3.20-beta.3) 設法完成 ScheduledTable 的 CRUD 的 create 與 read 的部分。
+1. create 只有 create scheduledItem ，所以，沿用原本的。
+2. read 主要應該是 table 與 TableCard，大致完成。
+3. [ ] update 與 delete 尚未完成，預計下一步處理。
+
 ## [2026-09-12] (2.3.20-beta.2) 先給 icsParser.ts 補上調整 nextRun, status 與 reminderOffsets 的能力，先求有，再求精
 
 ## [2026-09-10] (2.3.20-beta.1) 開始 ics 整合 [2026-09-11 15:09] 準備 commit

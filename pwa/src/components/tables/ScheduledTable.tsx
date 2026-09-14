@@ -43,9 +43,14 @@ import _ from "lodash";
 import { useProductTourContext } from "../tour/ProductTourContext";
 import { SettingsCard } from "../SettingsCard";
 import { IcsSourceManagementDialog } from "../ics/IcsSourceManagementDialog";
+import {
+  mapIcsToUnifiedItem,
+  mapScheduledToUnifiedItem,
+  UnifiedCalendarItem,
+} from "../../utils/icsAdapter";
 
 const DEV_CLIENT_ID = "dev-client";
-const columnHelper = createColumnHelper<ScheduledItem>();
+const columnHelper = createColumnHelper<UnifiedCalendarItem>();
 
 interface CronPreviewState {
   taskId: string;
@@ -77,9 +82,11 @@ function createNewScheduledRow(taskId?: string, title?: string): ScheduledItem {
 export function ScheduledTable() {
   const t = useT();
   const locale = useAppStore((state) => state.locale);
-  const experimentalFeaturesEnabled = useAppStore((state) => state.experimentalFeaturesEnabled);
+  const experimentalFeaturesEnabled = useAppStore(
+    (state) => state.experimentalFeaturesEnabled,
+  );
 
-  const [rows, setRows] = useState<ScheduledItem[]>([]);
+  const [rows, setRows] = useState<UnifiedCalendarItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
   const [cronPreview, setCronPreview] = useState<CronPreviewState | null>(null);
@@ -95,6 +102,7 @@ export function ScheduledTable() {
   const { isMobile } = useResponsiveTable();
   const alarmSyncTargets = useAppStore((state) => state.alarmSyncTargets);
   const setAlarmSyncTargets = useAppStore((state) => state.setAlarmSyncTargets);
+  const showGlobalToast = useAppStore((state) => state.showGlobalToast);
 
   const [createdNewRowId, setCreatedNewRowId] = useState("");
 
@@ -128,9 +136,12 @@ export function ScheduledTable() {
     setIcsSourceManagementDialogOpen(false);
   };
 
-  const handleIcsOnSynced = () => {
+  const handleIcsOnSynced = (success: boolean) => {
+    console.log(`ICS sync ${success ? "succeeded" : "failed"}`);
     showGlobalToast({
-      message: "ICS sources have been successfully synced.",
+      message: success
+        ? "ICS sources have been successfully synced."
+        : "Failed to sync ICS sources.",
       duration: 3000,
     });
   };
@@ -174,51 +185,65 @@ export function ScheduledTable() {
   // 初始載入（不自動更新）
   useEffect(() => {
     let active = true;
-    db.scheduled
-      .toArray()
-      .then(async (data) => {
-        if (!active) return;
-
-        let loadedRows = data;
-
-        // 如果 scheduled 為空，就補一筆「定時檢查 Inbox」示範資料
-        // 注意：不能直接呼叫 addRow 後再用舊的 data setRows，否則會被空陣列覆蓋
-        if (loadedRows.length === 0) {
-          const starterRow = createNewScheduledRow(
+    // 改為使用 async await，因為要引進 icsEventItem 的讀入與篩選
+    async function getUnifiedCalendarItems() {
+      if (!active) return;
+      try {
+        // 1. 讀取 scheduled 資料庫中的所有行
+        const scheduledRows = await db.scheduled.toArray();
+        // 1.1 將 scheduledRows 轉換為 UnifiedCalendarItem (還會再擴充)
+        const unifiedItems = scheduledRows
+          .map(mapScheduledToUnifiedItem)
+          .sort((a, b) => b.taskId.localeCompare(a.taskId));
+        // 2. 讀取 db.ics_events 裡面所有行
+        const icsEventRows = await db.ics_events.toArray();
+        const icsSourceRows = await db.ics_sources.toArray();
+        // 2.1 將 icsEventRows 轉換為 UnifiedCalendarItem
+        const icsUnifiedItems: UnifiedCalendarItem[] = [];
+        icsEventRows.forEach((eventRow) => {
+          const source = icsSourceRows.find(
+            (src) => src.sourceId === eventRow.sourceId,
+          );
+          if (!source || !source.enabled) return;
+          const unifiedItem = mapIcsToUnifiedItem(eventRow, source);
+          if (unifiedItem) {
+            icsUnifiedItems.push(unifiedItem);
+          }
+        });
+        // 3. 合併 scheduled 與 ics 的 UnifiedCalendarItem
+        const allUnifiedItems = [...unifiedItems, ...icsUnifiedItems];
+        // 4. 如果 allUnifiedItems 為空，則創建一個新的 UnifiedCalendarItem
+        if (allUnifiedItems.length === 0) {
+          const starterItem = createNewScheduledRow(
             "S0",
             "Check out the Inbox table!",
           );
-
+          await db.scheduled.add(starterItem);
           await applyChange({
             table: "scheduled",
-            recordId: starterRow.taskId,
+            recordId: starterItem.taskId,
             op: "add",
-            patch: starterRow as unknown as Record<string, unknown>,
+            patch: starterItem as unknown as Record<string, unknown>,
             clientId: DEV_CLIENT_ID,
           }).catch((err) =>
             console.error("Failed to add starter scheduled row:", err),
           );
-
-          loadedRows = await db.scheduled.toArray();
-          if (loadedRows.length === 0) {
-            loadedRows = [starterRow];
-          }
+          allUnifiedItems.push(mapScheduledToUnifiedItem(starterItem));
         }
-
-        // taskId 降序排列（新的在前面）
-        const sorted = [...loadedRows].sort((a, b) =>
-          b.taskId.localeCompare(a.taskId),
-        );
-        setRows(sorted);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to load scheduled:", err);
+        // 將合併後的 UnifiedCalendarItem 設置到狀態中
+        if (active) {
+          setRows(allUnifiedItems);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Failed to get unified calendar items:", err);
         if (active) {
           setRows([]);
           setLoading(false);
         }
-      });
+      }
+    }
+    getUnifiedCalendarItems();
 
     return () => {
       active = false;
@@ -256,7 +281,8 @@ export function ScheduledTable() {
   };
 
   const addRow = async (taskId?: string, title?: string) => {
-    const newRow = createNewScheduledRow(taskId, title);
+    const newScheduledRow = createNewScheduledRow(taskId, title);
+    const newRow = mapScheduledToUnifiedItem(newScheduledRow);
     setRows((prev) => [newRow, ...prev]);
 
     await applyChange({
@@ -378,16 +404,41 @@ export function ScheduledTable() {
           <span className="text-xs text-gray-500">{info.getValue()}</span>
         ),
       }),
+      columnHelper.accessor("sourceColor", {
+        header: " ",
+        cell: (info) => (
+          <div
+            className="m-w-2"
+            style={{
+              backgroundColor: info.getValue()
+                ? `${info.getValue()}`
+                : "transparent",
+            }}
+          >
+            .
+          </div>
+        ),
+      }),
+      columnHelper.accessor("sourceName", {
+        header: t("table.scheduled.col.sourceName"),
+        cell: (info) => (
+          <span className="text-xs text-gray-500 block min-w-15">
+            {info.getValue()}
+          </span>
+        ),
+      }),
       columnHelper.accessor("title", {
         header: t("table.scheduled.col.title"),
         cell: (info) => {
           const taskId = info.row.original.taskId;
+          const isReadOnly = info.row.original.isReadOnly;
           const value = info.getValue() ?? "";
 
           return (
             <input
               className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 min-w-3xs"
               value={value}
+              readOnly={isReadOnly}
               onChange={(event) =>
                 updateLocalRow(taskId, { title: event.target.value })
               }
@@ -427,6 +478,7 @@ export function ScheduledTable() {
         header: t("table.scheduled.col.focusTime"),
         cell: (info) => {
           const taskId = info.row.original.taskId;
+          const isReadOnly = info.row.original.isReadOnly;
           const value = info.getValue();
 
           return (
@@ -436,6 +488,7 @@ export function ScheduledTable() {
               min={0}
               value={value ?? ""}
               placeholder="mins"
+              readOnly={isReadOnly}
               onChange={(event) => {
                 const raw = event.target.value;
                 updateLocalRow(taskId, {
@@ -456,7 +509,17 @@ export function ScheduledTable() {
         header: t("table.scheduled.cronHeader"),
         cell: (info) => {
           const taskId = info.row.original.taskId;
+          const isReadOnly = info.row.original.isReadOnly;
           const fullValue = info.getValue() ?? "";
+          // 如果是 readonly，則直接傳回 cronExpr 字串，且不可編輯
+          if (isReadOnly) {
+            return (
+              <span className="text-xs text-gray-500 block min-w-15">
+                {fullValue}
+              </span>
+            );
+          }
+
           const [minute, hour, day, month, weekday] = getCronParts(fullValue);
           const parts = [minute, hour, day, month, weekday];
           const currentNextRun = info.row.original.nextRun;
@@ -597,6 +660,7 @@ export function ScheduledTable() {
               header: t("table.scheduled.col.reminderOffsets"),
               cell: (info) => {
                 const taskId = info.row.original.taskId;
+                const isReadOnly = info.row.original.isReadOnly;
                 const rawValue = info.getValue();
                 const value =
                   typeof rawValue === "string"
@@ -609,6 +673,7 @@ export function ScheduledTable() {
                   <input
                     className="w-28 min-w-28 px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-xs"
                     value={value}
+                    readOnly={isReadOnly}
                     placeholder="1d,2h,30m"
                     onChange={(event) =>
                       updateLocalRow(taskId, {
@@ -631,12 +696,14 @@ export function ScheduledTable() {
         header: t("table.scheduled.col.remindBefore"),
         cell: (info) => {
           const taskId = info.row.original.taskId;
+          const isReadOnly = info.row.original.isReadOnly;
           const value = info.getValue() ?? "";
 
           return (
             <input
               className="w-20 px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
               value={value}
+              readOnly={isReadOnly}
               placeholder="1h"
               onChange={(event) =>
                 updateLocalRow(taskId, { remindBefore: event.target.value })
@@ -652,12 +719,14 @@ export function ScheduledTable() {
         header: t("table.scheduled.col.remindAfter"),
         cell: (info) => {
           const taskId = info.row.original.taskId;
+          const isReadOnly = info.row.original.isReadOnly;
           const value = info.getValue() ?? "";
 
           return (
             <input
               className="w-20 px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
               value={value}
+              readOnly={isReadOnly}
               placeholder="90m"
               onChange={(event) =>
                 updateLocalRow(taskId, { remindAfter: event.target.value })
@@ -673,12 +742,14 @@ export function ScheduledTable() {
         header: t("table.scheduled.col.callback"),
         cell: (info) => {
           const taskId = info.row.original.taskId;
+          const isReadOnly = info.row.original.isReadOnly;
           const value = info.getValue() ?? "";
 
           return (
             <input
               className="w-full min-w-40 px-2 py-1 border rounded focus:outline-none focus:border-blue-500 font-mono text-xs"
               value={value}
+              readOnly={isReadOnly}
               placeholder="action"
               onChange={(event) =>
                 updateLocalRow(taskId, { callback: event.target.value })
@@ -694,12 +765,14 @@ export function ScheduledTable() {
         header: t("table.scheduled.col.note"),
         cell: (info) => {
           const taskId = info.row.original.taskId;
+          const isReadOnly = info.row.original.isReadOnly;
           const value = info.getValue() ?? "";
 
           return (
             <input
               className="w-full min-w-40 px-2 py-1 border rounded focus:outline-none focus:border-blue-500"
               value={value}
+              readOnly={isReadOnly}
               onChange={(event) =>
                 updateLocalRow(taskId, { note: event.target.value })
               }
@@ -714,6 +787,7 @@ export function ScheduledTable() {
         header: t("table.scheduled.col.url"),
         cell: (info) => {
           const taskId = info.row.original.taskId;
+          const isReadOnly = info.row.original.isReadOnly;
           const value = info.getValue() ?? "";
           const hasValidUrl = value && value !== "None";
 
@@ -722,6 +796,7 @@ export function ScheduledTable() {
               <input
                 className="flex-1 px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-xs"
                 value={value}
+                readOnly={isReadOnly}
                 onChange={(event) =>
                   updateLocalRow(taskId, { url: event.target.value })
                 }
@@ -753,6 +828,7 @@ export function ScheduledTable() {
           return (
             <input
               className="w-full px-2 py-1 border rounded focus:outline-none focus:border-blue-500 text-xs"
+              readOnly={info.row.original.isReadOnly}
               type="datetime-local"
               value={value}
               onChange={(event) => {
@@ -942,17 +1018,20 @@ export function ScheduledTable() {
                     </SettingsCard>
                   )}
 
-                  { experimentalFeaturesEnabled && (
-                  <SettingsCard title="設定 ics 來源 (實驗中🧪)" description={null}>
-                    {/* 設定 ics 來源 */}
-                    <button
-                      type="button"
-                      onClick={() => setIcsSourceManagementDialogOpen(true)}
-                      className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                  {experimentalFeaturesEnabled && (
+                    <SettingsCard
+                      title="設定 ics 來源 (實驗中🧪)"
+                      description={null}
                     >
-                      Manage ICS Sources
-                    </button>
-                  </SettingsCard>
+                      {/* 設定 ics 來源 */}
+                      <button
+                        type="button"
+                        onClick={() => setIcsSourceManagementDialogOpen(true)}
+                        className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                      >
+                        Manage ICS Sources
+                      </button>
+                    </SettingsCard>
                   )}
                 </div>
               </div>
@@ -1020,17 +1099,24 @@ export function ScheduledTable() {
       ) : isMobile ? (
         // 移動視圖 - 卡片
         <div className="grid grid-cols-1 gap-3">
-          {table.getRowModel().rows.map((row) => {
+          {table.getRowModel().rows.filter((row) => {
+            return hideDone ? row.original.status?.toLowerCase() !== "done" : true;
+          }).map((row) => {
             const item = row.original;
             return (
               <TableCard
                 key={item.taskId}
                 item={item}
+                accentColor={item.sourceColor ?? ""}
                 fields={[
                   {
                     label: t("col.title"),
                     value: item.title || t("table.empty"),
                   },
+                  //如果有 SourceName 就插入
+                  ...(item.sourceName
+                    ? [{ label: t("card.sourceName"), value: item.sourceName }]
+                    : []),
                   { label: t("card.status"), value: item.status },
                   {
                     label: t("card.focusTime"),
@@ -1039,7 +1125,8 @@ export function ScheduledTable() {
                         ? t("card.default30Mins")
                         : t("card.default30MinsUnit", { n: item.focusTime }),
                   },
-                  { label: t("card.cron"), value: item.cronExpr },
+                  // 如果有 cron 表達式就插入
+                  ...(item.cronExpr ? [{ label: t("card.cron"), value: item.cronExpr }] : []),
                   {
                     label: t("card.nextRun"),
                     value: item.nextRun
@@ -1401,7 +1488,4 @@ function AlarmSyncTargetsCheckList({
       ) : null}
     </div>
   );
-}
-function showGlobalToast(arg0: { message: string; duration: number }) {
-  throw new Error("Function not implemented.");
 }

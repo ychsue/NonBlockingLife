@@ -117,6 +117,7 @@ export const zhTW: TranslationMap = {
   'card.noCategory':          '(無分類)',
   'card.noDate':              '(無日期)',
   'card.noNote':              '(無備註)',
+  'card.sourceName':           '來源名稱',
 
   // ── Inbox ────────────────────────────────────────────────────
   'table.inbox.subtitle':           '新增想法與待辦項目',
@@ -325,6 +326,7 @@ export const zhTW: TranslationMap = {
   'table.scheduled.cronWeekday':        '週',
   // column headers
   'table.scheduled.col.taskId':         '任務 ID',
+  'table.scheduled.col.sourceName':      '來源名稱',
   'table.scheduled.col.title':          '標題',
   'table.scheduled.col.status':         '狀態',
   'table.scheduled.col.focusTime':      '專注時長',

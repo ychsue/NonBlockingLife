@@ -104,6 +104,7 @@ export const ja: TranslationMap = {
   'card.noCategory': '(カテゴリなし)',
   'card.noDate': '(日付なし)',
   'card.noNote': '(メモなし)',
+  'card.sourceName': 'ソース名',
 
   // ── Inbox ────────────────────────────────────────────────────
   'table.inbox.subtitle': 'アイデアとタスクを追加',
@@ -302,6 +303,7 @@ export const ja: TranslationMap = {
   'table.scheduled.cronMonth': '月',
   'table.scheduled.cronWeekday': '週',
   'table.scheduled.col.taskId': 'タスク ID',
+  'table.scheduled.col.sourceName': 'ソース名',
   'table.scheduled.col.title': 'タイトル',
   'table.scheduled.col.status': 'ステータス',
   'table.scheduled.col.focusTime': '集中時間',

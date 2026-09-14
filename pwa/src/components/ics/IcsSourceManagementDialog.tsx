@@ -119,7 +119,15 @@ export function IcsSourceManagementDialog({
       const content = await file.text();
       let targetSourceId = sourceId;
 
-      if (!targetSourceId) {
+      if (targetSourceId) {
+        // 如果已經有 targetSourceId，表示是更新現有的 Source，這裡可以做一些額外處理，例如清空表單或提示用戶
+        await db.ics_sources.update(targetSourceId, {
+          name: formName.trim(),
+          url: formUrl.trim(),
+          color: selectedColor,
+          updatedAt: Date.now(),
+        });
+      } else {
         targetSourceId = Utils.generateId("SRC_FILE_");
         const newSource: IcsSourceItem = {
           sourceId: targetSourceId,
