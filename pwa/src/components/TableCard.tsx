@@ -19,6 +19,7 @@ interface TableCardProps<T> {
     label: string;
     onClick: (item: T) => void;
   };
+  showDelete?: boolean; // 🆕 是否顯示刪除按鈕
   editLabel?: string; // 🆕 自訂「編輯/管理」文字
   isDisabled?: boolean; // 🆕 是否為停用狀態 (灰階/貫穿線)
   accentColor?: string; // 🆕 左側顏色區塊標籤
@@ -36,6 +37,7 @@ export function TableCard<
   onEdit,
   onDelete,
   quickAction,
+  showDelete,
   editLabel,
   isDisabled = false,
   accentColor,
@@ -129,7 +131,7 @@ export function TableCard<
       return;
     }
 
-    if (offsetX <= -SWIPE_TRIGGER) {
+    if (showDelete && (offsetX <= -SWIPE_TRIGGER)) {
       resetSwipe();
       if (pendingDeleteConfirm) {
         cancelDeleteConfirmation();
@@ -155,12 +157,14 @@ export function TableCard<
         />
       )}
 
-      <div className={`absolute inset-0 flex text-white text-sm font-semibold z-0`}>
+      <div
+        className={`absolute inset-0 flex text-white text-sm font-semibold z-0`}
+      >
         <div className="flex-1 bg-blue-500 flex items-center justify-start pl-4">
           {displayEditLabel}
         </div>
         <div className="flex-1 bg-red-500 flex items-center justify-end pr-4">
-          {t("tableCard.delete")}
+          {showDelete ? t("tableCard.delete") : t("tableCard.noDelete")}
         </div>
       </div>
 
@@ -235,25 +239,27 @@ export function TableCard<
             >
               {t("tableCard.edit")}
             </button>
-            <button
-              onClick={() => {
-                if (pendingDeleteConfirm) {
-                  cancelDeleteConfirmation();
-                  onDelete(item);
-                } else {
-                  beginDeleteConfirmation();
-                }
-              }}
-              className={`px-3 py-1 text-xs font-medium rounded text-white ${
-                pendingDeleteConfirm
-                  ? "bg-red-600 hover:bg-red-700"
-                  : "bg-red-400 hover:bg-red-500"
-              }`}
-            >
-              {pendingDeleteConfirm
-                ? t("tableCard.confirmDelete")
-                : t("tableCard.delete")}
-            </button>
+            {showDelete && (
+              <button
+                onClick={() => {
+                  if (pendingDeleteConfirm) {
+                    cancelDeleteConfirmation();
+                    onDelete(item);
+                  } else {
+                    beginDeleteConfirmation();
+                  }
+                }}
+                className={`px-3 py-1 text-xs font-medium rounded text-white ${
+                  pendingDeleteConfirm
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-red-400 hover:bg-red-500"
+                }`}
+              >
+                {pendingDeleteConfirm
+                  ? t("tableCard.confirmDelete")
+                  : t("tableCard.delete")}
+              </button>
+            )}
           </div>
         )}
       </div>

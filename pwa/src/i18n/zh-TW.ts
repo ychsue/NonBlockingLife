@@ -76,6 +76,7 @@ export const zhTW: TranslationMap = {
   // ── TableCard ────────────────────────────────────────────────
   'tableCard.edit':                '編輯',
   'tableCard.delete':              '刪除',
+  'tableCard.noDelete':            '不可刪除',
   'tableCard.openLink':            '開啟連結',
   'tableCard.swipeDeleteConfirm':  '再左滑一次以確認刪除',
   'tableCard.confirmDelete':       '確認刪除',

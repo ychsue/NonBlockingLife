@@ -10,6 +10,7 @@ import {
 import { applyChange, db } from "../../db/index";
 import type {
   AlarmQueueItem,
+  IcsSourceItem,
   ScheduledItem,
   SelectionCacheItem,
 } from "../../db/schema";
@@ -105,6 +106,7 @@ export function ScheduledTable() {
   const showGlobalToast = useAppStore((state) => state.showGlobalToast);
 
   const [createdNewRowId, setCreatedNewRowId] = useState("");
+  const [icsSourceRows, setIcsSourceRows] = useState<IcsSourceItem[]>([]);
 
   const [editingItem, setEditingItem] = useState<ScheduledItem | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -136,8 +138,20 @@ export function ScheduledTable() {
     setIcsSourceManagementDialogOpen(false);
   };
 
+  async function updateIcsSourceRows(active: boolean) {
+    const updatedRows = await db.ics_sources.toArray();
+    if (active) {
+      setIcsSourceRows((prev) =>
+        _.isEqual(prev, updatedRows) ? prev : updatedRows,
+      );
+    }
+  }
+
   const handleIcsOnSynced = (success: boolean) => {
     console.log(`ICS sync ${success ? "succeeded" : "failed"}`);
+    if (success) {
+      updateIcsSourceRows(true); // 這裡應該更新 ICS source rows，根據實際情況修改
+    }
     showGlobalToast({
       message: success
         ? "ICS sources have been successfully synced."
@@ -182,7 +196,16 @@ export function ScheduledTable() {
     }
   }, [sortMode]);
 
-  // 初始載入（不自動更新）
+  // 初始載入icsSourceRows（不自動更新）
+  useEffect(() => {
+    let active = true;
+    updateIcsSourceRows(active);
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   useEffect(() => {
     let active = true;
     // 改為使用 async await，因為要引進 icsEventItem 的讀入與篩選
@@ -197,7 +220,6 @@ export function ScheduledTable() {
           .sort((a, b) => b.taskId.localeCompare(a.taskId));
         // 2. 讀取 db.ics_events 裡面所有行
         const icsEventRows = await db.ics_events.toArray();
-        const icsSourceRows = await db.ics_sources.toArray();
         // 2.1 將 icsEventRows 轉換為 UnifiedCalendarItem
         const icsUnifiedItems: UnifiedCalendarItem[] = [];
         icsEventRows.forEach((eventRow) => {
@@ -248,7 +270,7 @@ export function ScheduledTable() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [icsSourceRows]);
 
   useEffect(() => {
     if (!pendingEditIntent || pendingEditIntent.sheet !== "scheduled") return;
@@ -888,12 +910,15 @@ export function ScheduledTable() {
             >
               {runningTask ? t("table.quickSwitch") : t("table.quickStart")}
             </button>
-            <button
-              onClick={() => deleteRow(info.row.original.taskId)}
-              className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-            >
-              {t("table.scheduled.col.delete")}
-            </button>
+            {/* 如果是 IcsEventItem，就不顯示 delete 按鈕 */}
+            {info.row.original.itemType === "scheduled" && (
+              <button
+                onClick={() => deleteRow(info.row.original.taskId)}
+                className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                {t("table.scheduled.col.delete")}
+              </button>
+            )}
           </div>
         ),
       }),
@@ -1099,52 +1124,67 @@ export function ScheduledTable() {
       ) : isMobile ? (
         // 移動視圖 - 卡片
         <div className="grid grid-cols-1 gap-3">
-          {table.getRowModel().rows.filter((row) => {
-            return hideDone ? row.original.status?.toLowerCase() !== "done" : true;
-          }).map((row) => {
-            const item = row.original;
-            return (
-              <TableCard
-                key={item.taskId}
-                item={item}
-                accentColor={item.sourceColor ?? ""}
-                fields={[
-                  {
-                    label: t("col.title"),
-                    value: item.title || t("table.empty"),
-                  },
-                  //如果有 SourceName 就插入
-                  ...(item.sourceName
-                    ? [{ label: t("card.sourceName"), value: item.sourceName }]
-                    : []),
-                  { label: t("card.status"), value: item.status },
-                  {
-                    label: t("card.focusTime"),
-                    value:
-                      item.focusTime == null
-                        ? t("card.default30Mins")
-                        : t("card.default30MinsUnit", { n: item.focusTime }),
-                  },
-                  // 如果有 cron 表達式就插入
-                  ...(item.cronExpr ? [{ label: t("card.cron"), value: item.cronExpr }] : []),
-                  {
-                    label: t("card.nextRun"),
-                    value: item.nextRun
-                      ? new Date(item.nextRun).toLocaleString("zh-TW")
-                      : t("table.notSet"),
-                  },
-                ]}
-                onEdit={setEditingItem}
-                onDelete={(item) => deleteRow(item.taskId)}
-                quickAction={{
-                  label: runningTask
-                    ? t("table.quickSwitch")
-                    : t("table.quickStart"),
-                  onClick: handleInterruptOrStart,
-                }}
-              />
-            );
-          })}
+          {table
+            .getRowModel()
+            .rows.filter((row) => {
+              return hideDone
+                ? row.original.status?.toLowerCase() !== "done"
+                : true;
+            })
+            .map((row) => {
+              const item = row.original;
+              return (
+                <TableCard
+                  key={item.taskId}
+                  item={item}
+                  showDelete={item.itemType === "scheduled"}
+                  accentColor={item.sourceColor ?? ""}
+                  fields={[
+                    {
+                      label: t("col.title"),
+                      value: item.title || t("table.empty"),
+                    },
+                    //如果有 SourceName 就插入
+                    ...(item.sourceName
+                      ? [
+                          {
+                            label: t("card.sourceName"),
+                            value: item.sourceName,
+                          },
+                        ]
+                      : []),
+                    { label: t("card.status"), value: item.status },
+                    {
+                      label: t("card.focusTime"),
+                      value:
+                        item.focusTime == null
+                          ? t("card.default30Mins")
+                          : t("card.default30MinsUnit", { n: item.focusTime }),
+                    },
+                    // 如果有 cron 表達式就插入
+                    ...(item.cronExpr
+                      ? [{ label: t("card.cron"), value: item.cronExpr }]
+                      : []),
+                    {
+                      label: t("card.nextRun"),
+                      value: item.nextRun
+                        ? new Date(item.nextRun).toLocaleString("zh-TW")
+                        : t("table.notSet"),
+                    },
+                  ]}
+                  onEdit={setEditingItem}
+                  onDelete={(item) =>
+                    item.itemType === "scheduled" && deleteRow(item.taskId)
+                  }
+                  quickAction={{
+                    label: runningTask
+                      ? t("table.quickSwitch")
+                      : t("table.quickStart"),
+                    onClick: handleInterruptOrStart,
+                  }}
+                />
+              );
+            })}
         </div>
       ) : (
         // 桌面視圖 - 表格

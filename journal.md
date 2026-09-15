@@ -4,6 +4,7 @@
 1. create 只有 create scheduledItem ，所以，沿用原本的。
 2. read 主要應該是 table 與 TableCard，大致完成。
 3. [ ] update 與 delete 尚未完成，預計下一步處理。
+   * (2.3.20-beta.4) delete 的部分的話，如果是IcsEventItem的話，就不顯示 delete 按鈕，還有若真的執行了 delete，應該只針對 scheduledItem 生效。
 
 ## [2026-09-12] (2.3.20-beta.2) 先給 icsParser.ts 補上調整 nextRun, status 與 reminderOffsets 的能力，先求有，再求精
 

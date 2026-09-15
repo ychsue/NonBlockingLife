@@ -73,6 +73,7 @@ export const en = {
   // ── TableCard ────────────────────────────────────────────────
   'tableCard.edit':                'Edit',
   'tableCard.delete':              'Delete',
+  'tableCard.noDelete':            'Cannot Delete',
   'tableCard.openLink':            'Open Link',
   'tableCard.swipeDeleteConfirm':  'Swipe left again to confirm delete',
   'tableCard.confirmDelete':       'Confirm Delete',

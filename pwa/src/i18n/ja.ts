@@ -66,6 +66,7 @@ export const ja: TranslationMap = {
 
   'tableCard.edit': '編集',
   'tableCard.delete': '削除',
+  'tableCard.noDelete': '削除不可',
   'tableCard.openLink': 'リンクを開く',
   'tableCard.swipeDeleteConfirm': '削除するにはもう一度左にスワイプ',
   'tableCard.confirmDelete': '削除を確認',
