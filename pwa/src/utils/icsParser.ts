@@ -34,11 +34,13 @@ export async function parseIcsContent(
       // 時間處理 (ical.js 會自動處理時區與全天事件)
       const startDate = event.startDate;
       const endDate = event.endDate;
+      // 相差時間 (毫秒)
+      const duration = startDate && endDate ? endDate.toJSDate().getTime() - startDate.toJSDate().getTime() : 0;
 
       let startAt = startDate ? startDate.toJSDate().getTime() : 0;
       if (!startAt) continue; // 無效時間跳過
 
-      const endAt = endDate ? endDate.toJSDate().getTime() : undefined;
+      let endAt = endDate ? endDate.toJSDate().getTime() : undefined;
       const isAllDay = startDate ? startDate.isDate : false;
 
       // 取得原始 RRULE 字串 (若有)
@@ -57,6 +59,7 @@ export async function parseIcsContent(
         // 若下一次發生時間尚未到，標示為 'WAITING'
         status = "WAITING";
         startAt = nextRun.getTime();
+        endAt = startAt + duration;
       }
 
       // 取得提醒的偏移量 (若有)
@@ -132,6 +135,33 @@ export function getNextRun(
     if (!next) return null;
     if (next.toJSDate() > after) return next.toJSDate();
   }
+}
+
+export function getPreviewRuns(rruleValue: string, prevNextRun: Date): Date[] {
+  const dates: Date[] = [];
+  try {
+    const rulePart = rruleValue.startsWith("RRULE:")
+      ? rruleValue.substring("RRULE:".length)
+      : rruleValue;
+
+    const rrule = ICAL.Recur.fromString(rulePart);
+    const dtstart = ICAL.Time.fromJSDate(prevNextRun);
+    const comp = new ICAL.Component("vevent");
+    comp.addPropertyWithValue("dtstart", dtstart);
+    comp.addPropertyWithValue("rrule", rrule);
+
+    const expand = new ICAL.RecurExpansion({ component: comp, dtstart });
+
+    while (true) {
+      const next = expand.next();
+      if (!next) break;
+      dates.push(next.toJSDate());
+      if (dates.length >= 10) break;
+    }
+  } catch (err) {
+    console.error("Failed to get preview runs:", err);
+  }
+  return dates;
 }
 
 /**

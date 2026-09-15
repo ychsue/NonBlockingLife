@@ -108,7 +108,7 @@ export function ScheduledTable() {
   const [createdNewRowId, setCreatedNewRowId] = useState("");
   const [icsSourceRows, setIcsSourceRows] = useState<IcsSourceItem[]>([]);
 
-  const [editingItem, setEditingItem] = useState<ScheduledItem | null>(null);
+  const [editingItem, setEditingItem] = useState<UnifiedCalendarItem | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isOrMode, setIsOrMode] = useState(true);
   const [hideDone, setHideDone] = useState(true);
@@ -1252,6 +1252,7 @@ export function ScheduledTable() {
             label: t("table.scheduled.field.title"),
             type: "text" as FieldType,
             placeholder: text.titlePlaceholder,
+            readOnly: editingItem?.isReadOnly ?? false,
           },
           {
             name: "status",
@@ -1264,15 +1265,17 @@ export function ScheduledTable() {
               { label: "INTERRUPTED", value: "INTERRUPTED" },
             ],
           },
+          // 如果itemType === 'ics_event'，則其實他是 rrule的值
           {
             name: "cronExpr",
             label: t("table.scheduled.field.cronExpr"),
-            type: "cron" as FieldType,
+            type: editingItem?.itemType === "ics_event" ? "rrule" as FieldType : "cron" as FieldType,
             placeholder: text.cronPlaceholder,
           },
           {
             name: "focusTime",
             label: t("table.scheduled.field.focusTime"),
+            readOnly: editingItem?.isReadOnly ?? false,
             type: "number" as FieldType,
           },
           ...(alarmSyncTargets !== 0
@@ -1280,6 +1283,7 @@ export function ScheduledTable() {
                 {
                   name: "reminderOffsets",
                   label: t("table.scheduled.field.reminderOffsets"),
+                  readOnly: editingItem?.isReadOnly ?? false,
                   type: "text" as FieldType,
                   placeholder: "1d,2h,30m",
                 },
@@ -1288,21 +1292,25 @@ export function ScheduledTable() {
           {
             name: "remindBefore",
             label: t("table.scheduled.field.remindBefore"),
+            readOnly: editingItem?.isReadOnly ?? false,
             type: "text" as FieldType,
           },
           {
             name: "remindAfter",
             label: t("table.scheduled.field.remindAfter"),
+            readOnly: editingItem?.isReadOnly ?? false,
             type: "text" as FieldType,
           },
           {
             name: "callback",
             label: t("table.scheduled.field.callback"),
+            readOnly: editingItem?.isReadOnly ?? false,
             type: "text" as FieldType,
           },
           {
             name: "lastRun",
             label: t("table.scheduled.field.lastRun"),
+            readOnly: editingItem?.isReadOnly ?? false,
             type: "datetime" as FieldType,
           },
           {
@@ -1313,17 +1321,20 @@ export function ScheduledTable() {
           {
             name: "note",
             label: t("table.scheduled.field.note"),
+            readOnly: editingItem?.isReadOnly ?? false,
             type: "text" as FieldType,
           },
           {
             name: "url",
             label: t("table.scheduled.field.url"),
+            readOnly: editingItem?.isReadOnly ?? false,
             type: "text" as FieldType,
             placeholder: "https://...",
           },
           {
             name: "deadline",
             label: t("table.scheduled.field.deadline"),
+            readOnly: editingItem?.isReadOnly ?? false,
             type: "datetime" as FieldType,
           },
         ]}

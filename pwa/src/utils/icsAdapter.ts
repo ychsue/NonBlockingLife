@@ -23,6 +23,7 @@ export function mapIcsToUnifiedItem(
     status: ics.status || 'WAITING',
     nextRun: ics.startAt,               // 核心對應：將開始時間對應到 nextRun 用於排序[cite: 1, 2]
     deadline: ics.endAt,                // 結束時間對應到 deadline[cite: 1, 2]
+    focusTime: ics.endAt && ics.startAt ? Math.floor((ics.endAt - ics.startAt) / 60000) : 0, // 持續時間 (分鐘)
     note: ics.description,              // 描述對應到 note[cite: 1, 2]
     url: ics.url || '',
     cronExpr: ics.rrule ? `RRULE:${ics.rrule}` : '', // 僅供 UI 展示說明用[cite: 1, 2]

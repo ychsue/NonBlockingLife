@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-09-15] (2.3.20-beta.5) 精進 EditDialog
+1. 多加了 `readOnly` 屬性到 EditDialog 的欄位設定。
+2. 多了 rrule 的欄位設定。也因此，需要 [getPreviewRuns](pwa\src\utils\icsParser.ts) 的能力，所以，可以自訂開始時間了。 **重要** 記得拿掉 `RRULE:` 前綴。
+
 ## [2026-09-14] (2.3.20-beta.3) 設法完成 ScheduledTable 的 CRUD 的 create 與 read 的部分。
 1. create 只有 create scheduledItem ，所以，沿用原本的。
 2. read 主要應該是 table 與 TableCard，大致完成。

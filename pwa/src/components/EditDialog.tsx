@@ -14,14 +14,22 @@ import {
 } from "../utils/dialogInteractionUtils";
 import _ from "lodash";
 import { useProductTourContext } from "./tour/ProductTourContext";
+import { getPreviewRuns } from "../utils/icsParser";
 
-export type FieldType = "text" | "number" | "datetime" | "select" | "cron";
+export type FieldType =
+  | "text"
+  | "number"
+  | "datetime"
+  | "select"
+  | "cron"
+  | "rrule";
 
 interface DialogField {
   name: string;
   label: string;
   type: FieldType;
   value?: string | number | boolean;
+  readOnly?: boolean;
   required?: boolean;
   options?: Array<{ label: string; value: string | number }>;
   placeholder?: string;
@@ -257,6 +265,61 @@ export function EditDialog<T>({
     );
   };
 
+  const renderRRuleField = (field: DialogField) => {
+    const rruleValue = String(formData[field.name] ?? "");
+    const prevNextRun = String(formData["nextRun"] ?? "");
+    const previewRuns =
+      openCronPreviewField === field.name
+        ? getPreviewRuns(rruleValue, new Date(Number.parseInt(prevNextRun)))
+        : [];
+    return (
+      <div>
+        <input
+          type="text"
+          id={field.name}
+          name={field.name}
+          value={rruleValue}
+          readOnly={true} // 先強制為不可輸入好了
+          onChange={(e) => handleChange(field.name, e.target.value)}
+          className="w-full min-w-0 px-3 py-2 border border-gray-300 rounded-md font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        {rruleValue && prevNextRun && (
+          <button
+            type="button"
+            onClick={() => setOpenCronPreviewField(field.name)}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-100"
+          >
+            {t("table.scheduled.previewButton")}
+          </button>
+        )}
+        {openCronPreviewField === field.name && (
+          <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
+            <div className="mb-2 text-sm font-medium text-gray-800">
+              {t("table.scheduled.previewTitle")}
+            </div>
+            {previewRuns.length === 0 ? (
+              <div className="text-sm text-red-600">
+                {t("table.scheduled.previewEmpty")}
+              </div>
+            ) : (
+              <>
+                <div className="mb-2 text-xs text-gray-500">
+                  {t("table.scheduled.previewCount", { n: previewRuns.length })}
+                </div>
+                <ol className="max-h-56 list-decimal overflow-y-auto pl-5 text-sm text-gray-800 space-y-1">
+                  {previewRuns.map((run) => (
+                    <li key={run.toString()}>
+                      {new Date(run).toLocaleString()}
+                    </li>
+                  ))}
+                </ol>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center items-center bg-black/50 pointer-events-auto safe-padding-bottom"
@@ -280,7 +343,7 @@ export function EditDialog<T>({
               <div className="flex items-left flex-direction-row mb-2">
                 <label
                   htmlFor={field.name}
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-[1rem] font-medium self-center text-gray-700 mb-1"
                 >
                   {field.label}
                 </label>
@@ -289,14 +352,14 @@ export function EditDialog<T>({
                     <button
                       type="button"
                       onClick={() => handleChange(field.name, "")}
-                      className="px-2 py-1 text-xs text-blue-600 hover:underline"
+                      className="px-2 py-1 text-xl text-blue-600 hover:underline"
                     >
                       {"🧹"}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleChange(field.name, "0 9 * * *")}
-                      className="px-2 py-1 text-xs text-blue-600 hover:underline"
+                      className="px-2 py-1 text-xl text-blue-600 hover:underline"
                     >
                       {"🕘"}
                     </button>
@@ -308,6 +371,7 @@ export function EditDialog<T>({
                 <select
                   id={field.name}
                   value={formData[field.name] ?? ""}
+                  aria-readonly={field.readOnly ?? false}
                   onChange={(e) => handleChange(field.name, e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -322,10 +386,13 @@ export function EditDialog<T>({
                 </select>
               ) : field.type === "cron" ? (
                 renderCronField(field)
+              ) : field.type === "rrule" ? (
+                renderRRuleField(field)
               ) : field.type === "datetime" ? (
                 <input
                   id={field.name}
                   type="datetime-local"
+                  readOnly={field.readOnly ?? false}
                   data-tour={dataTourForField(field)}
                   value={
                     typeof formData[field.name] === "number"
@@ -339,6 +406,7 @@ export function EditDialog<T>({
                 <input
                   id={field.name}
                   type="number"
+                  readOnly={field.readOnly ?? false}
                   value={formData[field.name] ?? ""}
                   onChange={(e) =>
                     handleChange(
@@ -355,6 +423,7 @@ export function EditDialog<T>({
                 <textarea
                   id={field.name}
                   data-tour={dataTourForField(field)}
+                  readOnly={field.readOnly ?? false}
                   value={formData[field.name] ?? ""}
                   onChange={(e) => handleChange(field.name, e.target.value)}
                   onBlur={handleDialogTextFieldInteractionEnd}
