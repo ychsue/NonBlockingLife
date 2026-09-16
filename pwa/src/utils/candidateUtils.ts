@@ -3,8 +3,10 @@ import type {
   ScheduledItem,
   MicroTaskItem,
   AlarmQueueItem,
+  IcsEventItem,
 } from "../db/schema";
 import { getT } from "../i18n";
+import { UnifiedCalendarItem } from "./icsAdapter";
 
 export interface Candidate {
   taskId: string;
@@ -161,7 +163,8 @@ export function minutesToTimeString(totalMinutes: number): string {
   const hours = Math.floor(absoluteMinutes / 60);
   const minutes = Math.floor(absoluteMinutes % 60);
   if (hours > 0) {
-    if (minutes > 0) return sign + t("time.hoursMinutes", { h: hours, m: minutes });
+    if (minutes > 0)
+      return sign + t("time.hoursMinutes", { h: hours, m: minutes });
     return sign + t("time.hoursOnly", { h: hours });
   }
   if (minutes > 0) return sign + t("time.minutesOnly", { m: minutes });
@@ -187,7 +190,7 @@ export function getSourceEmoji(source: string): string {
  */
 export function calculateCandidates(
   pool: TaskPoolItem[],
-  scheduled: ScheduledItem[],
+  unifiedCalendar: UnifiedCalendarItem[],
   microTasks: MicroTaskItem[],
 ): CalculateCandidatesResult {
   const t = getT();
@@ -289,8 +292,8 @@ export function calculateCandidates(
     totalMinsPool += mins;
   });
 
-  // ===== Scheduled Tasks 處理 =====
-  scheduled.forEach((task) => {
+  // ===== Scheduled Tasks 處理 (現在變 unified item) =====
+  unifiedCalendar.forEach((task) => {
     const status = task.status;
     if (
       status === "PENDING" ||
@@ -314,7 +317,7 @@ export function calculateCandidates(
         taskId,
         title,
         score,
-        source: "Scheduled",
+        source: task.itemType === "scheduled" ? "Scheduled" : "ICS_Event",
         status,
         url: task.url || undefined,
       });

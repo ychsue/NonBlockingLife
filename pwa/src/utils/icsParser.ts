@@ -62,6 +62,11 @@ export async function parseIcsContent(
         endAt = startAt + duration;
       }
 
+      // 如果是整天的事件，那就直接將 endAt 設為 startAt + 24 小時
+      if (isAllDay) {
+        endAt = startAt + 24 * 60 * 60 * 1000; // 24 小時的毫秒數
+      }
+
       // 取得提醒的偏移量 (若有)
       const alarmProps = vevent.getAllSubcomponents("valarm");
       let reminderOffsets: string | number[] | undefined = undefined;
@@ -137,7 +142,7 @@ export function getNextRun(
   }
 }
 
-export function getPreviewRuns(rruleValue: string, prevNextRun: Date): Date[] {
+export function getPreviewRuns(rruleValue: string, prevNextRun: Date, times=10): Date[] {
   const dates: Date[] = [];
   try {
     const rulePart = rruleValue.startsWith("RRULE:")
@@ -156,7 +161,7 @@ export function getPreviewRuns(rruleValue: string, prevNextRun: Date): Date[] {
       const next = expand.next();
       if (!next) break;
       dates.push(next.toJSDate());
-      if (dates.length >= 10) break;
+      if (dates.length >= times) break;
     }
   } catch (err) {
     console.error("Failed to get preview runs:", err);

@@ -154,12 +154,13 @@ export interface ChangeLogEntry {
   clientId?: string;
   table: string;
   recordId: string;
-  op: "add" | "update" | "delete";
+  op: "add" | "update" | "delete" | "bulkdelete";
   patch?: Record<string, unknown>;
   createdAt: number;
   status: ChangeLogStatus;
   retryCount: number;
   syncedAt: number | null;
+  option?: Record<string, unknown>;
 }
 
 export interface SyncState {

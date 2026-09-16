@@ -1,5 +1,17 @@
 # Journal
 
+## [2026-09-16] (2.3.20-beta.6) 設法安裝上 update，還需要回去精進 add
+1. [ScheduledTable.tsx](pwa\src\components\tables\ScheduledTable.tsx) 讓他能正確處理 update 與 delete 的UI顯示與操作。
+2. [IcsSourceManagementDialog.tsx](pwa\src\components\ics\IcsSourceManagementDialog.tsx) 改用 applyChange 來更新 ics_sources 與 ics_events 兩個table。為了以後與遠端sync做準備。
+3. [SelectionCacheTable.tsx](pwa\src\components\tables\SelectionCacheTable.tsx) 
+   * 針對初始載入與當遠端sync後refresh的邏輯進行優化。
+   * refresh 後可以連 ics_events 也考慮進來
+4. [changeLog.ts](pwa\src\db\changeLog.ts) 
+   * applyChange 多了 bulkdelete 的功能。
+5. [appStore.ts](pwa\src\store\appStore.ts) 紀錄遠端sync 的時間
+6. [icsAdapter.ts](pwa\src\utils\icsAdapter.ts) 多了 mapUnifiedPatchToIcsEventPatch 的功能(有點硬做，可優化)。
+7. [taskFlow.ts](pwa\src\utils\taskFlow.ts) 針對任務流程的處理邏輯進行了優化。 **重要** 這裡很容易出錯，小心檢查每個步驟。
+
 ## [2026-09-15] (2.3.20-beta.5) 精進 EditDialog
 1. 多加了 `readOnly` 屬性到 EditDialog 的欄位設定。
 2. 多了 rrule 的欄位設定。也因此，需要 [getPreviewRuns](pwa\src\utils\icsParser.ts) 的能力，所以，可以自訂開始時間了。 **重要** 記得拿掉 `RRULE:` 前綴。
@@ -7,7 +19,7 @@
 ## [2026-09-14] (2.3.20-beta.3) 設法完成 ScheduledTable 的 CRUD 的 create 與 read 的部分。
 1. create 只有 create scheduledItem ，所以，沿用原本的。
 2. read 主要應該是 table 與 TableCard，大致完成。
-3. [ ] update 與 delete 尚未完成，預計下一步處理。
+3. [x] update 與 delete 尚未完成，預計下一步處理。
    * (2.3.20-beta.4) delete 的部分的話，如果是IcsEventItem的話，就不顯示 delete 按鈕，還有若真的執行了 delete，應該只針對 scheduledItem 生效。
 
 ## [2026-09-12] (2.3.20-beta.2) 先給 icsParser.ts 補上調整 nextRun, status 與 reminderOffsets 的能力，先求有，再求精

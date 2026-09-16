@@ -37,7 +37,7 @@ export function TableCard<
   onEdit,
   onDelete,
   quickAction,
-  showDelete,
+  showDelete = true,
   editLabel,
   isDisabled = false,
   accentColor,

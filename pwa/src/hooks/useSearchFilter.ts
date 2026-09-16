@@ -69,7 +69,7 @@ export function useHideDone<T extends { status?: string }>(
 ): T[] {
   return useMemo(() => {
     if (!hideDone) return items
-    return items.filter(item => item.status !== 'DONE')
+    return items.filter(item => item.status?.toLowerCase() !== 'done')
   }, [items, hideDone])
 }
 

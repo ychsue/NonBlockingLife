@@ -18,6 +18,8 @@ function getInitialLocale(): SupportedLocale {
   return 'en'
 }
 
+export const LAST_REMOTE_SYNC_TIME_KEY = 'last-sync-timestamp';
+
 export type AndroidTimerLaunchMode = 'none' | 'show_clock' | 'set_timer'
 
 export const PWA_VERSION_KEY = 'nbl_pwa_version'
@@ -70,6 +72,17 @@ function getInitialDebugMode(): boolean {
 
 function getInitialExperimentalFeaturesEnabled(): boolean {
   return getStorage()?.getItem(ENABLE_EXPERIMENTAL_FEATURES_KEY) === '1'
+}
+
+function getInitLastRemoteSyncTime(): number | null {
+  const stored = getStorage()?.getItem(LAST_REMOTE_SYNC_TIME_KEY)
+  if (stored !== null) {
+    const timestamp = Number(stored)
+    if (!isNaN(timestamp)) {
+      return timestamp
+    }
+  }
+  return null
 }
 
 function getInitialAndroidTimerLaunchMode(): AndroidTimerLaunchMode {
@@ -132,6 +145,10 @@ interface AppState {
   // 当前选中的页签
   currentSheet: AppSheet
   setCurrentSheet: (sheet: AppSheet) => void
+
+  // 上次远程同步时间
+  lastRemoteSyncTime: number | null
+  setLastRemoteSyncTime: (timestamp: number | null) => void
 
   // 啟動偏好
   startupPreference: StartupPreference
@@ -210,6 +227,16 @@ export const useAppStore = create<AppState>((set) => ({
   setCurrentSheet: (sheet) => {
     getStorage()?.setItem(LAST_VISITED_SHEET_KEY, sheet)
     set({ currentSheet: sheet })
+  },
+
+  lastRemoteSyncTime: getInitLastRemoteSyncTime(),
+  setLastRemoteSyncTime: (timestamp) => {
+    if (timestamp === null) {
+      getStorage()?.removeItem(LAST_REMOTE_SYNC_TIME_KEY)
+    } else {
+      getStorage()?.setItem(LAST_REMOTE_SYNC_TIME_KEY, timestamp.toString())
+    }
+    set({ lastRemoteSyncTime: timestamp })
   },
 
   startupPreference: getInitialStartupPreference(),

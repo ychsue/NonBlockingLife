@@ -4,6 +4,7 @@ import type {
   SelectionCacheItem,
   ScheduledItem,
   TaskPoolItem,
+  IcsEventItem,
 } from "../db/schema";
 import Utils from "../../../gas/src/Utils";
 import {
@@ -14,6 +15,12 @@ import {
 import { useDialogStore } from "../store/dialogStore";
 import { parseToMinutes } from "./candidateUtils";
 import { useAppStore } from "../store/appStore";
+import {
+  mapIcsToUnifiedItem,
+  mapScheduledToUnifiedItem,
+  UnifiedCalendarItem,
+} from "./icsAdapter";
+import { getPreviewRuns } from "./icsParser";
 
 const DEV_CLIENT_ID = "dev-task-flow";
 const DEFAULT_FOCUS_TIME_MINUTES = 30;
@@ -21,11 +28,12 @@ export const MAX_RECORD_DURATION_MINUTES = 12 * 60;
 
 const SOURCE_TABLE_MAP: Record<
   string,
-  "task_pool" | "scheduled" | "micro_tasks"
+  "task_pool" | "scheduled" | "micro_tasks" | "ics_events"
 > = {
   Task_Pool: "task_pool",
   Scheduled: "scheduled",
   Micro_Tasks: "micro_tasks",
+  ICS_Event: "ics_events",
 };
 
 export async function getRunningTask(): Promise<Dashboard | null> {
@@ -363,21 +371,36 @@ async function applySourceCompletionUpdates(params: {
     return {};
   }
 
-  if (source === "Scheduled") {
-    const task = await db.scheduled.get(taskId);
+  if (source === "Scheduled" || source === "ICS_Event") {
+    const task = await (
+      source === "Scheduled" ? db.scheduled : db.ics_events
+    ).get(taskId);
+    const unifiedTask =
+      source === "Scheduled"
+        ? mapScheduledToUnifiedItem(task as ScheduledItem)
+        : mapIcsToUnifiedItem(task as IcsEventItem);
+    if (source === "ICS_Event") {
+      const oldEndAt = (task as IcsEventItem)?.endAt;
+
+      const oldStartAt = //為了計算 ics_event 的 focusTime
+        (task as IcsEventItem)?.startAt;
+      const focusTimeMs = (oldEndAt ?? 0) - (oldStartAt ?? 0);
+      unifiedTask.deadline = (unifiedTask.nextRun ?? 0) + focusTimeMs;
+      unifiedTask.focusTime = focusTimeMs/60/1000; // convert milliseconds to minutes
+    }
     if (isInterrupt) {
       await applyChange({
-        table: "scheduled",
+        table: source === "Scheduled" ? "scheduled" : "ics_events",
         recordId: taskId,
         op: "update",
         patch: { status: "INTERRUPTED", lastRun: now },
         clientId: DEV_CLIENT_ID,
       });
     } else {
-      await updateScheduledAfterEnd(task, now);
+      await updateUnifiedCalendarAfterEnd(unifiedTask, now);
     }
     return {
-      timerMinutes: parseToMinutes(task?.remindAfter) ?? undefined,
+      timerMinutes: parseToMinutes(unifiedTask?.remindAfter) ?? undefined,
     };
   }
 
@@ -550,8 +573,8 @@ async function updateTaskPoolAfterRecord(
   });
 }
 
-async function updateScheduledAfterEnd(
-  task: ScheduledItem | undefined,
+async function updateUnifiedCalendarAfterEnd(
+  task: UnifiedCalendarItem | undefined,
   now: number,
 ) {
   if (!task) return;
@@ -561,16 +584,18 @@ async function updateScheduledAfterEnd(
   // * 1. 如果有 callback，則更新 callback 的 nextRun 為 now + remindAfter??0
   if (task.callback) {
     // 先找到 title 為 callback 的 scheduled 任務
-    const callbackTask = await db.scheduled
+    const callbackTask = await (
+      task.itemType === "scheduled" ? db.scheduled : db.ics_events
+    )
       .where("title")
       .equals(task.callback)
       .first();
     if (callbackTask) {
-      const remindAfterMins = parseToMinutes(task.remindAfter) || 0;
+      const remindAfterMins = parseToMinutes(task.remindAfter ?? "0") || 0;
       const callbackNextRun = now + remindAfterMins * 60 * 1000;
       await applyChange({
-        table: "scheduled",
-        recordId: callbackTask.taskId,
+        table: task.itemType === "scheduled" ? "scheduled" : "ics_events",
+        recordId: task.taskId,
         op: "update",
         patch: {
           nextRun: callbackNextRun,
@@ -581,7 +606,10 @@ async function updateScheduledAfterEnd(
   }
   // * 2. 如果有 cron 表達式，計算下一次執行時間，若沒有則設為 null
   if (task.cronExpr) {
-    let nextRunDate = Utils.getNextOccurrence(task.cronExpr, new Date(now));
+    let nextRunDate =
+      task.itemType === "scheduled"
+        ? Utils.getNextOccurrence(task.cronExpr, new Date(now))
+        : getPreviewRuns(task.cronExpr, new Date(task.nextRun ?? now), 2)[1]; // IcsEvent 的第一個是原本的
     const oldNextRun = task.nextRun ? new Date(task.nextRun) : null;
 
     if (nextRunDate && oldNextRun) {
@@ -600,21 +628,31 @@ async function updateScheduledAfterEnd(
     nextRun = null;
   }
 
+  let patch: Partial<ScheduledItem & IcsEventItem> = {
+        status: "WAITING",
+        lastRun: now,
+        nextRun: nextRun ?? undefined,
+      };
+  if (task.itemType === "ics_event") {
+    const focusTime = task.focusTime;
+    patch = {
+      status: "WAITING",
+      updatedAt: now,
+      startAt: nextRun?? undefined,
+      endAt: nextRun ? nextRun + (focusTime??0) * 60 * 1000 : undefined,
+    };
+  }
   await applyChange({
-    table: "scheduled",
+    table: task.itemType === "scheduled" ? "scheduled" : "ics_events",
     recordId: task.taskId,
     op: "update",
-    patch: {
-      status: "WAITING",
-      lastRun: now,
-      nextRun,
-    },
+    patch,
     clientId: DEV_CLIENT_ID,
   });
 }
 
 async function getFocusTimeBySource(
-  sourceTable: "task_pool" | "scheduled" | "micro_tasks",
+  sourceTable: "task_pool" | "scheduled" | "micro_tasks" | "ics_events",
   taskId: string,
 ): Promise<number | undefined> {
   if (sourceTable === "task_pool") {
@@ -625,6 +663,10 @@ async function getFocusTimeBySource(
   if (sourceTable === "scheduled") {
     const row = await db.scheduled.get(taskId);
     return row?.focusTime;
+  }
+  if (sourceTable === "ics_events") {
+    const row = await db.ics_events.get(taskId);
+    return 0; // TODO 預計0分鐘
   }
 
   const row = await db.micro_tasks.get(taskId);

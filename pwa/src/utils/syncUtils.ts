@@ -1,6 +1,7 @@
 import { satisfies } from 'compare-versions'
 import { db } from '../db/index'
 import type { ChangeLogEntry } from '../db/schema'
+import { useAppStore } from '../store/appStore'
 
 export const SYNC_TABLES = ['task_pool', 'scheduled', 'micro_tasks', 'inbox', 'resource', 'log', 'macro'] as const
 
@@ -105,8 +106,8 @@ export class SyncManager {
    * 載入上次同步時間戳
    */
   private loadLastSyncTimestamp(): void {
-    const stored = localStorage.getItem('last-sync-timestamp')
-    this.lastSyncTimestamp = stored ? parseInt(stored, 10) : 0
+    const stored = useAppStore.getState().lastRemoteSyncTime;
+    this.lastSyncTimestamp = stored ?? 0
   }
 
   /**
@@ -114,7 +115,7 @@ export class SyncManager {
    */
   private saveLastSyncTimestamp(timestamp: number): void {
     this.lastSyncTimestamp = timestamp
-    localStorage.setItem('last-sync-timestamp', String(timestamp))
+    useAppStore.getState().setLastRemoteSyncTime(timestamp)
   }
 
   /**
@@ -373,7 +374,7 @@ export class SyncManager {
 
       // 重置同步時間戳，確保拉取全部資料
       this.lastSyncTimestamp = 0
-      localStorage.removeItem('last-sync-timestamp')
+      useAppStore.getState().setLastRemoteSyncTime(null)
 
       // 從 GAS 拉取所有資料
       const pullResult = await this.pull()

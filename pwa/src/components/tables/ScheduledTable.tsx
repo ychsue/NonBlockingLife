@@ -7,7 +7,7 @@ import {
   useReactTable,
   type SortingState,
 } from "@tanstack/react-table";
-import { applyChange, db } from "../../db/index";
+import { applyChange, db, TASK_PREFIX } from "../../db/index";
 import type {
   AlarmQueueItem,
   IcsSourceItem,
@@ -47,8 +47,11 @@ import { IcsSourceManagementDialog } from "../ics/IcsSourceManagementDialog";
 import {
   mapIcsToUnifiedItem,
   mapScheduledToUnifiedItem,
+  mapUnifiedPatchToIcsEventPatch,
   UnifiedCalendarItem,
+  UnifiedTypeName,
 } from "../../utils/icsAdapter";
+import { getPreviewRuns } from "../../utils/icsParser";
 
 const DEV_CLIENT_ID = "dev-client";
 const columnHelper = createColumnHelper<UnifiedCalendarItem>();
@@ -108,7 +111,9 @@ export function ScheduledTable() {
   const [createdNewRowId, setCreatedNewRowId] = useState("");
   const [icsSourceRows, setIcsSourceRows] = useState<IcsSourceItem[]>([]);
 
-  const [editingItem, setEditingItem] = useState<UnifiedCalendarItem | null>(null);
+  const [editingItem, setEditingItem] = useState<UnifiedCalendarItem | null>(
+    null,
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [isOrMode, setIsOrMode] = useState(true);
   const [hideDone, setHideDone] = useState(true);
@@ -286,20 +291,32 @@ export function ScheduledTable() {
     clearPendingEditIntent();
   }, [rows, pendingEditIntent, currentSheet, clearPendingEditIntent]);
 
-  const updateLocalRow = (taskId: string, patch: Partial<ScheduledItem>) => {
+  const updateLocalRow = (
+    taskId: string,
+    patch: Partial<UnifiedCalendarItem>,
+  ) => {
     setRows((prev) =>
       prev.map((row) => (row.taskId === taskId ? { ...row, ...patch } : row)),
     );
   };
 
-  const saveUpdate = async (taskId: string, patch: Partial<ScheduledItem>) => {
-    await applyChange({
-      table: "scheduled",
-      recordId: taskId,
-      op: "update",
-      patch: patch as Record<string, unknown>,
-      clientId: DEV_CLIENT_ID,
-    }).catch((err) => console.error("Failed to save update:", err));
+  const saveUpdate = async (
+    taskId: string,
+    patch: Partial<UnifiedCalendarItem>,
+  ) => {
+    let table = "scheduled";
+    let patchToApply = patch;
+    if (taskId.startsWith(TASK_PREFIX.ics_events)) {
+      table = "ics_events";
+      patchToApply = mapUnifiedPatchToIcsEventPatch(patch);
+    }
+      await applyChange({
+        table: table,
+        recordId: taskId,
+        op: "update",
+        patch: patchToApply as Record<string, unknown>,
+        clientId: DEV_CLIENT_ID,
+      }).catch((err) => console.error("Failed to save update:", err));
   };
 
   const addRow = async (taskId?: string, title?: string) => {
@@ -334,16 +351,19 @@ export function ScheduledTable() {
     }).catch((err) => console.error("Failed to delete row:", err));
   };
 
-  const toSelectionCandidate = (item: ScheduledItem): SelectionCacheItem => ({
-    taskId: item.taskId,
-    title: item.title,
-    source: "Scheduled",
-    status: item.status,
-    url: item.url,
-    deadline: item.deadline,
-  });
+  const toSelectionCandidate = (item: UnifiedCalendarItem): SelectionCacheItem => {
+    const source: UnifiedTypeName = (item.itemType === "scheduled" ? "Scheduled" : "ICS_Event");
+    return {
+      taskId: item.taskId,
+      title: item.title,
+      source: source,
+      status: item.status,
+      url: item.url,
+      deadline: item.deadline,
+    };
+  };
 
-  const handleInterruptOrStart = async (item: ScheduledItem) => {
+  const handleInterruptOrStart = async (item: UnifiedCalendarItem) => {
     const result = await interruptTask("", toSelectionCandidate(item));
     if (result.status !== "success") {
       console.error(
@@ -409,12 +429,25 @@ export function ScheduledTable() {
     }
   };
 
-  const openCronPreview = (item: ScheduledItem, cronExpr: string) => {
+  const openCronPreview = (item: UnifiedCalendarItem, cronExpr: string) => {
+    let runs: number[] = [];
+    if (item.itemType === "scheduled") {
+      runs = getUpcomingOccurrences(cronExpr);
+    } else if (item.itemType === "ics_event") {
+      const nextRun = item.nextRun ?? undefined;
+      if (!nextRun) {
+        return;
+      }
+      runs = getPreviewRuns(cronExpr, new Date(nextRun)).map((date) =>
+        date.getTime(),
+      );
+    }
+
     setCronPreview({
       taskId: item.taskId,
       title: item.title ?? "",
       cronExpr,
-      runs: getUpcomingOccurrences(cronExpr),
+      runs,
     });
   };
 
@@ -536,8 +569,22 @@ export function ScheduledTable() {
           // 如果是 readonly，則直接傳回 cronExpr 字串，且不可編輯
           if (isReadOnly) {
             return (
-              <span className="text-xs text-gray-500 block min-w-15">
+              <span className="text-xs text-gray-500 min-w-15 flex flex-col">
                 {fullValue}
+                {fullValue && (
+                  <button
+                    type="button"
+                    className="px-2 py-1 border border-gray-300 rounded text-xs whitespace-nowrap hover:bg-gray-100"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openCronPreview(info.row.original, fullValue);
+                    }}
+                    title={t("table.scheduled.previewButton")}
+                  >
+                    {t("table.scheduled.previewButton")}
+                  </button>
+                )}
               </span>
             );
           }
@@ -929,7 +976,7 @@ export function ScheduledTable() {
   const searchFiltered = useSearchFilter(
     rows,
     { query: searchQuery, isOrMode },
-    ["title", "note", "url", "callback"] as (keyof ScheduledItem)[],
+    ["title", "note", "url", "callback"] as (keyof UnifiedCalendarItem)[],
   );
   const filteredRows = useHideDone(searchFiltered, hideDone);
 
@@ -1269,7 +1316,10 @@ export function ScheduledTable() {
           {
             name: "cronExpr",
             label: t("table.scheduled.field.cronExpr"),
-            type: editingItem?.itemType === "ics_event" ? "rrule" as FieldType : "cron" as FieldType,
+            type:
+              editingItem?.itemType === "ics_event"
+                ? ("rrule" as FieldType)
+                : ("cron" as FieldType),
             placeholder: text.cronPlaceholder,
           },
           {

@@ -48,13 +48,19 @@ import { useDialogStore } from "../../store/dialogStore";
 import { useDebouncedState } from "../../hooks/useDebouncedState";
 import { notifies } from "../../utils/notification";
 import { showTimer } from "../../utils/shortcutUtils";
+import {
+  mapScheduledToUnifiedItem,
+  mapIcsToUnifiedItem,
+  UnifiedTypeName,
+} from "../../utils/icsAdapter";
 
 const DEV_CLIENT_ID = "dev-selection-cache";
 const columnHelper = createColumnHelper<SelectionCacheItem>();
 
 function mapSourceToSheet(source?: string): SheetName | null {
   if (source === "Task_Pool") return "task_pool";
-  if (source === "Scheduled") return "scheduled";
+  if (["Scheduled", "ICS_Event"].includes((source as UnifiedTypeName) ?? ""))
+    return "scheduled";
   if (source === "Micro_Tasks") return "micro_tasks";
   return null;
 }
@@ -86,6 +92,7 @@ export function SelectionCacheTable() {
   const setShowEndDialog = useAppStore((state) => state.setShowEndDialog);
   const isInterruptMode = useAppStore((state) => state.isInterruptMode);
   const setIsInterruptMode = useAppStore((state) => state.setIsInterruptMode);
+  const lastRemoteSyncTime = useAppStore((state) => state.lastRemoteSyncTime);
 
   const setRunningTask = useAppStore((state) => state.setRunningTask);
   const runningTask = useAppStore((state) => state.runningTask);
@@ -173,6 +180,14 @@ export function SelectionCacheTable() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [currentSheet]);
+
+  // 強制在更新後刷新候選任務列表
+  useEffect(() => {
+    if (lastRemoteSyncTime) {
+      handleRefreshCandidates().catch(console.error);
+      console.log("Last remote sync time:", lastRemoteSyncTime);
+    }
+  }, [lastRemoteSyncTime]);
 
   useEffect(() => {
     const dialog = startDialogRef.current;
@@ -327,11 +342,22 @@ export function SelectionCacheTable() {
       // 2. 從各表讀取最新數據
       const poolData = await db.task_pool.toArray();
       const scheduledData = await db.scheduled.toArray();
+      const icsEventsData = await db.ics_events.toArray();
+      const icsSourceData = await db.ics_sources.toArray();
       const microTasksData = await db.micro_tasks.toArray();
+      const unifiedCalendarData = [
+        ...scheduledData.map(mapScheduledToUnifiedItem),
+        ...icsEventsData.map((item) =>
+          mapIcsToUnifiedItem(
+            item,
+            icsSourceData.find((source) => source.sourceId === item.sourceId),
+          ),
+        ),
+      ];
 
       // 3. 計算候選
       const { candidates, resetPoolTaskIds, totalMinsPool } =
-        calculateCandidates(poolData, scheduledData, microTasksData);
+        calculateCandidates(poolData, unifiedCalendarData, microTasksData);
 
       // 4. 如果有需要歸零的任務，更新 task_pool
       if (resetPoolTaskIds.length > 0) {
@@ -692,6 +718,7 @@ export function SelectionCacheTable() {
           const emoji: Record<string, string> = {
             Task_Pool: "🎯",
             Scheduled: "🔔",
+            "ICS_Event": "📅",
             Micro_Tasks: "⚡",
           };
           return (

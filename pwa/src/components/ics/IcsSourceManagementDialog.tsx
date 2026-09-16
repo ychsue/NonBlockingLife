@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import { db } from "../../db/index";
+import { applyChange, db } from "../../db/index";
 import type { IcsSourceItem } from "../../db/schema";
 import { parseIcsContent } from "../../utils/icsParser";
 import { TableCard } from "../TableCard"; // 引入已修改好支援 accentColor/editLabel/isDisabled 的 TableCard
 import Utils from "../../../../gas/src/Utils";
 import { useTwaRpc } from "../../hooks/useTwaRpc";
 import { getDeviceType } from "../../utils/shortcutUtils";
+
+const DEV_CLIENT_ID = "ics_source_management_dialog";
 
 interface Props {
   isOpen: boolean;
@@ -76,10 +78,27 @@ export function IcsSourceManagementDialog({
 
   // 2. 刪除 Source 及關聯的 ics_events
   const deleteSource = async (sourceId: string) => {
-    await db.transaction("rw", [db.ics_sources, db.ics_events], async () => {
-      await db.ics_sources.delete(sourceId);
-      await db.ics_events.where("sourceId").equals(sourceId).delete();
-    });
+    await db.transaction(
+      "rw",
+      [db.ics_sources, db.ics_events, db.change_log],
+      async () => {
+        await applyChange({
+          table: "ics_sources",
+          recordId: sourceId,
+          op: "delete",
+          patch: {} as Record<string, unknown>,
+          clientId: DEV_CLIENT_ID,
+        });
+        await applyChange({
+          table: "ics_events",
+          recordId: sourceId,
+          op: "bulkdelete",
+          patch: {} as Record<string, unknown>,
+          clientId: DEV_CLIENT_ID,
+          option: { equal: ["sourceId", sourceId] },
+        });
+      },
+    );
     await loadSources();
     if (onSynced) onSynced(true);
   };
@@ -91,17 +110,87 @@ export function IcsSourceManagementDialog({
    */
   async function parseAndUpdateIcsTables(content: string, sourceId: string) {
     const parsedEvents = await parseIcsContent(content, sourceId);
+    const originalEvents = await db.ics_events
+      .where("sourceId")
+      .equals(sourceId)
+      .toArray();
+    // 原則上 parsedEvents 全都要存進去(update or add)，但是，若 parsed & original 的 rawIcs 相同，則可以跳過，避免重複存儲
+    // 然後，original 裡面若有不在 parsedEvents 中的事件，則可以刪除，保持同步
+    const eventsToAddOrUpdate = parsedEvents.filter(
+      (parsedEvent) =>
+        !originalEvents.some(
+          (originalEvent) => originalEvent.rawIcs === parsedEvent.rawIcs,
+        ),
+    );
+    // 根據 eventId 將 eventsToAddOrUpdate 根據 eventId 分成add & update
+    const eventsToActuallyAdd = eventsToAddOrUpdate.filter(
+      (event) =>
+        !originalEvents.some(
+          (originalEvent) => originalEvent.eventId === event.eventId,
+        ),
+    );
+    const eventsToActuallyUpdate = eventsToAddOrUpdate.filter((event) =>
+      originalEvents.some(
+        (originalEvent) => originalEvent.eventId === event.eventId,
+      ),
+    );
 
-    await db.transaction("rw", [db.ics_events, db.ics_sources], async () => {
-      await db.ics_events.where("sourceId").equals(sourceId).delete();
-      if (parsedEvents.length > 0) {
-        await db.ics_events.bulkPut(parsedEvents);
-      }
-      await db.ics_sources.update(sourceId, {
-        lastSyncedAt: Date.now(),
-        updatedAt: Date.now(),
-      });
-    });
+    const eventsToDelete = originalEvents.filter(
+      (originalEvent) =>
+        !parsedEvents.some(
+          (parsedEvent) =>
+            parsedEvent.rawIcs === originalEvent.rawIcs ||
+            parsedEvent.eventId === originalEvent.eventId,
+        ),
+    );
+
+    await db.transaction(
+      "rw",
+      [db.ics_events, db.ics_sources, db.change_log],
+      async () => {
+        // 先刪除不在 parsedEvents 中的事件，再新增或更新 parsedEvents 中的事件
+        // 刪除 eventsToDelete
+        for (const event of eventsToDelete) {
+          await applyChange({
+            table: "ics_events",
+            recordId: event.eventId,
+            op: "delete",
+            patch: {} as Record<string, unknown>,
+            clientId: DEV_CLIENT_ID,
+          });
+        }
+        // 新增 eventsToActuallyAdd
+        for (const event of eventsToActuallyAdd) {
+          await applyChange({
+            table: "ics_events",
+            recordId: event.eventId,
+            op: "add",
+            patch: event as unknown as Record<string, unknown>,
+            clientId: DEV_CLIENT_ID,
+          });
+        }
+        // 更新 eventsToActuallyUpdate
+        for (const event of eventsToActuallyUpdate) {
+          await applyChange({
+            table: "ics_events",
+            recordId: event.eventId,
+            op: "update",
+            patch: event as unknown as Record<string, unknown>,
+            clientId: DEV_CLIENT_ID,
+          });
+        }
+        await applyChange({
+          table: "ics_sources",
+          recordId: sourceId,
+          op: "update",
+          patch: {
+            lastSyncedAt: Date.now(),
+            updatedAt: Date.now(),
+          },
+          clientId: DEV_CLIENT_ID,
+        });
+      },
+    );
 
     return parsedEvents.length;
   }

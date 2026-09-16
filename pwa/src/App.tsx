@@ -126,8 +126,7 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: The app has just transitioned from TWA to WebView two versions ago, and therefore no longer shares the database with Chrome. Remember to sync your data to the cloud and then sync it back later."+
-        "\n\r**Note 2**: Experimental ICS feature is in progress.",
+        "\n\r**Please note**: The ICS feature has just been added, please give it a try.",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -141,8 +140,7 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：兩個版之前由原本的TWA轉移到WebView，因此，與Chrome的資料庫不再共用，所以，請記得同步您的資料到雲端，到時再同步下來即可。" +
-        "\n\r**注意2**：實驗ics正在進行中",
+        "\n\r**注意**：ics 功能剛加入，請試看看",
     },
     ja: {
       "useTwaBridge.twaNotAvailable":
@@ -158,8 +156,7 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：二つ前のバージョンで元のTWAからWebViewに移行したので、Chromeのデータベースとはもはや共有されません。だから、データをクラウドに同期しておくのを忘れずに、後でまた同期すれば大丈夫です。"+
-        "\n\r**注意2**：実験ICS機能が進行中です。",
+        "\n\r**注意**：ICS 機能が追加されたばかりですので、ぜひ試してみてください。",
     },
   });
 
