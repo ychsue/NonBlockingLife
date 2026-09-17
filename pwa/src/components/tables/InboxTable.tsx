@@ -22,6 +22,7 @@ import inboxHelpMarkdown from "./InboxHelp.md?raw";
 import { shouldOpenRowEdit } from "./rowEditUtils";
 import { handleDialogTextFieldInteractionEnd } from "../../utils/dialogInteractionUtils";
 import { useProductTourContext } from "../tour/ProductTourContext";
+import _ from "lodash";
 
 const DEV_CLIENT_ID = "dev-client";
 const columnHelper = createColumnHelper<InboxItem>();
@@ -142,6 +143,7 @@ export function InboxTable() {
   );
 
   const [createdNewRowId, setCreatedNewRowId] = useState("");
+  const currentSheetByAction = useAppStore((state) => state.currentSheetByAction);
 
   const { isRunning, activeStep, nextStep,} = useProductTourContext();
 
@@ -173,7 +175,7 @@ export function InboxTable() {
         if (active) {
           // taskId 降序排列（新的在前面）
           const sorted = data.sort((a, b) => b.taskId.localeCompare(a.taskId));
-          setRows(sorted);
+          setRows(prev => _.isEqual(prev, sorted) ? prev : sorted);
           setLoading(false);
         }
       })
@@ -188,7 +190,7 @@ export function InboxTable() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [currentSheetByAction]);
 
   useEffect(() => {
     if (!pendingEditIntent || pendingEditIntent.sheet !== 'inbox') return

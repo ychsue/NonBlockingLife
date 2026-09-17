@@ -13,7 +13,7 @@ export type SheetName =
   | "resource";
 
 interface UseUrlActionOptions {
-  onNavigate: (sheet: SheetName | "selection_cache") => void;
+  onNavigate: (sheet: SheetName | "selection_cache", byAction?: 'share-to-inbox' | null) => void;
   onSuccess?: (message: string) => void;
   onError?: (message: string) => void;
   clientId?: string;
@@ -73,7 +73,8 @@ export function useUrlAction(options: UseUrlActionOptions) {
         return;
       }
 
-      window.history.replaceState({}, document.title, currentPath);
+      const targetPath = currentPath.replace(/\?.*/, "");
+      window.history.replaceState({state: targetPath}, document.title, targetPath);
     };
 
     const rawQuery = window.location.search;
@@ -124,7 +125,7 @@ export function useUrlAction(options: UseUrlActionOptions) {
         clientId,
       })
         .then(() => {
-          onNavigate("inbox");
+          onNavigate("inbox", "share-to-inbox");
           if (!!!patch.title) {
             setPendingEditIntent({
               sheet: "inbox",
@@ -150,6 +151,7 @@ export function useUrlAction(options: UseUrlActionOptions) {
       isHandlingRef.current = true;
       void handleInterruptAction(params).finally(() => {
         isHandlingRef.current = false;
+        clearActionUrl();
       });
       return;
     }

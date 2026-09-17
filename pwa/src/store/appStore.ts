@@ -144,7 +144,8 @@ export interface GlobalToast {
 interface AppState {
   // 当前选中的页签
   currentSheet: AppSheet
-  setCurrentSheet: (sheet: AppSheet) => void
+  setCurrentSheet: (sheet: AppSheet, byAction?: 'share-to-inbox' | null) => void
+  currentSheetByAction: 'share-to-inbox' | null
 
   // 上次远程同步时间
   lastRemoteSyncTime: number | null
@@ -224,10 +225,11 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set) => ({
   currentSheet: getInitialCurrentSheet(),
-  setCurrentSheet: (sheet) => {
+  setCurrentSheet: (sheet, byAction: 'share-to-inbox' | null = null) => {
     getStorage()?.setItem(LAST_VISITED_SHEET_KEY, sheet)
-    set({ currentSheet: sheet })
+    set({ currentSheet: sheet, currentSheetByAction: byAction })
   },
+  currentSheetByAction: null,
 
   lastRemoteSyncTime: getInitLastRemoteSyncTime(),
   setLastRemoteSyncTime: (timestamp) => {
