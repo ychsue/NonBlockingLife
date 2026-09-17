@@ -179,6 +179,8 @@ export function ScheduledTable() {
     sortLabel: t("table.scheduled.sortLabel"),
     searchMode: t("table.scheduled.searchMode"),
     alarmSyncTargetsLabel: t("table.scheduled.alarmSyncTargetsLabel"),
+    icsSourceManagementLabel: t("table.scheduled.icsSourceManagementLabel"),
+    icsSourceManagementBtn: t("table.scheduled.icsSourceManagementBtn"),
   };
 
   // 根据 sortMode 更新 sorting 状态
@@ -215,10 +217,10 @@ export function ScheduledTable() {
     let active = true;
     // 改為使用 async await，因為要引進 icsEventItem 的讀入與篩選
     async function getUnifiedCalendarItems() {
-      if (!active) return;
       try {
         // 1. 讀取 scheduled 資料庫中的所有行
         const scheduledRows = await db.scheduled.toArray();
+        if (!active) return; // 如果組件已經卸載，則停止執行
         // 1.1 將 scheduledRows 轉換為 UnifiedCalendarItem (還會再擴充)
         const unifiedItems = scheduledRows
           .map(mapScheduledToUnifiedItem)
@@ -310,13 +312,13 @@ export function ScheduledTable() {
       table = "ics_events";
       patchToApply = mapUnifiedPatchToIcsEventPatch(patch);
     }
-      await applyChange({
-        table: table,
-        recordId: taskId,
-        op: "update",
-        patch: patchToApply as Record<string, unknown>,
-        clientId: DEV_CLIENT_ID,
-      }).catch((err) => console.error("Failed to save update:", err));
+    await applyChange({
+      table: table,
+      recordId: taskId,
+      op: "update",
+      patch: patchToApply as Record<string, unknown>,
+      clientId: DEV_CLIENT_ID,
+    }).catch((err) => console.error("Failed to save update:", err));
   };
 
   const addRow = async (taskId?: string, title?: string) => {
@@ -351,8 +353,11 @@ export function ScheduledTable() {
     }).catch((err) => console.error("Failed to delete row:", err));
   };
 
-  const toSelectionCandidate = (item: UnifiedCalendarItem): SelectionCacheItem => {
-    const source: UnifiedTypeName = (item.itemType === "scheduled" ? "Scheduled" : "ICS_Event");
+  const toSelectionCandidate = (
+    item: UnifiedCalendarItem,
+  ): SelectionCacheItem => {
+    const source: UnifiedTypeName =
+      item.itemType === "scheduled" ? "Scheduled" : "ICS_Event";
     return {
       taskId: item.taskId,
       title: item.title,
@@ -1090,21 +1095,19 @@ export function ScheduledTable() {
                     </SettingsCard>
                   )}
 
-                  {experimentalFeaturesEnabled && (
-                    <SettingsCard
-                      title="設定 ics 來源 (實驗中🧪)"
-                      description={null}
+                  <SettingsCard
+                    title={text.icsSourceManagementLabel}
+                    description={null}
+                  >
+                    {/* 設定 ics 來源 */}
+                    <button
+                      type="button"
+                      onClick={() => setIcsSourceManagementDialogOpen(true)}
+                      className="px-3 py-1.5 bg-blue-600 text-white text-[1rem] rounded hover:bg-blue-700"
                     >
-                      {/* 設定 ics 來源 */}
-                      <button
-                        type="button"
-                        onClick={() => setIcsSourceManagementDialogOpen(true)}
-                        className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
-                      >
-                        Manage ICS Sources
-                      </button>
-                    </SettingsCard>
-                  )}
+                      {text.icsSourceManagementBtn}
+                    </button>
+                  </SettingsCard>
                 </div>
               </div>
             </div>
@@ -1527,7 +1530,7 @@ function AlarmSyncTargetsCheckList({
   return (
     <div className="flex flex-row justify-between gap-2 flex-wrap">
       <form
-        className="flex flex-row gap-2 text-sm text-gray-700 font-semibold"
+        className="flex flex-row gap-2 text-[1.2rem] text-gray-700 "
         onClick={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault();
@@ -1540,6 +1543,7 @@ function AlarmSyncTargetsCheckList({
             <input
               type="checkbox"
               checked={(tempST & 1) !== 0}
+              className="w-4 h-4"
               onChange={(e) =>
                 setTempST((prev) => (e.target.checked ? prev | 1 : prev & ~1))
               }
@@ -1551,6 +1555,7 @@ function AlarmSyncTargetsCheckList({
             <input
               type="checkbox"
               checked={(tempST & 2) !== 0}
+              className="w-4 h-4"
               onChange={(e) => {
                 if (!e.target.checked || confirm(t("確認exactAlarm"))) {
                   setTempST((prev) =>
@@ -1563,7 +1568,7 @@ function AlarmSyncTargetsCheckList({
           </label>
           <button
             type="button"
-            className={`px-3 py-1 text-white rounded ${_.isEqual(tempST, alarmSyncTargets) ? "opacity-50 cursor-not-allowed bg-blue-500" : "bg-blue-500 hover:bg-blue-600"}`}
+            className={`px-3 py-1 text-white text-[1rem] rounded ${_.isEqual(tempST, alarmSyncTargets) ? "opacity-50 cursor-not-allowed bg-blue-500" : "bg-blue-500 hover:bg-blue-600"}`}
             onClick={() => onChange(tempST)}
             data-tour="confirm-sync-targets-alarm-button"
           >

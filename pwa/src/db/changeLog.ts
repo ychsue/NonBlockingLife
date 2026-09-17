@@ -23,7 +23,7 @@ export function buildChangeLogId(
 export interface ApplyChangeParams {
   table: string;
   recordId: string;
-  op: "add" | "update" | "delete" | "bulkdelete";
+  op: "add" | "update" | "delete" | "put" | "bulkdelete";
   patch: Record<string, unknown>;
   clientId: string;
   option?: Record<string, unknown>;
@@ -82,6 +82,8 @@ export async function applyChange({
     await db.table(table).add({ ...normalizedData, updatedAt: now });
   } else if (op === "update") {
     await db.table(table).update(recordId, { ...patch, updatedAt: now });
+  } else if (op === "put") {
+    await db.table(table).put({ ...patch, updatedAt: now });
   } else if (op === "delete") {
     await db.table(table).delete(recordId);
   } else if (op === "bulkdelete") {

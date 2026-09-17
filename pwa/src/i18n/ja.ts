@@ -341,6 +341,8 @@ export const ja: TranslationMap = {
 
   'table.scheduled.alarmSyncTargetsLabel': 'アラームの目標を設定する',
 
+  'table.scheduled.icsSourceManagementLabel': 'ICS ソースを管理',
+  'table.scheduled.icsSourceManagementBtn':   'ICS ソース管理を開く',
 
   // ── Log ──────────────────────────────────────────────────────
   'table.log.confirmClear': 'Log 関連の change_log 記録をすべて削除してもよろしいですか？',

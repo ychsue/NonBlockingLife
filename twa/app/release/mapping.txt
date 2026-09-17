@@ -3,8 +3,8 @@
 # min_api: 26
 # common_typos_disable
 # {"id":"com.android.tools.r8.mapping","version":"2.2"}
-# pg_map_id: 4801666c105c930239c427a74043e14aa36f8bbeffde4b722a1bb87ba7291bd7
-# pg_map_hash: SHA-256 4801666c105c930239c427a74043e14aa36f8bbeffde4b722a1bb87ba7291bd7
+# pg_map_id: 717853132a215ae38e9664b522af75ab968d56ef04ff42a98d4da31a577f450d
+# pg_map_hash: SHA-256 717853132a215ae38e9664b522af75ab968d56ef04ff42a98d4da31a577f450d
 android.app.AppComponentFactory -> android.app.AppComponentFactory:
 # {"id":"com.android.tools.r8.synthesized"}
     void <clinit>() -> <clinit>
@@ -8250,14 +8250,14 @@ androidx.appcompat.app.AppCompatDelegateImpl$Api33Impl$$ExternalSyntheticLambda5
       # {"id":"com.android.tools.r8.synthesized"}
     1:8:void AppCompatDelegateImpl$Api33Impl$$ExternalSyntheticLambda5.<init>(java.lang.Object,byte):0:0 -> <init>
       # {"id":"com.android.tools.r8.synthesized"}
-    10:22:void com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$5(com.yescirculation.nonblockinglife.WebViewActivity):191:191 -> onBackInvoked
+    10:22:void com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$5(com.yescirculation.nonblockinglife.WebViewActivity):200:200 -> onBackInvoked
     10:22:void AppCompatDelegateImpl$Api33Impl$$ExternalSyntheticLambda5.onBackInvoked():0 -> onBackInvoked
       # {"id":"com.android.tools.r8.synthesized"}
-    23:34:void com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$5(com.yescirculation.nonblockinglife.WebViewActivity):192:192 -> onBackInvoked
+    23:34:void com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$5(com.yescirculation.nonblockinglife.WebViewActivity):201:201 -> onBackInvoked
     23:34:void AppCompatDelegateImpl$Api33Impl$$ExternalSyntheticLambda5.onBackInvoked():0 -> onBackInvoked
-    35:38:void com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$5(com.yescirculation.nonblockinglife.WebViewActivity):194:194 -> onBackInvoked
+    35:38:void com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$5(com.yescirculation.nonblockinglife.WebViewActivity):203:203 -> onBackInvoked
     35:38:void AppCompatDelegateImpl$Api33Impl$$ExternalSyntheticLambda5.onBackInvoked():0 -> onBackInvoked
-    39:42:void com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$5(com.yescirculation.nonblockinglife.WebViewActivity):191:191 -> onBackInvoked
+    39:42:void com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$5(com.yescirculation.nonblockinglife.WebViewActivity):200:200 -> onBackInvoked
     39:42:void AppCompatDelegateImpl$Api33Impl$$ExternalSyntheticLambda5.onBackInvoked():0 -> onBackInvoked
     43:50:void AppCompatDelegateImpl$Api33Impl$$ExternalSyntheticLambda5.onBackInvoked():0:0 -> onBackInvoked
     51:54:void androidx.activity.OnBackPressedDispatcher$Api33Impl.createOnBackInvokedCallback$lambda$0(kotlin.jvm.functions.Function0):369:369 -> onBackInvoked
@@ -25297,7 +25297,7 @@ androidx.core.app.ActivityCompat$$ExternalSyntheticLambda0 -> b1:
       # {"id":"com.android.tools.r8.synthesized"}
     1:8:void ActivityCompat$$ExternalSyntheticLambda0.<init>(java.lang.Object,byte):0:0 -> <init>
       # {"id":"com.android.tools.r8.synthesized"}
-    17:24:void com.yescirculation.nonblockinglife.WebViewActivity$onCreate$4.onPermissionRequest$lambda$0(android.webkit.PermissionRequest):135:135 -> run
+    17:24:void com.yescirculation.nonblockinglife.WebViewActivity$onCreate$4.onPermissionRequest$lambda$0(android.webkit.PermissionRequest):136:136 -> run
     17:24:void ActivityCompat$$ExternalSyntheticLambda0.run():0 -> run
       # {"id":"com.android.tools.r8.synthesized"}
     25:28:void ActivityCompat$$ExternalSyntheticLambda0.run():0:0 -> run
@@ -32113,30 +32113,30 @@ androidx.core.view.inputmethod.InputConnectionCompat$$ExternalSyntheticLambda0 -
       # {"id":"com.android.tools.r8.synthesized"}
     1:6:void InputConnectionCompat$$ExternalSyntheticLambda0.<init>(android.view.KeyEvent$Callback):0:0 -> <init>
       # {"id":"com.android.tools.r8.synthesized"}
-    5:9:boolean com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$0(com.yescirculation.nonblockinglife.WebViewActivity):59:59 -> a
+    5:9:boolean com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$0(com.yescirculation.nonblockinglife.WebViewActivity):60:60 -> a
       # {"id":"com.android.tools.r8.residualsignature","signature":"()Z"}
     7:10:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):0:0 -> b
       # {"id":"com.android.tools.r8.residualsignature","signature":"(Landroid/view/View;Lhn;)Lhn;"}
     11:16:androidx.core.graphics.Insets androidx.core.view.WindowInsetsCompat.getInsets(int):668:668 -> b
-    11:16:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):87 -> b
-    17:19:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):87:87 -> b
-    20:27:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):284:284 -> b
-    28:34:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):90:90 -> b
-    35:36:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):91:91 -> b
-    37:38:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):92:92 -> b
-    39:41:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):93:93 -> b
-    42:48:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):95:95 -> b
-    49:50:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):96:96 -> b
-    51:52:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):97:97 -> b
-    53:55:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):98:98 -> b
-    56:62:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):100:100 -> b
-    63:64:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):101:101 -> b
-    65:66:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):102:102 -> b
-    67:70:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):103:103 -> b
-    71:72:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):106:106 -> b
-    73:74:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):107:107 -> b
-    75:78:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):286:286 -> b
-    79:86:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):284:284 -> b
+    11:16:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):88 -> b
+    17:19:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):88:88 -> b
+    20:27:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):301:301 -> b
+    28:34:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):91:91 -> b
+    35:36:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):92:92 -> b
+    37:38:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):93:93 -> b
+    39:41:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):94:94 -> b
+    42:48:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):96:96 -> b
+    49:50:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):97:97 -> b
+    51:52:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):98:98 -> b
+    53:55:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):99:99 -> b
+    56:62:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):101:101 -> b
+    63:64:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):102:102 -> b
+    65:66:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):103:103 -> b
+    67:70:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):104:104 -> b
+    71:72:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):107:107 -> b
+    73:74:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):108:108 -> b
+    75:78:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):303:303 -> b
+    79:86:androidx.core.view.WindowInsetsCompat com.yescirculation.nonblockinglife.WebViewActivity.onCreate$lambda$3(android.view.View,android.view.View,androidx.core.view.WindowInsetsCompat):301:301 -> b
 androidx.core.view.inputmethod.InputConnectionCompat$1 -> bc:
 # {"id":"sourceFile","fileName":"InputConnectionCompat.java"}
     androidx.core.view.inputmethod.InputConnectionCompat$OnCommitContentListener val$listener -> a
@@ -40288,221 +40288,227 @@ com.yescirculation.nonblockinglife.WebViewActivity -> com.yescirculation.nonbloc
       # {"id":"com.android.tools.r8.residualsignature","signature":"Lt1;"}
     boolean isWebLoaded -> z
     1:3:void androidx.appcompat.app.AppCompatActivity.<init>():92:92 -> <init>
-    1:3:void <init>():31 -> <init>
+    1:3:void <init>():32 -> <init>
     4:5:androidx.savedstate.SavedStateRegistry androidx.activity.ComponentActivity.getSavedStateRegistry():737:737 -> <init>
     4:5:void androidx.appcompat.app.AppCompatActivity.initDelegate():114 -> <init>
     4:5:void androidx.appcompat.app.AppCompatActivity.<init>():93 -> <init>
-    4:5:void <init>():31 -> <init>
+    4:5:void <init>():32 -> <init>
     6:9:androidx.savedstate.SavedStateRegistry androidx.savedstate.SavedStateRegistryController.getSavedStateRegistry():33:33 -> <init>
     6:9:androidx.savedstate.SavedStateRegistry androidx.activity.ComponentActivity.getSavedStateRegistry():737 -> <init>
       # {"id":"com.android.tools.r8.rewriteFrame","conditions":["throws(Ljava/lang/NullPointerException;)"],"actions":["removeInnerFrames(1)"]}
     6:9:void androidx.appcompat.app.AppCompatActivity.initDelegate():114 -> <init>
     6:9:void androidx.appcompat.app.AppCompatActivity.<init>():93 -> <init>
-    6:9:void <init>():31 -> <init>
+    6:9:void <init>():32 -> <init>
     10:19:void androidx.appcompat.app.AppCompatActivity.initDelegate():114:114 -> <init>
     10:19:void androidx.appcompat.app.AppCompatActivity.<init>():93 -> <init>
-    10:19:void <init>():31 -> <init>
+    10:19:void <init>():32 -> <init>
     20:28:void androidx.appcompat.app.AppCompatActivity.initDelegate():124:124 -> <init>
     20:28:void androidx.appcompat.app.AppCompatActivity.<init>():93 -> <init>
-    20:28:void <init>():31 -> <init>
+    20:28:void <init>():32 -> <init>
     1:12:void androidx.core.splashscreen.SplashScreen.<init>(android.app.Activity):125:125 -> onCreate
     1:12:void androidx.core.splashscreen.SplashScreen.<init>(android.app.Activity,kotlin.jvm.internal.DefaultConstructorMarker):0 -> onCreate
     1:12:androidx.core.splashscreen.SplashScreen androidx.core.splashscreen.SplashScreen$Companion.installSplashScreen(android.app.Activity):145 -> onCreate
-    1:12:void onCreate(android.os.Bundle):41 -> onCreate
+    1:12:void onCreate(android.os.Bundle):42 -> onCreate
     13:17:void androidx.core.splashscreen.SplashScreen.<init>(android.app.Activity):126:126 -> onCreate
     13:17:void androidx.core.splashscreen.SplashScreen.<init>(android.app.Activity,kotlin.jvm.internal.DefaultConstructorMarker):0 -> onCreate
     13:17:androidx.core.splashscreen.SplashScreen androidx.core.splashscreen.SplashScreen$Companion.installSplashScreen(android.app.Activity):145 -> onCreate
-    13:17:void onCreate(android.os.Bundle):41 -> onCreate
+    13:17:void onCreate(android.os.Bundle):42 -> onCreate
     18:20:void androidx.core.splashscreen.SplashScreen.install():189:189 -> onCreate
     18:20:void androidx.core.splashscreen.SplashScreen.access$install(androidx.core.splashscreen.SplashScreen):121 -> onCreate
     18:20:androidx.core.splashscreen.SplashScreen androidx.core.splashscreen.SplashScreen$Companion.installSplashScreen(android.app.Activity):146 -> onCreate
-    18:20:void onCreate(android.os.Bundle):41 -> onCreate
+    18:20:void onCreate(android.os.Bundle):42 -> onCreate
     21:22:androidx.activity.SystemBarStyle androidx.activity.SystemBarStyle$Companion.light(int,int):170:170 -> onCreate
-    21:22:void onCreate(android.os.Bundle):46 -> onCreate
+    21:22:void onCreate(android.os.Bundle):47 -> onCreate
     23:26:androidx.activity.SystemBarStyle androidx.activity.SystemBarStyle$Companion.light(int,int):174:174 -> onCreate
-    23:26:void onCreate(android.os.Bundle):46 -> onCreate
+    23:26:void onCreate(android.os.Bundle):47 -> onCreate
     27:29:void androidx.activity.SystemBarStyle.<init>(int,int,int,kotlin.jvm.functions.Function1,kotlin.jvm.internal.DefaultConstructorMarker):0:0 -> onCreate
     27:29:androidx.activity.SystemBarStyle androidx.activity.SystemBarStyle$Companion.light(int,int):170 -> onCreate
-    27:29:void onCreate(android.os.Bundle):46 -> onCreate
-    30:31:void onCreate(android.os.Bundle):45:45 -> onCreate
+    27:29:void onCreate(android.os.Bundle):47 -> onCreate
+    30:31:void onCreate(android.os.Bundle):46:46 -> onCreate
     32:33:void androidx.activity.EdgeToEdge.enable$default(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle,int,java.lang.Object):71:71 -> onCreate
-    32:33:void onCreate(android.os.Bundle):45 -> onCreate
+    32:33:void onCreate(android.os.Bundle):46 -> onCreate
     34:38:void androidx.activity.EdgeToEdge.enable$default(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle,int,java.lang.Object):73:73 -> onCreate
-    34:38:void onCreate(android.os.Bundle):45 -> onCreate
+    34:38:void onCreate(android.os.Bundle):46 -> onCreate
     39:40:androidx.activity.SystemBarStyle androidx.activity.SystemBarStyle$Companion.auto(int,int,kotlin.jvm.functions.Function1):134:134 -> onCreate
     39:40:androidx.activity.SystemBarStyle androidx.activity.SystemBarStyle$Companion.auto$default(androidx.activity.SystemBarStyle$Companion,int,int,kotlin.jvm.functions.Function1,int,java.lang.Object):126 -> onCreate
     39:40:void androidx.activity.EdgeToEdge.enable$default(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle,int,java.lang.Object):73 -> onCreate
-    39:40:void onCreate(android.os.Bundle):45 -> onCreate
+    39:40:void onCreate(android.os.Bundle):46 -> onCreate
     41:43:void androidx.activity.SystemBarStyle.<init>(int,int,int,kotlin.jvm.functions.Function1,kotlin.jvm.internal.DefaultConstructorMarker):0:0 -> onCreate
     41:43:androidx.activity.SystemBarStyle androidx.activity.SystemBarStyle$Companion.auto(int,int,kotlin.jvm.functions.Function1):134 -> onCreate
     41:43:androidx.activity.SystemBarStyle androidx.activity.SystemBarStyle$Companion.auto$default(androidx.activity.SystemBarStyle$Companion,int,int,kotlin.jvm.functions.Function1,int,java.lang.Object):126 -> onCreate
     41:43:void androidx.activity.EdgeToEdge.enable$default(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle,int,java.lang.Object):73 -> onCreate
-    41:43:void onCreate(android.os.Bundle):45 -> onCreate
+    41:43:void onCreate(android.os.Bundle):46 -> onCreate
     44:54:void androidx.activity.EdgeToEdge.enable(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle):75:75 -> onCreate
     44:54:void androidx.activity.EdgeToEdge.enable$default(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle,int,java.lang.Object):71 -> onCreate
-    44:54:void onCreate(android.os.Bundle):45 -> onCreate
+    44:54:void onCreate(android.os.Bundle):46 -> onCreate
     55:64:void androidx.activity.EdgeToEdge.enable(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle):76:76 -> onCreate
     55:64:void androidx.activity.EdgeToEdge.enable$default(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle,int,java.lang.Object):71 -> onCreate
-    55:64:void onCreate(android.os.Bundle):45 -> onCreate
+    55:64:void onCreate(android.os.Bundle):46 -> onCreate
     65:85:void androidx.activity.EdgeToEdge.enable(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle):77:77 -> onCreate
     65:85:void androidx.activity.EdgeToEdge.enable$default(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle,int,java.lang.Object):71 -> onCreate
-    65:85:void onCreate(android.os.Bundle):45 -> onCreate
+    65:85:void onCreate(android.os.Bundle):46 -> onCreate
     86:87:void androidx.activity.EdgeToEdge.enable(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle):79:79 -> onCreate
     86:87:void androidx.activity.EdgeToEdge.enable$default(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle,int,java.lang.Object):71 -> onCreate
-    86:87:void onCreate(android.os.Bundle):45 -> onCreate
+    86:87:void onCreate(android.os.Bundle):46 -> onCreate
     88:91:void androidx.activity.EdgeToEdgeApi29.<init>():276:276 -> onCreate
     88:91:void androidx.activity.EdgeToEdge.enable(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle):79 -> onCreate
     88:91:void androidx.activity.EdgeToEdge.enable$default(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle,int,java.lang.Object):71 -> onCreate
-    88:91:void onCreate(android.os.Bundle):45 -> onCreate
+    88:91:void onCreate(android.os.Bundle):46 -> onCreate
     92:93:void androidx.activity.EdgeToEdge.enable(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle):81:81 -> onCreate
     92:93:void androidx.activity.EdgeToEdge.enable$default(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle,int,java.lang.Object):71 -> onCreate
-    92:93:void onCreate(android.os.Bundle):45 -> onCreate
+    92:93:void onCreate(android.os.Bundle):46 -> onCreate
     94:96:void androidx.activity.EdgeToEdgeApi26.<init>():254:254 -> onCreate
     94:96:void androidx.activity.EdgeToEdge.enable(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle):81 -> onCreate
     94:96:void androidx.activity.EdgeToEdge.enable$default(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle,int,java.lang.Object):71 -> onCreate
-    94:96:void onCreate(android.os.Bundle):45 -> onCreate
+    94:96:void onCreate(android.os.Bundle):46 -> onCreate
     97:104:void androidx.activity.EdgeToEdge.enable(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle):90:90 -> onCreate
     97:104:void androidx.activity.EdgeToEdge.enable$default(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle,int,java.lang.Object):71 -> onCreate
-    97:104:void onCreate(android.os.Bundle):45 -> onCreate
+    97:104:void onCreate(android.os.Bundle):46 -> onCreate
     105:107:void androidx.activity.EdgeToEdge.enable(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle):89:89 -> onCreate
     105:107:void androidx.activity.EdgeToEdge.enable$default(androidx.activity.ComponentActivity,androidx.activity.SystemBarStyle,androidx.activity.SystemBarStyle,int,java.lang.Object):71 -> onCreate
-    105:107:void onCreate(android.os.Bundle):45 -> onCreate
-    108:110:void onCreate(android.os.Bundle):56:56 -> onCreate
-    111:115:void onCreate(android.os.Bundle):58:58 -> onCreate
+    105:107:void onCreate(android.os.Bundle):46 -> onCreate
+    108:110:void onCreate(android.os.Bundle):57:57 -> onCreate
+    111:115:void onCreate(android.os.Bundle):59:59 -> onCreate
     116:118:void androidx.core.splashscreen.SplashScreen.setKeepOnScreenCondition(androidx.core.splashscreen.SplashScreen$KeepOnScreenCondition):162:162 -> onCreate
-    116:118:void onCreate(android.os.Bundle):58 -> onCreate
+    116:118:void onCreate(android.os.Bundle):59 -> onCreate
     119:120:void com.yescirculation.nonblockinglife.notification.ValAndFunKt.createNotificationChannel(android.app.Activity):28:28 -> onCreate
-    119:120:void onCreate(android.os.Bundle):62 -> onCreate
+    119:120:void onCreate(android.os.Bundle):63 -> onCreate
     121:122:void com.yescirculation.nonblockinglife.notification.ValAndFunKt.createNotificationChannel(android.app.Activity):29:29 -> onCreate
-    121:122:void onCreate(android.os.Bundle):62 -> onCreate
+    121:122:void onCreate(android.os.Bundle):63 -> onCreate
     123:125:void com.yescirculation.nonblockinglife.notification.ValAndFunKt.createNotificationChannel(android.app.Activity):30:30 -> onCreate
-    123:125:void onCreate(android.os.Bundle):62 -> onCreate
+    123:125:void onCreate(android.os.Bundle):63 -> onCreate
     126:128:void com.yescirculation.nonblockinglife.notification.ValAndFunKt.createNotificationChannel(android.app.Activity):28:28 -> onCreate
-    126:128:void onCreate(android.os.Bundle):62 -> onCreate
+    126:128:void onCreate(android.os.Bundle):63 -> onCreate
     129:133:androidx.core.app.NotificationManagerCompat androidx.core.app.NotificationManagerCompat.from(android.content.Context):217:217 -> onCreate
     129:133:void com.yescirculation.nonblockinglife.notification.ValAndFunKt.createNotificationChannel(android.app.Activity):32 -> onCreate
-    129:133:void onCreate(android.os.Bundle):62 -> onCreate
+    129:133:void onCreate(android.os.Bundle):63 -> onCreate
     134:138:void androidx.core.app.NotificationManagerCompat.createNotificationChannel(android.app.NotificationChannel):426:426 -> onCreate
     134:138:void com.yescirculation.nonblockinglife.notification.ValAndFunKt.createNotificationChannel(android.app.Activity):32 -> onCreate
-    134:138:void onCreate(android.os.Bundle):62 -> onCreate
-    139:143:void onCreate(android.os.Bundle):65:65 -> onCreate
-    144:150:void onCreate(android.os.Bundle):66:66 -> onCreate
-    151:159:void onCreate(android.os.Bundle):67:67 -> onCreate
-    160:169:void onCreate(android.os.Bundle):71:71 -> onCreate
-    170:174:void onCreate(android.os.Bundle):74:74 -> onCreate
-    175:176:void onCreate(android.os.Bundle):76:76 -> onCreate
-    177:180:void onCreate(android.os.Bundle):280:280 -> onCreate
-    181:183:void onCreate(android.os.Bundle):76:76 -> onCreate
-    184:186:void onCreate(android.os.Bundle):77:77 -> onCreate
-    187:190:void onCreate(android.os.Bundle):78:78 -> onCreate
-    191:193:void onCreate(android.os.Bundle):79:79 -> onCreate
-    194:196:void onCreate(android.os.Bundle):81:81 -> onCreate
-    197:199:void onCreate(android.os.Bundle):83:83 -> onCreate
-    200:206:void onCreate(android.os.Bundle):86:86 -> onCreate
+    134:138:void onCreate(android.os.Bundle):63 -> onCreate
+    139:143:void onCreate(android.os.Bundle):66:66 -> onCreate
+    144:150:void onCreate(android.os.Bundle):67:67 -> onCreate
+    151:159:void onCreate(android.os.Bundle):68:68 -> onCreate
+    160:169:void onCreate(android.os.Bundle):72:72 -> onCreate
+    170:174:void onCreate(android.os.Bundle):75:75 -> onCreate
+    175:176:void onCreate(android.os.Bundle):77:77 -> onCreate
+    177:180:void onCreate(android.os.Bundle):297:297 -> onCreate
+    181:183:void onCreate(android.os.Bundle):77:77 -> onCreate
+    184:186:void onCreate(android.os.Bundle):78:78 -> onCreate
+    187:190:void onCreate(android.os.Bundle):79:79 -> onCreate
+    191:193:void onCreate(android.os.Bundle):80:80 -> onCreate
+    194:196:void onCreate(android.os.Bundle):82:82 -> onCreate
+    197:199:void onCreate(android.os.Bundle):84:84 -> onCreate
+    200:206:void onCreate(android.os.Bundle):87:87 -> onCreate
     207:209:void androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(android.view.View,androidx.core.view.OnApplyWindowInsetsListener):2899:2899 -> onCreate
-    207:209:void onCreate(android.os.Bundle):86 -> onCreate
-    210:218:void onCreate(android.os.Bundle):115:115 -> onCreate
-    219:221:void onCreate(android.os.Bundle):116:116 -> onCreate
-    222:229:void onCreate(android.os.Bundle):119:119 -> onCreate
-    230:232:void onCreate(android.os.Bundle):120:120 -> onCreate
-    233:235:void onCreate(android.os.Bundle):121:121 -> onCreate
-    236:238:void onCreate(android.os.Bundle):122:122 -> onCreate
-    239:241:void onCreate(android.os.Bundle):123:123 -> onCreate
-    242:252:void onCreate(android.os.Bundle):126:126 -> onCreate
-    253:261:void onCreate(android.os.Bundle):129:129 -> onCreate
-    262:273:void onCreate(android.os.Bundle):132:132 -> onCreate
-    274:285:void onCreate(android.os.Bundle):141:141 -> onCreate
-    286:303:void onCreate(android.os.Bundle):186:186 -> onCreate
-    304:308:void onCreate(android.os.Bundle):190:190 -> onCreate
-    309:315:void onCreate(android.os.Bundle):197:197 -> onCreate
-    316:331:void onCreate(android.os.Bundle):204:204 -> onCreate
-    332:335:void onCreate(android.os.Bundle):186:186 -> onCreate
-    336:339:void onCreate(android.os.Bundle):141:141 -> onCreate
-    340:343:void onCreate(android.os.Bundle):132:132 -> onCreate
-    344:347:void onCreate(android.os.Bundle):129:129 -> onCreate
-    348:351:void onCreate(android.os.Bundle):126:126 -> onCreate
-    352:355:void onCreate(android.os.Bundle):119:119 -> onCreate
-    356:359:void onCreate(android.os.Bundle):71:71 -> onCreate
-    1:3:void onNewIntent(android.content.Intent):208:208 -> onNewIntent
-    4:8:void onNewIntent(android.content.Intent):209:209 -> onNewIntent
-    9:24:void onNewIntent(android.content.Intent):210:210 -> onNewIntent
-    3:8:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):214:214 -> q
+    207:209:void onCreate(android.os.Bundle):87 -> onCreate
+    210:218:void onCreate(android.os.Bundle):116:116 -> onCreate
+    219:221:void onCreate(android.os.Bundle):117:117 -> onCreate
+    222:229:void onCreate(android.os.Bundle):120:120 -> onCreate
+    230:232:void onCreate(android.os.Bundle):121:121 -> onCreate
+    233:235:void onCreate(android.os.Bundle):122:122 -> onCreate
+    236:238:void onCreate(android.os.Bundle):123:123 -> onCreate
+    239:241:void onCreate(android.os.Bundle):124:124 -> onCreate
+    242:252:void onCreate(android.os.Bundle):127:127 -> onCreate
+    253:261:void onCreate(android.os.Bundle):130:130 -> onCreate
+    262:273:void onCreate(android.os.Bundle):133:133 -> onCreate
+    274:285:void onCreate(android.os.Bundle):142:142 -> onCreate
+    286:303:void onCreate(android.os.Bundle):195:195 -> onCreate
+    304:308:void onCreate(android.os.Bundle):199:199 -> onCreate
+    309:315:void onCreate(android.os.Bundle):206:206 -> onCreate
+    316:331:void onCreate(android.os.Bundle):213:213 -> onCreate
+    332:335:void onCreate(android.os.Bundle):195:195 -> onCreate
+    336:339:void onCreate(android.os.Bundle):142:142 -> onCreate
+    340:343:void onCreate(android.os.Bundle):133:133 -> onCreate
+    344:347:void onCreate(android.os.Bundle):130:130 -> onCreate
+    348:351:void onCreate(android.os.Bundle):127:127 -> onCreate
+    352:355:void onCreate(android.os.Bundle):120:120 -> onCreate
+    356:359:void onCreate(android.os.Bundle):72:72 -> onCreate
+    1:3:void onNewIntent(android.content.Intent):225:225 -> onNewIntent
+    4:8:void onNewIntent(android.content.Intent):226:226 -> onNewIntent
+    9:24:void onNewIntent(android.content.Intent):227:227 -> onNewIntent
+    1:36:void onResume():218:218 -> onResume
+    37:43:void onResume():219:219 -> onResume
+    44:47:void onResume():221:221 -> onResume
+    48:51:void onResume():219:219 -> onResume
+    52:55:void onResume():218:218 -> onResume
+    3:8:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):231:231 -> q
       # {"id":"com.android.tools.r8.residualsignature","signature":"(Landroid/content/Intent;Landroid/webkit/WebView;)V"}
     9:14:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> q
-    9:14:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):214 -> q
-    15:20:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):214:214 -> q
-    21:26:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):215:215 -> q
+    9:14:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):231 -> q
+    15:20:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):231:231 -> q
+    21:26:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):232:232 -> q
     27:32:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> q
-    27:32:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):215 -> q
-    33:38:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):216:216 -> q
-    39:46:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):217:217 -> q
+    27:32:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):232 -> q
+    33:38:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):233:233 -> q
+    39:46:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):234:234 -> q
     47:55:boolean kotlin.text.StringsKt__StringsJVMKt.startsWith(java.lang.String,java.lang.String,boolean):418:418 -> q
     47:55:boolean kotlin.text.StringsKt__StringsJVMKt.startsWith$default(java.lang.String,java.lang.String,boolean,int,java.lang.Object):415 -> q
-    47:55:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):221 -> q
+    47:55:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):238 -> q
     56:59:int kotlin.text.StringsKt__StringsKt.indexOf$default(java.lang.CharSequence,java.lang.String,int,boolean,int,java.lang.Object):1128:1128 -> q
-    56:59:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):222 -> q
-    60:65:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):223:223 -> q
-    66:71:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):224:224 -> q
-    72:94:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):225:225 -> q
-    95:96:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):232:232 -> q
+    56:59:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):239 -> q
+    60:65:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):240:240 -> q
+    66:71:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):241:241 -> q
+    72:94:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):242:242 -> q
+    95:96:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):249:249 -> q
     97:103:android.net.Uri androidx.core.net.UriKt.toUri(java.lang.String):29:29 -> q
-    97:103:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):232 -> q
-    104:109:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):233:233 -> q
-    110:116:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):238:238 -> q
-    117:121:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):241:241 -> q
-    122:125:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):244:244 -> q
-    126:135:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):245:245 -> q
-    136:141:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):251:251 -> q
-    142:152:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):252:252 -> q
-    153:159:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):253:253 -> q
-    160:166:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):257:257 -> q
+    97:103:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):249 -> q
+    104:109:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):250:250 -> q
+    110:116:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):255:255 -> q
+    117:121:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):258:258 -> q
+    122:125:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):261:261 -> q
+    126:135:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):262:262 -> q
+    136:141:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):268:268 -> q
+    142:152:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):269:269 -> q
+    153:159:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):270:270 -> q
+    160:166:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):274:274 -> q
     167:174:android.net.Uri androidx.core.net.UriKt.toUri(java.lang.String):29:29 -> q
-    167:174:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):257 -> q
+    167:174:android.net.Uri handleIntent(android.content.Intent,android.webkit.WebView):274 -> q
 com.yescirculation.nonblockinglife.WebViewActivity$onCreate$4 -> mm:
 # {"id":"sourceFile","fileName":"WebViewActivity.kt"}
     com.yescirculation.nonblockinglife.WebViewActivity this$0 -> a
-    3:6:void <init>(com.yescirculation.nonblockinglife.WebViewActivity):132:132 -> <init>
-    1:12:void onPermissionRequest(android.webkit.PermissionRequest):134:134 -> onPermissionRequest
+    3:6:void <init>(com.yescirculation.nonblockinglife.WebViewActivity):133:133 -> <init>
+    1:12:void onPermissionRequest(android.webkit.PermissionRequest):135:135 -> onPermissionRequest
 com.yescirculation.nonblockinglife.WebViewActivity$onCreate$5 -> nm:
 # {"id":"sourceFile","fileName":"WebViewActivity.kt"}
     com.yescirculation.nonblockinglife.WebViewActivity this$0 -> a
     com.yescirculation.nonblockinglife.WebViewActivity $context -> b
-    5:8:void <init>(com.yescirculation.nonblockinglife.WebViewActivity,com.yescirculation.nonblockinglife.WebViewActivity):141:141 -> <init>
-    1:3:void onPageFinished(android.webkit.WebView,java.lang.String):149:149 -> onPageFinished
-    4:10:com.yescirculation.nonblockinglife.bridge.AndroidBridge com.yescirculation.nonblockinglife.WebViewActivity.access$getBridge$p(com.yescirculation.nonblockinglife.WebViewActivity):31:31 -> onPageFinished
-    4:10:void onPageFinished(android.webkit.WebView,java.lang.String):150 -> onPageFinished
+    5:8:void <init>(com.yescirculation.nonblockinglife.WebViewActivity,com.yescirculation.nonblockinglife.WebViewActivity):142:142 -> <init>
+    1:3:void onPageFinished(android.webkit.WebView,java.lang.String):158:158 -> onPageFinished
+    4:10:com.yescirculation.nonblockinglife.bridge.AndroidBridge com.yescirculation.nonblockinglife.WebViewActivity.access$getBridge$p(com.yescirculation.nonblockinglife.WebViewActivity):32:32 -> onPageFinished
+    4:10:void onPageFinished(android.webkit.WebView,java.lang.String):159 -> onPageFinished
     11:12:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.injectAndroidPortMock():90:90 -> onPageFinished
-    11:12:void onPageFinished(android.webkit.WebView,java.lang.String):150 -> onPageFinished
+    11:12:void onPageFinished(android.webkit.WebView,java.lang.String):159 -> onPageFinished
     13:14:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.injectAndroidPortMock():92:92 -> onPageFinished
-    13:14:void onPageFinished(android.webkit.WebView,java.lang.String):150 -> onPageFinished
+    13:14:void onPageFinished(android.webkit.WebView,java.lang.String):159 -> onPageFinished
       # {"id":"com.android.tools.r8.rewriteFrame","conditions":["throws(Ljava/lang/NullPointerException;)"],"actions":["removeInnerFrames(1)"]}
     15:18:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.injectAndroidPortMock():92:92 -> onPageFinished
-    15:18:void onPageFinished(android.webkit.WebView,java.lang.String):150 -> onPageFinished
-    19:21:void com.yescirculation.nonblockinglife.WebViewActivity.access$setWebLoaded$p(com.yescirculation.nonblockinglife.WebViewActivity,boolean):31:31 -> onPageFinished
-    19:21:void onPageFinished(android.webkit.WebView,java.lang.String):152 -> onPageFinished
-    22:27:void onPageFinished(android.webkit.WebView,java.lang.String):150:150 -> onPageFinished
-    3:15:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):155:155 -> shouldOverrideUrlLoading
-    16:17:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):158:158 -> shouldOverrideUrlLoading
+    15:18:void onPageFinished(android.webkit.WebView,java.lang.String):159 -> onPageFinished
+    19:21:void com.yescirculation.nonblockinglife.WebViewActivity.access$setWebLoaded$p(com.yescirculation.nonblockinglife.WebViewActivity,boolean):32:32 -> onPageFinished
+    19:21:void onPageFinished(android.webkit.WebView,java.lang.String):161 -> onPageFinished
+    22:27:void onPageFinished(android.webkit.WebView,java.lang.String):159:159 -> onPageFinished
+    3:25:boolean onRenderProcessGone(android.webkit.WebView,android.webkit.RenderProcessGoneDetail):154:154 -> onRenderProcessGone
+    3:15:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):164:164 -> shouldOverrideUrlLoading
+    16:17:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):167:167 -> shouldOverrideUrlLoading
     18:22:boolean kotlin.text.StringsKt__StringsJVMKt.startsWith(java.lang.String,java.lang.String,boolean):418:418 -> shouldOverrideUrlLoading
     18:22:boolean kotlin.text.StringsKt__StringsJVMKt.startsWith$default(java.lang.String,java.lang.String,boolean,int,java.lang.Object):415 -> shouldOverrideUrlLoading
-    18:22:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):158 -> shouldOverrideUrlLoading
-    23:26:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):158:158 -> shouldOverrideUrlLoading
-    27:28:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):160:160 -> shouldOverrideUrlLoading
-    29:35:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):280:280 -> shouldOverrideUrlLoading
-    36:40:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):160:160 -> shouldOverrideUrlLoading
-    41:45:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):162:162 -> shouldOverrideUrlLoading
-    46:56:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):165:165 -> shouldOverrideUrlLoading
-    57:60:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):168:168 -> shouldOverrideUrlLoading
-    61:72:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):170:170 -> shouldOverrideUrlLoading
+    18:22:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):167 -> shouldOverrideUrlLoading
+    23:26:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):167:167 -> shouldOverrideUrlLoading
+    27:28:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):169:169 -> shouldOverrideUrlLoading
+    29:35:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):297:297 -> shouldOverrideUrlLoading
+    36:40:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):169:169 -> shouldOverrideUrlLoading
+    41:45:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):171:171 -> shouldOverrideUrlLoading
+    46:56:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):174:174 -> shouldOverrideUrlLoading
+    57:60:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):177:177 -> shouldOverrideUrlLoading
+    61:72:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):179:179 -> shouldOverrideUrlLoading
     73:78:boolean kotlin.text.StringsKt__StringsJVMKt.startsWith(java.lang.String,java.lang.String,boolean):418:418 -> shouldOverrideUrlLoading
     73:78:boolean kotlin.text.StringsKt__StringsJVMKt.startsWith$default(java.lang.String,java.lang.String,boolean,int,java.lang.Object):415 -> shouldOverrideUrlLoading
-    73:78:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):170 -> shouldOverrideUrlLoading
-    79:80:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):173:173 -> shouldOverrideUrlLoading
-    81:87:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):281:281 -> shouldOverrideUrlLoading
-    88:92:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):173:173 -> shouldOverrideUrlLoading
-    93:105:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):174:174 -> shouldOverrideUrlLoading
-    106:109:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):176:176 -> shouldOverrideUrlLoading
-    110:116:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):182:182 -> shouldOverrideUrlLoading
+    73:78:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):179 -> shouldOverrideUrlLoading
+    79:80:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):182:182 -> shouldOverrideUrlLoading
+    81:87:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):298:298 -> shouldOverrideUrlLoading
+    88:92:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):182:182 -> shouldOverrideUrlLoading
+    93:105:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):183:183 -> shouldOverrideUrlLoading
+    106:109:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):185:185 -> shouldOverrideUrlLoading
+    110:116:boolean shouldOverrideUrlLoading(android.webkit.WebView,android.webkit.WebResourceRequest):191:191 -> shouldOverrideUrlLoading
 com.yescirculation.nonblockinglife.alarm.AlarmReceiver -> com.yescirculation.nonblockinglife.alarm.AlarmReceiver:
 # {"id":"sourceFile","fileName":"AlarmReceiver.kt"}
     1:4:void <init>():21:21 -> <init>

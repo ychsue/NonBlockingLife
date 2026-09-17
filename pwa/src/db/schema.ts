@@ -154,7 +154,7 @@ export interface ChangeLogEntry {
   clientId?: string;
   table: string;
   recordId: string;
-  op: "add" | "update" | "delete" | "bulkdelete";
+  op: "add" | "update" | "put" | "delete" | "bulkdelete";
   patch?: Record<string, unknown>;
   createdAt: number;
   status: ChangeLogStatus;

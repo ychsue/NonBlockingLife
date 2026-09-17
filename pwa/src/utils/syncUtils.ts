@@ -3,7 +3,7 @@ import { db } from '../db/index'
 import type { ChangeLogEntry } from '../db/schema'
 import { useAppStore } from '../store/appStore'
 
-export const SYNC_TABLES = ['task_pool', 'scheduled', 'micro_tasks', 'inbox', 'resource', 'log', 'macro'] as const
+export const SYNC_TABLES = ['task_pool', 'scheduled', 'micro_tasks', 'inbox', 'resource', 'log', 'macro', 'ics_events', 'ics_sources'] as const
 
 type SyncTable = (typeof SYNC_TABLES)[number]
 
@@ -335,6 +335,8 @@ export class SyncManager {
             db.dashboard,
             db.change_log,
             db.sync_state,
+            db.ics_events,
+            db.ics_sources,
             db.log,
           ]
         : [
@@ -348,6 +350,8 @@ export class SyncManager {
             db.dashboard,
             db.change_log,
             db.sync_state,
+            db.ics_events,
+            db.ics_sources,
           ]
 
       await db.transaction('rw', txTables, async () => {
@@ -362,6 +366,8 @@ export class SyncManager {
           db.dashboard.clear(),
           db.change_log.clear(),
           db.sync_state.clear(),
+          db.ics_events.clear(),
+          db.ics_sources.clear(),
         ]
 
         // Log 預設保留，僅在使用者勾選時才清除。
@@ -418,6 +424,8 @@ export class SyncManager {
       throw new Error(`Unsupported sync table: ${change.table}`)
     }
 
+    // const logs = await db.table('log').toArray()
+    // Q: log 的 recordId 不是他的idㄟ？
     const localRecord = await this.getLocalRecord(change.table, change.recordId)
 
     return {
@@ -438,7 +446,7 @@ export class SyncManager {
   }
 
   private async getLocalRecord(table: SyncTable, recordId: string): Promise<unknown> {
-    return db.table(table).get(recordId)
+    return await db.table(table).get(recordId)
   }
 
   /**
@@ -453,7 +461,15 @@ export class SyncManager {
       updatedAt: change.timestamp,
     } as Record<string, unknown>
 
-    const primaryKey = table === 'log' ? 'id' : 'taskId'
+    let primaryKey = 'taskId'
+    if (table === 'ics_events') {
+      primaryKey = 'eventId'
+    } else if (table === 'ics_sources') {
+      primaryKey = 'sourceId'
+    } else if (table === 'log') {
+      primaryKey = 'id'
+    }
+
     if (!record[primaryKey]) {
       record[primaryKey] = change.recordId
     }

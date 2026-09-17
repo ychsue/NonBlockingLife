@@ -364,6 +364,8 @@ export const zhTW: TranslationMap = {
   'table.scheduled.sort.nextRunDesc':   '最晚要處理',
 
   'table.scheduled.alarmSyncTargetsLabel': '設定排程鬧鐘',
+  'table.scheduled.icsSourceManagementLabel': '管理 ICS 來源',
+  'table.scheduled.icsSourceManagementBtn':   '開啟 ICS 來源管理',
 
   // ── Log ──────────────────────────────────────────────────────
   'table.log.confirmClear':         '確定要清除所有 Log 相關的 change_log 記錄嗎？',

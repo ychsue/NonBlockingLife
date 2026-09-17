@@ -68,9 +68,15 @@ export function IcsSourceManagementDialog({
 
   // 1. 切換啟用 / 停用
   const toggleSourceEnabled = async (source: IcsSourceItem) => {
-    await db.ics_sources.update(source.sourceId, {
-      enabled: !source.enabled,
-      updatedAt: Date.now(),
+    await applyChange({
+      table: "ics_sources",
+      recordId: source.sourceId,
+      op: "update",
+      patch: {
+        enabled: !source.enabled,
+        updatedAt: Date.now(),
+      } as unknown as Record<string, unknown>,
+      clientId: DEV_CLIENT_ID,
     });
     await loadSources();
     if (onSynced) onSynced(true);
@@ -89,14 +95,28 @@ export function IcsSourceManagementDialog({
           patch: {} as Record<string, unknown>,
           clientId: DEV_CLIENT_ID,
         });
-        await applyChange({
-          table: "ics_events",
-          recordId: sourceId,
-          op: "bulkdelete",
-          patch: {} as Record<string, unknown>,
-          clientId: DEV_CLIENT_ID,
-          option: { equal: ["sourceId", sourceId] },
-        });
+        // 還是先一個一個刪好了
+        const events = await db.ics_events
+          .where("sourceId")
+          .equals(sourceId)
+          .toArray();
+        for (const event of events) {
+          await applyChange({
+            table: "ics_events",
+            recordId: event.eventId,
+            op: "delete",
+            patch: {} as Record<string, unknown>,
+            clientId: DEV_CLIENT_ID,
+          });
+        }
+        // await applyChange({
+        //   table: "ics_events",
+        //   recordId: sourceId,
+        //   op: "bulkdelete",
+        //   patch: {} as Record<string, unknown>,
+        //   clientId: DEV_CLIENT_ID,
+        //   option: { equal: ["sourceId", sourceId] },
+        // });
       },
     );
     await loadSources();
@@ -210,11 +230,17 @@ export function IcsSourceManagementDialog({
 
       if (targetSourceId) {
         // 如果已經有 targetSourceId，表示是更新現有的 Source，這裡可以做一些額外處理，例如清空表單或提示用戶
-        await db.ics_sources.update(targetSourceId, {
-          name: formName.trim(),
-          url: formUrl.trim(),
-          color: selectedColor,
-          updatedAt: Date.now(),
+        await applyChange({
+          table: "ics_sources",
+          recordId: targetSourceId,
+          op: "update",
+          patch: {
+            name: formName.trim(),
+            url: formUrl.trim(),
+            color: selectedColor,
+            updatedAt: Date.now(),
+          } as unknown as Record<string, unknown>,
+          clientId: DEV_CLIENT_ID,
         });
       } else {
         targetSourceId = Utils.generateId("SRC_FILE_");
@@ -229,7 +255,13 @@ export function IcsSourceManagementDialog({
           lastSyncedAt: Date.now(),
           updatedAt: Date.now(),
         };
-        await db.ics_sources.put(newSource);
+        await applyChange({
+          table: "ics_sources",
+          recordId: targetSourceId,
+          op: "put",
+          patch: newSource as unknown as Record<string, unknown>,
+          clientId: DEV_CLIENT_ID,
+        });
       }
 
       // 呼叫 ical.js 解析
@@ -277,11 +309,17 @@ export function IcsSourceManagementDialog({
     let editingSourceId = editingSource?.sourceId ?? "";
     if (editingSource) {
       // 編輯現有 Source
-      await db.ics_sources.update(editingSourceId, {
-        name: formName.trim(),
-        url: formUrl.trim(),
-        color: selectedColor,
-        updatedAt: Date.now(),
+      await applyChange({
+        table: "ics_sources",
+        recordId: editingSourceId,
+        op: "update",
+        patch: {
+          name: formName.trim(),
+          url: formUrl.trim(),
+          color: selectedColor,
+          updatedAt: Date.now(),
+        } as unknown as Record<string, unknown>,
+        clientId: DEV_CLIENT_ID,
       });
     } else {
       // 新增 URL Source
@@ -295,7 +333,13 @@ export function IcsSourceManagementDialog({
         enabled: true,
         updatedAt: Date.now(),
       };
-      await db.ics_sources.put(newSource);
+      await applyChange({
+        table: "ics_sources",
+        recordId: editingSourceId,
+        op: "put",
+        patch: newSource as unknown as Record<string, unknown>,
+        clientId: DEV_CLIENT_ID,
+      });
     }
 
     setShowAddForm(false);

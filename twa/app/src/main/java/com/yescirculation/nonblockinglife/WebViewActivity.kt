@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -145,6 +146,14 @@ class WebViewActivity : AppCompatActivity() {
 //                // 在 Logcat (底部面板) 搜尋 "WebViewError" 就可以看到具體原因
 //                android.util.Log.e("WebViewError", "Error: ${error?.description}, Code: ${error?.errorCode}")
 //            }
+            override fun onRenderProcessGone(
+                view: WebView?,
+                detail: RenderProcessGoneDetail?
+            ): Boolean {
+                //由於渲染進程可能不見，這裡就要重載網頁了
+                view?.loadUrl(view.url ?: getString(R.string.launchUrl))
+                return true //super.onRenderProcessGone(view, detail)
+            }
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 bridge.injectAndroidPortMock()
@@ -202,6 +211,14 @@ class WebViewActivity : AppCompatActivity() {
 
         // 處理啟動時的 Intent
         handleIntent(intent, webView)
+    }
+
+    override fun onResume() {
+        // 若發現變成空白或卡住，需要重新整理
+        if (webView.url == null || webView.url.toString().isEmpty()) {
+            webView.reload()
+        }
+        super.onResume()
     }
 
     override fun onNewIntent(intent: Intent?) {

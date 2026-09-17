@@ -359,6 +359,8 @@ export const en = {
   'table.scheduled.sort.nextRunDesc':   'Latest to be processed',
 
   'table.scheduled.alarmSyncTargetsLabel': 'Setting Alarm Targets',
+  'table.scheduled.icsSourceManagementLabel': 'Manage ICS Sources',
+  'table.scheduled.icsSourceManagementBtn':   'Open ICS Source Management',
 
   // ── Log ──────────────────────────────────────────────────────
   'table.log.confirmClear':         'Are you sure you want to clear all change_log records related to Log?',

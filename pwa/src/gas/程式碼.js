@@ -10,7 +10,7 @@
  */
 
 const CONFIG = {
-  VERSION: '~2.3.0',
+  VERSION: '~2.4.0',
   TABLE_SHEETS: {
     task_pool: 'NBL_TaskPool',
     scheduled: 'NBL_Scheduled',
@@ -19,6 +19,8 @@ const CONFIG = {
     resource: 'NBL_Resource',
     log: 'NBL_Log',
     macro: 'NBL_Macro',
+    ics_events: 'NBL_ICSEvents',
+    ics_sources: 'NBL_ICSSources',
   },
 }
 
@@ -223,7 +225,13 @@ function pullChanges(lastSync) {
         if (effectiveSyncTime <= lastSync) continue
 
         const payload = safeParseJson(payloadJson)
-        payload.taskId = taskId // 確保 taskId 存在
+        if (table === 'ics_events') {
+          payload.eventId = taskId
+        } else if (table === 'ics_sources') {
+          payload.sourceId = taskId
+        } else {
+            payload.taskId = taskId // 確保 taskId 存在
+        }
 
         changes.push({
           table: table,
@@ -412,9 +420,21 @@ function writeRowByTable(sheet, table, rowIndex, recordId, data, updatedAt, sync
     ]
   } else {
     // 其他表：提取 taskId + payloadJson
-    const taskId = data.taskId || ''
+    const taskId = (
+      table === 'ics_events' ? data.eventId 
+      : table === 'ics_sources' ? data.sourceId 
+      : data.taskId) || '' //補上ics_sources 與 ics_events 的部分
     const payload = Object.assign({}, data)
-    delete payload.taskId // 避免重複存儲
+    switch (table) { // 避免重複存儲
+      case 'ics_events':
+        delete payload.eventId
+        break
+      case 'ics_sources':
+        delete payload.sourceId
+        break
+      default:
+        delete payload.taskId
+    }
 
     row = [recordId, taskId, JSON.stringify(payload), updatedAt, deleted, operationId, deviceId, syncedAt]
   }
@@ -427,6 +447,9 @@ function writeRowByTable(sheet, table, rowIndex, recordId, data, updatedAt, sync
   }
 }
 
+/**
+ * 讀取現有資料，保持 回傳的 payload 的 taskId|sourceId|eventId 的正確性
+ */
 function readExistingData(sheet, table, rowIndex) {
   if (table === 'log') {
     // Log 表：讀取展開欄位
@@ -447,7 +470,13 @@ function readExistingData(sheet, table, rowIndex) {
     const taskId = sheet.getRange(rowIndex, 2).getValue()
     const payloadJson = sheet.getRange(rowIndex, 3).getValue() || '{}'
     const payload = safeParseJson(payloadJson)
-    payload.taskId = taskId
+    if (table === 'ics_events') {
+      payload.eventId = taskId
+    } else if (table === 'ics_sources') {
+      payload.sourceId = taskId
+    } else {
+      payload.taskId = taskId
+    }
     return payload
   }
 }

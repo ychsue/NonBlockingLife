@@ -10,6 +10,7 @@ import {
 import { useTWithMaps } from "../../i18n";
 import { SettingsCard } from "../SettingsCard";
 import { parseIcsContent } from "../../utils/icsParser";
+import { ChangeLogTable } from "./ChangeLogTable";
 
 type MoreTab = "settings" | "experiment";
 
@@ -369,12 +370,14 @@ function ExperimentPanel() {
       "experiment.disabledMessage":
         "Enable experimental features first to unlock the advanced tools.",
       "experiment.debugLabel": "Show debug information",
+      "experiment.changeLogLabel": "Show change log",
     },
     "zh-TW": {
       "experiment.title": "實驗性工具",
       "experiment.description": "用於測試和調試高級流程的臨時功能。",
       "experiment.disabledMessage": "請先啟用實驗性功能以解鎖高級工具。",
       "experiment.debugLabel": "顯示除錯資訊",
+      "experiment.changeLogLabel": "顯示變更日誌",
     },
     ja: {
       "experiment.title": "実験的ツール",
@@ -383,6 +386,7 @@ function ExperimentPanel() {
       "experiment.disabledMessage":
         "高度なツールをアンロックするには、まず実験的な機能を有効にしてください。",
       "experiment.debugLabel": "デバッグ情報を表示",
+      "experiment.changeLogLabel": "変更ログを表示",
     },
   });
   const enableExperimentalFeatures = useAppStore(
@@ -390,6 +394,7 @@ function ExperimentPanel() {
   );
   const showGlobalToast = useAppStore((state) => state.showGlobalToast);
   const [showDebug, setShowDebug] = useState(false);
+  const [showChangeLog, setShowChangeLog] = useState(false);
 
   const handleAlarmTest = async () => {
     const testUrl = "nonblockinglife://show-clock";
@@ -502,7 +507,17 @@ function ExperimentPanel() {
               {t("experiment.debugLabel")}
             </label>
 
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={showChangeLog}
+                onChange={(e) => setShowChangeLog(e.target.checked)}
+              />
+              {t("experiment.changeLogLabel")}
+            </label>
+
             {showDebug && <DebugLogPage />}
+            {showChangeLog && <ChangeLogTable />}
           </div>
         )}
       </section>

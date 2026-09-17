@@ -1,5 +1,14 @@
 # Journal
 
+## [2026-09-17] (2.4.1) 準備將 ics 的部分外加Android穩定性發布
+[ ] 目前還沒有生成 ics 的能力
+[ ] 尚未有Joyride 的 ics 說明
+[ ] 尚未有日曆形式的顯示
+
+## [2026-09-16] (2.3.20-beta.7) 設法 sync to remote successfully
+1. [程式碼.js](pwa\src\gas\程式碼.js) 補上對 ics_sources 與 ics_events 的處理，確保在 writeRowByTable 與 readExistingData 中正確處理 sourceId 與 eventId。
+2. [syncUtils.ts](pwa\src\utils\syncUtils.ts) 補上對 ics_sources 與 ics_events 的處理，確保在 applyChange 中正確處理 sourceId 與 eventId。
+
 ## [2026-09-16] (2.3.20-beta.6) 設法安裝上 update，還需要回去精進 add
 1. [ScheduledTable.tsx](pwa\src\components\tables\ScheduledTable.tsx) 讓他能正確處理 update 與 delete 的UI顯示與操作。
 2. [IcsSourceManagementDialog.tsx](pwa\src\components\ics\IcsSourceManagementDialog.tsx) 改用 applyChange 來更新 ics_sources 與 ics_events 兩個table。為了以後與遠端sync做準備。
