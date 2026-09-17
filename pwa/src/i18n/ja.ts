@@ -197,6 +197,26 @@ export const ja: TranslationMap = {
   'tour.setReminderOffset.updateAlarms.title': 'アラームを更新(毎回このアプリを起動するたびに自動的に更新されます)',
   'tour.setReminderOffset.updateAlarms.content': 'このボタンをクリックして、スケジュールされたタスクのアラームを今すぐ更新します。そうでなければ、次回このアプリを起動したときに自動的に更新されます。',
   
+  // ── ICS Sources ──────────────────────────────────────────────
+  'tour.setIcsSources.title': 'ICS ソースを設定',
+  'tour.setIcsSources.description': 'タスクの ICS ソースを設定する方法を学びます。  \r\nICS ソースをインポートした後、システムはそれらの中のスケジュールを自動的にスケジュール管理に追加します。',
+  'tour.setIcsSources.step1.title': 'ICS ソースを設定 (スケジュールタブを開く)',
+  'tour.setIcsSources.step1.content': 'スケジュールタブをタップして、スケジュールされたタスクを表示します。',
+  'tour.setIcsSources.step2.title': 'その他のオプション',
+  'tour.setIcsSources.step2.content': 'このボタンをタップして、その他のオプションにアクセスします。',
+  'tour.setIcsSources.step3.title': 'ICS ソース管理を開く',
+  'tour.setIcsSources.step3.content': 'このボタンをタップして、ICS ソースを管理します。',
+  'tour.setIcsSources.step4.title': 'ICS ソースを追加',
+  'tour.setIcsSources.step4.content': 'このボタンをタップして、新しい ICS ソースを追加します。Android ユーザーは、URL ボタンをタップしてください。',
+  'tour.setIcsSources.step5.title': '色を選択',
+  'tour.setIcsSources.step5.content': 'ICS ソースの色を選択して、スケジュールで識別しやすくします。',
+  'tour.setIcsSources.step6.title': 'ソース名を入力',
+  'tour.setIcsSources.step6.content': 'ICS ソースの名前を入力して、スケジュールで識別しやすくします。',
+  'tour.setIcsSources.step7.title': 'ソース URL を入力',
+  'tour.setIcsSources.step7.content': 'ICS ソースの URL を入力して、システムがスケジュール情報を正しく取得できるようにします。（実験上、Google で「2026 holiday ics」のようなものを検索できます。ファイルをインポートする場合は、この欄を空白のままにできます）',
+  'tour.setIcsSources.step8.title': 'ICS ソースを保存または更新',
+  'tour.setIcsSources.step8.content': 'このボタンをタップして、ICS ソースを保存または更新します。',
+  
   'table.inbox.field.receivedAt': '受信日時',
   'table.inbox.field.url': 'URL',
 

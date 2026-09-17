@@ -6,6 +6,7 @@ import { TableCard } from "../TableCard"; // 引入已修改好支援 accentColo
 import Utils from "../../../../gas/src/Utils";
 import { useTwaRpc } from "../../hooks/useTwaRpc";
 import { getDeviceType } from "../../utils/shortcutUtils";
+import { useProductTourContext } from "../tour/ProductTourContext";
 
 const DEV_CLIENT_ID = "ics_source_management_dialog";
 
@@ -32,6 +33,7 @@ export function IcsSourceManagementDialog({
   const [sources, setSources] = useState<IcsSourceItem[]>([]);
   const [loading, setLoading] = useState(false);
   const { sendRequest } = useTwaRpc();
+  const { nextStep, isRunning, activeStep } = useProductTourContext();
 
   // 新增/編輯 URL 來源的狀態
   const [editingSource, setEditingSource] = useState<IcsSourceItem | null>(
@@ -400,10 +402,12 @@ export function IcsSourceManagementDialog({
 
         {/* 頂部操作列 */}
         {!showAddForm ? (
-          <div className="flex gap-2 pb-2">
+          <div className="flex gap-2 pb-2" data-tour="add-ics-source-buttons">
             <button
               type="button"
-              disabled={loading}
+              disabled={
+                loading || (isRunning && getDeviceType() === "AndroidWebView")
+              }
               onClick={() => {
                 setUploadSourceId(null);
                 // fileInputRef.current?.click();
@@ -411,6 +415,8 @@ export function IcsSourceManagementDialog({
                 setFormUrl("");
                 setSelectedColor(PRESET_COLORS[0]);
                 setShowAddForm("file");
+                if (isRunning && activeStep?.id === "add-ics-source")
+                  nextStep();
               }}
               className="flex-1 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition"
             >
@@ -418,12 +424,15 @@ export function IcsSourceManagementDialog({
             </button>
             <button
               type="button"
+              disabled={getDeviceType() !== "AndroidWebView"}
               onClick={() => {
                 setEditingSource(null);
                 setFormName("");
                 setFormUrl("");
                 setSelectedColor(PRESET_COLORS[0]);
                 setShowAddForm("url");
+                if (isRunning && activeStep?.id === "add-ics-source")
+                  nextStep();
               }}
               className="flex-1 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition"
             >
@@ -434,6 +443,9 @@ export function IcsSourceManagementDialog({
           /* 新增 / 編輯 URL 表單區塊 */
           <form
             onSubmit={(e) => {
+              if (isRunning && activeStep?.id === "save-ics-source") {
+                nextStep();
+              }
               e.preventDefault();
               return showAddForm === "url"
                 ? handleSaveUrlSource(e)
@@ -461,7 +473,7 @@ export function IcsSourceManagementDialog({
             {/* 顏色選擇 */}
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500">標籤顏色：</span>
-              <div className="flex gap-1.5">
+              <div className="flex gap-1.5" data-tour="select-a-color">
                 {PRESET_COLORS.map((c) => (
                   <button
                     key={c}
@@ -472,7 +484,12 @@ export function IcsSourceManagementDialog({
                         ? "ring-2 ring-offset-1 ring-blue-500 scale-110"
                         : ""
                     }`}
-                    onClick={() => setSelectedColor(c)}
+                    onClick={() => {
+                      setSelectedColor(c);
+                      if (isRunning && activeStep?.id === "select-a-color") {
+                        nextStep();
+                      }
+                    }}
                   />
                 ))}
               </div>
@@ -482,6 +499,7 @@ export function IcsSourceManagementDialog({
               type="text"
               placeholder="日曆名稱 (如: Google 工作)"
               value={formName}
+              data-tour="input-src-name"
               required
               onChange={(e) => setFormName(e.target.value)}
               className="w-full px-2.5 py-1.5 border rounded text-xs focus:outline-none focus:border-blue-500 bg-white"
@@ -490,6 +508,7 @@ export function IcsSourceManagementDialog({
               type="url"
               placeholder={`${showAddForm === "url" ? "https://calendar.google.com/.../basic.ics" : "僅供參考"}`}
               value={formUrl}
+              data-tour="input-src-url"
               onChange={(e) => setFormUrl(e.target.value)}
               className={`w-full px-2.5 py-1.5 border rounded text-xs focus:outline-none focus:border-blue-500 bg-white`}
             />
@@ -497,6 +516,7 @@ export function IcsSourceManagementDialog({
             <div className="flex justify-end gap-2 pt-1">
               <button
                 type="submit"
+                data-tour="save-ics-source-button"
                 className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700"
               >
                 {editingSource

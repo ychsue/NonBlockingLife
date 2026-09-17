@@ -209,6 +209,26 @@ export const en = {
   'tour.setReminderOffset.updateAlarms.title': 'Update Alarms(Every time you wake up this app, it updates automatically)',
   'tour.setReminderOffset.updateAlarms.content': 'Click this button to update the alarms for your scheduled tasks right now. Otherwise, it will automatically update the next time you wake up this app.',
 
+  // ── ICS Sources ──────────────────────────────────────────────
+  'tour.setIcsSources.title': 'Set ICS Sources',
+  'tour.setIcsSources.description': 'Learn how to set ICS sources for tasks.\r\nAfter importing ICS sources, the system will automatically add the schedules within them to your schedule management.',
+  'tour.setIcsSources.step1.title': 'Set ICS Sources (Open Scheduled tab)',
+  'tour.setIcsSources.step1.content': 'Tap the Scheduled tab to view your scheduled tasks.',
+  'tour.setIcsSources.step2.title': 'More Options',
+  'tour.setIcsSources.step2.content': 'Tap this button to enter more options.',
+  'tour.setIcsSources.step3.title': 'Open ICS Source Management',
+  'tour.setIcsSources.step3.content': 'Tap this button to manage your ICS sources.',
+  'tour.setIcsSources.step4.title': 'Add ICS Source',
+  'tour.setIcsSources.step4.content': 'Tap this button to add a new ICS source. Android users, please tap the URL button.',
+  'tour.setIcsSources.step5.title': 'Select a Color',
+  'tour.setIcsSources.step5.content': 'Choose a color for your ICS source to make it easier to identify in the schedule.',
+  'tour.setIcsSources.step6.title': 'Enter Source Name',
+  'tour.setIcsSources.step6.content': 'Enter a name for your ICS source to make it easier to identify in the schedule.',
+  'tour.setIcsSources.step7.title': 'Enter Source URL',
+  'tour.setIcsSources.step7.content': 'Enter the URL for your ICS source so that the system can correctly fetch the schedule information. (For testing, you can search on Google for something like "2026 holiday ics". If importing a file, this field can be left blank)',
+  'tour.setIcsSources.step8.title': 'Save or Update ICS Source',
+  'tour.setIcsSources.step8.content': 'Tap this button to save or update your ICS source.',
+
   'table.inbox.field.receivedAt':   'Received At',
   'table.inbox.field.url':          'URL',
 

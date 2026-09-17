@@ -2,7 +2,7 @@
 
 ## [2026-09-17] (2.4.1) 準備將 ics 的部分外加Android穩定性發布
 [ ] 目前還沒有生成 ics 的能力
-[ ] 尚未有Joyride 的 ics 說明
+[x] 2.4.3 [19:57] 有Joyride 的 ics 說明了
 [ ] 尚未有日曆形式的顯示
 * 2.4.2 (2026-09-17)
    - 修正 useUrlAction 的歷史紀錄處理邏輯，利用 `window.history.replaceState` 來更新 URL，避免重複執行加入查詢參數。

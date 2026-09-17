@@ -1023,9 +1023,14 @@ export function ScheduledTable() {
                 className={`${showMobileFilters ? "bg-green-500" : "bg-blue-500"} dropbtn `}
                 data-tour="scheduled-more-button"
                 onClick={() => {
-                  setShowMobileFilters((prev) => !prev);
+                  const isInJoyride = isRunning && activeStep?.id === "scheduled-more-button";
+                  if(isInJoyride) {
+                    setShowMobileFilters(true);
+                  } else {
+                    setShowMobileFilters((prev) => !prev);
+                  }
                   // Joyride
-                  if (isRunning && activeStep?.id === "scheduled-more-button") {
+                  if (isInJoyride) {
                     nextStep();
                   }
                 }}
@@ -1102,7 +1107,13 @@ export function ScheduledTable() {
                     {/* 設定 ics 來源 */}
                     <button
                       type="button"
-                      onClick={() => setIcsSourceManagementDialogOpen(true)}
+                      data-tour="open-ics-source-management-button"
+                      onClick={() => {
+                        setIcsSourceManagementDialogOpen(true);
+                        if (isRunning && activeStep?.id === "open-ics-source-management") {
+                          nextStep();
+                        }
+                      }}
                       className="px-3 py-1.5 bg-blue-600 text-white text-[1rem] rounded hover:bg-blue-700"
                     >
                       {text.icsSourceManagementBtn}
