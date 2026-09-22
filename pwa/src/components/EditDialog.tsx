@@ -119,7 +119,9 @@ export function EditDialog<T>({
       const nextRunField = fields.find((field) => field.name === "nextRun");
       const cronField = fields.find((field) => field.type === "cron");
       const saveData = { ...formData };
-      if (!!nextRunField && !!cronField) {
+      // 在 nextRun 不是 cronExpr 所預測的下一個執行時間時，就跳出confirm來確定nextRun
+      // 然而，如果這是Joyride tour正在進行中，就不要跳出confirm，免得干擾教學
+      if (!!nextRunField && !!cronField && !!!isRunning) {
         const cronExpr = cronField
           ? String(formData[cronField.name] ?? "")
           : "";

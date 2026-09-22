@@ -35,7 +35,10 @@ export async function parseIcsContent(
       const startDate = event.startDate;
       const endDate = event.endDate;
       // 相差時間 (毫秒)
-      const duration = startDate && endDate ? endDate.toJSDate().getTime() - startDate.toJSDate().getTime() : 0;
+      const duration =
+        startDate && endDate
+          ? endDate.toJSDate().getTime() - startDate.toJSDate().getTime()
+          : 0;
 
       let startAt = startDate ? startDate.toJSDate().getTime() : 0;
       if (!startAt) continue; // 無效時間跳過
@@ -121,15 +124,32 @@ export async function parseIcsContent(
 
 /**
  * 取得事件在指定日期之後的下一個發生時間
- * @param vevent 日曆事件
+ * @param veventOrRRuleIn 日曆事件 或者 rrule 字串
+ * @param dtstartIn 事件的開始時間，可以為 Date 物件
  * @param after 該事件在指定時間之後
  * @returns 下個時刻
  */
 export function getNextRun(
-  vevent: ICAL.Component,
-  dtstart: ICAL.Time,
+  veventOrRRuleIn: ICAL.Component | string,
+  dtstartIn: ICAL.Time | Date,
   after: Date = new Date(Date.now()),
 ): Date | null {
+  let dtstart =
+    dtstartIn instanceof Date ? ICAL.Time.fromJSDate(dtstartIn) : dtstartIn;
+  let vevent : ICAL.Component;
+  if (veventOrRRuleIn instanceof ICAL.Component) {
+    vevent = veventOrRRuleIn;
+  } else {
+    const rulePart = veventOrRRuleIn.startsWith("RRULE:")
+      ? veventOrRRuleIn.substring("RRULE:".length)
+      : veventOrRRuleIn;
+
+    const rrule = ICAL.Recur.fromString(rulePart);
+    const dtstart = ICAL.Time.fromJSDate(after);
+    vevent = new ICAL.Component("vevent");
+    vevent.addPropertyWithValue("dtstart", dtstart);
+    vevent.addPropertyWithValue("rrule", rrule);
+  }
   const expand = new ICAL.RecurExpansion({
     component: vevent,
     dtstart: dtstart,
@@ -142,7 +162,11 @@ export function getNextRun(
   }
 }
 
-export function getPreviewRuns(rruleValue: string, prevNextRun: Date, times=10): Date[] {
+export function getPreviewRuns(
+  rruleValue: string,
+  prevNextRun: Date,
+  times = 10,
+): Date[] {
   const dates: Date[] = [];
   try {
     const rulePart = rruleValue.startsWith("RRULE:")

@@ -139,10 +139,10 @@ export interface IcsEventItem {
 
 #### 階段三：視圖整合 (Scheduled & Calendar Integration)
 
-* [ ] **Step 3.1**: 在 Scheduled 頁面（或獨立的 Calendar View）同時讀取 `scheduled` 表格與啟用的 `ics_events` 進行綜合展示。
+* [x] **Step 3.1**: 在 Scheduled 頁面（或獨立的 Calendar View）同時讀取 `scheduled` 表格與啟用的 `ics_events` 進行綜合展示。
 
 
-* [ ] **Step 3.2**: 針對唯讀事件（來自 ics）與可編輯事件（來自 Scheduled）做出 UI 卡片的區隔與編輯權限控管。
+* [x] **Step 3.2**: 針對唯讀事件（來自 ics）與可編輯事件（來自 Scheduled）做出 UI 卡片的區隔與編輯權限控管。
 
 
 

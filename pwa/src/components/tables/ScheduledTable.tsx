@@ -1,4 +1,6 @@
 import { useMemo, useState, useEffect, type FocusEvent, useRef } from "react";
+import daySVG from "../calendar/calendar_today.svg";
+import monthSVG from "../calendar/calendar_month.svg";
 import {
   createColumnHelper,
   flexRender,
@@ -52,6 +54,9 @@ import {
   UnifiedTypeName,
 } from "../../utils/icsAdapter";
 import { getPreviewRuns } from "../../utils/icsParser";
+import { DayView } from "../calendar/DayView";
+import dayjs from "dayjs";
+import { MonthView } from "../calendar/MonthView";
 
 const DEV_CLIENT_ID = "dev-client";
 const columnHelper = createColumnHelper<UnifiedCalendarItem>();
@@ -63,7 +68,11 @@ interface CronPreviewState {
   runs: number[];
 }
 
-function createNewScheduledRow(taskId?: string, title?: string): ScheduledItem {
+function createNewScheduledRow(
+  taskId?: string,
+  title?: string,
+  nextRun?: number,
+): ScheduledItem {
   taskId = taskId || Utils.generateId("S");
   const cronExpr = "0 9 * * *"; // 預設每天早上9點執行
   return {
@@ -78,7 +87,8 @@ function createNewScheduledRow(taskId?: string, title?: string): ScheduledItem {
     callback: "",
     lastRun: undefined,
     note: "",
-    nextRun: Utils.getNextOccurrence(cronExpr, new Date())?.getTime(),
+    nextRun:
+      nextRun ?? Utils.getNextOccurrence(cronExpr, new Date())?.getTime(),
     url: "",
   };
 }
@@ -133,11 +143,17 @@ export function ScheduledTable() {
     updateTableBasedOnScheduled,
   } = AQWatcher;
 
+  const [byDateView, setByDateView] = useState(false);
+  const [byMonthView, setByMonthView] = useState(false);
+
   const [openAlarmQueueDialog, setOpenAlarmQueueDialog] = useState(false);
   const { nextStep, isRunning, activeStep } = useProductTourContext();
 
   const [isIcsSourceManagementDialogOpen, setIcsSourceManagementDialogOpen] =
     useState(false);
+
+  // 用來告知 DayView 知道當前選中的日期
+  const [selectedDate, setSelectedDate] = useState(dayjs());
 
   const handleIcsSourceManagementDialogClose = () => {
     setIcsSourceManagementDialogOpen(false);
@@ -321,8 +337,8 @@ export function ScheduledTable() {
     }).catch((err) => console.error("Failed to save update:", err));
   };
 
-  const addRow = async (taskId?: string, title?: string) => {
-    const newScheduledRow = createNewScheduledRow(taskId, title);
+  const addRow = async (taskId?: string, title?: string, nextRun?: number) => {
+    const newScheduledRow = createNewScheduledRow(taskId, title, nextRun);
     const newRow = mapScheduledToUnifiedItem(newScheduledRow);
     setRows((prev) => [newRow, ...prev]);
 
@@ -985,6 +1001,13 @@ export function ScheduledTable() {
   );
   const filteredRows = useHideDone(searchFiltered, hideDone);
 
+  const runAnItem = useMemo(() => {
+    return {
+      label: runningTask ? t("table.quickSwitch") : t("table.quickStart"),
+      onClick: handleInterruptOrStart,
+    };
+  }, [runningTask, t, handleInterruptOrStart]);
+
   const table = useReactTable({
     data: filteredRows,
     columns,
@@ -1013,6 +1036,12 @@ export function ScheduledTable() {
     },
   });
 
+  function onDeleteAnItem(item: UnifiedCalendarItem): void {
+    if (item.itemType === "scheduled") {
+      deleteRow(item.taskId);
+    }
+  }
+
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
@@ -1023,8 +1052,9 @@ export function ScheduledTable() {
                 className={`${showMobileFilters ? "bg-green-500" : "bg-blue-500"} dropbtn `}
                 data-tour="scheduled-more-button"
                 onClick={() => {
-                  const isInJoyride = isRunning && activeStep?.id === "scheduled-more-button";
-                  if(isInJoyride) {
+                  const isInJoyride =
+                    isRunning && activeStep?.id === "scheduled-more-button";
+                  if (isInJoyride) {
                     setShowMobileFilters(true);
                   } else {
                     setShowMobileFilters((prev) => !prev);
@@ -1043,32 +1073,56 @@ export function ScheduledTable() {
                 {/* 更多設定都放進來這裡 */}
                 <div className="m-2 flex flex-col justify-between gap-2">
                   <SettingsCard title={text.sortLabel} description={null}>
-                    <label className="text-sm text-gray-700 font-semibold">
-                      {/* {text.sortLabel}: */}
-                      <select
-                        value={sortMode}
-                        onChange={(e) =>
-                          setSortMode(e.target.value as typeof sortMode)
-                        }
-                        className="px-3 py-2 border rounded focus:outline-none focus:border-blue-500 text-sm"
+                    <div className="flex flex-row gap-2 flex-wrap">
+                      <label className="text-sm text-gray-700 font-semibold">
+                        {/* {text.sortLabel}: */}
+                        <select
+                          value={sortMode}
+                          onChange={(e) =>
+                            setSortMode(e.target.value as typeof sortMode)
+                          }
+                          className="px-3 py-2 border rounded focus:outline-none focus:border-blue-500 text-sm"
+                        >
+                          <option value="none">
+                            {t("table.scheduled.sort.none")}
+                          </option>
+                          <option value="lastRunAsc">
+                            {t("table.scheduled.sort.lastRunAsc")}
+                          </option>
+                          <option value="lastRunDesc">
+                            {t("table.scheduled.sort.lastRunDesc")}
+                          </option>
+                          <option value="nextRunAsc">
+                            {t("table.scheduled.sort.nextRunAsc")}
+                          </option>
+                          <option value="nextRunDesc">
+                            {t("table.scheduled.sort.nextRunDesc")}
+                          </option>
+                        </select>
+                      </label>
+                      <button
+                        className="p-2 border rounded focus:outline-none focus:border-blue-500 text-sm"
+                        data-tour="month-view-button"
+                        onClick={() => {
+                          setByMonthView(true);
+                          if (
+                            isRunning &&
+                            activeStep?.id === "month-view-button"
+                          ) {
+                            nextStep();
+                          }
+                        }}
                       >
-                        <option value="none">
-                          {t("table.scheduled.sort.none")}
-                        </option>
-                        <option value="lastRunAsc">
-                          {t("table.scheduled.sort.lastRunAsc")}
-                        </option>
-                        <option value="lastRunDesc">
-                          {t("table.scheduled.sort.lastRunDesc")}
-                        </option>
-                        <option value="nextRunAsc">
-                          {t("table.scheduled.sort.nextRunAsc")}
-                        </option>
-                        <option value="nextRunDesc">
-                          {t("table.scheduled.sort.nextRunDesc")}
-                        </option>
-                      </select>
-                    </label>
+                        <img src={monthSVG} alt="月曆" />
+                      </button>
+                      <button
+                        className="p-2 border rounded focus:outline-none focus:border-blue-500 text-sm"
+                        data-tour="day-view-button"
+                        onClick={() => setByDateView(true)}
+                      >
+                        <img src={daySVG} alt="日曆" />
+                      </button>
+                    </div>
                   </SettingsCard>
 
                   {(import.meta.env.DEV ||
@@ -1110,7 +1164,10 @@ export function ScheduledTable() {
                       data-tour="open-ics-source-management-button"
                       onClick={() => {
                         setIcsSourceManagementDialogOpen(true);
-                        if (isRunning && activeStep?.id === "open-ics-source-management") {
+                        if (
+                          isRunning &&
+                          activeStep?.id === "open-ics-source-management"
+                        ) {
                           nextStep();
                         }
                       }}
@@ -1234,15 +1291,8 @@ export function ScheduledTable() {
                     },
                   ]}
                   onEdit={setEditingItem}
-                  onDelete={(item) =>
-                    item.itemType === "scheduled" && deleteRow(item.taskId)
-                  }
-                  quickAction={{
-                    label: runningTask
-                      ? t("table.quickSwitch")
-                      : t("table.quickStart"),
-                    onClick: handleInterruptOrStart,
-                  }}
+                  onDelete={onDeleteAnItem}
+                  quickAction={runAnItem}
                 />
               );
             })}
@@ -1302,6 +1352,61 @@ export function ScheduledTable() {
         onClose={handleIcsSourceManagementDialogClose}
         onSynced={handleIcsOnSynced}
       />
+
+      {byDateView && (
+        <div
+          role="dialog"
+          className="fixed inset-0 z-40 flex h-full bg-black/50 p-2"
+          onClick={() => setByDateView(false)}
+        >
+          <div
+            className="w-full h-full rounded-lg bg-white p-1 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <DayView
+              items={filteredRows.sort((a, b) =>
+                dayjs(a.nextRun).diff(dayjs(b.nextRun)),
+              )}
+              onEdit={setEditingItem}
+              onAddNewItem={(taskId, title, nextRun) =>
+                addRow(taskId, title, nextRun)
+              }
+              initialDate={selectedDate.toDate()}
+              onDelete={onDeleteAnItem}
+              quickAction={runAnItem}
+              onClose={() => setByDateView(false)}
+            />
+          </div>
+        </div>
+      )}
+      {byMonthView && (
+        <div
+          role="dialog"
+          className="fixed inset-0 z-40 flex h-full bg-black/50 p-2"
+          onClick={() => setByMonthView(false)}
+        >
+          <div
+            className="w-full h-full rounded-lg bg-white p-1 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <MonthView
+              items={filteredRows}
+              onEdit={setEditingItem}
+              onAddNewItem={(taskId, title, nextRun) =>
+                addRow(taskId, title, nextRun)
+              }
+              openDayView={(date) => {
+                setByMonthView(false);
+                setByDateView(true);
+                setSelectedDate(date);
+              }}
+              onDelete={onDeleteAnItem}
+              quickAction={runAnItem}
+              onClose={() => setByMonthView(false)}
+            />
+          </div>
+        </div>
+      )}
 
       <EditDialog
         isOpen={!!editingItem}

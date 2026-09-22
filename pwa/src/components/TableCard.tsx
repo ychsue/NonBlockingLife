@@ -7,11 +7,12 @@ import {
 } from "react";
 import { useT } from "../i18n";
 
-interface TableCardProps<T> {
+export interface TableCardProps<T> {
   item: T;
   fields: Array<{
     label: string;
     value: ReactNode;
+    className?: string;
   }>;
   onEdit: (item: T) => void;
   onDelete: (item: T) => void;
@@ -19,13 +20,15 @@ interface TableCardProps<T> {
     label: string;
     onClick: (item: T) => void;
   };
+  compact?: boolean; // 🆕 是否為緊湊型卡片
   showDelete?: boolean; // 🆕 是否顯示刪除按鈕
   editLabel?: string; // 🆕 自訂「編輯/管理」文字
   isDisabled?: boolean; // 🆕 是否為停用狀態 (灰階/貫穿線)
   accentColor?: string; // 🆕 左側顏色區塊標籤
+  className?: string; // 🆕 自訂卡片的 className
 }
 
-function isUsableUrl(value: unknown): value is string {
+export function isUsableUrl(value: unknown): value is string {
   return typeof value === "string" && value.trim() !== "" && value !== "None";
 }
 
@@ -41,6 +44,8 @@ export function TableCard<
   editLabel,
   isDisabled = false,
   accentColor,
+  className,
+  compact,
 }: TableCardProps<T>) {
   const t = useT();
   const displayEditLabel = editLabel ?? t("tableCard.edit");
@@ -131,7 +136,7 @@ export function TableCard<
       return;
     }
 
-    if (showDelete && (offsetX <= -SWIPE_TRIGGER)) {
+    if (showDelete && offsetX <= -SWIPE_TRIGGER) {
       resetSwipe();
       if (pendingDeleteConfirm) {
         cancelDeleteConfirmation();
@@ -147,7 +152,7 @@ export function TableCard<
 
   return (
     <div
-      className={`relative overflow-hidden rounded-lg border ${pendingDeleteConfirm ? "border-red-300" : "border-gray-200"} ${isDisabled ? "bg-gray-300 opacity-50" : "bg-white"}`}
+      className={`relative overflow-hidden rounded-lg border h-fit ${pendingDeleteConfirm ? "border-red-300" : "border-gray-200"} ${isDisabled ? "bg-gray-300 opacity-50" : "bg-white"} ${className ?? ""}`}
     >
       {/* 左側顏色區塊標籤 */}
       {accentColor && (
@@ -176,12 +181,19 @@ export function TableCard<
         onTouchEnd={handleTouchEnd}
         onTouchCancel={resetSwipe}
       >
-        <div className="space-y-3">
+        <div
+          className={`${compact ? "space-y-1 flex flex-row flex-wrap items-center justify-between" : "space-y-3"}`}
+        >
           {fields.map((field, index) => (
-            <div key={index} className="flex justify-between items-start gap-2">
-              <span className="text-sm font-medium text-gray-600">
-                {field.label}
-              </span>
+            <div
+              key={index}
+              className={`flex justify-between items-start gap-2 ${field.className ?? ""}`}
+            >
+              {!!!compact && (
+                <span className="text-sm font-medium text-gray-600">
+                  {field.label}
+                </span>
+              )}
               <span className="text-sm text-gray-900 text-right flex-1">
                 {field.value}
               </span>
@@ -189,79 +201,82 @@ export function TableCard<
           ))}
         </div>
 
-        {itemUrl && (
-          <div className="mt-4 flex justify-end">
-            <a
-              href={itemUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center rounded-md bg-blue-500 px-3 py-2 text-sm font-medium text-white hover:bg-blue-600"
-              onClick={(event) => event.stopPropagation()}
-              onTouchStart={(event) => event.stopPropagation()}
-              onTouchMove={(event) => event.stopPropagation()}
-              onTouchEnd={(event) => event.stopPropagation()}
-            >
-              {t("tableCard.openLink")}
-            </a>
-          </div>
-        )}
+        {/* 按鈕(action)區塊 */}
+        <div className="flex flex-col">
+          {itemUrl && (
+            <div className="mt-4 flex justify-end">
+              <a
+                href={itemUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center rounded-md bg-blue-500 px-3 py-2 text-sm font-medium text-white hover:bg-blue-600"
+                onClick={(event) => event.stopPropagation()}
+                onTouchStart={(event) => event.stopPropagation()}
+                onTouchMove={(event) => event.stopPropagation()}
+                onTouchEnd={(event) => event.stopPropagation()}
+              >
+                {t("tableCard.openLink")}
+              </a>
+            </div>
+          )}
 
-        {quickAction && (
-          <div className="mt-3 flex justify-end">
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                cancelDeleteConfirmation();
-                quickAction.onClick(item);
-              }}
-              className="px-3 py-1.5 text-xs font-medium rounded bg-amber-500 text-white hover:bg-amber-600"
-            >
-              {quickAction.label}
-            </button>
-          </div>
-        )}
+          {quickAction && (
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  cancelDeleteConfirmation();
+                  quickAction.onClick(item);
+                }}
+                className="px-3 py-1.5 text-xs font-medium rounded bg-amber-500 text-white hover:bg-amber-600"
+              >
+                {quickAction.label}
+              </button>
+            </div>
+          )}
 
-        {pendingDeleteConfirm && (
-          <div className="mt-3 text-xs text-red-600 text-right">
-            {t("tableCard.swipeDeleteConfirm")}
-          </div>
-        )}
+          {pendingDeleteConfirm && (
+            <div className="mt-3 text-xs text-red-600 text-right">
+              {t("tableCard.swipeDeleteConfirm")}
+            </div>
+          )}
 
-        {!isTouch && (
-          <div className="mt-3 flex justify-end gap-2">
-            <button
-              onClick={() => {
-                cancelDeleteConfirmation();
-                onEdit(item);
-              }}
-              className="px-3 py-1 text-xs font-medium rounded bg-blue-500 text-white hover:bg-blue-600"
-            >
-              {t("tableCard.edit")}
-            </button>
-            {showDelete && (
+          {!isTouch && (
+            <div className="mt-3 flex justify-end gap-2">
               <button
                 onClick={() => {
-                  if (pendingDeleteConfirm) {
-                    cancelDeleteConfirmation();
-                    onDelete(item);
-                  } else {
-                    beginDeleteConfirmation();
-                  }
+                  cancelDeleteConfirmation();
+                  onEdit(item);
                 }}
-                className={`px-3 py-1 text-xs font-medium rounded text-white ${
-                  pendingDeleteConfirm
-                    ? "bg-red-600 hover:bg-red-700"
-                    : "bg-red-400 hover:bg-red-500"
-                }`}
+                className="px-3 py-1 text-xs font-medium rounded bg-blue-500 text-white hover:bg-blue-600"
               >
-                {pendingDeleteConfirm
-                  ? t("tableCard.confirmDelete")
-                  : t("tableCard.delete")}
+                {t("tableCard.edit")}
               </button>
-            )}
-          </div>
-        )}
+              {showDelete && (
+                <button
+                  onClick={() => {
+                    if (pendingDeleteConfirm) {
+                      cancelDeleteConfirmation();
+                      onDelete(item);
+                    } else {
+                      beginDeleteConfirmation();
+                    }
+                  }}
+                  className={`px-3 py-1 text-xs font-medium rounded text-white ${
+                    pendingDeleteConfirm
+                      ? "bg-red-600 hover:bg-red-700"
+                      : "bg-red-400 hover:bg-red-500"
+                  }`}
+                >
+                  {pendingDeleteConfirm
+                    ? t("tableCard.confirmDelete")
+                    : t("tableCard.delete")}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

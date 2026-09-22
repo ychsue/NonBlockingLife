@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="24px"
+   viewBox="0 -960 960 960"
+   width="24px"
+   fill="#1f1f1f"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="calendar_today.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="16.8125"
+     inkscape:cx="13.918216"
+     inkscape:cy="15.315985"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <path
+     d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Z"
+     id="path1" />
+  <path
+     style="fill:#ff0000;stroke:#1f1f1f;stroke-width:80;stroke-dasharray:none;stroke-linecap:round"
+     d="m 324.75836,-485.35316 -1.1896,264.0892 v 0"
+     id="path2" />
+  <path
+     style="fill:none;stroke:#1f1f1f;stroke-width:80;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+     d="m 656.65426,-477.02604 -149.88844,1.1896 v 110.63196 c 0,0 154.04787,-58.83831 154.6468,63.04833 0.59893,121.88663 -158.2156,84.46099 -158.2156,84.46099 v 0"
+     id="path3"
+     sodipodi:nodetypes="ccczcc" />
+</svg>

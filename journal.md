@@ -1,9 +1,14 @@
 # Journal
 
+## [2026-09-21] (2.4.4) 加入日曆顯示
+1. [isCronExprDuringInterval.ts](pwa\src\utils\isCronExprDuringInterval.ts) 同時考慮了 cronExpr 與 RRule 的處理。看看是否有落在想要的區間的事件。
+2. [DayView.tsx](pwa\src\components\calendar\DayView.tsx) 加入了日曆的日期切換與今天按鈕，並且優化了樣式與交互。
+3. [MonthView.tsx](pwa\src\components\calendar\MonthView.tsx) 加入了月視圖的顯示，並且可以點擊日期跳轉到日視圖。
+
 ## [2026-09-17] (2.4.1) 準備將 ics 的部分外加Android穩定性發布
 [ ] 目前還沒有生成 ics 的能力
 [x] 2.4.3 [19:57] 有Joyride 的 ics 說明了
-[ ] 尚未有日曆形式的顯示
+[x] 有日曆形式的顯示
 * 2.4.2 (2026-09-17)
    - 修正 useUrlAction 的歷史紀錄處理邏輯，利用 `window.history.replaceState` 來更新 URL，避免重複執行加入查詢參數。
    - 修正 分享到 InboxTable 的一些 bug，比如有可能無法立即看到加入的條目。
@@ -52,7 +57,7 @@
 3. [styles.css](pwa\src\styles.css) 調整了一些樣式，確保safe area 的內容不會被遮擋。
 4. [WebViewActivity.kt](twa\app\src\main\java\com\yescirculation\nonblockinglife\WebViewActivity.kt) 自己給底部 navigation bar 加上白色遮罩，還得跟著手機轉動而跑。
 5. 準備上傳到 play 商店封閉測試
-6. [ ] (2.3.19) 針對 SelectionCacheTable 的初始載入與重新渲染邏輯進行優化，確保在初始資料尚未加載完成前，不會觸發不必要的 UI 更新。
+6. [x] (2.3.19) 針對 SelectionCacheTable 的初始載入與重新渲染邏輯進行優化，確保在初始資料尚未加載完成前，不會觸發不必要的 UI 更新。
    * [SelectionCacheTable.tsx](pwa\src\components\tables\SelectionCacheTable.tsx) 不監聽 focus，因為在 WebView 中，頁面可能有存在但沒有獲得 focus，點了才會觸發相應的更新。這會造成不必要的重新 loading。
 
 ## [2026-09-08] (2.3.17)

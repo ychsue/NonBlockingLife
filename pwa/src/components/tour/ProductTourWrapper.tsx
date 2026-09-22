@@ -13,7 +13,11 @@ type ProductTourWrapperProps = {
   run: boolean;
 };
 
-function waitForTarget(target: string, timeoutMs = 5000, stopTour?: () => void): Promise<void> {
+function waitForTarget(
+  target: string,
+  timeoutMs = 5000,
+  stopTour?: () => void,
+): Promise<void> {
   if (typeof window === "undefined") {
     return Promise.resolve();
   }
@@ -24,13 +28,19 @@ function waitForTarget(target: string, timeoutMs = 5000, stopTour?: () => void):
     const check = () => {
       const element = document.querySelector(target);
       if (element) {
-        console.debug("[Joyride] target resolved", { target, element: element.tagName });
+        console.debug("[Joyride] target resolved", {
+          target,
+          element: element.tagName,
+        });
         resolve();
         return;
       }
 
       if (Date.now() - startedAt >= timeoutMs) {
-        console.warn("[Joyride] target not found after timeout", { target, timeoutMs });
+        console.warn("[Joyride] target not found after timeout", {
+          target,
+          timeoutMs,
+        });
         stopTour?.();
         reject(new Error(`Joyride target not found: ${target}`));
         return;
@@ -43,7 +53,10 @@ function waitForTarget(target: string, timeoutMs = 5000, stopTour?: () => void):
   });
 }
 
-export function toJoyrideStep(step: ProductTourStep, stopTour?: () => void): Step {
+export function toJoyrideStep(
+  step: ProductTourStep,
+  stopTour?: () => void,
+): Step {
   const buttons: ButtonType[] = step.hideFooterButton
     ? []
     : step.hideCloseButton
@@ -137,9 +150,16 @@ export function ProductTourWrapper({
         overlayClickAction: "close",
         zIndex: 9999,
       }}
+      styles={step.styles ?? {}}
       portalElement={step?.portalElement ?? document.body}
       onEvent={handleJoyrideCallback}
-      locale={{ back: "Back", close: "Close", last: "Finish", next: "Next", skip: "Skip" }}
+      locale={{
+        back: "Back",
+        close: "Close",
+        last: "Finish",
+        next: "Next",
+        skip: "Skip",
+      }}
     />
   );
 }

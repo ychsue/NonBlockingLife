@@ -126,8 +126,7 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: The ICS feature has just been added, please give it a try."+
-        "\n\r**Please note 2**: The handling logic of history records and some bugs in the sharing feature have just been fixed.",
+        "\n\r**Please note**: The calendar now has day and month views.",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -141,8 +140,7 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：ics 功能剛加入，請試看看。"+
-        "\n\r**注意2**：剛修正歷史紀錄的處理邏輯與分享功能的 bug。",
+        "\n\r**注意**：現在有日曆與月曆的顯示功能",
     },
     ja: {
       "useTwaBridge.twaNotAvailable":
@@ -158,8 +156,7 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：ICS 機能が追加されたばかりですので、ぜひ試してみてください。"+
-        "\n\r**注意2**：履歴の処理ロジックと共有機能のバグが修正されたばかりです。",
+        "\n\r**注意**：現在は日表示と月表示のカレンダー機能があります。",
     },
   });
 

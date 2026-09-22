@@ -24,7 +24,7 @@ export function getToursList(
       version: 1,
       title: map["tour.installIphoneShortcuts.title"],
       description: map["tour.installIphoneShortcuts.description"],
-      app: 'shortcuts',
+      app: "shortcuts",
       steps: [
         {
           id: "open-guide",
@@ -360,7 +360,7 @@ export function getToursList(
           hideFooterButton: false,
           waitForElement: true,
           spotlightPadding: 8,
-        }
+        },
       ],
     },
     {
@@ -453,12 +453,124 @@ export function getToursList(
         },
       ],
     },
+    {
+      id: "show-month-and-day-view",
+      version: 1,
+      title: map["tour.monthDayView.title"],
+      description: map["tour.monthDayView.description"],
+      app: "androidWebView",
+      steps: [
+        {
+          id: "open-scheduled",
+          title: map["tour.monthDayView.step1.title"],
+          content: map["tour.monthDayView.step1.content"],
+          target: "[data-tour='scheduled-tab']",
+          placement: "bottom",
+          hideFooterButton: true,
+          waitForElement: true,
+          spotlightPadding: 8,
+        },
+        {
+          id: "scheduled-more-button",
+          title: map["tour.monthDayView.step2.title"],
+          content: map["tour.monthDayView.step2.content"],
+          target: "[data-tour='scheduled-more-button']",
+          placement: "bottom",
+          hideFooterButton: true,
+          waitForElement: true,
+          spotlightPadding: 8,
+          // device: "mobile",
+        },
+        {
+          id: "month-view-button",
+          title: map["tour.monthDayView.step3.title"],
+          content: map["tour.monthDayView.step3.content"],
+          target: "[data-tour='month-view-button']",
+          placement: "bottom",
+          hideFooterButton: true,
+          waitForElement: true,
+          spotlightPadding: 8,
+        },
+        {
+          id: "add-a-new-schedule",
+          title: map["tour.monthDayView.step4.title"],
+          content: map["tour.monthDayView.step4.content"],
+          target: "[data-tour='add-a-new-schedule-button']",
+          placement: "bottom",
+          hideFooterButton: true,
+          waitForElement: true,
+          spotlightPadding: 8,
+        },
+        {
+          id: "edit-dialog-save-button", //save this schedule
+          title: map["tour.monthDayView.step5.title"],
+          content: map["tour.monthDayView.step5.content"],
+          target: "[data-tour='edit-dialog-save-button']",
+          placement: "bottom",
+          hideFooterButton: true,
+          waitForElement: true,
+          spotlightPadding: 8,
+        },
+        {
+          id: "introduce-monthview-header",
+          title: map["tour.monthDayView.step6.title"],
+          content: map["tour.monthDayView.step6.content"],
+          target: "[data-tour='month-view-header']",
+          placement: "bottom",
+          hideFooterButton: false,
+          waitForElement: true,
+          spotlightPadding: 8,
+        },
+        {
+          id: "month-day-cell",
+          title: map["tour.monthDayView.step7.title"],
+          content: map["tour.monthDayView.step7.content"],
+          target: "[data-tour='month-day-cell']",
+          placement: "bottom",
+          hideFooterButton: true,
+          waitForElement: true,
+          spotlightPadding: 8,
+        },
+        {
+          id: "day-view-header",
+          title: map["tour.monthDayView.step8.title"],
+          content: map["tour.monthDayView.step8.content"],
+          target: "[data-tour='day-view-header']",
+          placement: "bottom",
+          hideFooterButton: false,
+          waitForElement: true,
+          spotlightPadding: 8,
+        },
+        {
+          id: "day-view-content",
+          title: map["tour.monthDayView.step9.title"],
+          content: map["tour.monthDayView.step9.content"],
+          target: "[data-tour='day-view-content']",
+          placement: "bottom",
+          styles: {
+            tooltip: {
+              position: "fixed", // 固定在視窗中
+              top: "50%", // 垂直置中
+              left: "50%", // 水平置中
+              transform: "translate(-50%, 0%)", // 水平置中，垂直不置中，0%表示與箭頭同高
+              maxWidth: "300px",
+            },
+          },
+          hideFooterButton: false,
+          waitForElement: true,
+          spotlightPadding: 8,
+        },
+      ],
+    },
   ];
 
   // Filter out steps that are not applicable to the current device type
   const currentApp = getAppType();
   const tours = ideaTours
-    .filter((tour) => (tour.app ? tour.app === currentApp : true) || import.meta.env.DEV)
+    .filter(
+      (tour) =>
+        (tour.app ? tour.app === currentApp : true) || import.meta.env.DEV,
+    )
     .map((tour) => {
       tour.steps = tour.steps.filter((step) => {
         if (step.device === "mobile" && !isMobile) {
