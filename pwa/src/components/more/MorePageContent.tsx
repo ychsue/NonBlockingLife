@@ -11,6 +11,7 @@ import { useTWithMaps } from "../../i18n";
 import { SettingsCard } from "../SettingsCard";
 import { parseIcsContent } from "../../utils/icsParser";
 import { ChangeLogTable } from "./ChangeLogTable";
+import { applyChange } from "../../db";
 
 type MoreTab = "settings" | "experiment";
 
@@ -454,48 +455,42 @@ function ExperimentPanel() {
           </div>
         ) : (
           <div className="mt-4 space-y-4">
-            {import.meta.env.DEV ||
-            ["TWA", "AndroidWebView"].includes(getDeviceType()) ? (
-              <>
-                <SettingsCard
-                  title="Alarm Test"
-                  description="Test the Android alarm functionality."
-                >
-                  <button
-                    type="button"
-                    onClick={() => void handleAlarmTest()}
-                    className="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
-                  >
-                    Test Alarm
-                  </button>
-                  <p className="text-xs text-gray-500">
-                    Attempts to open the Android clock UI for a native
-                    connectivity check.
-                  </p>
-                </SettingsCard>
-              </>
-            ) : null}
             <SettingsCard
-              title="Test parseIcsContent"
-              description="Test the parseIcsContent utility function."
+              title="Test Global Settings"
+              description="Test the Global Settings functionality."
             >
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={()=> applyChange({
+                  table: "global_settings",
+                  recordId: "test", //key
+                  op: "add",
+                  patch: { key: "test", value: "This is a test" },
+                  clientId: "test",
+                })}
                 className="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
               >
-                Test parseIcsContent
+                Test Global Settings
               </button>
-              {/* 隱藏的 File Input */}
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept=".ics,text/calendar"
-                className="hidden"
-                onChange={(e) =>
-                  handleFileUpload(e)
-                }
-              />
+              <button
+                type="button"
+                onClick={()=> applyChange({
+                  table: "ics_export_configs",
+                  recordId: "test", //key
+                  op: "add",
+                  patch: { 
+                    id: "test",
+                    name: "This is a test",
+                    fileName: "test.ics",
+                    enabled: true,
+                    description: "This is a test export configuration"
+                   },
+                  clientId: "test",
+                })}
+                className="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+              >
+                Test ICS Export Configurations
+              </button>
             </SettingsCard>
 
             <label className="flex items-center gap-2 text-sm text-gray-700">

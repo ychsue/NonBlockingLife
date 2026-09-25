@@ -196,17 +196,48 @@ h1 {
 }
 
 /* 下拉選單內容 (預設隱藏) */
-.dropdown-content {
+.scheduled-dropdown-content {
   display: none;
   position: absolute;
-  background-color: #f1f1f1;
-  /* min-width: 20rem; */
-  box-shadow: 0rem 0.5rem 1rem 0rem rgba(0,0,0,0.2);
+  top: calc(100% + 0.5rem);
+  left: 0;
+  width: min(30rem, calc(100vw - 2rem));
+  max-height: min(42rem, calc(100vh - 5rem));
+  overflow-y: auto;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 1rem 2rem -1rem rgba(15, 23, 42, 0.3);
   z-index: 3;
 }
 
+.scheduled-dropdown-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+}
+
+.scheduled-dropdown-panel .rounded-xl {
+  box-shadow: none;
+}
+
+.scheduled-view-button {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+}
+
+.scheduled-view-button img {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
 /* 下拉選單中的連結 */
-.dropdown-content a {
+.scheduled-dropdown-content a {
   color: black;
   padding: 0.8rem 1rem;
   text-decoration: none;
@@ -214,10 +245,24 @@ h1 {
 }
 
 /* 懸停時更改下拉菜單鏈接的顏色 */
-.dropdown-content a:hover {background-color: #ddd;}
+.scheduled-dropdown-content a:hover {background-color: #ddd;}
 
 /* 顯示下拉選單（當用戶點選下拉按鈕時，使用 JS 為 .dropdown-content 容器新增此類） */
-.dropdown-content.show {display:block;}
+.scheduled-dropdown-content.show {display:block;}
+
+@media (max-width: 720px) {
+  .scheduled-dropdown-content {
+    max-height: calc(100vh - 4rem);
+  }
+
+  .scheduled-dropdown-panel {
+    padding: 0.625rem;
+  }
+
+  .scheduled-dropdown-panel .rounded-xl {
+    padding: 0.875rem;
+  }
+}
 
 /* .dropdown:hover .dropdown-content {display: block;}
 

@@ -22,6 +22,8 @@ const CONFIG = {
     ics_events: 'NBL_ICSEvents',
     ics_sources: 'NBL_ICSSources',
     projects: 'NBL_Projects',
+    ics_export_configs: 'NBL_ICSExportConfigs',
+    global_settings: 'NBL_GlobalSettings',
   },
 }
 
@@ -230,8 +232,11 @@ function pullChanges(lastSync) {
           payload.eventId = taskId
         } else if (table === 'ics_sources') {
           payload.sourceId = taskId
-        } else if (table === 'projects') {
+        } else if (['projects', 'ics_export_configs'].includes(table)) {
           payload.id = taskId
+        } else if (table === 'global_settings') {
+          payload.key = recordId; // 將前兩欄設為 key 和 value
+          payload.value = taskId;
         } else {
             payload.taskId = taskId // 確保 taskId 存在
         }
@@ -426,8 +431,9 @@ function writeRowByTable(sheet, table, rowIndex, recordId, data, updatedAt, sync
     const taskId = (
       table === 'ics_events' ? data.eventId 
       : table === 'ics_sources' ? data.sourceId 
-      : table === 'projects' ? data.id
-      : data.taskId) || '' //補上ics_sources 與 ics_events 的部分
+      : ['projects', 'ics_export_configs'].includes(table) ? data.id
+      : table === 'global_settings' ? data.value  // 因為taskId 這裡存的是 value
+      : data.taskId) ?? '' //補上ics_sources 與 ics_events 的部分
     const payload = Object.assign({}, data)
     switch (table) { // 避免重複存儲
       case 'ics_events':
@@ -437,7 +443,11 @@ function writeRowByTable(sheet, table, rowIndex, recordId, data, updatedAt, sync
         delete payload.sourceId
         break
       case 'projects':
+      case 'ics_export_configs':
         delete payload.id
+        break
+      case 'global_settings':
+        delete payload.value
         break
       default:
         delete payload.taskId
@@ -481,8 +491,10 @@ function readExistingData(sheet, table, rowIndex) {
       payload.eventId = taskId
     } else if (table === 'ics_sources') {
       payload.sourceId = taskId
-    } else if (table === 'projects') {
+    } else if (['projects', 'ics_export_configs'].includes(table)) {
       payload.id = taskId
+    } else if (table === 'global_settings') {
+      payload.value = taskId
     } else {
       payload.taskId = taskId
     }

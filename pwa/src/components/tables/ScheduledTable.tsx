@@ -1091,12 +1091,12 @@ export function ScheduledTable() {
                 ☰
               </button>
               <div
-                className={`dropdown-content w-[min(30rem,90vw)] ${showMobileFilters ? "show" : ""}`}
+                className={`scheduled-dropdown-content ${showMobileFilters ? "show" : ""}`}
               >
                 {/* 更多設定都放進來這裡 */}
-                <div className="m-2 flex flex-col justify-between gap-2">
+                <div className="scheduled-dropdown-panel">
                   <SettingsCard title={text.sortLabel} description={null}>
-                    <div className="flex flex-row gap-2 flex-wrap">
+                    <div className="flex flex-row flex-wrap items-center gap-2">
                       <label className="text-sm text-gray-700 font-semibold">
                         {/* {text.sortLabel}: */}
                         <select
@@ -1124,7 +1124,7 @@ export function ScheduledTable() {
                         </select>
                       </label>
                       <button
-                        className="p-2 border rounded focus:outline-none focus:border-blue-500 text-sm"
+                        className="scheduled-view-button p-2 border rounded focus:outline-none focus:border-blue-500 text-sm"
                         data-tour="month-view-button"
                         onClick={() => {
                           setByMonthView(true);
@@ -1139,7 +1139,7 @@ export function ScheduledTable() {
                         <img src={monthSVG} alt="月曆" />
                       </button>
                       <button
-                        className="p-2 border rounded focus:outline-none focus:border-blue-500 text-sm"
+                        className="scheduled-view-button p-2 border rounded focus:outline-none focus:border-blue-500 text-sm"
                         data-tour="day-view-button"
                         onClick={() => setByDateView(true)}
                       >

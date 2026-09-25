@@ -9,7 +9,7 @@ import {
 import { applyChange, ApplyChangeParams } from "../db/changeLog";
 import { useDialogStore } from "../store/dialogStore";
 import "drag-drop-touch";
-import _, { get } from "lodash";
+import _ from "lodash";
 import { useAppStore } from "../store/appStore";
 import { EditIcon,PlusIcon, DeleteIcon, VerticalLargeDotsIcon, FolderIcon } from "./svgIcons";
 const CLIENT_ID = "PROJECT_TREE_VIEW";
@@ -486,6 +486,7 @@ export function ProjectTreeView({
                       onClick={(e) => {
                         e.stopPropagation();
                         handleAddProject(node.id);
+                        setActiveMenuNodeId(null);
                       }}
                       className="flex w-full items-center gap-2 px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100"
                     >
@@ -498,6 +499,7 @@ export function ProjectTreeView({
                       onClick={(e) => {
                         e.stopPropagation();
                         handleEditAProject(node);
+                        setActiveMenuNodeId(null);
                       }}
                       className="flex w-full items-center gap-2 px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100"
                     >
@@ -510,6 +512,7 @@ export function ProjectTreeView({
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteAProject(node.id);
+                        setActiveMenuNodeId(null);
                       }}
                       className="flex w-full items-center gap-2 px-2 py-1.5 text-xs text-gray-700 hover:bg-red-100"
                     >

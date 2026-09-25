@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-09-25] 開始設計 ics_export_configs 的設計
+1. 設計 ics_export_configs 的 schema，包括 id、name、fileName、enabled 與 description 欄位。
+
 ## [2026-09-25] (2.5.1) 加入 projects 的概念
 1. 這個概念是為了讓使用者可以只輸出某些特定的專案的任務為 ics，避免輸出不相關的任務。
 2. [appStore.ts](pwa\src\store\appStore.ts) 由於projects 的概念可以用在許多地方，所以，我讓她在App 一進來時就更新他放到全域的 store 中，這樣其他地方也可以直接使用。

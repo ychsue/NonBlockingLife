@@ -1,5 +1,10 @@
 import { Dexie, type Table } from "dexie";
 
+export interface GlobalSettingItem {
+  key: string; // 設定項的唯一鍵
+  value?: string| JSON; // 設定項的值
+}
+
 export interface LogEntry {
   id: string;
   timestamp: number;
@@ -106,6 +111,30 @@ export interface IcsEventItem {
   rawIcs?: string; // 保留該 VEVENT 區塊的原始 ics 文字
   updatedAt: number;
 }
+
+export interface IcsExportConfigItem {
+  id: string;         // 主鍵, e.g. 'EXP_GOOGLE_WORK'
+  name: string;       // 匯出設定的名稱
+  fileName: string;   // 匯出檔案的檔名 (例如 'work_calendar.ics')
+  enabled: boolean; // 是否啟用 (true/false)
+  description?: string; // 匯出設定的描述
+
+  // 核心過濾條件
+  projectIds?: string[]; // 過濾指定的 Project ID 陣列 (e.g. ['proj_exercise', 'proj_personal'])
+  includeSubProjects?: boolean; // 是否包含子專案的任務
+
+  // 匯出細節調整
+  timeRangeDaysBefore?: number; // 匯出事件的時間範圍，向前多少天 (預設 30)
+  timeRangeDaysAfter?: number; // 匯出事件的時間範圍，向後多少天 (預設 90)
+  exportPrivateNotes?: boolean; // 是否匯出私人備註 (預設 false)
+
+  // GAS / Supabase 自動發布資訊
+  driveFileId?: string; // GAS / Supabase 上的檔案 ID，用於更新舊檔
+  publicUrl?: string; // GAS / Supabase 上的公開存取 URL
+  lastGeneratedAt?: number; // 上次生成的時間戳
+  updatedAt?: number; // 最後異動的時間戳
+}
+
 
 export interface SelectionCacheItem {
   taskId: string;
@@ -237,6 +266,8 @@ export class AppDB extends Dexie {
   ics_sources!: Table<IcsSourceItem, string>;
   ics_events!: Table<IcsEventItem, string>;
   projects!: Table<ProjectItem, string>;
+  ics_export_configs!: Table<IcsExportConfigItem, string>;
+  global_settings!: Table<GlobalSettingItem, string>;
 
   constructor() {
     super("NonBlockingLife");
@@ -380,7 +411,36 @@ export class AppDB extends Dexie {
       .upgrade(() => {
         // Reserved for future ics data backfill.
       });
-    
+
+          this.version(7)
+      .stores({
+        log: "id, timestamp, taskId, action, state, title",
+        dashboard: "taskId, systemStatus",
+        inbox: "taskId, receivedAt, title",
+        task_pool:
+          "taskId, status, project, priority, lastRunDate, title, note, url",
+        scheduled: "taskId, status, nextRun, title, reminderOffsets",
+        selection_cache: "taskId, score, source, title",
+        micro_tasks: "taskId, status, lastRunDate, title",
+        alarm_queue:
+          "++id, taskId, alarmAt, dedupeKey, state, clockState, exactState, createdAt, updatedAt",
+        change_log: "id, table, recordId, op, status, createdAt",
+        sync_state: "key",
+        resource: "taskId, category, receivedAt, title",
+        macro: "taskId, name, updatedAt, createdAt",
+        macro_execution: "macroId, status, lockOwner, lockExpiresAt, updatedAt",
+        app_log: "id, timestamp, level, scope",
+        // 🆕 新增 ics 相關資料表
+        ics_sources: "sourceId, enabled, updatedAt",
+        ics_events: "eventId, sourceId, title, uid, startAt, [sourceId+uid]",
+        projects: "id, name, parentId, updatedAt",
+        ics_export_configs: "id, timeRangeDaysBefore, timeRangeDaysAfter, exportPrivateNotes, driveFileId, publicUrl, lastGeneratedAt, updatedAt",
+        global_settings: "key, value, updatedAt",
+      })
+      .upgrade(() => {
+        // Reserved for future ics data backfill.
+      });
+
   }
 }
 
@@ -392,6 +452,7 @@ export const TASK_PREFIX = {
   scheduled: "S",
   resource: "R",
   ics_events: "ICS_",
+  ics_export_configs: "IEC_",
 };
 
 export const LOG_ID_PREFIX = "log";

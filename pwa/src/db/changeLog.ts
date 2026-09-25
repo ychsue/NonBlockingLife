@@ -64,6 +64,12 @@ export async function applyChange({
       case "projects":
         data = patch?.id ? patch : { ...patch, id: recordId };
         break;
+      case "global_settings":
+        data = patch?.key ? patch : { ...patch, key: recordId };
+        break;
+      case "ics_export_configs":
+        data = patch?.id ? patch : { ...patch, id: recordId };
+        break;
       default:
         data = patch?.taskId ? patch : { ...patch, taskId: recordId };
     }
