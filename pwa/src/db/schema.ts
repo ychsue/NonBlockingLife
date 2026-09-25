@@ -23,6 +23,15 @@ export interface Dashboard {
   totalFocusToday?: number;
 }
 
+export interface ProjectItem {
+  id: string              // 主鍵 e.g. 'proj_health_01' 或 UUID
+  name: string            // 專案/分類名稱 e.g. '運動健康'
+  parentId?: string | null// 父專案 ID (根目錄則為 null 或 undefined)
+  color?: string          // 可選：用於 UI 標籤顏色/圖示
+  sortOrder?: number      // 可選：同階層排序
+  updatedAt: number       // 異動時間戳 (利於同步)
+}
+
 export interface InboxItem {
   taskId: string;
   title?: string;
@@ -55,6 +64,7 @@ export interface ScheduledItem {
   status?: string;
   focusTime?: number;
   cronExpr?: string;
+  projectIds?: string[]   // 存放 Project ID 陣列 (e.g. ['proj_exercise', 'proj_personal'])
   remindBefore?: string | number;
   remindAfter?: string | number;
   reminderOffsets?: string | number[];
@@ -88,6 +98,7 @@ export interface IcsEventItem {
   endAt?: number; // 結束時間戳 (DTEND)
   isAllDay: boolean; // 是否為全天事件
   reminderOffsets?: string | number[]; // 提醒的偏移量 (例如提前 10 分鐘)
+  projectIds?: string[]; // 存放 Project ID 陣列 (e.g. ['proj_exercise', 'proj_personal'])
   location?: string; // 地點
   description?: string; // 描述 (DESCRIPTION)
   url?: string; // 事件連結 (URL)
@@ -225,6 +236,7 @@ export class AppDB extends Dexie {
   // 🆕 新增 ics 相關 Table 宣告
   ics_sources!: Table<IcsSourceItem, string>;
   ics_events!: Table<IcsEventItem, string>;
+  projects!: Table<ProjectItem, string>;
 
   constructor() {
     super("NonBlockingLife");
@@ -341,6 +353,34 @@ export class AppDB extends Dexie {
       .upgrade(() => {
         // Reserved for future ics data backfill.
       });
+
+    this.version(6)
+      .stores({
+        log: "id, timestamp, taskId, action, state, title",
+        dashboard: "taskId, systemStatus",
+        inbox: "taskId, receivedAt, title",
+        task_pool:
+          "taskId, status, project, priority, lastRunDate, title, note, url",
+        scheduled: "taskId, status, nextRun, title, reminderOffsets",
+        selection_cache: "taskId, score, source, title",
+        micro_tasks: "taskId, status, lastRunDate, title",
+        alarm_queue:
+          "++id, taskId, alarmAt, dedupeKey, state, clockState, exactState, createdAt, updatedAt",
+        change_log: "id, table, recordId, op, status, createdAt",
+        sync_state: "key",
+        resource: "taskId, category, receivedAt, title",
+        macro: "taskId, name, updatedAt, createdAt",
+        macro_execution: "macroId, status, lockOwner, lockExpiresAt, updatedAt",
+        app_log: "id, timestamp, level, scope",
+        // 🆕 新增 ics 相關資料表
+        ics_sources: "sourceId, enabled, updatedAt",
+        ics_events: "eventId, sourceId, title, uid, startAt, [sourceId+uid]",
+        projects: "id, name, parentId, updatedAt",
+      })
+      .upgrade(() => {
+        // Reserved for future ics data backfill.
+      });
+    
   }
 }
 

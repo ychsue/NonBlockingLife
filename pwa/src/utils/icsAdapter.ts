@@ -36,6 +36,7 @@ export function mapIcsToUnifiedItem(
     url: ics.url || "",
     cronExpr: ics.rrule ? `RRULE:${ics.rrule}` : "", // 僅供 UI 展示說明用[cite: 1, 2]
     reminderOffsets: ics.reminderOffsets || "",
+    projectIds: ics.projectIds || [], // 對應到 Project ID 陣列[cite: 1, 2]
     remindBefore,
     // 擴充特有屬性
     itemType: "ics_event",
@@ -57,6 +58,7 @@ export function mapUnifiedPatchToIcsEventPatch(
   if (patch.note !== undefined) icsPatch.description = patch.note;
   if (patch.url !== undefined) icsPatch.url = patch.url;
   if (patch.cronExpr !== undefined) icsPatch.rrule = patch.cronExpr; //保持原樣看看//.replace(/^RRULE:/, '');
+  if (patch.projectIds !== undefined) icsPatch.projectIds = patch.projectIds;
   return icsPatch;
 }
 

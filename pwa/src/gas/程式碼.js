@@ -10,7 +10,7 @@
  */
 
 const CONFIG = {
-  VERSION: '~2.4.0',
+  VERSION: '~2.5.0',
   TABLE_SHEETS: {
     task_pool: 'NBL_TaskPool',
     scheduled: 'NBL_Scheduled',
@@ -21,6 +21,7 @@ const CONFIG = {
     macro: 'NBL_Macro',
     ics_events: 'NBL_ICSEvents',
     ics_sources: 'NBL_ICSSources',
+    projects: 'NBL_Projects',
   },
 }
 
@@ -229,6 +230,8 @@ function pullChanges(lastSync) {
           payload.eventId = taskId
         } else if (table === 'ics_sources') {
           payload.sourceId = taskId
+        } else if (table === 'projects') {
+          payload.id = taskId
         } else {
             payload.taskId = taskId // 確保 taskId 存在
         }
@@ -423,6 +426,7 @@ function writeRowByTable(sheet, table, rowIndex, recordId, data, updatedAt, sync
     const taskId = (
       table === 'ics_events' ? data.eventId 
       : table === 'ics_sources' ? data.sourceId 
+      : table === 'projects' ? data.id
       : data.taskId) || '' //補上ics_sources 與 ics_events 的部分
     const payload = Object.assign({}, data)
     switch (table) { // 避免重複存儲
@@ -431,6 +435,9 @@ function writeRowByTable(sheet, table, rowIndex, recordId, data, updatedAt, sync
         break
       case 'ics_sources':
         delete payload.sourceId
+        break
+      case 'projects':
+        delete payload.id
         break
       default:
         delete payload.taskId
@@ -448,7 +455,7 @@ function writeRowByTable(sheet, table, rowIndex, recordId, data, updatedAt, sync
 }
 
 /**
- * 讀取現有資料，保持 回傳的 payload 的 taskId|sourceId|eventId 的正確性
+ * 讀取現有資料，保持 回傳的 payload 的 taskId|sourceId|eventId|id 的正確性
  */
 function readExistingData(sheet, table, rowIndex) {
   if (table === 'log') {
@@ -474,6 +481,8 @@ function readExistingData(sheet, table, rowIndex) {
       payload.eventId = taskId
     } else if (table === 'ics_sources') {
       payload.sourceId = taskId
+    } else if (table === 'projects') {
+      payload.id = taskId
     } else {
       payload.taskId = taskId
     }

@@ -3,7 +3,7 @@ import { db } from '../db/index'
 import type { ChangeLogEntry } from '../db/schema'
 import { useAppStore } from '../store/appStore'
 
-export const SYNC_TABLES = ['task_pool', 'scheduled', 'micro_tasks', 'inbox', 'resource', 'log', 'macro', 'ics_events', 'ics_sources'] as const
+export const SYNC_TABLES = ['task_pool', 'scheduled', 'micro_tasks', 'inbox', 'resource', 'log', 'macro', 'ics_events', 'ics_sources', 'projects'] as const
 
 type SyncTable = (typeof SYNC_TABLES)[number]
 
@@ -467,6 +467,8 @@ export class SyncManager {
     } else if (table === 'ics_sources') {
       primaryKey = 'sourceId'
     } else if (table === 'log') {
+      primaryKey = 'id'
+    } else if (table === 'projects') {
       primaryKey = 'id'
     }
 

@@ -386,7 +386,7 @@ async function applySourceCompletionUpdates(params: {
         (task as IcsEventItem)?.startAt;
       const focusTimeMs = (oldEndAt ?? 0) - (oldStartAt ?? 0);
       unifiedTask.deadline = (unifiedTask.nextRun ?? 0) + focusTimeMs;
-      unifiedTask.focusTime = focusTimeMs/60/1000; // convert milliseconds to minutes
+      unifiedTask.focusTime = focusTimeMs / 60 / 1000; // convert milliseconds to minutes
     }
     if (isInterrupt) {
       await applyChange({
@@ -583,25 +583,48 @@ async function updateUnifiedCalendarAfterEnd(
 
   // * 1. 如果有 callback，則更新 callback 的 nextRun 為 now + remindAfter??0
   if (task.callback) {
-    // 先找到 title 為 callback 的 scheduled 任務
-    const callbackTask = await (
-      task.itemType === "scheduled" ? db.scheduled : db.ics_events
-    )
-      .where("title")
-      .equals(task.callback)
-      .first();
-    if (callbackTask) {
-      const remindAfterMins = parseToMinutes(task.remindAfter ?? "0") || 0;
-      const callbackNextRun = now + remindAfterMins * 60 * 1000;
-      await applyChange({
-        table: task.itemType === "scheduled" ? "scheduled" : "ics_events",
-        recordId: task.taskId,
-        op: "update",
-        patch: {
-          nextRun: callbackNextRun,
-        },
-        clientId: DEV_CLIENT_ID,
-      });
+    // 先找到 title 為 callback 的 任務，然而，任務有可能為 task_pool, scheduled, 或 ics_events 和 micro_tasks，所以要分別找
+    for (let tableName of [
+      "task_pool",
+      "scheduled",
+      "ics_events",
+      "micro_tasks",
+    ]) {
+      const callbackTask = await (
+        tableName === "task_pool"
+          ? db.task_pool
+          : tableName === "scheduled"
+            ? db.scheduled
+            : tableName === "ics_events"
+              ? db.ics_events
+              : db.micro_tasks
+      )
+        .where("title")
+        .equals(task.callback)
+        .first();
+      if (callbackTask) {
+        let recordId =
+          tableName === "ics_events"
+            ? (callbackTask as IcsEventItem)["eventId"]
+            : (callbackTask as Exclude<typeof callbackTask, IcsEventItem>)[
+                "taskId"
+              ];
+        const remindAfterMins = parseToMinutes(task.remindAfter ?? "0") || 0;
+        const callbackNextRun = now + remindAfterMins * 60 * 1000;
+        await applyChange({
+          table: tableName,
+          recordId: recordId,
+          op: "update",
+          patch:
+            tableName === "ics_events"
+              ? { startAt: callbackNextRun }
+              : {
+                  nextRun: callbackNextRun, // 目前有 nextRun 的只有 scheduled，而 ics_events 的則是 startAt，其餘兩個目前沒有相應的值
+                },
+          clientId: DEV_CLIENT_ID,
+        });
+        break; // Found the callback task, no need to continue searching
+      }
     }
   }
   // * 2. 如果有 cron 表達式，計算下一次執行時間，若沒有則設為 null
@@ -629,17 +652,17 @@ async function updateUnifiedCalendarAfterEnd(
   }
 
   let patch: Partial<ScheduledItem & IcsEventItem> = {
-        status: "WAITING",
-        lastRun: now,
-        nextRun: nextRun ?? undefined,
-      };
+    status: "WAITING",
+    lastRun: now,
+    nextRun: nextRun ?? undefined,
+  };
   if (task.itemType === "ics_event") {
     const focusTime = task.focusTime;
     patch = {
       status: "WAITING",
       updatedAt: now,
-      startAt: nextRun?? undefined,
-      endAt: nextRun ? nextRun + (focusTime??0) * 60 * 1000 : undefined,
+      startAt: nextRun ?? undefined,
+      endAt: nextRun ? nextRun + (focusTime ?? 0) * 60 * 1000 : undefined,
     };
   }
   await applyChange({

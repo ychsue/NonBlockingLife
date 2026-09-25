@@ -57,6 +57,7 @@ import { getPreviewRuns } from "../../utils/icsParser";
 import { DayView } from "../calendar/DayView";
 import dayjs from "dayjs";
 import { MonthView } from "../calendar/MonthView";
+import { ProjectTreeSelector } from "../ProjectTreeSelector";
 
 const DEV_CLIENT_ID = "dev-client";
 const columnHelper = createColumnHelper<UnifiedCalendarItem>();
@@ -411,6 +412,7 @@ export function ScheduledTable() {
     const patch = {
       title: data.title,
       status: data.status,
+      projectIds: data.projectIds,
       focusTime:
         data.focusTime === "" || data.focusTime == null
           ? undefined
@@ -547,6 +549,27 @@ export function ScheduledTable() {
               <option value="DONE">DONE</option>
               <option value="INTERRUPTED">INTERRUPTED</option>
             </select>
+          );
+        },
+      }),
+      columnHelper.accessor("projectIds", {
+        header: t("table.scheduled.field.projectIds"),
+        cell: (info) => {
+          const projectIds = info.getValue() ?? [];
+          return (
+            <ProjectTreeSelector
+              className="min-w-28"
+              iniSelectedIds={projectIds}
+              onChange={(newSelectedIds) => {
+                updateLocalRow(info.row.original.taskId, {
+                  projectIds: newSelectedIds,
+                });
+                saveUpdate(info.row.original.taskId, {
+                  projectIds: newSelectedIds,
+                });
+              }}
+              allowEdit={true}
+            />
           );
         },
       }),
@@ -1430,6 +1453,11 @@ export function ScheduledTable() {
               { label: "DONE", value: "DONE" },
               { label: "INTERRUPTED", value: "INTERRUPTED" },
             ],
+          },
+          {
+            name: "projectIds",
+            label: t("table.scheduled.field.projectIds"),
+            type: "projectIds" as FieldType,
           },
           // 如果itemType === 'ics_event'，則其實他是 rrule的值
           {

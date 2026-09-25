@@ -54,7 +54,7 @@ export const GlobalDialog = forwardRef<HTMLDialogElement>((props, ref) => {
                 type={input.type}
                 name={input.name}
                 defaultValue={input.defaultValue || ""}
-                className="w-full border border-gray-300 rounded-md p-2"
+                className={`w-full border border-gray-300 rounded-md p-2 ${input.className || ""}`}
               />
             </div>
           ))}

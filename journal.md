@@ -1,5 +1,10 @@
 # Journal
 
+## [2026-09-25] (2.5.1) 加入 projects 的概念
+1. 這個概念是為了讓使用者可以只輸出某些特定的專案的任務為 ics，避免輸出不相關的任務。
+2. [appStore.ts](pwa\src\store\appStore.ts) 由於projects 的概念可以用在許多地方，所以，我讓她在App 一進來時就更新他放到全域的 store 中，這樣其他地方也可以直接使用。
+3. 讓 ics_event 也有 projectIds 的欄位，未來使用者可以根據所屬的專案來篩選事件。
+
 ## [2026-09-21] (2.4.4) 加入日曆顯示
 1. [isCronExprDuringInterval.ts](pwa\src\utils\isCronExprDuringInterval.ts) 同時考慮了 cronExpr 與 RRule 的處理。看看是否有落在想要的區間的事件。
 2. [DayView.tsx](pwa\src\components\calendar\DayView.tsx) 加入了日曆的日期切換與今天按鈕，並且優化了樣式與交互。

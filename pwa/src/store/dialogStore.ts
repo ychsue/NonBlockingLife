@@ -12,8 +12,9 @@ interface DialogAction {
 interface DialogInputField {
   name: string;
   label: string;
-  type: "text" | "number" | "password";
+  type: "text" | "number" | "password"| "color";
   defaultValue?: string;
+  className?: string;
 }
 
 interface DialogSelectField {

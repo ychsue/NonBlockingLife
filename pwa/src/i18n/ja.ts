@@ -372,6 +372,7 @@ export const ja: TranslationMap = {
   'table.scheduled.field.note': 'メモ',
   'table.scheduled.field.url': 'URL',
   'table.scheduled.field.deadline': '期限',
+  'table.scheduled.field.projectIds': 'プロジェクト ID',
     // sort options
     'table.scheduled.sortLabel': '並べ替え',
     'table.scheduled.sort.none': 'デフォルト',

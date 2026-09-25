@@ -68,6 +68,8 @@ export default function App() {
   const debugMode = useAppStore((state) => state.debugMode);
   const pwaVersion = useAppStore((state) => state.pwaVersion);
   const setPwaVersion = useAppStore((state) => state.setPwaVersion);
+  const projects = useAppStore((state) => state.projects);
+  const setProjects = useAppStore((state) => state.setProjects);
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -126,7 +128,7 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: The calendar now has day and month views.",
+        "\n\r**Please note**: In order to export tasks for specific projects as ICS, a project setting feature has been added to the Scheduled page. Please update GAS.\n\rThe calendar now has day and month views.",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -140,7 +142,7 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：現在有日曆與月曆的顯示功能",
+        "\n\r**注意**：為了輸出特定專案的任務為 ics，因此，在Scheduled頁面中，加入設定專案的能力。請更新GAS。\n\r日曆現在有日視圖和月視圖。",
     },
     ja: {
       "useTwaBridge.twaNotAvailable":
@@ -156,7 +158,7 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：現在は日表示と月表示のカレンダー機能があります。",
+        "\n\r**注意**：特定のプロジェクトのタスクを ICS としてエクスポートするために、Scheduled ページにプロジェクト設定機能が追加されました。GAS を更新してください。\n\rカレンダーには日表示と月表示のビューがあります。",
     },
   });
 
@@ -187,6 +189,14 @@ export default function App() {
     earliestClockItem?: AlarmItem2TWA;
     exactItems: AlarmItem2TWA[];
   }>({ earliestClockItem: undefined, exactItems: [] });
+
+  useEffect(() => {
+    db.projects.toArray().then((prjs) => {
+      if (!_.isEqual(projects, prjs)) {
+        setProjects(prjs);
+      }
+    });
+  }, [projects, setProjects]);
 
   useEffect(() => {
     if ( pwaVersion !== import.meta.env.__APP_VERSION__) {

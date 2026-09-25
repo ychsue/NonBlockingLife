@@ -395,6 +395,7 @@ export const zhTW: TranslationMap = {
   'table.scheduled.field.note':         '備註',
   'table.scheduled.field.url':          'URL',
   'table.scheduled.field.deadline':     '截止時間',
+  'table.scheduled.field.projectIds':   '專案 ID',
   // sort options
   'table.scheduled.sortLabel':          '排序',
   'table.scheduled.sort.none':          '預設',

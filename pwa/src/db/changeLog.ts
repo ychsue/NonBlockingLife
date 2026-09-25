@@ -61,6 +61,9 @@ export async function applyChange({
       case "ics_sources":
         data = patch?.sourceId ? patch : { ...patch, sourceId: recordId };
         break;
+      case "projects":
+        data = patch?.id ? patch : { ...patch, id: recordId };
+        break;
       default:
         data = patch?.taskId ? patch : { ...patch, taskId: recordId };
     }

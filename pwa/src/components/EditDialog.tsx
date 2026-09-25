@@ -15,6 +15,7 @@ import {
 import _ from "lodash";
 import { useProductTourContext } from "./tour/ProductTourContext";
 import { getPreviewRuns } from "../utils/icsParser";
+import { ProjectTreeSelector } from "./ProjectTreeSelector";
 
 export type FieldType =
   | "text"
@@ -22,7 +23,8 @@ export type FieldType =
   | "datetime"
   | "select"
   | "cron"
-  | "rrule";
+  | "rrule"
+  | "projectIds";
 
 interface DialogField {
   name: string;
@@ -69,6 +71,8 @@ export function EditDialog<T>({
 
   const { activeStep, isRunning, nextStep } = useProductTourContext();
 
+  const [projectIds, setProjectIds] = useState<string[]>([]);
+
   // 當 item 或 fields 改變時，更新 formData
   useEffect(() => {
     //比較 item 與 lastItem 是否相同，如果不同才更新 formData
@@ -87,6 +91,9 @@ export function EditDialog<T>({
           item[field.name as keyof T] ?? field.value ?? "";
       });
       setFormData(initialData);
+      setProjectIds(
+        Array.isArray(initialData.projectIds) ? initialData.projectIds : [],
+      );
       setError(null);
       setOpenCronPreviewField(null);
     }
@@ -109,6 +116,9 @@ export function EditDialog<T>({
       ...prev,
       [name]: value,
     }));
+    if (name === "projectIds") {
+      setProjectIds(Array.isArray(value) ? value : []);
+    }
   };
 
   const handleSave = async () => {
@@ -420,6 +430,15 @@ export function EditDialog<T>({
                   max={field.max}
                   placeholder={field.placeholder}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              ) : field.type === "projectIds" ? (
+                <ProjectTreeSelector
+                  key={`editdialog-project-tree-selector-${field.name}`}
+                  iniSelectedIds={projectIds}
+                  onChange={(newSelectedIds) =>
+                    handleChange(field.name, newSelectedIds)
+                  }
+                  allowEdit={true}
                 />
               ) : (
                 <textarea

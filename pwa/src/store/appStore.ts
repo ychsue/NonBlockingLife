@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { SheetName } from '../hooks/useUrlAction'
-import { Dashboard, db } from '../db/schema'
+import { Dashboard, db, ProjectItem } from '../db/schema'
 import type { SupportedLocale } from '../i18n'
 import {debounce} from 'lodash'
 
@@ -221,6 +221,9 @@ interface AppState {
 
   pwaVersion: string
   setPwaVersion: (version: string) => void
+
+  projects: ProjectItem[] // Assuming ProjectItem is the type for projects
+  setProjects: (projects: ProjectItem[]) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -329,4 +332,7 @@ export const useAppStore = create<AppState>((set) => ({
     getStorage()?.setItem(PWA_VERSION_KEY, version)
     set({ pwaVersion: version })
   },
+
+  projects: [],
+  setProjects: (projects: ProjectItem[]) => set({ projects }),
 }))
