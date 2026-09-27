@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-09-28] (2.5.3) 修正 SelectionCacheTable 的 onTouchEnd 行為
+- [SelectionCacheTable.tsx](pwa\src\components\tables\SelectionCacheTable.tsx) 修正 onTouchEnd 行為，避免觸控事件阻塞點擊事件。造成 URL 與 Source 無法正確打開。
+
 ## [2026-09-27] (2.5.2) 先只手動產生 ICS 文件
 1. [DayView.tsx](pwa\src\components\calendar\DayView.tsx) 修正 `insideDate` 的處理邏輯(因為nextRun可能還在很早之前的時間)，確保在日視圖中正確顯示事件的時間。
 2. [BaseDialog.tsx](pwa\src\components\tables\BaseDialog.tsx) `<dialog>` 與 React 的概念是以 UIElement 為主，由他主動操作，但是React 則是以狀態來思考，所以，後來乾脆改用 BaseDialog 來管理對話框的顯示與隱藏。

@@ -833,10 +833,10 @@ export function SelectionCacheTable() {
                 <tr
                   key={row.id}
                   onClick={() => handleRowClick(row.original.taskId)}
-                  onTouchEnd={(e) => {
-                    e.preventDefault(); // 避免onClick 被觸發
-                    handleRowClick(row.original.taskId);
-                  }}
+                  // onTouchEnd={(e) => { // 不能這樣，因為會導致整個點擊都被她吃了，因此，無法打開URL 與 Source
+                  //   e.preventDefault(); // 避免onClick 被觸發
+                  //   handleRowClick(row.original.taskId);
+                  // }}
                   role="button"
                   tabIndex={runningTask ? -1 : 0}
                   onKeyDown={(event) => {
