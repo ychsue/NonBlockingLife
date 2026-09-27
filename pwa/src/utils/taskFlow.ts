@@ -652,14 +652,14 @@ async function updateUnifiedCalendarAfterEnd(
   }
 
   let patch: Partial<ScheduledItem & IcsEventItem> = {
-    status: "WAITING",
+    status: nextRun ? "WAITING" : "DONE",
     lastRun: now,
     nextRun: nextRun ?? undefined,
   };
   if (task.itemType === "ics_event") {
     const focusTime = task.focusTime;
     patch = {
-      status: "WAITING",
+      status: nextRun ? "WAITING" : "DONE",
       updatedAt: now,
       startAt: nextRun ?? undefined,
       endAt: nextRun ? nextRun + (focusTime ?? 0) * 60 * 1000 : undefined,

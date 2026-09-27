@@ -4,7 +4,6 @@ import {
   useMemo,
   useState,
   useEffect,
-  useRef,
   useCallback,
   type TouchEvent,
 } from "react";
@@ -35,6 +34,7 @@ import {
 } from "../../utils/taskFlow";
 import { useAppStore } from "../../store/appStore";
 import { TableHelpDialog } from "../TableHelpDialog";
+import { BaseDialog } from "./BaseDialog";
 import selectionCacheHelpMarkdown from "./SelectionCacheHelp.md?raw";
 import { useResponsiveTable } from "../../hooks/useResponsiveTable";
 import { useT } from "../../i18n";
@@ -124,9 +124,6 @@ export function SelectionCacheTable() {
   const [recordDuration, setRecordDuration] = useState("");
   const [endNote, setEndNote] = useState("");
   const [warning, setWarning] = useState("");
-  const startDialogRef = useRef<HTMLDialogElement | null>(null);
-  const endDialogRef = useRef<HTMLDialogElement | null>(null);
-  const recordDialogRef = useRef<HTMLDialogElement | null>(null);
   const [takeTime, setTakeTime] = useState("");
   const [jumpToSourceChecked, setJumpToSourceChecked] = useState(false);
   const [showRecordDialog, setShowRecordDialog] = useState(false);
@@ -189,16 +186,6 @@ export function SelectionCacheTable() {
     }
   }, [lastRemoteSyncTime]);
 
-  useEffect(() => {
-    const dialog = startDialogRef.current;
-    if (!dialog) return;
-    if (showStartDialog && !!!globalDialogConfig) {
-      if (!dialog.open) dialog.showModal();
-    } else if (dialog.open) {
-      dialog.close();
-    }
-  }, [showStartDialog, globalDialogConfig]);
-
   // 當有運行中的任務時，自動顯示 EndDialog（除非是通過 URL action 觸發）
   useEffect(() => {
     if (!isInitialLoaded) return;
@@ -244,39 +231,6 @@ export function SelectionCacheTable() {
   }, [runningTask, updateTakeTime, currentSheet]);
 
   useEffect(() => {
-    const dialog = endDialogRef.current;
-    if (!dialog) {
-      // 如果 ref 還沒值，延遲 50ms 再試一次
-      const timer = setTimeout(() => {
-        const dialogRetry = endDialogRef.current;
-        if (dialogRetry) {
-          handleEndDialogState(dialogRetry);
-        }
-      }, 50);
-      return () => clearTimeout(timer);
-    }
-    handleEndDialogState(dialog);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    showEndDialog,
-    isInterruptMode,
-    endDialogRef.current,
-    showInterruptConfirmDialog,
-    showTaskSearchDialog,
-    globalDialogConfig,
-  ]);
-
-  useEffect(() => {
-    const dialog = recordDialogRef.current;
-    if (!dialog) return;
-    if (showRecordDialog && !!!globalDialogConfig) {
-      if (!dialog.open) dialog.showModal();
-    } else if (dialog.open) {
-      dialog.close();
-    }
-  }, [showRecordDialog, globalDialogConfig]);
-
-  useEffect(() => {
     if (!showStartDialog && !showEndDialog && !showRecordDialog) {
       resetDialogTextInteractionState();
     }
@@ -285,28 +239,6 @@ export function SelectionCacheTable() {
       resetDialogTextInteractionState();
     };
   }, [showStartDialog, showEndDialog, showRecordDialog]);
-
-  const handleEndDialogState = (dialog: HTMLDialogElement) => {
-    // Suppress native endDialog while InterruptConfirmDialog or TaskSearchDialog is on top
-    if (
-      showEndDialog &&
-      !showInterruptConfirmDialog &&
-      !showTaskSearchDialog &&
-      !!!globalDialogConfig
-    ) {
-      if (!dialog.open) {
-        dialog.showModal();
-      }
-    } else if (
-      dialog.open &&
-      (!isInterruptMode ||
-        showInterruptConfirmDialog ||
-        showTaskSearchDialog ||
-        globalDialogConfig)
-    ) {
-      dialog.close();
-    }
-  };
 
   const loadCandidates = useCallback(async () => {
     try {
@@ -415,7 +347,16 @@ export function SelectionCacheTable() {
 
   // 點擊任務行，開啟"開始任務"對話框
   const handleRowClick = (taskId: string) => {
+    DEBUG: {
+      console.log(
+        "[SelectionCacheTable] handleRowClick被觸發, taskId:",
+        taskId,
+        "目前 runningTask:",
+        runningTask,
+      );
+    }
     if (runningTask) {
+      console.warn("[SelectionCacheTable] 點擊被攔截：因為 runningTask 存在");
       setWarning(t("candidates.warnAlreadyRunning"));
       return;
     }
@@ -718,7 +659,7 @@ export function SelectionCacheTable() {
           const emoji: Record<string, string> = {
             Task_Pool: "🎯",
             Scheduled: "🔔",
-            "ICS_Event": "📅",
+            ICS_Event: "📅",
             Micro_Tasks: "⚡",
           };
           return (
@@ -892,6 +833,10 @@ export function SelectionCacheTable() {
                 <tr
                   key={row.id}
                   onClick={() => handleRowClick(row.original.taskId)}
+                  onTouchEnd={(e) => {
+                    e.preventDefault(); // 避免onClick 被觸發
+                    handleRowClick(row.original.taskId);
+                  }}
                   role="button"
                   tabIndex={runningTask ? -1 : 0}
                   onKeyDown={(event) => {
@@ -932,11 +877,14 @@ export function SelectionCacheTable() {
       )}
 
       {/* 結束任務對話框 */}
-      <dialog
-        ref={endDialogRef}
-        className="rounded-lg w-full max-w-md"
-        style={{ padding: 0 }}
-        onCancel={(event) => event.preventDefault()}
+      <BaseDialog
+        isOpen={
+          showEndDialog &&
+          !showInterruptConfirmDialog &&
+          !showTaskSearchDialog &&
+          !!!globalDialogConfig
+        }
+        onClose={() => {}}
       >
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex items-center mb-4">
@@ -1045,13 +993,11 @@ export function SelectionCacheTable() {
             <div className="text-sm text-gray-500">{t("endTask.noTask")}</div>
           )}
         </div>
-      </dialog>
+      </BaseDialog>
 
       {/* 開始任務對話框 */}
-      <dialog
-        ref={startDialogRef}
-        className="rounded-lg w-full max-w-md"
-        style={{ padding: 0 }}
+      <BaseDialog
+        isOpen={showStartDialog && !!!globalDialogConfig}
         onClose={() => setShowStartDialog(false)}
       >
         <div className="bg-white rounded-lg shadow-lg p-6">
@@ -1155,12 +1101,11 @@ export function SelectionCacheTable() {
             </button>
           </div>
         </div>
-      </dialog>
+      </BaseDialog>
 
-      <dialog
-        ref={recordDialogRef}
-        className="rounded-lg w-full max-w-md"
-        style={{ padding: 0 }}
+      <BaseDialog
+        isOpen={showRecordDialog && !!!globalDialogConfig}
+        onClose={() => setShowRecordDialog(false)}
       >
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex items-center mb-4">
@@ -1243,7 +1188,7 @@ export function SelectionCacheTable() {
             </button>
           </div>
         </div>
-      </dialog>
+      </BaseDialog>
 
       <TableHelpDialog
         isOpen={showHelp}

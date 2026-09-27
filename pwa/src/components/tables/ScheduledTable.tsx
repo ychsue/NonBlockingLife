@@ -58,6 +58,7 @@ import { DayView } from "../calendar/DayView";
 import dayjs from "dayjs";
 import { MonthView } from "../calendar/MonthView";
 import { ProjectTreeSelector } from "../ProjectTreeSelector";
+import { IcsExportConfigTable } from "./IcsExportConfigTable";
 
 const DEV_CLIENT_ID = "dev-client";
 const columnHelper = createColumnHelper<UnifiedCalendarItem>();
@@ -152,12 +153,17 @@ export function ScheduledTable() {
 
   const [isIcsSourceManagementDialogOpen, setIcsSourceManagementDialogOpen] =
     useState(false);
+  const [isIcsExportConfigDialogOpen, setIcsExportConfigDialogOpen] = useState(false);
 
   // 用來告知 DayView 知道當前選中的日期
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
   const handleIcsSourceManagementDialogClose = () => {
     setIcsSourceManagementDialogOpen(false);
+  };
+
+  const handleIcsExportConfigDialogClose = () => {
+    setIcsExportConfigDialogOpen(false);
   };
 
   async function updateIcsSourceRows(active: boolean) {
@@ -198,6 +204,7 @@ export function ScheduledTable() {
     alarmSyncTargetsLabel: t("table.scheduled.alarmSyncTargetsLabel"),
     icsSourceManagementLabel: t("table.scheduled.icsSourceManagementLabel"),
     icsSourceManagementBtn: t("table.scheduled.icsSourceManagementBtn"),
+    icsExportConfigBtn: t("table.scheduled.icsExportConfigBtn"),
   };
 
   // 根据 sortMode 更新 sorting 状态
@@ -1198,6 +1205,23 @@ export function ScheduledTable() {
                     >
                       {text.icsSourceManagementBtn}
                     </button>
+                    {/* ICS 匯出設定 */}
+                    <button
+                      type="button"
+                      data-tour="open-ics-export-config-button"
+                      onClick={() => {
+                        setIcsExportConfigDialogOpen(true);
+                        if (
+                          isRunning &&
+                          activeStep?.id === "open-ics-export-config"
+                        ) {
+                          nextStep();
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-blue-600 text-white text-[1rem] rounded hover:bg-blue-700"
+                    >
+                      {text.icsExportConfigBtn}
+                    </button>
                   </SettingsCard>
                 </div>
               </div>
@@ -1374,6 +1398,11 @@ export function ScheduledTable() {
         isOpen={isIcsSourceManagementDialogOpen}
         onClose={handleIcsSourceManagementDialogClose}
         onSynced={handleIcsOnSynced}
+      />
+
+      <IcsExportConfigTable
+        isOpen={isIcsExportConfigDialogOpen}
+        onClose={handleIcsExportConfigDialogClose}
       />
 
       {byDateView && (

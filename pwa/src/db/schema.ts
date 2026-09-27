@@ -130,7 +130,7 @@ export interface IcsExportConfigItem {
 
   // GAS / Supabase 自動發布資訊
   driveFileId?: string; // GAS / Supabase 上的檔案 ID，用於更新舊檔
-  publicUrl?: string; // GAS / Supabase 上的公開存取 URL
+  url?: string; // GAS / Supabase 上的公開存取 URL
   lastGeneratedAt?: number; // 上次生成的時間戳
   updatedAt?: number; // 最後異動的時間戳
 }
@@ -434,7 +434,7 @@ export class AppDB extends Dexie {
         ics_sources: "sourceId, enabled, updatedAt",
         ics_events: "eventId, sourceId, title, uid, startAt, [sourceId+uid]",
         projects: "id, name, parentId, updatedAt",
-        ics_export_configs: "id, timeRangeDaysBefore, timeRangeDaysAfter, exportPrivateNotes, driveFileId, publicUrl, lastGeneratedAt, updatedAt",
+        ics_export_configs: "id, timeRangeDaysBefore, timeRangeDaysAfter, exportPrivateNotes, driveFileId, url, lastGeneratedAt, updatedAt",
         global_settings: "key, value, updatedAt",
       })
       .upgrade(() => {

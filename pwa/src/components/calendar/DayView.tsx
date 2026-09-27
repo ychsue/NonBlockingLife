@@ -1,5 +1,5 @@
 import { UnifiedCalendarItem } from "../../utils/icsAdapter";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { isCronExprDuringInterval } from "../../utils/isCronExprDuringInterval";
 import dayjs from "dayjs";
 import { TableCard, TableCardProps } from "../TableCard";
@@ -32,6 +32,9 @@ export function DayView({
   const t = useT();
   const [selectedDate, setSelectedDate] = useState(dayjs(initialDate));
   const today = dayjs();
+  const [dayItems, setDayItems] = useState<
+    (UnifiedCalendarItem & { insideDate: Date | false })[]
+  >([]);
 
   const tHere = useTWithMaps({
     "zh-TW": {
@@ -57,22 +60,37 @@ export function DayView({
     },
   });
 
-  // 篩選當日項目並依時間排序
-  const dayItems = items
-    .filter((item) => {
-      let isInside = dayjs(item.nextRun).isSame(selectedDate, "day");
-      if (!!!isInside && item.cronExpr) {
+  useEffect(() => {
+    // 篩選當日項目並依時間排序
+    const itemsWithIsInside = items.map((item) => ({
+      ...item,
+      insideDate: false as Date | false,
+    }));
+    const todayItems = itemsWithIsInside.filter((item) => {
+      let insideDate: Date | false = item.nextRun
+        ? dayjs(item.nextRun).isSame(selectedDate, "day")
+          ? new Date(item.nextRun)
+          : false
+        : false;
+      if (!!!insideDate && item.cronExpr) {
         // 若他有 rrule或 cron 表達式，則需要額外判斷是否在當日內
-        isInside = isCronExprDuringInterval(
+        insideDate = isCronExprDuringInterval(
           item.cronExpr,
           new Date(item.nextRun ?? Date.now()),
           selectedDate.startOf("day").toDate(),
           selectedDate.endOf("day").toDate(),
         );
       }
-      return isInside;
-    })
-    .sort((a, b) => (a.nextRun || 0) - (b.nextRun || 0));
+      item.insideDate = insideDate;
+      return insideDate;
+    });
+    const sortedTodayItems = todayItems.sort(
+      (a, b) =>
+        (a.insideDate ? a.insideDate.getTime() : 0) -
+        (b.insideDate ? b.insideDate.getTime() : 0),
+    );
+    setDayItems(sortedTodayItems);
+  }, [items, selectedDate]);
 
   return (
     // 由導覽列與內容區(TableCard 清單)組成，上面導覽列，下面全部給內容區填滿
@@ -173,7 +191,7 @@ export function DayView({
                     <div>
                       {
                         <div className="text-sm font-bold">
-                          {dayjs(item.nextRun).format("HH:mm")}
+                          {dayjs(item.insideDate ? item.insideDate : undefined).format("HH:mm")}
                         </div>
                       }
                       {item.focusTime && <div>{item.focusTime}</div>}

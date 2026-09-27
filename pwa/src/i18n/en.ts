@@ -456,8 +456,9 @@ export const en = {
   "table.scheduled.sort.nextRunDesc": "Latest to be processed",
 
   "table.scheduled.alarmSyncTargetsLabel": "Setting Alarm Targets",
-  "table.scheduled.icsSourceManagementLabel": "Manage ICS Sources",
+  "table.scheduled.icsSourceManagementLabel": "Manage ICS",
   "table.scheduled.icsSourceManagementBtn": "Open ICS Source Management",
+  "table.scheduled.icsExportConfigBtn": "Open ICS Export Config",
 
   // ── Log ──────────────────────────────────────────────────────
   "table.log.confirmClear":

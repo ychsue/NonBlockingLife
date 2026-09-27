@@ -1,5 +1,13 @@
 # Journal
 
+## [2026-09-27] (2.5.2) 先只手動產生 ICS 文件
+1. [DayView.tsx](pwa\src\components\calendar\DayView.tsx) 修正 `insideDate` 的處理邏輯(因為nextRun可能還在很早之前的時間)，確保在日視圖中正確顯示事件的時間。
+2. [BaseDialog.tsx](pwa\src\components\tables\BaseDialog.tsx) `<dialog>` 與 React 的概念是以 UIElement 為主，由他主動操作，但是React 則是以狀態來思考，所以，後來乾脆改用 BaseDialog 來管理對話框的顯示與隱藏。
+3. [IcsExportConfigTable.tsx](pwa\src\components\tables\IcsExportConfigTable.tsx) 這個表格用來管理 ICS 的匯出設定，包括名稱、檔案名稱、是否啟用與描述等欄位。
+4. [EditDialog.tsx](pwa\src\components\EditDialog.tsx) 增加了 checkbox 欄位的支援。
+5. [isCronExprDuringInterval.ts](pwa\src\utils\isCronExprDuringInterval.ts) 改成回傳 `Date | false`，用來判斷事件是否在指定區間內，並取得對應的時間。
+6. [taskFlow.ts](pwa\src\utils\taskFlow.ts) 當 ScheduledItem 如果end之後沒有 nextRun 時，就將它的 status 設為 `DONE`。
+
 ## [2026-09-25] 開始設計 ics_export_configs 的設計
 1. 設計 ics_export_configs 的 schema，包括 id、name、fileName、enabled 與 description 欄位。
 

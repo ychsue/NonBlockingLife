@@ -387,7 +387,7 @@ export function IcsSourceManagementDialog({
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 font-bold text-xl px-2"
           >
-            ×
+            ✕
           </button>
         </div>
 

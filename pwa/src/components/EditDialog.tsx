@@ -24,7 +24,8 @@ export type FieldType =
   | "select"
   | "cron"
   | "rrule"
-  | "projectIds";
+  | "projectIds"
+  | "checkbox";
 
 interface DialogField {
   name: string;
@@ -186,6 +187,8 @@ export function EditDialog<T>({
         return "edit-dialog-reminder-offset-input";
       case "nextRun":
         return "edit-dialog-next-run-input";
+      case "checkbox":
+        return "edit-dialog-checkbox-input";
       default:
         return undefined;
     }
@@ -338,7 +341,7 @@ export function EditDialog<T>({
       onClick={() => onClose(false)}
     >
       <div
-        className="bg-white w-full sm:max-w-md rounded-t-lg sm:rounded-lg p-6 shadow-lg max-h-[90vh] sm:max-h-[80vh] flex flex-col overflow-y-auto overflow-x-hidden pointer-events-auto"
+        className="bg-white w-full sm:max-w-md rounded-t-lg sm:rounded-lg p-2.5 shadow-lg max-h-[90vh] sm:max-h-[80vh] flex flex-col overflow-y-auto overflow-x-hidden pointer-events-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-bold mb-4 shrink-0">{title}</h2>
@@ -351,8 +354,16 @@ export function EditDialog<T>({
 
         <div className="space-y-4 mb-6 flex-1 overflow-y-auto overflow-x-hidden pr-2">
           {fields.map((field) => (
-            <div key={field.name}>
-              <div className="flex items-left flex-direction-row mb-2">
+            <section
+              key={field.name}
+              className={
+                "rounded-xl border border-gray-200 bg-white p-1 shadow-sm" +
+                (["checkbox"].includes(field.type)
+                  ? " flex flex-row flex-wrap justify-between align-baseline"
+                  : "")
+              }
+            >
+              <div className="flex items-left flex-direction-row">
                 <label
                   htmlFor={field.name}
                   className="block text-[1rem] font-medium self-center text-gray-700 mb-1"
@@ -440,6 +451,16 @@ export function EditDialog<T>({
                   }
                   allowEdit={true}
                 />
+              ) : field.type === "checkbox" ? (
+                <input
+                  id={field.name}
+                  type="checkbox"
+                  readOnly={field.readOnly ?? false}
+                  data-tour={dataTourForField(field)}
+                  checked={formData[field.name] ?? false}
+                  onChange={(e) => handleChange(field.name, e.target.checked)}
+                  // className="w-full min-w-0 max-w-full box-border px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               ) : (
                 <textarea
                   id={field.name}
@@ -453,7 +474,7 @@ export function EditDialog<T>({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 />
               )}
-            </div>
+            </section>
           ))}
         </div>
 

@@ -128,7 +128,8 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: In order to export tasks for specific projects as ICS, a project setting feature has been added to the Scheduled page. Please update GAS.\n\rThe calendar now has day and month views.",
+        "\n\r**Please note**: Currently, Scheduled can manually export tasks for the selected projects as ICS files. The next phase will experiment with automating this process in GAS." +
+        "\n\r**Please note 2**: Fixed the calendar time sorting issue and changed the status to DONE after a single schedule execution.",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -142,7 +143,8 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：為了輸出特定專案的任務為 ics，因此，在Scheduled頁面中，加入設定專案的能力。請更新GAS。\n\r日曆現在有日視圖和月視圖。",
+        "\n\r**注意**：現在Scheduled能根據所選的專案，手動輸出對應的任務為 ICS的檔案，下一階段實驗看看能否在GAS中也能自動化處理。" +
+        "\n\r**注意2**：修訂日曆時間排序問題與單次的排程執行完後的狀態改成為 DONE。",
     },
     ja: {
       "useTwaBridge.twaNotAvailable":
@@ -158,7 +160,8 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：特定のプロジェクトのタスクを ICS としてエクスポートするために、Scheduled ページにプロジェクト設定機能が追加されました。GAS を更新してください。\n\rカレンダーには日表示と月表示のビューがあります。",
+        "\n\r**注意**：現在Scheduledは選んだプロジェクトに応じて、対応するタスクを手動でICSファイルとして出力できる。次の段階では、GASでも自動化できるか実験してみる予定。" +
+        "\n\r**注意2**：カレンダーの時間順序の問題を修正し、単発のスケジュール実行後のステータスを DONE に変更しました。",
     },
   });
 
