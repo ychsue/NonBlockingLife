@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-09-29] bug fix 與準備 supabase
+1. 修正 [taskFlow.ts](pwa\src\utils\taskFlow.ts) 中對 callback 任務的 nextRun 更新邏輯，確保status 的正確性。
+
 ## [2026-09-29] (2.5.4) 新增 exportICS.js ，讓使用者可以在GAS上面直接匯出 ICS 文件
 - [exportICS.js](pwa\src\gas\exportICS.js) 新增了用於匯出 ICS 文件的 GAS 腳本，並提供了 `exportICSFiles` 函數來生成 ICS 文件。
 

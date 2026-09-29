@@ -615,12 +615,14 @@ async function updateUnifiedCalendarAfterEnd(
           table: tableName,
           recordId: recordId,
           op: "update",
-          patch:
-            tableName === "ics_events"
+          patch: {
+            status: callbackNextRun < now ? "PENDING" : "WAITING",
+            ...(tableName === "ics_events"
               ? { startAt: callbackNextRun }
               : {
                   nextRun: callbackNextRun, // 目前有 nextRun 的只有 scheduled，而 ics_events 的則是 startAt，其餘兩個目前沒有相應的值
-                },
+                }),
+          },
           clientId: DEV_CLIENT_ID,
         });
         break; // Found the callback task, no need to continue searching
