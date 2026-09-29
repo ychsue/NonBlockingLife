@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-09-29] (2.5.4) 新增 exportICS.js ，讓使用者可以在GAS上面直接匯出 ICS 文件
+- [exportICS.js](pwa\src\gas\exportICS.js) 新增了用於匯出 ICS 文件的 GAS 腳本，並提供了 `exportICSFiles` 函數來生成 ICS 文件。
+
 ## [2026-09-28] (2.5.3) 修正 SelectionCacheTable 的 onTouchEnd 行為
 - [SelectionCacheTable.tsx](pwa\src\components\tables\SelectionCacheTable.tsx) 修正 onTouchEnd 行為，避免觸控事件阻塞點擊事件。造成 URL 與 Source 無法正確打開。
 

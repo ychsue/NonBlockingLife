@@ -66,13 +66,29 @@ export function IcsExportConfigTable({
               )
             : [];
         // 1.2 只要 scheduledItems.projectIds 與 selectedProjectIds 有交集就保留
-        const filteredScheduledItems = scheduledItems.filter((item) =>
-          item.projectIds?.some((id) => selectedProjectIds.includes(id)),
-        );
+        const filteredScheduledItems = scheduledItems
+          .filter((item) =>
+            item.projectIds?.some((id) => selectedProjectIds.includes(id)),
+          ) // 要一個有 nextRun 的排程項目
+          .filter((item) => !!item.nextRun)
+          // 考慮時間範圍 timeRangeDaysBefore與timeRangeDaysAfter
+          .filter((item) => {
+            const now = new Date();
+            const nextRun = new Date(item.nextRun!);
+            const daysBefore = config.timeRangeDaysBefore ?? 30;
+            const daysAfter = config.timeRangeDaysAfter ?? 90;
+            const startRange = new Date(
+              now.getTime() - daysBefore * 24 * 60 * 60 * 1000,
+            );
+            const endRange = new Date(
+              now.getTime() + daysAfter * 24 * 60 * 60 * 1000,
+            );
+            return nextRun >= startRange && nextRun <= endRange;
+          });
         // 2. 根據過濾後的排程項目生成 ICS 文件
         const icsFileContent = generateIcsRawData(
           filteredScheduledItems,
-          config.exportPrivateNotes,
+          config,
         );
         // 3. 可以在這裡進行後續操作，例如下載 ICS 文件或上傳到雲端
         console.log("Exporting ICS file for config:", config);
@@ -147,8 +163,9 @@ export function IcsExportConfigTable({
   });
 
   useEffect(() => {
+    if (!isOpen) return;
     db.ics_export_configs.toArray().then(setExportConfigs);
-  }, []);
+  }, [isOpen]);
 
   if (!isOpen) return null;
   function handleEdit(item: IcsExportConfigItem): void {
@@ -397,8 +414,10 @@ export function IcsExportConfigTable({
 
 function generateIcsRawData(
   filteredScheduledItems: ScheduledItem[],
-  exportNote = false,
+  config: IcsExportConfigItem,
 ) {
+  const exportNote = config.exportPrivateNotes ?? false;
+  const generatedAt = new Date();
   // 1. 只取 title, note, nextRun (就是startAt)
   // 2. 生成 ICS 文件內容的字串
   let calendar = new ICAL.Component(["vcalendar", [], []]);
@@ -409,31 +428,53 @@ function generateIcsRawData(
   let prodid = new ICAL.Property("prodid");
   prodid.setValue("-//YesCirculation-Solutions//NONBLOCKINGLIFE//EN");
   calendar.addProperty(prodid);
+  // 還有 CALSCALE，METHOD與X-WR-CALNAME:
+  let calscale = new ICAL.Property("calscale");
+  calscale.setValue("GREGORIAN");
+  calendar.addProperty(calscale);
+  let method = new ICAL.Property("method");
+  method.setValue("PUBLISH");
+  calendar.addProperty(method);
+  let xWrCalName = new ICAL.Property("x-wr-calname");
+  xWrCalName.setValue(config.name);
+  calendar.addProperty(xWrCalName);
+
   // 2.2 生成每個事件的子組件
   filteredScheduledItems
     .filter((item) => item.nextRun)
-    .forEach(({ title, note, nextRun, focusTime }) => {
+    .forEach(({ taskId, title, note, nextRun, focusTime }) => {
       let event = new ICAL.Component("vevent");
-      let eventProps = new ICAL.Property("summary");
-      eventProps.setValue(title);
-      event.addProperty(eventProps);
+      let summary = new ICAL.Property("summary");
+      summary.setValue(title??"empty");
+      event.addProperty(summary);
+
       if (note && exportNote) {
         let description = new ICAL.Property("description");
         description.setValue(note);
         event.addProperty(description);
       }
+
+      const dtstamp = new ICAL.Property("dtstamp");
+      dtstamp.setValue(ICAL.Time.fromJSDate(generatedAt, true));
+      event.addProperty(dtstamp);
+
       // 2.2.1 設定事件的開始時間
       let start = new ICAL.Property("dtstart");
-      start.setValue(ICAL.Time.fromJSDate(new Date(nextRun!),true));
+      start.setValue(ICAL.Time.fromJSDate(new Date(nextRun!), true));
       event.addProperty(start);
       // 2.2.2 設定事件的結束時間 (假設事件持續 30 分鐘)
       let end = new ICAL.Property("dtend");
-      let endTime = ICAL.Time.fromJSDate(new Date(nextRun!+60*1000*(focusTime??30)), true);
+      let endTime = ICAL.Time.fromJSDate(
+        new Date(nextRun! + 60 * 1000 * (focusTime ?? 30)),
+        true,
+      );
       end.setValue(endTime);
       event.addProperty(end);
       // 2.2.3 加入 UID
       let uid = new ICAL.Property("uid");
-      uid.setValue(`${nextRun!}-${Math.random().toString(36).slice(2, 9)}@yescirculation-solutions.com`);
+      uid.setValue(
+        `${config.id}-${taskId}@yescirculation-solutions.com`,
+      );
       event.addProperty(uid);
 
       calendar.addSubcomponent(event);

@@ -128,8 +128,7 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: Currently, Scheduled can manually export tasks for the selected projects as ICS files. The next phase will experiment with automating this process in GAS." +
-        "\n\r**Please note 2**: Fixed the calendar time sorting issue and changed the status to DONE after a single schedule execution.",
+        "\n\r**Please note**: The ICS export format has been improved. It can also be automated through GAS, but I need to consider how to guide users to paste it into their own GAS projects. The files are available on [GitHub](https://github.com/ychsue/NonBlockingLife/tree/main/pwa/src/gas). The new file is `exportICS.js`.",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -143,8 +142,7 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：現在Scheduled能根據所選的專案，手動輸出對應的任務為 ICS的檔案，下一階段實驗看看能否在GAS中也能自動化處理。" +
-        "\n\r**注意2**：修訂日曆時間排序問題與單次的排程執行完後的狀態改成為 DONE。",
+        "\n\r**注意**：ICS Export 的File輸出部分格式有改進。而透過GAS自動化處理也可以運作，只是，這部分需要思考一下怎麼教使用者，貼到自己的GAS專案中。檔案在 [GitHub](https://github.com/ychsue/NonBlockingLife/tree/main/pwa/src/gas)。新增的檔案為 `exportICS.js`",
     },
     ja: {
       "useTwaBridge.twaNotAvailable":
@@ -160,8 +158,7 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：現在Scheduledは選んだプロジェクトに応じて、対応するタスクを手動でICSファイルとして出力できる。次の段階では、GASでも自動化できるか実験してみる予定。" +
-        "\n\r**注意2**：カレンダーの時間順序の問題を修正し、単発のスケジュール実行後のステータスを DONE に変更しました。",
+        "\n\r**注意**：ICS Export のFile出力部分のフォーマットが改善されました。GASを通じた自動化も可能ですが、ユーザーが自分のGASプロジェクトに貼り付ける方法を案内する必要があります。ファイルは [GitHub](https://github.com/ychsue/NonBlockingLife/tree/main/pwa/src/gas) にあります。 新しいファイルは `exportICS.js` です。",
     },
   });
 

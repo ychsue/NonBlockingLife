@@ -2,6 +2,8 @@
 *secret*
 .clasp.json
 appsscript.json
+# 然而，不忽略 pwa/src/gas/appsscript.json
+!pwa/src/gas/appsscript.json
 local.properties
 
 # Byte-compiled / optimized / DLL files
