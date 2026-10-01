@@ -289,3 +289,23 @@ code {
   font-family: Consolas, Monaco, monospace;
   color: #333;
 }
+
+/* 1. Spinner 核心樣式 */
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3; /* 圓圈的底色（淺灰色） */
+  border-top: 5px solid #3498db; /* 旋轉邊框的顏色（藍色，可換成你的主題色） */
+  border-radius: 50%; /* 變成完美的圓形 */
+  animation: spin 1s linear infinite; /* 套用旋轉動畫：1秒轉一圈、線性等速、無限循環 */
+}
+
+/* 2. 定義旋轉動畫關鍵影格 */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

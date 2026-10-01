@@ -17,6 +17,7 @@ import {
   getStoredSupabaseUrlKey,
   SupabaseSyncManager,
 } from "../../utils/SupabaseSyncManager";
+import { useDialogStore } from "../../store/dialogStore";
 
 type MoreTab = "settings" | "experiment";
 
@@ -401,6 +402,7 @@ function ExperimentPanel() {
   const showGlobalToast = useAppStore((state) => state.showGlobalToast);
   const [showDebug, setShowDebug] = useState(false);
   const [showChangeLog, setShowChangeLog] = useState(false);
+  const setDialogConfig = useDialogStore((state) => state.setDialogConfig);
 
   const handleAlarmTest = async () => {
     const testUrl = "nonblockinglife://show-clock";
@@ -475,13 +477,23 @@ function ExperimentPanel() {
                     clientId: "test",
                   })
                 }
-                className="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+                className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
               >
                 Test Global Settings
               </button>
               <button
                 type="button"
                 onClick={() => {
+                  setDialogConfig({
+                    title: "All Tables To Supabase",
+                    message: "正在傳送所有Tables中...",
+                    type: "spiner",
+                    actions: [],
+                    resolve: (result) => {
+                      console.log("Dialog result:", result);
+                      setDialogConfig(null); // Close the dialog
+                    },
+                  });
                   const manager = new SupabaseSyncManager(
                     getStoredSupabaseUrlKey(),
                   );
@@ -498,9 +510,13 @@ function ExperimentPanel() {
                         "Failed to sync all tables to Supabase:",
                         error,
                       );
+                    })
+                    .finally(() => {
+                      console.log("Finished attempting to sync all tables to Supabase.");
+                      setDialogConfig(null); // Close the dialog after finishing the operation
                     });
                 }}
-                className="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+                className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
               >
                 All Tables To Supabase
               </button>

@@ -13,6 +13,7 @@
 5. [appStore.ts](pwa\src\store\appStore.ts) 增加了對 Supabase 同步選項的支援，將 Supabase 的相關設定存放到全域的 store 中，方便各個模組使用。
 6. [SupabaseSyncManager.ts](pwa\src\utils\SupabaseSyncManager.ts) 新增了 Supabase 同步管理器，用於處理與 Supabase 的資料同步邏輯。而原本的 SyncManager 則改名為 `GASSyncManager`，繼續負責 GAS 的同步邏輯。
    * 他們都繼承 [syncUtils.ts](pwa\src\utils\syncUtils.ts) 中的基礎同步管理器類別 `SyncManagerBase`。
+7. [GlobalDialog.tsx](pwa\src\GlobalDialog.tsx) 增加了 spinner 的能力。修正了在顯示 spinner 類型的對話框時，背景溢出的問題，增加了 `overflow-hidden` 樣式，避免內容超出對話框邊界。
 
 ## [2026-09-29] bug fix 與準備 supabase
 1. 修正 [taskFlow.ts](pwa\src\utils\taskFlow.ts) 中對 callback 任務的 nextRun 更新邏輯，確保status 的正確性。

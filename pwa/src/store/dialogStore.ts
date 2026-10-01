@@ -27,6 +27,7 @@ interface DialogSelectField {
 export interface DialogConfig {
   title: string | JSX.Element;
   message: string | JSX.Element;
+  type?: "info" | "warning" | "error" | "success" | "spiner";
   inputs?: DialogInputField[];
   selects?: DialogSelectField[];
   actions: DialogAction[];
@@ -39,6 +40,7 @@ export interface DialogConfig {
 
 interface DialogStore {
   dialogConfig: DialogConfig | null;
+  setDialogConfig: (dialogConfig: DialogConfig | null) => void;
   openDialog: (
     config: Omit<DialogConfig, "resolve">,
   ) => Promise<{ actionId: string; formData: Record<string, string> }>;
@@ -46,6 +48,7 @@ interface DialogStore {
 
 export const useDialogStore = create<DialogStore>((set) => ({
   dialogConfig: null,
+  setDialogConfig: (dialogConfig: DialogConfig | null) => set({ dialogConfig }),
   openDialog: (config) => {
     return new Promise((resolve) => {
       set({
