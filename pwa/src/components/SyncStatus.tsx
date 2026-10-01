@@ -1,13 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { db } from "../db/index";
-import { SetupWizard } from "./SetupWizard";
+import { SetupGASWizard } from "./SetupGASWizard";
 import { Toast } from "./Toast";
-import {
-  SyncManager,
-  getStoredGasUrl,
-  saveGasUrl,
-  type SyncResult,
-} from "../utils/syncUtils";
+import { type SyncResult } from "../utils/syncUtils";
+import { parse } from "yaml";
 import {
   exportDB,
   importDB,
@@ -15,6 +11,20 @@ import {
   type ImportResult,
 } from "../utils/exportImportUtils";
 import { useT } from "../i18n";
+import {
+  GASSyncManager,
+  getStoredGasUrl,
+  saveGasUrl,
+} from "../utils/GASSyncManager";
+import {
+  getStoredSupabaseUrlKey,
+  getUrlAndKey,
+  saveSupabaseUrlKey,
+  SupabaseSyncManager,
+} from "../utils/SupabaseSyncManager";
+import { parseEnvString } from "../utils/parseEnvString";
+import { useAppStore } from "../store/appStore";
+import { SetupSupabaseWizard } from "./SetupSupabaseWizard";
 
 interface SyncStatusProps {
   syncStatus?: "idle" | "syncing" | "error";
@@ -23,13 +33,21 @@ interface SyncStatusProps {
 export function SyncStatus({
   syncStatus: initialStatus = "idle",
 }: SyncStatusProps) {
-  const [pendingCount, setPendingCount] = useState(0);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "error">(
     initialStatus,
   );
-  const [manager, setManager] = useState<SyncManager | null>(null);
-  const [gasUrl, setGasUrl] = useState(getStoredGasUrl());
-  const [showUrlInput, setShowUrlInput] = useState(!gasUrl);
+  const [manager, setManager] = useState<
+    GASSyncManager | SupabaseSyncManager | null
+  >(null);
+  const syncType = useAppStore((state) => state.syncType);
+  const setSyncType = useAppStore((state) => state.setSyncType);
+  const syncStr = useAppStore((state) => state.syncStr);
+  const setSyncStr = useAppStore((state) => state.setSyncStr);
+  const pendingChangeLogs = useAppStore((state) => state.pendingChangeLogs);
+  const setPendingChangeLogs = useAppStore(
+    (state) => state.setPendingChangeLogs,
+  );
+  const [showUrlInput, setShowUrlInput] = useState(!syncStr);
   const [message, setMessage] = useState("");
   const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
   const [showSetupWizard, setShowSetupWizard] = useState(false);
@@ -41,12 +59,34 @@ export function SyncStatus({
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [showExportConfirm, setShowExportConfirm] = useState(false);
   const importFileRef = useRef<HTMLInputElement>(null);
+
   const t = useT();
 
   // 用於 idle 偵測：記錄最後一次 pendingCount 變化的時間
   const lastPendingChangeRef = useRef<number>(0);
   const syncStatusRef = useRef(syncStatus);
-  const managerRef = useRef<SyncManager | null>(null);
+  const managerRef = useRef<GASSyncManager | SupabaseSyncManager | null>(null);
+
+  useEffect(() => {
+    db.change_log
+      .where("status")
+      .equals("pending")
+      .toArray()
+      .then((logs) => {
+        setPendingChangeLogs(logs);
+      });
+  }, []);
+
+  /**
+   * 初始化同步 URL 字串，根據當前同步類型從本地存儲中獲取對應的 URL 或 Key
+   */
+  useEffect(() => {
+    if (syncType === "gas") {
+      setSyncStr(getStoredGasUrl());
+    } else if (syncType === "supabase") {
+      setSyncStr(getStoredSupabaseUrlKey());
+    }
+  }, [syncType]);
 
   useEffect(() => {
     syncStatusRef.current = syncStatus;
@@ -56,86 +96,101 @@ export function SyncStatus({
     managerRef.current = manager;
   }, [manager]);
 
-  // 初始化：檢查 GAS URL，初始化 SyncManager
+  // 初始化：檢查 GAS 與 Supabase 的 URL & Key，初始化 SyncManager
   useEffect(() => {
-    if (gasUrl) {
-      const mgr = new SyncManager(gasUrl);
+    if (syncStr) {
+      const mgr =
+        syncType === "gas"
+          ? new GASSyncManager(syncStr)
+          : syncType === "supabase"
+            ? new SupabaseSyncManager(syncStr)
+            : null;
       setManager(mgr);
       // 測試連接
-      mgr.testConnection().then((ok) => {
+      mgr?.testConnection().then((ok) => {
         if (!ok) {
-          setMessage("⚠️ 無法連接 GAS");
+          setMessage(`⚠️ 無法連接 ${syncType === "gas" ? "GAS" : "Supabase"}`);
           setSyncStatus("error");
+        } else {
+          setShowUrlInput(false);
         }
       });
+      // 如有必要，save syncStr 到本地存儲
+      if (syncType === "gas") {
+        saveGasUrl(syncStr);
+      } else if (syncType === "supabase") {
+        saveSupabaseUrlKey(syncStr);
+      }
     }
-  }, [gasUrl]);
+  }, [syncStr]);
 
-  // 更新待同步計數，並在 >= 20 且 idle 3 秒後自動同步
+  // 更新待同步計數，並在 >= 20 or >= 2 且 idle 3 秒後自動同步，只用在 GAS
   useEffect(() => {
-    const AUTO_SYNC_THRESHOLD = 20;
-    const IDLE_DELAY_MS = 3000;
+    if (syncType !== "gas") return;
 
-    const updatePendingCount = async () => {
-      const count = await db.change_log
-        .where("status")
-        .equals("pending")
-        .count();
-      setPendingCount((prev) => {
-        if (count !== prev) lastPendingChangeRef.current = Date.now();
-        return count;
-      });
+    syncPendingChangeLogs();
+    const interval = setInterval(syncPendingChangeLogs, 10000); // 每 10 秒檢查一次
+    return () => clearInterval(interval);
+  }, [syncStr]);
 
-      // 自動同步：筆數 >= 20 且距上次變化 >= 3 秒且目前不在 syncing 且已設定 GAS URL
-      if (
-        count >= AUTO_SYNC_THRESHOLD &&
-        Date.now() - lastPendingChangeRef.current >= IDLE_DELAY_MS &&
-        syncStatusRef.current !== "syncing" &&
-        getStoredGasUrl() &&
-        managerRef.current
-      ) {
-        setSyncStatus("syncing");
-        setMessage(`⏳ 待同步已達 ${count} 筆，自動同步中...`);
-        setToastMessage(`⏳ 待同步已達 ${count} 筆，自動同步中...`);
-        managerRef.current.sync().then((result) => {
+  // 當 pendingChangeLog 改變時，自動更新待同步計數
+  useEffect(() => {
+    if (pendingChangeLogs.length === 0) return;
+    syncPendingChangeLogs();
+  }, [pendingChangeLogs]);
+
+  const syncPendingChangeLogs = () => {
+    const AUTO_SYNC_THRESHOLD = syncType === "gas" ? 20 : 3;
+    const IDLE_DELAY_MS = syncType === "gas" ? 3000 : 0;
+    const count = pendingChangeLogs.length;
+    if (count !== 0) lastPendingChangeRef.current = Date.now();
+    // 自動同步：筆數 >= 20 且距上次變化 >= 3 秒且目前不在 syncing 且已設定 GAS URL
+    if (
+      count >= AUTO_SYNC_THRESHOLD &&
+      Date.now() - lastPendingChangeRef.current >= IDLE_DELAY_MS &&
+      syncStatusRef.current !== "syncing" &&
+      syncStr &&
+      managerRef.current
+    ) {
+      setSyncStatus("syncing");
+      setMessage(`⏳ 待同步已達 ${count} 筆，自動同步中...`);
+      setToastMessage(`⏳ 待同步已達 ${count} 筆，自動同步中...`);
+      managerRef.current
+        .sync()
+        .then((result) => {
           if (result.status === "success") {
             setSyncStatus("idle");
             setLastSyncTime(Date.now());
             setMessage(`✅ ${result.message}`);
-            setPendingCount(0);
           } else {
             setSyncStatus("error");
             setMessage(`❌ ${result.message}`);
           }
           setTimeout(() => setMessage(""), 3000);
-        }).catch((err) => {
+        })
+        .catch((err) => {
           setSyncStatus("error");
           setMessage(`❌ 自動同步失敗: ${String(err)}`);
           setTimeout(() => setMessage(""), 3000);
         });
-      }
-    };
+    }
+  };
 
-    updatePendingCount();
-    const interval = setInterval(updatePendingCount, 5000); // 每 5 秒檢查一次
-    return () => clearInterval(interval);
-  }, []);
+  // // 順便在console.log看一下 change_log 的內容，確保它在更新
+  // useEffect(() => {
+  //   const logChangeLog = async () => {
+  //     const allChanges = await db.change_log.toArray();
+  //     console.log("Change Log:", allChanges);
+  //   };
 
-  // 順便在console.log看一下 change_log 的內容，確保它在更新
-  useEffect(() => {
-    const logChangeLog = async () => {
-      const allChanges = await db.change_log.toArray();
-      console.log("Change Log:", allChanges);
-    };
-
-    logChangeLog();
-  }, [showUrlInput]);
+  //   logChangeLog();
+  // }, [showUrlInput]);
 
   // Page Visibility：離開前補送 pending 操作
   useEffect(() => {
     const handleVisibilityChange = async () => {
       if (document.visibilityState !== "hidden") return;
-      if (!getStoredGasUrl()) return;
+      if (!syncStr) return;
       if (syncStatusRef.current === "syncing") return;
       if (!managerRef.current) return;
 
@@ -146,46 +201,68 @@ export function SyncStatus({
       if (count === 0) return;
 
       // 不更新 UI（使用者已離開），靜默送出
-      managerRef.current.sync().catch(() => {/* 離開前盡力而為，失敗不處理 */});
+      managerRef.current.sync().catch(() => {
+        /* 離開前盡力而為，失敗不處理 */
+      });
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () =>
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, []);
+  }, [syncStr]);
 
   // 處理 GAS URL 配置
-  const handleSetGasUrl = async (url: string) => {
-    const normalizedUrl = url
-      .trim()
-      .replace(/^\[\[?/, "")
-      .replace(/\]\]?$/, "");
+  const handleSetGasUrl = useCallback(
+    (url: string) => {
+      const normalizedUrl = url
+        .trim()
+        .replace(/^\[\[?/, "")
+        .replace(/\]\]?$/, "");
 
-    if (!normalizedUrl) {
+      if (!normalizedUrl) {
+        setShowSetupWizard(true);
+        return;
+      }
+
+      // 簡單驗證 URL 格式
+      if (!normalizedUrl.includes("script.google.com")) {
+        setShowSetupWizard(true);
+        return;
+      }
+
+      setSyncStr(normalizedUrl);
+      setShowUrlInput(false);
+      setMessage(
+        syncType === "gas"
+          ? "✅ GAS URL 已保存"
+          : "✅ Supabase URL & Key 已保存",
+      );
+
+      // 2 秒後清除提示
+      setTimeout(() => setMessage(""), 2000);
+    },
+    [syncType],
+  );
+  // 處理 Supabase URL & Key 配置
+  const handleSetSupabaseUrlKey = (urlKeyPair: string) => {
+    try {
+      getUrlAndKey(urlKeyPair); // 如果格式不對會報錯
+      setSyncStr(urlKeyPair);
+      setShowUrlInput(false);
+      setShowSetupWizard(false);
+      setMessage("✅ Supabase URL & Key 已保存");
+    } catch (error) {
+      setMessage(`❌ Supabase URL & Key 配置錯誤: ${String(error)}`);
       setShowSetupWizard(true);
-      return;
+      setSyncStatus("error");
     }
-
-    // 簡單驗證 URL 格式
-    if (!normalizedUrl.includes("script.google.com")) {
-      setShowSetupWizard(true);
-      return;
-    }
-
-    saveGasUrl(normalizedUrl);
-    setGasUrl(normalizedUrl);
-    setShowUrlInput(false);
-    setMessage("✅ GAS URL 已保存");
-
-    // 2 秒後清除提示
-    setTimeout(() => setMessage(""), 2000);
   };
 
-  // 從 GAS 完整還原（清空本地非 Log 資料後重新拉取）
+  // 從 Supabase 或 GAS 完整還原（清空本地非 Log 資料後重新拉取）
   const handleResetAndPull = async () => {
     setShowResetConfirm(false);
     if (!manager) {
-      setMessage("❌ 未配置 GAS URL，無法還原");
+      setMessage("❌ 未配置正確，無法還原");
       setSyncStatus("error");
       return;
     }
@@ -201,7 +278,6 @@ export function SyncStatus({
         setSyncStatus("idle");
         setLastSyncTime(Date.now());
         setMessage(`✅ ${result.message}`);
-        setPendingCount(0);
       } else {
         setSyncStatus("error");
         setMessage(`❌ ${result.message}`);
@@ -216,8 +292,7 @@ export function SyncStatus({
 
   // 處理 SetupWizard 完成
   const handleSetupComplete = async (url: string) => {
-    saveGasUrl(url);
-    setGasUrl(url);
+    setSyncStr(url);
     setShowUrlInput(false);
     setShowSetupWizard(false);
     setMessage("✅ 設置完成，已自動同步");
@@ -227,7 +302,7 @@ export function SyncStatus({
   // 執行同步
   const handleSync = async () => {
     if (!manager) {
-      setMessage("❌ 未配置 GAS URL");
+      setMessage("❌ 未配置正確，無法同步");
       setSyncStatus("error");
       return;
     }
@@ -242,7 +317,6 @@ export function SyncStatus({
         setSyncStatus("idle");
         setLastSyncTime(Date.now());
         setMessage(`✅ ${result.message}`);
-        setPendingCount(0);
       } else {
         setSyncStatus("error");
         setMessage(`❌ ${result.message}`);
@@ -320,35 +394,71 @@ export function SyncStatus({
     error: "⚠️",
   };
 
-  const statusText: Record<string, string> = {
-    idle: pendingCount > 0 ? `Pending ${pendingCount}` : "Synced",
-    syncing: "Syncing...",
-    error: "Sync Error",
-  };
+  const statusText: Record<string, string> = useMemo(() => {
+    return {
+      idle:
+        pendingChangeLogs.length > 0
+          ? `Pending ${pendingChangeLogs.length}`
+          : "Synced",
+      syncing: "Syncing...",
+      error: "Sync Error",
+    };
+  }, [pendingChangeLogs]);
 
   const UrlInputView = () => (
     <div className="flex items-center gap-2 text-sm">
-      <input
-        type="text"
-        placeholder="粘貼 GAS Web App URL..."
-        defaultValue={gasUrl}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            handleSetGasUrl((e.target as HTMLInputElement).value);
-          }
-        }}
-        className="min-w-10 px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500"
-      />
+      {syncType === "supabase" ? (
+        <textarea
+          placeholder="粘貼 Supabase .env"
+          defaultValue={syncStr}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleSetSupabaseUrlKey((e.target as HTMLInputElement).value);
+            }
+          }}
+          className="min-w-15 resize-none px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500"
+        ></textarea>
+      ) : syncType === "gas" ? (
+        <input
+          type="text"
+          placeholder="粘貼 GAS Web App URL..."
+          defaultValue={syncStr}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleSetGasUrl((e.target as HTMLInputElement).value);
+            }
+          }}
+          className="min-w-0 px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500"
+        />
+      ) : null}
       <button
         onClick={(e) => {
           const input = (e.target as HTMLElement)
             .previousElementSibling as HTMLInputElement;
-          handleSetGasUrl(input.value);
+          if (syncType === "supabase") {
+            handleSetSupabaseUrlKey(input.value);
+          } else if (syncType === "gas") {
+            handleSetGasUrl(input.value);
+          } else if (syncType === "none") {
+            // Do nothing for 'none' sync type
+            alert("請改選其他同步方式");
+          }
         }}
         className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
       >
         設置
       </button>
+      <select
+        value={syncType}
+        onChange={(e) =>
+          setSyncType(e.target.value as "gas" | "supabase" | "none")
+        }
+        className="min-w-0 px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:border-blue-500"
+      >
+        <option value="gas">GAS</option>
+        <option value="supabase">Supabase</option>
+        <option value="none">None</option>
+      </select>
     </div>
   );
 
@@ -364,7 +474,7 @@ export function SyncStatus({
       <button
         onClick={handleSync}
         disabled={syncStatus === "syncing"}
-        title={gasUrl ? "同步本地變更到 Google Sheets" : "未配置 GAS URL"}
+        title={syncStr ? "同步本地變更到 Google Sheets" : "未配置 GAS URL"}
         className={`ml-4 px-3 py-1 rounded text-xs font-medium transition-colors ${
           syncStatus === "syncing"
             ? "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -376,7 +486,11 @@ export function SyncStatus({
 
       <button
         onClick={() => setShowUrlInput(true)}
-        title="重新配置 GAS URL"
+        title={
+          syncType === "gas"
+            ? "重新配置 GAS URL"
+            : "重新配置 Supabase URL & Key"
+        }
         className="px-2 py-1 text-xs text-gray-500 hover:text-blue-500 hover:underline"
       >
         ⚙️
@@ -387,7 +501,11 @@ export function SyncStatus({
           setIncludeLogOnReset(false);
           setShowResetConfirm(true);
         }}
-        title="從 Google Sheets 還原所有資料（清空本地後重新拉取）"
+        title={
+          syncType === "gas"
+            ? "從 Google Sheets 還原所有資料（清空本地後重新拉取）"
+            : "從 Supabase 還原所有資料（清空本地後重新拉取）"
+        }
         className="px-2 py-1 text-xs text-gray-500 hover:text-orange-500 hover:underline"
       >
         ☁️
@@ -424,27 +542,34 @@ export function SyncStatus({
         onChange={handleImportFileChange}
       />
 
-        {message && (
-          <span
-            className={`ml-2 text-xs ${
-              message.includes("❌")
-                ? "text-red-500"
-                : message.includes("✅")
-                  ? "text-green-500"
-                  : "text-amber-500"
-            }`}
-          >
-            {message}
-          </span>
-        )}
-      
-      {showSetupWizard && (
-        <SetupWizard
-          isModal={true}
-          onComplete={handleSetupComplete}
-          onClose={() => setShowSetupWizard(false)}
-        />
+      {message && (
+        <span
+          className={`ml-2 text-xs ${
+            message.includes("❌")
+              ? "text-red-500"
+              : message.includes("✅")
+                ? "text-green-500"
+                : "text-amber-500"
+          }`}
+        >
+          {message}
+        </span>
       )}
+
+      {showSetupWizard &&
+        (syncType === "gas" ? (
+          <SetupGASWizard
+            isModal={true}
+            onComplete={handleSetupComplete}
+            onClose={() => setShowSetupWizard(false)}
+          />
+        ) : (
+          <SetupSupabaseWizard
+            isModal={true}
+            onComplete={handleSetupComplete}
+            onClose={() => setShowSetupWizard(false)}
+          />
+        ))}
 
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
@@ -453,7 +578,7 @@ export function SyncStatus({
               ☁️ 從雲端還原資料
             </h3>
             <p className="text-gray-700 text-sm mb-3">
-              本地任務資料將被清除，並從 Google Sheets 重新拉取。
+              本地任務資料將被清除，並從 {syncType === "gas" ? "Google Sheets" : "Supabase"} 重新拉取。
             </p>
             <label className="flex items-start gap-2 mb-3 text-sm text-gray-700 cursor-pointer">
               <input
@@ -469,9 +594,10 @@ export function SyncStatus({
                 </span>
               </span>
             </label>
-            {pendingCount > 0 && (
+            {pendingChangeLogs.length > 0 && (
               <div className="bg-red-50 border border-red-200 rounded p-2 mb-3 text-xs text-red-700">
-                ⚠️ 目前有 <strong>{pendingCount}</strong> 筆尚未同步的變更，還原後將遺失！建議先執行「同步」。
+                ⚠️ 目前有 <strong>{pendingChangeLogs.length}</strong>{" "}
+                筆尚未同步的變更，還原後將遺失！建議先執行「同步」。
               </div>
             )}
             {includeLogOnReset && (
@@ -485,13 +611,15 @@ export function SyncStatus({
                 onClick={() => setShowResetConfirm(false)}
                 className="px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-50"
               >
-                {t('sync.cancel')}
+                {t("sync.cancel")}
               </button>
               <button
                 onClick={handleResetAndPull}
                 className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
               >
-                {includeLogOnReset ? t('sync.confirmRestoreWithLog') : t('sync.confirmRestore')}
+                {includeLogOnReset
+                  ? t("sync.confirmRestoreWithLog")
+                  : t("sync.confirmRestore")}
               </button>
             </div>
           </div>
@@ -502,7 +630,9 @@ export function SyncStatus({
       {showExportConfirm && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-2xl">
-            <h3 className="text-lg font-bold text-blue-700 mb-3">📤 匯出格式</h3>
+            <h3 className="text-lg font-bold text-blue-700 mb-3">
+              📤 匯出格式
+            </h3>
             <p className="text-gray-700 text-sm mb-4">
               請選擇匯出格式：JSON（最穩定）或 Markdown 表格（AI/人類友善）。
             </p>
@@ -536,22 +666,31 @@ export function SyncStatus({
       {showImportConfirm && pendingImportFile && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-2xl">
-            <h3 className="text-lg font-bold text-green-700 mb-3">📥 匯入備份資料</h3>
+            <h3 className="text-lg font-bold text-green-700 mb-3">
+              📥 匯入備份資料
+            </h3>
             <p className="text-gray-700 text-sm mb-2">
-              即將匯入：<span className="font-mono text-xs bg-gray-100 px-1 rounded">{pendingImportFile.name}</span>
+              即將匯入：
+              <span className="font-mono text-xs bg-gray-100 px-1 rounded">
+                {pendingImportFile.name}
+              </span>
             </p>
             <p className="text-gray-600 text-sm mb-4">
               相同 ID 的記錄將被覆蓋，其餘本地資料不受影響。
             </p>
-            {pendingCount > 0 && (
+            {pendingChangeLogs.length > 0 && (
               <div className="bg-amber-50 border border-amber-200 rounded p-2 mb-3 text-xs text-amber-700">
-                ⚠️ 目前有 <strong>{pendingCount}</strong> 筆尚未同步的變更，匯入後不影響這些待同步項目。
+                ⚠️ 目前有 <strong>{pendingChangeLogs.length}</strong>{" "}
+                筆尚未同步的變更，匯入後不影響這些待同步項目。
               </div>
             )}
             <p className="text-gray-400 text-xs mb-4">此操作不可復原。</p>
             <div className="flex gap-2 justify-end">
               <button
-                onClick={() => { setShowImportConfirm(false); setPendingImportFile(null); }}
+                onClick={() => {
+                  setShowImportConfirm(false);
+                  setPendingImportFile(null);
+                }}
                 className="px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-50"
               >
                 取消
@@ -571,10 +710,16 @@ export function SyncStatus({
       {importResult && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-2xl">
-            <h3 className={`text-lg font-bold mb-3 ${
-              importResult.status === "success" ? "text-green-700" : "text-red-600"
-            }`}>
-              {importResult.status === "success" ? "✅ 匯入完成" : "❌ 匯入失敗"}
+            <h3
+              className={`text-lg font-bold mb-3 ${
+                importResult.status === "success"
+                  ? "text-green-700"
+                  : "text-red-600"
+              }`}
+            >
+              {importResult.status === "success"
+                ? "✅ 匯入完成"
+                : "❌ 匯入失敗"}
             </h3>
             <p className="text-gray-700 text-sm mb-3">{importResult.message}</p>
             {importResult.counts && (

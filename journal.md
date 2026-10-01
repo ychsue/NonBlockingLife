@@ -1,5 +1,19 @@
 # Journal
 
+## [2026-10-01] (3.1.1) 加入 supabase 同步選項
+1. [icsParser.ts](pwa\src\utils\icsParser.ts) 增加了 `after` 參數給 `getPreviewRuns` 函數，用於過濾指定日期之後的事件。
+2. [SyncStatus.tsx](pwa\src\components\SyncStatus.tsx) 增加了對 Supabase 同步選項的支援，包括設定 GAS URL 或 Supabase URL & Key 的界面與邏輯。
+   * 讓使用者可以選 gas, supabase 還有 none (不使用任何同步方式) 這三種。
+3. 要在 Supabase 上面執行的：
+   * [initialize.sql](pwa\src\db\supabase\initialize.sql) 初始化 Supabase 的資料表結構。
+   * [icsExportCode.ts](pwa\src\db\supabase\icsExportCode.ts) Supabase 端的 ICS 匯出設定表的 Edge Function。得配合 Supabase 的 Storage 的設定，取名為 `ics-exports`。
+   * [cronTask.sql](pwa\src\db\supabase\cronTask.sql) 新增了 Supabase 端的定時任務表結構，用於管理與同步 GAS 的定時任務。
+   * [clearAllTablesData.sql](pwa\src\db\supabase\clearAllTablesData.sql) 用於清空 Supabase 上所有相關資料表的資料。
+4. [changeLog.ts](pwa\src\db\changeLog.ts) 將 pendingChangeLogs 變成全域狀態，這樣，只要 changeLogs 有更動，就會自動更新全域的 pendingChangeLogs，確保各個模組都能即時獲取最新的變更日誌。
+5. [appStore.ts](pwa\src\store\appStore.ts) 增加了對 Supabase 同步選項的支援，將 Supabase 的相關設定存放到全域的 store 中，方便各個模組使用。
+6. [SupabaseSyncManager.ts](pwa\src\utils\SupabaseSyncManager.ts) 新增了 Supabase 同步管理器，用於處理與 Supabase 的資料同步邏輯。而原本的 SyncManager 則改名為 `GASSyncManager`，繼續負責 GAS 的同步邏輯。
+   * 他們都繼承 [syncUtils.ts](pwa\src\utils\syncUtils.ts) 中的基礎同步管理器類別 `SyncManagerBase`。
+
 ## [2026-09-29] bug fix 與準備 supabase
 1. 修正 [taskFlow.ts](pwa\src\utils\taskFlow.ts) 中對 callback 任務的 nextRun 更新邏輯，確保status 的正確性。
 

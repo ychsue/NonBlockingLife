@@ -39,7 +39,7 @@ body {
   overscroll-behavior-x: contain;
   /* 強制切除 X 軸任何超出邊界的元件 */
   /* max-width: 100%; */
-  overflow-x: clip; 
+  overflow-x: clip;
   font-size: 16px;
 }
 
@@ -77,7 +77,8 @@ dialog,
   -webkit-tap-highlight-color: transparent;
 }
 
-input[readOnly], textarea[readOnly] {
+input[readOnly],
+textarea[readOnly] {
   background-color: #f1f5f9;
   cursor: not-allowed;
 }
@@ -179,7 +180,7 @@ h1 {
   color: white;
   padding: 0.8rem;
   font-size: 0.8rem;
-  border-radius: .25rem;
+  border-radius: 0.25rem;
   border: none;
   cursor: pointer;
 }
@@ -245,10 +246,14 @@ h1 {
 }
 
 /* 懸停時更改下拉菜單鏈接的顏色 */
-.scheduled-dropdown-content a:hover {background-color: #ddd;}
+.scheduled-dropdown-content a:hover {
+  background-color: #ddd;
+}
 
 /* 顯示下拉選單（當用戶點選下拉按鈕時，使用 JS 為 .dropdown-content 容器新增此類） */
-.scheduled-dropdown-content.show {display:block;}
+.scheduled-dropdown-content.show {
+  display: block;
+}
 
 @media (max-width: 720px) {
   .scheduled-dropdown-content {
@@ -271,4 +276,16 @@ h1 {
 input[type="checkbox"] {
   min-width: 1rem;
   min-height: 1rem;
+}
+
+pre {
+  background-color: #f4f4f4;
+  white-space: pre-wrap; /* 保持換行和空格 */
+  padding: 10px;
+  border-radius: 5px;
+  overflow-x: auto; /* 避免長行溢出 */
+}
+code {
+  font-family: Consolas, Monaco, monospace;
+  color: #333;
 }

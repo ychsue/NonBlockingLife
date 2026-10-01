@@ -72,6 +72,7 @@ export const ja: TranslationMap = {
   'tableCard.confirmDelete': '削除を確認',
 
   'setup.invalidGasUrl': '有効な GAS Web App URL を入力してください',
+  'setup.invalidSupabaseUrlKey': '有効な Supabase URL と .env からコピーした API キーを入力してください',
   'setup.connectFailed': '接続に失敗しました。URL が正しいか確認してください',
   'setup.codeCopied': 'Apps Script のコードをクリップボードにコピーしました。Google Sheets の Apps Script エディタで貼り付けてください。',
 

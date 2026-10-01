@@ -153,7 +153,8 @@ export function ScheduledTable() {
 
   const [isIcsSourceManagementDialogOpen, setIcsSourceManagementDialogOpen] =
     useState(false);
-  const [isIcsExportConfigDialogOpen, setIcsExportConfigDialogOpen] = useState(false);
+  const [isIcsExportConfigDialogOpen, setIcsExportConfigDialogOpen] =
+    useState(false);
 
   // 用來告知 DayView 知道當前選中的日期
   const [selectedDate, setSelectedDate] = useState(dayjs());
@@ -468,8 +469,8 @@ export function ScheduledTable() {
       if (!nextRun) {
         return;
       }
-      runs = getPreviewRuns(cronExpr, new Date(nextRun)).map((date) =>
-        date.getTime(),
+      runs = getPreviewRuns(cronExpr, new Date(nextRun), 10, new Date()).map(
+        (date) => date.getTime(),
       );
     }
 

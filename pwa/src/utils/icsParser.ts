@@ -166,6 +166,7 @@ export function getPreviewRuns(
   rruleValue: string,
   prevNextRun: Date,
   times = 10,
+  after?: Date,
 ): Date[] {
   const dates: Date[] = [];
   try {
@@ -184,6 +185,7 @@ export function getPreviewRuns(
     while (true) {
       const next = expand.next();
       if (!next) break;
+      if (after && next.toJSDate() <= after) continue; // Skip dates before or equal to the 'after' date
       dates.push(next.toJSDate());
       if (dates.length >= times) break;
     }

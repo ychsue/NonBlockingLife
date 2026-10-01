@@ -285,7 +285,12 @@ export function EditDialog<T>({
     const prevNextRun = String(formData["nextRun"] ?? "");
     const previewRuns =
       openCronPreviewField === field.name
-        ? getPreviewRuns(rruleValue, new Date(Number.parseInt(prevNextRun)))
+        ? getPreviewRuns(
+            rruleValue,
+            new Date(Number.parseInt(prevNextRun)),
+            10,
+            new Date(),
+          )
         : [];
     return (
       <div>

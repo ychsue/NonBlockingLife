@@ -12,11 +12,12 @@ interface SetupWizardProps {
   onClose?: () => void;
 }
 
-export function SetupWizard({ isModal = false, onComplete, onClose }: SetupWizardProps) {
+export function SetupGASWizard({ isModal = false, onComplete, onClose }: SetupWizardProps) {
   const t = useT();
   const locale = useAppStore((state) => state.locale);
   const [step, setStep] = useState(1);
   const [gasUrl, setGasUrl] = useState('');
+  const setSyncType = useAppStore((state) => state.setSyncType);
 
   const syncTutorialVideo =
     locale === 'zh-TW'
@@ -84,6 +85,12 @@ export function SetupWizard({ isModal = false, onComplete, onClose }: SetupWizar
           <div>
             <h2 className="text-2xl font-bold mb-2">🚀 首次同步設置</h2>
             <p className="text-gray-600">4 步完成設置，您的數據將存儲在您自己的 Google Drive</p>
+            <button
+              onClick={() => setSyncType("supabase")}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+            >
+              建議改使用 Supabase 同步
+            </button>
           </div>
 
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-2">
@@ -215,3 +222,4 @@ export function SetupWizard({ isModal = false, onComplete, onClose }: SetupWizar
 
   return content;
 }
+

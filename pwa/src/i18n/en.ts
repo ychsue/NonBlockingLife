@@ -82,6 +82,7 @@ export const en = {
 
   // ── SetupWizard alerts ───────────────────────────────────────
   "setup.invalidGasUrl": "Please enter a valid GAS Web App URL",
+  "setup.invalidSupabaseUrlKey": "Please enter a valid Supabase URL and API key copied from the .env",
   "setup.connectFailed":
     "Connection failed, please check whether the URL is correct",
   "setup.codeCopied":

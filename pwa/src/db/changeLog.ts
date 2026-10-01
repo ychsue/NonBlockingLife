@@ -1,6 +1,7 @@
 import { mapUnifiedPatchToIcsEventPatch } from "../utils/icsAdapter.js";
 import { db } from "./schema.js";
 import type { ChangeLogStatus } from "./schema.js";
+import { useAppStore } from "../store/appStore";
 
 export const CHANGE_LOG_STATUS: Record<string, ChangeLogStatus> = {
   pending: "pending",
@@ -51,6 +52,7 @@ export async function applyChange({
 }: ApplyChangeParams): Promise<string> {
   const now = Date.now();
   const id = buildChangeLogId(now, table, recordId);
+  const setPendingChangeLogs = useAppStore.getState().setPendingChangeLogs;
 
   if (op === "add") {
     let data: Record<string, unknown>; //將 patch 變成 data 給 add 用
@@ -86,7 +88,7 @@ export async function applyChange({
 
     const normalizedData =
       op === "add" && table === "log" && !(data as Record<string, unknown>).id
-        ? { ...data, id: id }
+        ? { ...data, id: recordId }
         : data;
     await db.table(table).add({ ...normalizedData, updatedAt: now });
   } else if (op === "update") {
@@ -128,11 +130,15 @@ export async function applyChange({
     }
   } else if (op === "update") {
     // If updating, merge with previous update patch
-    const previousUpdates = existingChanges.filter((c) => c.op === "update");
+    const previousUpdates = existingChanges.filter((c) => c.op === "update" || c.op === "add"); // 應該只有一個才對。
+    const isAdd = previousUpdates.some((c) => c.op === "add");
     if (previousUpdates.length > 0) {
       const lastUpdate = previousUpdates[previousUpdates.length - 1];
       // Merge patches: old patch + new patch
       const mergedPatch = { ...lastUpdate.patch, ...patch };
+      if (isAdd) {
+        op = "add"; // If the previous operation was 'add', the merged operation should also be 'add'
+      }
       // Delete old update entry
       await db.change_log.delete(lastUpdate.id);
       // Update patch to merged version
@@ -154,6 +160,12 @@ export async function applyChange({
     syncedAt: null,
     option,
   });
+
+  const pendingChangeLogs = await db.change_log
+    .where("status")
+    .equals(CHANGE_LOG_STATUS.pending)
+    .toArray();
+  setPendingChangeLogs(pendingChangeLogs);
 
   return id;
 }

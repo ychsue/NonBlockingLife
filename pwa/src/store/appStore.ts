@@ -1,253 +1,300 @@
-import { create } from 'zustand'
-import type { SheetName } from '../hooks/useUrlAction'
-import { Dashboard, db, ProjectItem } from '../db/schema'
-import type { SupportedLocale } from '../i18n'
-import {debounce} from 'lodash'
+import { create } from "zustand";
+import type { SheetName } from "../hooks/useUrlAction";
+import { ChangeLogEntry, Dashboard, db, ProjectItem } from "../db/schema";
+import type { SupportedLocale } from "../i18n";
+import { debounce } from "lodash";
 
 function getInitialLocale(): SupportedLocale {
-  const storage = typeof globalThis !== 'undefined' && 'localStorage' in globalThis
-    ? globalThis.localStorage as Storage | null
-    : null
+  const storage =
+    typeof globalThis !== "undefined" && "localStorage" in globalThis
+      ? (globalThis.localStorage as Storage | null)
+      : null;
 
-  const stored = storage?.getItem('nbl_locale')
-  if (stored === 'en' || stored === 'zh-TW' || stored === 'ja') return stored
+  const stored = storage?.getItem("nbl_locale");
+  if (stored === "en" || stored === "zh-TW" || stored === "ja") return stored;
 
-  const browserLanguage = typeof navigator !== 'undefined' ? navigator.language : undefined
-  if (browserLanguage?.toLowerCase().startsWith('zh')) return 'zh-TW'
-  if (browserLanguage?.toLowerCase().startsWith('ja')) return 'ja'
-  return 'en'
+  const browserLanguage =
+    typeof navigator !== "undefined" ? navigator.language : undefined;
+  if (browserLanguage?.toLowerCase().startsWith("zh")) return "zh-TW";
+  if (browserLanguage?.toLowerCase().startsWith("ja")) return "ja";
+  return "en";
 }
 
-export const LAST_REMOTE_SYNC_TIME_KEY = 'last-sync-timestamp';
+export const LAST_REMOTE_SYNC_TIME_KEY = "last-sync-timestamp";
 
-export type AndroidTimerLaunchMode = 'none' | 'show_clock' | 'set_timer'
+export type AndroidTimerLaunchMode = "none" | "show_clock" | "set_timer";
 
-export const PWA_VERSION_KEY = 'nbl_pwa_version'
+export const PWA_VERSION_KEY = "nbl_pwa_version";
 // Bit flags for which system alarm targets db.alarm_queue entries should be synced to.
-export const ALARM_SYNC_TARGET_NONE = 0
-export const ALARM_SYNC_TARGET_CLOCK = 1
-export const ALARM_SYNC_TARGET_EXACT = 2
-export const ALARM_SYNC_TARGET_BOTH = ALARM_SYNC_TARGET_CLOCK | ALARM_SYNC_TARGET_EXACT
+export const ALARM_SYNC_TARGET_NONE = 0;
+export const ALARM_SYNC_TARGET_CLOCK = 1;
+export const ALARM_SYNC_TARGET_EXACT = 2;
+export const ALARM_SYNC_TARGET_BOTH =
+  ALARM_SYNC_TARGET_CLOCK | ALARM_SYNC_TARGET_EXACT;
 
-type AppSheet = SheetName | 'selection_cache' | 'log' | 'guide' | 'macro' | 'debug'
-export type StartupPreference = 'guide' | 'selection_cache' | 'last_visited'
+type AppSheet =
+  | SheetName
+  | "selection_cache"
+  | "log"
+  | "guide"
+  | "macro"
+  | "debug";
+export type StartupPreference = "guide" | "selection_cache" | "last_visited";
 
-const STARTUP_PREFERENCE_KEY = 'nbl_startup_preference'
-const LAST_VISITED_SHEET_KEY = 'nbl_last_visited_sheet'
-export const DEBUG_MODE_KEY = 'nbl_debug_mode'
-const ENABLE_EXPERIMENTAL_FEATURES_KEY = 'nbl_enable_experimental_features'
-const ANDROID_TIMER_LAUNCH_MODE_KEY = 'nbl_android_timer_launch_mode'
-const ALARM_SYNC_TARGETS_KEY = 'nbl_alarm_sync_targets'
+const SYNC_TYPE_KEY = "nbl_sync_type";
+const STARTUP_PREFERENCE_KEY = "nbl_startup_preference";
+const LAST_VISITED_SHEET_KEY = "nbl_last_visited_sheet";
+export const DEBUG_MODE_KEY = "nbl_debug_mode";
+const ENABLE_EXPERIMENTAL_FEATURES_KEY = "nbl_enable_experimental_features";
+const ANDROID_TIMER_LAUNCH_MODE_KEY = "nbl_android_timer_launch_mode";
+const ALARM_SYNC_TARGETS_KEY = "nbl_alarm_sync_targets";
 
-const FONT_SIZE_SCALE_KEY = 'nbl_font_size_scale';
+const FONT_SIZE_SCALE_KEY = "nbl_font_size_scale";
 
 function getStorage(): Storage | null {
-  if (typeof window !== 'undefined' && window.localStorage) {
-    return window.localStorage
+  if (typeof window !== "undefined" && window.localStorage) {
+    return window.localStorage;
   }
 
-  if (typeof globalThis !== 'undefined' && 'localStorage' in globalThis) {
-    return globalThis.localStorage as Storage | null
+  if (typeof globalThis !== "undefined" && "localStorage" in globalThis) {
+    return globalThis.localStorage as Storage | null;
   }
 
-  return null
+  return null;
 }
 
 function isAppSheet(value: string | null): value is AppSheet {
-  return value === 'inbox'
-    || value === 'scheduled'
-    || value === 'task_pool'
-    || value === 'micro_tasks'
-    || value === 'resource'
-    || value === 'selection_cache'
-    || value === 'log'
-    || value === 'guide'
-    || value === 'macro'
-    || value === 'debug'
+  return (
+    value === "inbox" ||
+    value === "scheduled" ||
+    value === "task_pool" ||
+    value === "micro_tasks" ||
+    value === "resource" ||
+    value === "selection_cache" ||
+    value === "log" ||
+    value === "guide" ||
+    value === "macro" ||
+    value === "debug"
+  );
 }
 
 function getInitialDebugMode(): boolean {
-  return getStorage()?.getItem(DEBUG_MODE_KEY) === '1'
+  return getStorage()?.getItem(DEBUG_MODE_KEY) === "1";
 }
 
 function getInitialExperimentalFeaturesEnabled(): boolean {
-  return getStorage()?.getItem(ENABLE_EXPERIMENTAL_FEATURES_KEY) === '1'
+  return getStorage()?.getItem(ENABLE_EXPERIMENTAL_FEATURES_KEY) === "1";
 }
 
 function getInitLastRemoteSyncTime(): number | null {
-  const stored = getStorage()?.getItem(LAST_REMOTE_SYNC_TIME_KEY)
+  const stored = getStorage()?.getItem(LAST_REMOTE_SYNC_TIME_KEY);
   if (stored !== null) {
-    const timestamp = Number(stored)
+    const timestamp = Number(stored);
     if (!isNaN(timestamp)) {
-      return timestamp
+      return timestamp;
     }
   }
-  return null
+  return null;
 }
 
 function getInitialAndroidTimerLaunchMode(): AndroidTimerLaunchMode {
-  const stored = getStorage()?.getItem(ANDROID_TIMER_LAUNCH_MODE_KEY)
-  if (stored === 'none' || stored === 'show_clock' || stored === 'set_timer') {
-    return stored
+  const stored = getStorage()?.getItem(ANDROID_TIMER_LAUNCH_MODE_KEY);
+  if (stored === "none" || stored === "show_clock" || stored === "set_timer") {
+    return stored;
   }
-  return 'show_clock'
+  return "show_clock";
 }
 
 function getInitialAlarmSyncTargets(): number {
-  const stored = Number(getStorage()?.getItem(ALARM_SYNC_TARGETS_KEY))
-  if (Number.isInteger(stored) && stored >= ALARM_SYNC_TARGET_NONE && stored <= ALARM_SYNC_TARGET_BOTH) {
-    return stored
+  const stored = Number(getStorage()?.getItem(ALARM_SYNC_TARGETS_KEY));
+  if (
+    Number.isInteger(stored) &&
+    stored >= ALARM_SYNC_TARGET_NONE &&
+    stored <= ALARM_SYNC_TARGET_BOTH
+  ) {
+    return stored;
   }
   return ALARM_SYNC_TARGET_NONE;
 }
 
 function getInitialStartupPreference(): StartupPreference {
-  const stored = getStorage()?.getItem(STARTUP_PREFERENCE_KEY)
-  if (stored === 'guide' || stored === 'selection_cache' || stored === 'last_visited') {
-    return stored
+  const stored = getStorage()?.getItem(STARTUP_PREFERENCE_KEY);
+  if (
+    stored === "guide" ||
+    stored === "selection_cache" ||
+    stored === "last_visited"
+  ) {
+    return stored;
   }
-  return 'guide'
+  return "guide";
 }
 
 function getLastVisitedSheet(): AppSheet | null {
-  const stored = getStorage()?.getItem(LAST_VISITED_SHEET_KEY) ?? null
-  if (isAppSheet(stored)) return stored
-  return null
+  const stored = getStorage()?.getItem(LAST_VISITED_SHEET_KEY) ?? null;
+  if (isAppSheet(stored)) return stored;
+  return null;
 }
 
 function getInitialCurrentSheet(): AppSheet {
-  const startupPreference = getInitialStartupPreference()
+  const startupPreference = getInitialStartupPreference();
 
-  if (startupPreference === 'selection_cache') {
-    return 'selection_cache'
+  if (startupPreference === "selection_cache") {
+    return "selection_cache";
   }
 
-  if (startupPreference === 'last_visited') {
-    return getLastVisitedSheet() ?? 'guide'
+  if (startupPreference === "last_visited") {
+    return getLastVisitedSheet() ?? "guide";
   }
 
-  return 'guide'
+  return "guide";
 }
 
 function getInitialPwaVersion(): string {
-  return getStorage()?.getItem(PWA_VERSION_KEY) ?? ''
+  return getStorage()?.getItem(PWA_VERSION_KEY) ?? "";
+}
+
+function getInitialSyncType(): "supabase" | "gas" | "none" {
+  const stored = getStorage()?.getItem(SYNC_TYPE_KEY);
+  if (!!!stored) return "supabase";
+  if (["supabase", "gas", "none"].includes(stored)) {
+    return stored as "supabase" | "gas" | "none";
+  } else {
+    console.warn(
+      `Invalid sync type stored: ${stored}, defaulting to "supabase"`,
+    );
+    return "supabase";
+  }
 }
 
 export interface GlobalToast {
-  id: number
-  message: string
-  duration?: number
-  actionLabel?: string
-  onAction?: () => void
+  id: number;
+  message: string;
+  duration?: number;
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
 interface AppState {
   // 当前选中的页签
-  currentSheet: AppSheet
-  setCurrentSheet: (sheet: AppSheet, byAction?: 'share-to-inbox' | null) => void
-  currentSheetByAction: 'share-to-inbox' | null
+  currentSheet: AppSheet;
+  setCurrentSheet: (
+    sheet: AppSheet,
+    byAction?: "share-to-inbox" | null,
+  ) => void;
+  currentSheetByAction: "share-to-inbox" | null;
 
   // 上次远程同步时间
-  lastRemoteSyncTime: number | null
-  setLastRemoteSyncTime: (timestamp: number | null) => void
+  lastRemoteSyncTime: number | null;
+  setLastRemoteSyncTime: (timestamp: number | null) => void;
 
   // 啟動偏好
-  startupPreference: StartupPreference
-  setStartupPreference: (preference: StartupPreference) => void
+  startupPreference: StartupPreference;
+  setStartupPreference: (preference: StartupPreference) => void;
 
   // Selection Cache 对话框状态
-  showStartDialog: boolean
-  setShowStartDialog: (show: boolean) => void
+  showStartDialog: boolean;
+  setShowStartDialog: (show: boolean) => void;
 
   // 当前编辑的候选任务
-  editingCandidate: any | null
-  setEditingCandidate: (item: any | null) => void
+  editingCandidate: any | null;
+  setEditingCandidate: (item: any | null) => void;
 
   // 跨表移動後的待編輯目標
-  pendingEditIntent: { sheet: SheetName; taskId: string } | null
-  setPendingEditIntent: (intent: { sheet: SheetName; taskId: string } | null) => void
-  clearPendingEditIntent: () => void
+  pendingEditIntent: { sheet: SheetName; taskId: string } | null;
+  setPendingEditIntent: (
+    intent: { sheet: SheetName; taskId: string } | null,
+  ) => void;
+  clearPendingEditIntent: () => void;
 
   // 全域 Toast（可附帶 action）
-  globalToast: GlobalToast | null
-  showGlobalToast: (toast: Omit<GlobalToast, 'id'>) => number
-  clearGlobalToast: () => void
+  globalToast: GlobalToast | null;
+  showGlobalToast: (toast: Omit<GlobalToast, "id">) => number;
+  clearGlobalToast: () => void;
 
   // 中断模式状态
-  isInterruptMode: boolean
-  setIsInterruptMode: (isMode: boolean) => void
+  isInterruptMode: boolean;
+  setIsInterruptMode: (isMode: boolean) => void;
 
   // 显示 End Dialog（强制停止当前任务）
-  showEndDialog: boolean
-  setShowEndDialog: (show: boolean) => void
+  showEndDialog: boolean;
+  setShowEndDialog: (show: boolean) => void;
 
   // 当前正在运行的任务
-  runningTask: Dashboard | null
-  setRunningTask: (task: Dashboard | null) => void
-  loadRunningTask: () => Promise<void>
+  runningTask: Dashboard | null;
+  setRunningTask: (task: Dashboard | null) => void;
+  loadRunningTask: () => Promise<void>;
 
   // Task Search dialog (shared with useUrlAction)
-  showTaskSearchDialog: boolean
-  setShowTaskSearchDialog: (show: boolean) => void
-  taskSearchInitQuery: string
-  setTaskSearchInitQuery: (query: string) => void
+  showTaskSearchDialog: boolean;
+  setShowTaskSearchDialog: (show: boolean) => void;
+  taskSearchInitQuery: string;
+  setTaskSearchInitQuery: (query: string) => void;
 
   // i18n
-  locale: SupportedLocale
-  setLocale: (locale: SupportedLocale) => void
+  locale: SupportedLocale;
+  setLocale: (locale: SupportedLocale) => void;
 
   // debug mode
-  debugMode: boolean
-  setDebugMode: (enabled: boolean) => void
+  debugMode: boolean;
+  setDebugMode: (enabled: boolean) => void;
 
   // experimental features
-  experimentalFeaturesEnabled: boolean
-  setExperimentalFeaturesEnabled: (enabled: boolean) => void
+  experimentalFeaturesEnabled: boolean;
+  setExperimentalFeaturesEnabled: (enabled: boolean) => void;
 
   // Android TWA timer launch mode
-  androidTimerLaunchMode: AndroidTimerLaunchMode
-  setAndroidTimerLaunchMode: (mode: AndroidTimerLaunchMode) => void
+  androidTimerLaunchMode: AndroidTimerLaunchMode;
+  setAndroidTimerLaunchMode: (mode: AndroidTimerLaunchMode) => void;
 
   // which system alarm targets (Clock app / Exact alarm) db.alarm_queue should sync to
-  alarmSyncTargets: number
-  setAlarmSyncTargets: (targets: number) => void
+  alarmSyncTargets: number;
+  setAlarmSyncTargets: (targets: number) => void;
 
-  needToCheckTwaChannel: boolean
-  setNeedToCheckTwaChannelDebounced: (need: boolean) => void
-  setNeedToCheckTwaChannel: (need: boolean) => void
+  needToCheckTwaChannel: boolean;
+  setNeedToCheckTwaChannelDebounced: (need: boolean) => void;
+  setNeedToCheckTwaChannel: (need: boolean) => void;
 
-  fontSizeScale: number
-  setFontSizeScale: (scale: number) => void
+  fontSizeScale: number;
+  setFontSizeScale: (scale: number) => void;
 
-  pwaVersion: string
-  setPwaVersion: (version: string) => void
+  pwaVersion: string;
+  setPwaVersion: (version: string) => void;
 
-  projects: ProjectItem[] // Assuming ProjectItem is the type for projects
-  setProjects: (projects: ProjectItem[]) => void
+  projects: ProjectItem[]; // Assuming ProjectItem is the type for projects
+  setProjects: (projects: ProjectItem[]) => void;
+
+  syncType: "supabase" | "gas" | "none";
+  setSyncType: (type: "supabase" | "gas" | "none") => void;
+
+  syncStr: string;
+  setSyncStr: (str: string) => void;
+
+  pendingChangeLogs: ChangeLogEntry[]; // Assuming ChangeLogItem is the type for change logs
+  setPendingChangeLogs: (logs: ChangeLogEntry[]) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
   currentSheet: getInitialCurrentSheet(),
-  setCurrentSheet: (sheet, byAction: 'share-to-inbox' | null = null) => {
-    getStorage()?.setItem(LAST_VISITED_SHEET_KEY, sheet)
-    set({ currentSheet: sheet, currentSheetByAction: byAction })
+  setCurrentSheet: (sheet, byAction: "share-to-inbox" | null = null) => {
+    getStorage()?.setItem(LAST_VISITED_SHEET_KEY, sheet);
+    set({ currentSheet: sheet, currentSheetByAction: byAction });
   },
   currentSheetByAction: null,
 
   lastRemoteSyncTime: getInitLastRemoteSyncTime(),
   setLastRemoteSyncTime: (timestamp) => {
     if (timestamp === null) {
-      getStorage()?.removeItem(LAST_REMOTE_SYNC_TIME_KEY)
+      getStorage()?.removeItem(LAST_REMOTE_SYNC_TIME_KEY);
     } else {
-      getStorage()?.setItem(LAST_REMOTE_SYNC_TIME_KEY, timestamp.toString())
+      getStorage()?.setItem(LAST_REMOTE_SYNC_TIME_KEY, timestamp.toString());
     }
-    set({ lastRemoteSyncTime: timestamp })
+    set({ lastRemoteSyncTime: timestamp });
   },
 
   startupPreference: getInitialStartupPreference(),
   setStartupPreference: (preference) => {
-    getStorage()?.setItem(STARTUP_PREFERENCE_KEY, preference)
-    set({ startupPreference: preference })
+    getStorage()?.setItem(STARTUP_PREFERENCE_KEY, preference);
+    set({ startupPreference: preference });
   },
 
   showStartDialog: false,
@@ -262,9 +309,9 @@ export const useAppStore = create<AppState>((set) => ({
 
   globalToast: null,
   showGlobalToast: (toast) => {
-    const id = Date.now() + Math.floor(Math.random() * 1000)
-    set({ globalToast: { ...toast, id } })
-    return id
+    const id = Date.now() + Math.floor(Math.random() * 1000);
+    set({ globalToast: { ...toast, id } });
+    return id;
   },
   clearGlobalToast: () => set({ globalToast: null }),
 
@@ -284,55 +331,75 @@ export const useAppStore = create<AppState>((set) => ({
 
   showTaskSearchDialog: false,
   setShowTaskSearchDialog: (show) => set({ showTaskSearchDialog: show }),
-  taskSearchInitQuery: '',
+  taskSearchInitQuery: "",
   setTaskSearchInitQuery: (query) => set({ taskSearchInitQuery: query }),
 
   locale: getInitialLocale(),
   setLocale: (locale) => {
-    getStorage()?.setItem('nbl_locale', locale)
-    set({ locale })
+    getStorage()?.setItem("nbl_locale", locale);
+    set({ locale });
   },
 
   debugMode: getInitialDebugMode(),
   setDebugMode: (enabled) => {
-    getStorage()?.setItem(DEBUG_MODE_KEY, enabled ? '1' : '0')
-    set({ debugMode: enabled })
+    getStorage()?.setItem(DEBUG_MODE_KEY, enabled ? "1" : "0");
+    set({ debugMode: enabled });
   },
 
   experimentalFeaturesEnabled: getInitialExperimentalFeaturesEnabled(),
   setExperimentalFeaturesEnabled: (enabled) => {
-    getStorage()?.setItem(ENABLE_EXPERIMENTAL_FEATURES_KEY, enabled ? '1' : '0')
-    set({ experimentalFeaturesEnabled: enabled })
+    getStorage()?.setItem(
+      ENABLE_EXPERIMENTAL_FEATURES_KEY,
+      enabled ? "1" : "0",
+    );
+    set({ experimentalFeaturesEnabled: enabled });
   },
 
   androidTimerLaunchMode: getInitialAndroidTimerLaunchMode(),
   setAndroidTimerLaunchMode: (mode) => {
-    getStorage()?.setItem(ANDROID_TIMER_LAUNCH_MODE_KEY, mode)
-    set({ androidTimerLaunchMode: mode })
+    getStorage()?.setItem(ANDROID_TIMER_LAUNCH_MODE_KEY, mode);
+    set({ androidTimerLaunchMode: mode });
   },
 
   alarmSyncTargets: getInitialAlarmSyncTargets(),
   setAlarmSyncTargets: (targets) => {
-    getStorage()?.setItem(ALARM_SYNC_TARGETS_KEY, String(targets))
-    set({ alarmSyncTargets: targets })
+    getStorage()?.setItem(ALARM_SYNC_TARGETS_KEY, String(targets));
+    set({ alarmSyncTargets: targets });
   },
 
   needToCheckTwaChannel: false,
-  setNeedToCheckTwaChannelDebounced: debounce((need) => set({ needToCheckTwaChannel: need }), 3000),
+  setNeedToCheckTwaChannelDebounced: debounce(
+    (need) => set({ needToCheckTwaChannel: need }),
+    3000,
+  ),
   setNeedToCheckTwaChannel: (need) => set({ needToCheckTwaChannel: need }),
 
-  fontSizeScale: getStorage()?.getItem(FONT_SIZE_SCALE_KEY) ? parseFloat(getStorage()!.getItem(FONT_SIZE_SCALE_KEY)!) : 1,
+  fontSizeScale: getStorage()?.getItem(FONT_SIZE_SCALE_KEY)
+    ? parseFloat(getStorage()!.getItem(FONT_SIZE_SCALE_KEY)!)
+    : 1,
   setFontSizeScale: (scale) => {
-    getStorage()?.setItem(FONT_SIZE_SCALE_KEY, String(scale))
-    set({ fontSizeScale: scale })
+    getStorage()?.setItem(FONT_SIZE_SCALE_KEY, String(scale));
+    set({ fontSizeScale: scale });
   },
 
   pwaVersion: getInitialPwaVersion(),
   setPwaVersion: (version: string) => {
-    getStorage()?.setItem(PWA_VERSION_KEY, version)
-    set({ pwaVersion: version })
+    getStorage()?.setItem(PWA_VERSION_KEY, version);
+    set({ pwaVersion: version });
   },
 
   projects: [],
   setProjects: (projects: ProjectItem[]) => set({ projects }),
-}))
+
+  syncType: getInitialSyncType(),
+  setSyncType: (type) => {
+    getStorage()?.setItem(SYNC_TYPE_KEY, type);
+    set({ syncType: type });
+  },
+
+  syncStr: "",
+  setSyncStr: (str) => set({ syncStr: str }),
+
+  pendingChangeLogs: [],
+  setPendingChangeLogs: (logs) => set({ pendingChangeLogs: logs }),
+}));

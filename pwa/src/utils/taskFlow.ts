@@ -634,7 +634,7 @@ async function updateUnifiedCalendarAfterEnd(
     let nextRunDate =
       task.itemType === "scheduled"
         ? Utils.getNextOccurrence(task.cronExpr, new Date(now))
-        : getPreviewRuns(task.cronExpr, new Date(task.nextRun ?? now), 2)[1]; // IcsEvent 的第一個是原本的
+        : getPreviewRuns(task.cronExpr, new Date(task.nextRun ?? now), 2, new Date(now))[0]; // 有考慮 after，所以，第一個就是
     const oldNextRun = task.nextRun ? new Date(task.nextRun) : null;
 
     if (nextRunDate && oldNextRun) {

@@ -83,6 +83,7 @@ export const zhTW: TranslationMap = {
 
   // ── SetupWizard alerts ───────────────────────────────────────
   'setup.invalidGasUrl':      '請輸入有效的 GAS Web App URL',
+  'setup.invalidSupabaseUrlKey': '請輸入有效的 Supabase URL 與從 .env 複製的 API 金鑰',
   'setup.connectFailed':      '連接失敗，請檢查 URL 是否正確',
   'setup.codeCopied':         '完整的 Apps Script 代碼已複製到剪貼板！現在請到 Google Sheets 中打開 Apps Script 編輯器並貼上。',
 

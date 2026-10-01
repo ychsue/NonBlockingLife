@@ -10,7 +10,7 @@
  */
 
 const CONFIG = {
-  VERSION: '~2.5.0',
+  VERSION: '~3.1.0',
   TABLE_SHEETS: {
     task_pool: 'NBL_TaskPool',
     scheduled: 'NBL_Scheduled',

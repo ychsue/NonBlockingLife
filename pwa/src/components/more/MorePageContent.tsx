@@ -12,6 +12,11 @@ import { SettingsCard } from "../SettingsCard";
 import { parseIcsContent } from "../../utils/icsParser";
 import { ChangeLogTable } from "./ChangeLogTable";
 import { applyChange } from "../../db";
+import { createClient } from "@supabase/supabase-js";
+import {
+  getStoredSupabaseUrlKey,
+  SupabaseSyncManager,
+} from "../../utils/SupabaseSyncManager";
 
 type MoreTab = "settings" | "experiment";
 
@@ -461,35 +466,43 @@ function ExperimentPanel() {
             >
               <button
                 type="button"
-                onClick={()=> applyChange({
-                  table: "global_settings",
-                  recordId: "test", //key
-                  op: "add",
-                  patch: { key: "test", value: "This is a test" },
-                  clientId: "test",
-                })}
+                onClick={() =>
+                  applyChange({
+                    table: "global_settings",
+                    recordId: "test", //key
+                    op: "add",
+                    patch: { key: "test", value: "This is a test" },
+                    clientId: "test",
+                  })
+                }
                 className="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
               >
                 Test Global Settings
               </button>
               <button
                 type="button"
-                onClick={()=> applyChange({
-                  table: "ics_export_configs",
-                  recordId: "test", //key
-                  op: "add",
-                  patch: { 
-                    id: "test",
-                    name: "This is a test",
-                    fileName: "test.ics",
-                    enabled: true,
-                    description: "This is a test export configuration"
-                   },
-                  clientId: "test",
-                })}
+                onClick={() => {
+                  const manager = new SupabaseSyncManager(
+                    getStoredSupabaseUrlKey(),
+                  );
+                  manager
+                    .allTablesToSupabase()
+                    .then((res) => {
+                      console.log(
+                        "All tables synced to Supabase successfully.",
+                        res,
+                      );
+                    })
+                    .catch((error) => {
+                      console.error(
+                        "Failed to sync all tables to Supabase:",
+                        error,
+                      );
+                    });
+                }}
                 className="rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
               >
-                Test ICS Export Configurations
+                All Tables To Supabase
               </button>
             </SettingsCard>
 

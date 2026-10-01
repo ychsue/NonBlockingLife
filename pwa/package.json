@@ -1,7 +1,7 @@
 {
   "name": "nonblockinglife-pwa",
   "private": true,
-  "version": "2.5.4",
+  "version": "3.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,6 +12,7 @@
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "@tanstack/react-table": "^8.21.2",
     "compare-versions": "^6.1.1",
     "dayjs": "^1.11.23",
