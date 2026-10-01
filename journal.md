@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-10-02] (3.1.2) 修正 Supabase 同步邏輯
+1. [SupabaseSyncManager.ts](pwa\src\utils\SupabaseSyncManager.ts) 在推送刪除操作時，將 `deleted` 設為 `true` 並更新 `synced_at`，而不是直接刪除資料。
+
 ## [2026-10-01] (3.1.1) 加入 supabase 同步選項
 1. [icsParser.ts](pwa\src\utils\icsParser.ts) 增加了 `after` 參數給 `getPreviewRuns` 函數，用於過濾指定日期之後的事件。
 2. [SyncStatus.tsx](pwa\src\components\SyncStatus.tsx) 增加了對 Supabase 同步選項的支援，包括設定 GAS URL 或 Supabase URL & Key 的界面與邏輯。

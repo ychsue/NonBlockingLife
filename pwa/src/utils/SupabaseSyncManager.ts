@@ -56,7 +56,7 @@ export class SupabaseSyncManager extends SyncManagerBase {
         this.isSyncTable(c.table),
       );
       let successCount = 0;
-
+      const now = Date.now();
       // 使用 lodash 將變更按 table 分組，然後再分成 delete 與其他操作，方便批次處理
       const groupedByTable = _.groupBy(syncableChanges, "table");
       const deleteChangesByTable: Record<string, ChangeLogEntry[]> = {};
@@ -73,10 +73,16 @@ export class SupabaseSyncManager extends SyncManagerBase {
         if (deleteChanges.length > 0) {
           const ids = deleteChanges.map((c) => c.recordId);
           const primaryKey = this.getPrimaryKeyName(table as SyncTable);
+          // const { error } = await this.supabase
+          //   .from(table)
+          //   .delete()
+          //   .in(primaryKey, ids);
+          // 應該改為將他們的 deleted 設為 true，而不是直接刪除
           const { error } = await this.supabase
             .from(table)
-            .delete()
+            .update({ deleted: true , synced_at: now})
             .in(primaryKey, ids);
+
           if (!error) {
             successCount += deleteChanges.length;
             for (const c of deleteChanges) {
@@ -121,6 +127,7 @@ export class SupabaseSyncManager extends SyncManagerBase {
                 updated_at: c.createdAt,
                 device_id: this.deviceId,
                 operation_id: c.id,
+                synced_at: now,
               });
             } else {
               records.push({
@@ -129,6 +136,7 @@ export class SupabaseSyncManager extends SyncManagerBase {
                 updated_at: c.createdAt,
                 device_id: this.deviceId,
                 operation_id: c.id,
+                synced_at: now,
               });
             }
           }

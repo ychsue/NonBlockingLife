@@ -128,7 +128,7 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: Now the [Supabase](https://supabase.com/) sync option has been added. Please complete the relevant configuration in the settings or switch back to the original GAS automation method.",
+        "\n\r**Please note**: Now the [Supabase](https://supabase.com/) sync option has been added. Please complete the relevant configuration in the settings or switch back to the original GAS automation method. Fixed the bug related to deletion and `synced_at`.",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -142,7 +142,7 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：加入[Supabase](https://supabase.com/) 同步選項，請在設定中完成相關配置或切回原來的GAS 自動化方式。",
+        "\n\r**注意**：加入[Supabase](https://supabase.com/) 同步選項，請在設定中完成相關配置或切回原來的GAS 自動化方式。修正刪除與synced_at的bug。",
     },
     ja: {
       "useTwaBridge.twaNotAvailable":
@@ -158,7 +158,7 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：[Supabase](https://supabase.com/) の同期オプションが追加されました。設定で関連の設定を完了するか、元のGAS自動化方式に戻してください。",
+        "\n\r**注意**：[Supabase](https://supabase.com/) の同期オプションが追加されました。設定で関連の設定を完了するか、元のGAS自動化方式に戻してください。削除と `synced_at` に関するバグが修正されました。",
     },
   });
 
