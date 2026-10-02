@@ -128,7 +128,7 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: Now the [Supabase](https://supabase.com/) sync option has been added. Please complete the relevant configuration in the settings or switch back to the original GAS automation method. Fixed the bug related to deletion and `synced_at`.",
+        "\n\r**Please note**: Bug fix: Commands with the same ID are now combined before syncing to Supabase.\n\r The comma issue in CronTask.sql has also been resolved.",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -142,7 +142,7 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：加入[Supabase](https://supabase.com/) 同步選項，請在設定中完成相關配置或切回原來的GAS 自動化方式。修正刪除與synced_at的bug。",
+        "\n\r**注意**：Bug 修正：同步到Supabase的指令若含有相同id，現在會先組合好再同步。\n\r而CronTask.sql逗號的問題也解決了。",
     },
     ja: {
       "useTwaBridge.twaNotAvailable":
@@ -158,7 +158,7 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：[Supabase](https://supabase.com/) の同期オプションが追加されました。設定で関連の設定を完了するか、元のGAS自動化方式に戻してください。削除と `synced_at` に関するバグが修正されました。",
+        "\n\r**注意**：Bug 修正：同じIDを持つコマンドは、Supabaseに同期する前にまとめられるようになりました。\n\rさらに、CronTask.sqlのカンマの問題も解決されました。",
     },
   });
 

@@ -2,6 +2,9 @@
 
 ## [2026-10-02] (3.1.2) 修正 Supabase 同步邏輯
 1. [SupabaseSyncManager.ts](pwa\src\utils\SupabaseSyncManager.ts) 在推送刪除操作時，將 `deleted` 設為 `true` 並更新 `synced_at`，而不是直接刪除資料。
+2. [taskFlow.ts](pwa\src\utils\taskFlow.ts) 加入多國語處理，免得都看到中文，使用 `{n}` 作為佔位符，並在顯示時替換為實際的最大值。
+3. [cronTask.sql](pwa\src\db\supabase\cronTask.sql) 逗號逗錯地方，已修正。
+4. [SupabaseSyncManager.ts](pwa\src\utils\SupabaseSyncManager.ts) 修正了有可能一次送出太多個相同id的 upsert。修正法是自己把相同id的部分，自己先組合好後再送出。
 
 ## [2026-10-01] (3.1.1) 加入 supabase 同步選項
 1. [icsParser.ts](pwa\src\utils\icsParser.ts) 增加了 `after` 參數給 `getPreviewRuns` 函數，用於過濾指定日期之後的事件。

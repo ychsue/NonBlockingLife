@@ -55,11 +55,41 @@ export function shouldPromptForTimerStart(
 }
 
 export async function startTask(candidate: SelectionCacheItem, note: string) {
+  const locale = useAppStore.getState().locale;
+  const text = (key: string) => {
+    const translations: Record<string, Record<string, string>> = {
+      "zh-TW": {
+        已有任務正在執行: "已有任務正在執行",
+        "任務來源不明，無法開始。": "任務來源不明，無法開始。",
+        任務已成功開始: "任務已成功開始",
+        "要不要開始計時器？": "要不要開始計時器？",
+        要不要開始計時器msg: "這段專注剛開始。要不要直接開啟計時器或時鐘介面？",
+      },
+      en: {
+        已有任務正在執行: "A task is already running",
+        "任務來源不明，無法開始。": "Unknown task source, cannot start.",
+        任務已成功開始: "Task started successfully",
+        "要不要開始計時器？": "Do you want to start the timer?",
+        要不要開始計時器msg:
+          "This focus session has just started. Do you want to directly open the timer or clock interface?",
+      },
+      ja: {
+        已有任務正在執行: "既にタスクが実行中です",
+        "任務來源不明，無法開始。":
+          "不明なタスクソースのため、開始できません。",
+        任務已成功開始: "タスクが正常に開始されました",
+        "要不要開始計時器？": "タイマーを開始しますか？",
+        要不要開始計時器msg:
+          "この集中セッションはちょうど始まったばかりです。タイマーや時計のインターフェースを直接開きますか？",
+      },
+    };
+    return translations[locale]?.[key] ?? key;
+  };
   const existing = await getRunningTask();
   if (existing) {
     return {
       status: "warning",
-      message: `已有任務正在執行: ${existing.taskId}`,
+      message: `${text("已有任務正在執行")}: ${existing.taskId}`,
     };
   }
 
@@ -67,7 +97,7 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
   if (!source || !SOURCE_TABLE_MAP[source]) {
     return {
       status: "error",
-      message: "任務來源不明，無法開始。",
+      message: text("任務來源不明，無法開始。"),
     };
   }
 
@@ -156,8 +186,8 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
       void useDialogStore
         .getState()
         .openDialog({
-          title: "要不要開始計時器？",
-          message: "這段專注剛開始。要不要直接開啟計時器或時鐘介面？",
+          title: text("要不要開始計時器？"),
+          message: text("要不要開始計時器msg"),
           actions: [
             { id: "cancel", label: "不用，謝謝" },
             { id: "open", label: "開啟" },
@@ -181,7 +211,7 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
     }
   }
 
-  return { status: "success", message: "任務已開始" };
+  return { status: "success", message: text("任務已成功開始") };
 }
 
 export async function recordTaskEvent(
@@ -189,11 +219,28 @@ export async function recordTaskEvent(
   note: string,
   durationOverride?: number,
 ) {
+  const locale = useAppStore.getState().locale;
+  const text = (key: string) => {
+    const translations: Record<string, Record<string, string>> = {
+      事件已記錄: {
+        "zh-TW": "事件已記錄",
+        en: "Event recorded",
+        ja: "イベントが記録されました",
+      },
+      "任務來源不明，無法記錄。": {
+        "zh-TW": "任務來源不明，無法記錄。",
+        en: "Task source unknown, unable to record.",
+        ja: "タスクのソースが不明なため、記録できません。",
+      },
+    };
+    return translations[key]?.[locale] ?? key;
+  };
+
   const source = candidate.source;
   if (!source || !SOURCE_TABLE_MAP[source]) {
     return {
       status: "error",
-      message: "任務來源不明，無法記錄。",
+      message: text("任務來源不明，無法記錄。"),
     };
   }
 
@@ -235,14 +282,58 @@ export async function recordTaskEvent(
     clientId: DEV_CLIENT_ID,
   });
 
-  return { status: "success", message: "事件已記錄" };
+  return { status: "success", message: text("事件已記錄") };
 }
 
 export async function endTask(endNote: string, isInterrupt = false) {
+  const locale = useAppStore.getState().locale;
+  const text = (key: string) => {
+    const translations: Record<string, Record<string, string>> = {
+      任務被中斷: {
+        "zh-TW": "任務被中斷",
+        en: "Task was interrupted",
+        ja: "タスクが中断されました",
+      },
+      目前無執行中任務: {
+        "zh-TW": "目前無執行中任務",
+        en: "No task is currently running",
+        ja: "現在実行中のタスクはありません",
+      },
+      "時間已超過，是否要開始休息？": {
+        "zh-TW": "時間已超過，是否要開始休息？",
+        en: "Time is overdue, do you want to start a break?",
+        ja: "時間が過ぎました。休憩を始めますか？",
+      },
+      "要不要開啟計時器？": {
+        "zh-TW": "要不要開啟計時器？",
+        en: "Do you want to start the timer?",
+        ja: "タイマーを開始しますか？",
+      },
+      "這段專注已超過預設時限。要不要直接開啟計時器或時鐘介面，幫自己進入休息模式？":
+        {
+          "zh-TW":
+            "這段專注已超過預設時限。要不要直接開啟計時器或時鐘介面，幫自己進入休息模式？",
+          en: "This focus session has exceeded the preset time limit. Do you want to directly open the timer or clock interface to help yourself enter break mode?",
+          ja: "この集中セッションは設定された時間を超えました。タイマーや時計のインターフェースを直接開いて休憩モードに入りますか？",
+        },
+      "這段專注似乎提前結束。要不要直接開啟計時器或時鐘介面好結束他？": {
+        "zh-TW":
+          "這段專注似乎提前結束。要不要直接開啟計時器或時鐘介面好結束他？",
+        en: "This focus session seems to have ended early. Do you want to directly open the timer or clock interface to end it?",
+        ja: "この集中セッションは早めに終了したようです。タイマーや時計のインターフェースを直接開いて終了しますか？",
+      },
+      任務已結束: {
+        "zh-TW": "任務已結束",
+        en: "Task has ended",
+        ja: "タスクが終了しました",
+      },
+    };
+    return translations[key]?.[locale] ?? key;
+  };
   let timerMinutes = 10; // 默認中斷後的預設計時器時間
   const running = await getRunningTask();
   if (!running) {
-    return { status: "warning", message: "目前無執行中任務" };
+    return { status: "warning", message: text("目前無執行中任務") };
   }
 
   const now = Date.now();
@@ -251,7 +342,7 @@ export async function endTask(endNote: string, isInterrupt = false) {
     : 0;
   const wasOverdue = Boolean(running.endAt && now > running.endAt);
   const finalNote = isInterrupt
-    ? `任務被中斷${endNote ? ` - ${endNote}` : ""}`
+    ? `{${text("任務被中斷")}} ${endNote ? ` - ${endNote}` : ""}`
     : endNote;
   const action = isInterrupt ? "INTERRUPT" : "END";
   const state = isInterrupt ? "BUSY" : "DONE";
@@ -306,11 +397,15 @@ export async function endTask(endNote: string, isInterrupt = false) {
         .getState()
         .openDialog({
           title: wasOverdue
-            ? "時間已超過，是否要開始休息？"
-            : "要不要開啟計時器？",
+            ? text("時間已超過，是否要開始休息？")
+            : text("要不要開啟計時器？"),
           message: wasOverdue
-            ? "這段專注已超過預設時限。要不要直接開啟計時器或時鐘介面，幫自己進入休息模式？"
-            : "這段專注似乎提前結束。要不要直接開啟計時器或時鐘介面好結束他？",
+            ? text(
+                "這段專注已超過預設時限。要不要直接開啟計時器或時鐘介面，幫自己進入休息模式？",
+              )
+            : text(
+                "這段專注似乎提前結束。要不要直接開啟計時器或時鐘介面好結束他？",
+              ),
           actions: [
             { id: "cancel", label: "不用，謝謝" },
             { id: "open", label: "開啟" },
@@ -338,7 +433,7 @@ export async function endTask(endNote: string, isInterrupt = false) {
     }
   }
 
-  return { status: "success", message: "任務已結束", duration };
+  return { status: "success", message: text("任務已結束"), duration };
 }
 
 async function applySourceCompletionUpdates(params: {
@@ -424,6 +519,32 @@ export async function interruptTask(
   endNote: string,
   targetTask?: SelectionCacheItem,
 ) {
+  const locale = useAppStore.getState().locale;
+  const text = (key: string) => {
+    const translations: Record<string, Record<string, string>> = {
+      系統自動掛載中斷計時: {
+        "zh-TW": "系統自動掛載中斷計時",
+        en: "System automatically mounted interrupt timer",
+        ja: "システムが自動的に中断タイマーを設定しました",
+      },
+      已中斷並切換到指定任務: {
+        "zh-TW": "已中斷並切換到指定任務",
+        en: "Interrupted and switched to the specified task",
+        ja: "中断され、指定されたタスクに切り替えました",
+      },
+      "[中斷] 處理突發狀況": {
+        "zh-TW": "[中斷] 處理突發狀況",
+        en: "[Interrupt] Handling unexpected situations",
+        ja: "[中断] 突発的な状況への対応",
+      },
+      已切換至中斷計時模式: {
+        "zh-TW": "已切換至中斷計時模式",
+        en: "Switched to interrupt timing mode",
+        ja: "中断タイミングモードに切り替えました",
+      },
+    };
+    return translations[key]?.[locale] ?? key;
+  };
   const running = await getRunningTask();
 
   // 如果有正在執行的任務，先結束它
@@ -444,7 +565,7 @@ export async function interruptTask(
     const nextRunning = await getRunningTask();
     return {
       status: "success",
-      message: "已中斷並切換到指定任務",
+      message: text("已中斷並切換到指定任務"),
       payload: nextRunning,
     };
   }
@@ -452,7 +573,7 @@ export async function interruptTask(
   // 無論是否有舊任務，都啟動系統中斷任務
   const now = Date.now();
   const interruptId = "SYS_INT";
-  const interruptTitle = "[中斷] 處理突發狀況";
+  const interruptTitle = text("[中斷] 處理突發狀況");
   const dashboardRow: Dashboard = {
     taskId: interruptId,
     title: interruptTitle,
@@ -481,14 +602,14 @@ export async function interruptTask(
       action: "START",
       category: "SYSTEM",
       state: "BUSY",
-      notes: "系統自動掛載中斷計時",
+      notes: text("系統自動掛載中斷計時"),
     },
     clientId: DEV_CLIENT_ID,
   });
 
   return {
     status: "success",
-    message: "已切換至中斷計時模式",
+    message: text("已切換至中斷計時模式"),
     payload: dashboardRow,
   };
 }
@@ -634,7 +755,12 @@ async function updateUnifiedCalendarAfterEnd(
     let nextRunDate =
       task.itemType === "scheduled"
         ? Utils.getNextOccurrence(task.cronExpr, new Date(now))
-        : getPreviewRuns(task.cronExpr, new Date(task.nextRun ?? now), 2, new Date(now))[0]; // 有考慮 after，所以，第一個就是
+        : getPreviewRuns(
+            task.cronExpr,
+            new Date(task.nextRun ?? now),
+            2,
+            new Date(now),
+          )[0]; // 有考慮 after，所以，第一個就是
     const oldNextRun = task.nextRun ? new Date(task.nextRun) : null;
 
     if (nextRunDate && oldNextRun) {
@@ -784,19 +910,38 @@ function resolveRecordDuration(
   durationOverride: number | undefined,
   parsedDuration: number | undefined,
 ): { duration?: number; error?: string } {
+  const locale = useAppStore.getState().locale;
+  const text = (key: string) => {
+    const translations: Record<string, Record<string, string>> = {
+      "補記時長必須是0以上的數字。": {
+        "zh-TW": "補記時長必須是 0 以上的數字。",
+        en: "The recorded duration must be a number greater than or equal to 0.",
+        ja: "記録された時間は0以上の数値である必要があります。",
+      },
+      "補記時長上限為{n}分鐘。": {
+        "zh-TW": `補記時長上限為 {n} 分鐘。`,
+        en: `The maximum recorded duration is {n} minutes.`,
+        ja: `記録された時間の上限は{n}分です。`,
+      },
+    };
+    return translations[key]?.[locale] ?? key;
+  };
   const duration = durationOverride ?? parsedDuration;
   if (duration == null) {
     return {};
   }
 
   if (!Number.isFinite(duration) || duration < 0) {
-    return { error: "補記時長必須是 0 以上的數字。" };
+    return { error: text("補記時長必須是0以上的數字。") };
   }
 
   const floored = Math.floor(duration);
   if (floored > MAX_RECORD_DURATION_MINUTES) {
     return {
-      error: `補記時長上限為 ${MAX_RECORD_DURATION_MINUTES} 分鐘。`,
+      error: text("補記時長上限為{n}分鐘。").replace(
+        "{n}",
+        `${MAX_RECORD_DURATION_MINUTES}`,
+      ),
     };
   }
 

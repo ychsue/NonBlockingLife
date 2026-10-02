@@ -19,8 +19,8 @@ SELECT cron.schedule(
   $$
   SELECT net.http_post(
     url:='https://YOUR_PROJECT_REF.supabase.co/functions/v1/export-ics',
-    headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_SUPABASE_ANON_KEY","apikey": "YOUR_SUPABASE_ANON_KEY",}'::jsonb
-    body:='{"name":"Functions"}'::jsonb,
+    headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_SUPABASE_ANON_KEY","apikey": "YOUR_SUPABASE_ANON_KEY"}'::jsonb,
+    body:='{"name":"Functions"}'::jsonb
   );
   $$
 );

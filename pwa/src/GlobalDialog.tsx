@@ -62,7 +62,7 @@ export const GlobalDialog = forwardRef<HTMLDialogElement>((props, ref) => {
         >
           {dialogConfig.title}
         </h3>
-        <h4 className="mb-4 text-lg">{dialogConfig.message}</h4>
+        <h4 className="mb-4 text-lg px-2">{dialogConfig.message}</h4>
         {/* 防止按 Enter 重新整理頁面 */}
         {dialogConfig.type === "spiner" ? (
           <div className="spinner self-center"></div>

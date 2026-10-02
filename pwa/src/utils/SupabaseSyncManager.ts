@@ -71,7 +71,8 @@ export class SupabaseSyncManager extends SyncManagerBase {
         deleteChangesByTable,
       )) {
         if (deleteChanges.length > 0) {
-          const ids = deleteChanges.map((c) => c.recordId);
+          // 確保一個 primary key 對應的記錄唯一
+          const ids = (deleteChanges.map((c) => c.recordId).filter((v, i, a) => a.indexOf(v) === i));
           const primaryKey = this.getPrimaryKeyName(table as SyncTable);
           // const { error } = await this.supabase
           //   .from(table)
@@ -106,7 +107,11 @@ export class SupabaseSyncManager extends SyncManagerBase {
         if (otherChanges.length > 0) {
           const primaryKey = this.getPrimaryKeyName(table as SyncTable);
           const records = [];
-          for (const c of otherChanges) {
+          // 得根據 primary key 來確保每個記錄唯一，若超過一個，就組合起來，後面有的值會覆蓋前面的值，如 {a: 1, b: 2} 與 {a: 3} 會合併成 {a: 3, b: 2}
+          const idGroups = _.groupBy(otherChanges, (c) => c.recordId);
+          for (const [recordId, changes] of Object.entries(idGroups)) {
+            const c = changes[changes.length - 1]; // 取最後一個，後面的值會覆蓋前面的值
+            c.patch = _.merge({}, ...changes.map((c) => c.patch)); // 合併多個變更，後面的值會覆蓋前面的值
             const localRecord = await db
               .table(table as SyncTable)
               .get(c.recordId);
