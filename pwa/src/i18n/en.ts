@@ -302,6 +302,17 @@ export const en = {
   "tour.monthDayView.step9.content":
     "This is the content area of the day view. If it is a schedule, they can be edited and deleted. ICS schedule events from other apps can only be viewed.",
 
+  "tour.supabaseConnection.title": "Supabase Connection",
+  "tour.supabaseConnection.description": "Learn how to connect Supabase to sync your scheduled data.",
+  "tour.supabaseConnection.step1.title": "Supabase Connection (Open Menu)",
+  "tour.supabaseConnection.step1.content": "Tap the menu button to open the app menu.",
+  "tour.supabaseConnection.step2.title": "Show Sync Status and Switch to Tutorial",
+  "tour.supabaseConnection.step2.content": "If you don't see the **Setting** button, press ⚙️, and it will appear in the sync status area. \n\rThen, press the button to switch to the tutorial page to learn how to complete the setup.",
+  "tour.supabaseConnection.step3.title": "Tap **Setting**",
+  "tour.supabaseConnection.step3.content": "When the setup is not completed, tapping **Setting** will trigger the tutorial.",
+  "tour.supabaseConnection.step4.title": "Tap YouTube Tutorial",
+  "tour.supabaseConnection.step4.content": "Please watch this YouTube tutorial with Chinese and English subtitles and follow along. In principle, just follow this tutorial page step by step on Supabase and this app, regardless of the platform.",
+
   "table.inbox.field.receivedAt": "Received At",
   "table.inbox.field.url": "URL",
 

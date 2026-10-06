@@ -23,7 +23,7 @@ export function Toast({
   }, [duration, onClose])
 
   return (
-    <div className={`fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in flex items-center gap-3 ${className ?? ''}`}>
+    <div className={`fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in flex items-center gap-3 safe-padding-bottom ${className ?? ''}`}>
       <span>{message}</span>
       {actionLabel && onAction && (
         <button

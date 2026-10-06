@@ -2,6 +2,7 @@ import { satisfies } from "compare-versions";
 import { db } from "../db/index";
 import type { ChangeLogEntry } from "../db/schema";
 import { useAppStore } from "../store/appStore";
+import { SupportedLocale } from "../i18n";
 
 export const SYNC_TABLES = [
   "task_pool",
@@ -145,6 +146,37 @@ export abstract class SyncManagerBase implements ISyncManager {
    * 完整雙向同步（先推後拉）
    */
   async sync(): Promise<SyncResult> {
+    const locale = useAppStore.getState().locale;
+    function createTranslations<T extends Record<string, Record<SupportedLocale, string>>>(dict: T): T {
+  return dict;
+}
+    const tHere = (key: string) => {
+      const translations: Record<string, Record<SupportedLocale, string>> = {
+        "推送失敗": {
+          "zh-TW": "推送失敗",
+          en: "Push failed",
+          ja: "プッシュ失敗",
+        },
+        "拉取失敗": {
+          "zh-TW": "拉取失敗",
+          en: "Pull failed",
+          ja: "プル失敗",
+        },
+        "同步完成": {
+          "zh-TW": "同步完成",
+          en: "Sync completed",
+          ja: "同期完了",
+        },
+        "同步出錯": {
+          "zh-TW": "同步出錯",
+          en: "Sync error",
+          ja: "同期エラー",
+        },
+      };
+
+      return translations[key]?.[locale] ?? key;
+    };
+
     const startTime = Date.now();
 
     try {
@@ -154,7 +186,7 @@ export abstract class SyncManagerBase implements ISyncManager {
           status: "error",
           pushed: 0,
           pulled: 0,
-          message: `推送失敗: ${pushResult.error}`,
+          message: `${tHere("推送失敗")}: ${pushResult.error}`,
           timestamp: Date.now(),
         };
       }
@@ -165,7 +197,7 @@ export abstract class SyncManagerBase implements ISyncManager {
           status: "error",
           pushed: pushResult.success,
           pulled: 0,
-          message: `拉取失敗: ${pullResult.error}`,
+          message: `${tHere("拉取失敗")}: ${pullResult.error}`,
           timestamp: Date.now(),
         };
       }
@@ -174,7 +206,7 @@ export abstract class SyncManagerBase implements ISyncManager {
         status: "success",
         pushed: pushResult.success,
         pulled: pullResult.success,
-        message: `同步完成 (${Date.now() - startTime}ms)`,
+        message: `${tHere("同步完成")} (${Date.now() - startTime}ms)`,
         timestamp: Date.now(),
       };
     } catch (error) {
@@ -182,7 +214,7 @@ export abstract class SyncManagerBase implements ISyncManager {
         status: "error",
         pushed: 0,
         pulled: 0,
-        message: `同步出錯: ${String(error)}`,
+        message: `${tHere("同步出錯")}: ${String(error)}`,
         timestamp: Date.now(),
       };
     }
@@ -193,6 +225,42 @@ export abstract class SyncManagerBase implements ISyncManager {
    * ⚠️ 危險操作：本地未同步的資料將遺失
    */
   async resetAndPull(options: ResetAndPullOptions = {}): Promise<SyncResult> {
+    const locale = useAppStore.getState().locale;
+    const tHere = (key: string, params?: Record<string, unknown>) => {
+      const translations: Record<string, Record<SupportedLocale, string>> = {
+        "還原失敗": {
+          "zh-TW": "還原失敗",
+          en: "Restore failed",
+          ja: "復元失敗",
+          
+        },
+        "還原完成": {
+          "zh-TW": "還原完成，已從雲端載入 {a} 筆資料 {b} ({c}ms)",
+          en: "Restore completed, loaded {a} records from the cloud {b} ({c}ms)",
+          ja: "復元完了、クラウドから {a} 件のデータを読み込みました {b} ({c}ms)",
+        },
+        "含清除Log": {
+          "zh-TW": "含清除 Log",
+          en: "including clearing Log",
+          ja: "ログをクリアを含む",
+        },
+        "保留Log": {
+          "zh-TW": "保留 Log",
+          en: "retaining Log",
+          ja: "ログを保持",
+        },
+      };
+
+      const result = translations[key]?.[locale] ?? key;
+      if (params) {
+        return Object.keys(params).reduce(
+          (str, key) => str.replace(`{${key}}`, String(params[key])),
+          result,
+        );
+      }
+      return result;
+    };
+
     const startTime = Date.now();
     const includeLog = options.includeLog === true;
 
@@ -272,7 +340,7 @@ export abstract class SyncManagerBase implements ISyncManager {
           status: "error",
           pushed: 0,
           pulled: 0,
-          message: `還原失敗: ${pullResult.error}`,
+          message: `${tHere("還原失敗")}: ${pullResult.error}`,
           timestamp: Date.now(),
         };
       }
@@ -281,7 +349,7 @@ export abstract class SyncManagerBase implements ISyncManager {
         status: "success",
         pushed: 0,
         pulled: pullResult.success,
-        message: `還原完成，已從雲端載入 ${pullResult.success} 筆資料${includeLog ? "（含清除 Log）" : "（保留 Log）"} (${Date.now() - startTime}ms)`,
+        message: `${tHere("還原完成",{a: pullResult.success, b: includeLog ? tHere("含清除Log") : tHere("保留Log"), c: Date.now() - startTime})}`,
         timestamp: Date.now(),
       };
     } catch (error) {
@@ -289,7 +357,7 @@ export abstract class SyncManagerBase implements ISyncManager {
         status: "error",
         pushed: 0,
         pulled: 0,
-        message: `還原出錯: ${String(error)}`,
+        message: `${tHere("還原出錯")}: ${String(error)}`,
         timestamp: Date.now(),
       };
     }

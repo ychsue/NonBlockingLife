@@ -254,6 +254,17 @@ export const zhTW: TranslationMap = {
   'tour.monthDayView.step9.title': '日檢視內容',
   'tour.monthDayView.step9.content': '這是日檢視的內容區域。若為schedule，他們都可以編輯與刪除。而來自其他App的ics排程事件則只能查看。',
 
+  'tour.supabaseConnection.title': 'Supabase 連接',
+  'tour.supabaseConnection.description': '了解如何連接 Supabase 以同步您的排程資料。',
+  'tour.supabaseConnection.step1.title': 'Supabase 連接(打開選單)',
+  'tour.supabaseConnection.step1.content': '點擊選單按鈕以打開應用程式選單。',
+  'tour.supabaseConnection.step2.title': '顯示同步狀態，並且切換到教學',
+  'tour.supabaseConnection.step2.content': '如果沒看到**設置**按鈕，請按⚙️，就會出現在同步狀態區域。\n\r接著，按該鈕就會切換到教學頁面以了解如何完成設置。',
+  'tour.supabaseConnection.step3.title': '點擊**設置**',
+  'tour.supabaseConnection.step3.content': '當設置未完成時，點擊**設置**會跳出教學。',
+  'tour.supabaseConnection.step4.title': '點擊YouTube 教學',
+  'tour.supabaseConnection.step4.content': '請觀看此YouTube教學，有中英文字幕，請跟著做。原則上，就是把現在這教學頁面，一步一步地在Supabase 與本APP上操作，不限定在哪個平台才能操作。',
+
   'table.inbox.field.receivedAt':   '接收時間',
   'table.inbox.field.url':          'URL',
 

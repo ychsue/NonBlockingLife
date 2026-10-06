@@ -239,6 +239,17 @@ export const ja: TranslationMap = {
   'tour.monthDayView.step9.title': '日ビューの内容',
   'tour.monthDayView.step9.content': 'これは日ビューの内容エリアです。スケジュールの場合、編集および削除が可能です。他のアプリからの ICS スケジュールイベントは閲覧のみ可能です。',
 
+  'tour.supabaseConnection.title': 'Supabase 接続',
+  'tour.supabaseConnection.description': 'Supabase を接続して、スケジュールデータを同期する方法を学びます。',
+  'tour.supabaseConnection.step1.title': 'Supabase 接続 (メニューを開く)',
+  'tour.supabaseConnection.step1.content': 'メニューボタンをタップして、アプリのメニューを開きます。',
+  'tour.supabaseConnection.step2.title': '同期状況を表示 そしてチュートリアルに切り替え',
+  'tour.supabaseConnection.step2.content': 'もし **設定** ボタンが見えない場合は、⚙️ を押すと、同期状況エリアに表示されます。\n\rその後、そのボタンを押すとチュートリアルページに切り替わり、設定の完了方法を学べます。',
+  'tour.supabaseConnection.step3.title': ' **設定** をタップ',
+  'tour.supabaseConnection.step3.content': '設定が完了していない場合、**設定** をタップするとチュートリアルが開始されます。',
+  'tour.supabaseConnection.step4.title': 'YouTube チュートリアルをタップ',
+  'tour.supabaseConnection.step4.content': 'この YouTube チュートリアルを中英文字幕で視聴しながら進めてください。原則として、このチュートリアルページに従って、Supabase とこのアプリでステップごとに操作してください。プラットフォームは問いません。',
+
   'table.inbox.field.receivedAt': '受信日時',
   'table.inbox.field.url': 'URL',
 

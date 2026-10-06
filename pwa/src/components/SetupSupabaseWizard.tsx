@@ -31,12 +31,12 @@ export function SetupSupabaseWizard({
   const syncTutorialVideo =
     locale === "zh-TW"
       ? {
-          title: "TODO 中文解說：NBL Supabase Sync 設定教學",
-          url: "https://www.youtube.com/watch?v=qjv0mCWWOkE",
+          title: "中文解說：NBL Supabase Sync 設定教學",
+          url: "https://youtu.be/8ci6us7lMuw",
         }
       : {
-          title: "TODO English Walkthrough: NBL Supabase Sync Setup",
-          url: "https://www.youtube.com/watch?v=ENxoDT85VfM",
+          title: "English Walkthrough: NBL Supabase Sync Setup (You need to turn on Subtitles)",
+          url: "https://youtu.be/8ci6us7lMuw",
         };
 
   const handleCopySQLCode = () => {
@@ -103,9 +103,10 @@ export function SetupSupabaseWizard({
               建置中
               {/* 建議先看 1 次影片，照著做會更快完成設定。 */}
             </p>
-            {false && (
+            {true && (
               <a
                 href={syncTutorialVideo.url}
+                data-tour="supabase-youtube-tutorial"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"

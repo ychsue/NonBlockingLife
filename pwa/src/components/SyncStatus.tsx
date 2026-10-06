@@ -10,7 +10,7 @@ import {
   type ExportFormat,
   type ImportResult,
 } from "../utils/exportImportUtils";
-import { useT } from "../i18n";
+import { useT, useTWithMaps } from "../i18n";
 import {
   GASSyncManager,
   getStoredGasUrl,
@@ -25,13 +25,16 @@ import {
 import { parseEnvString } from "../utils/parseEnvString";
 import { useAppStore } from "../store/appStore";
 import { SetupSupabaseWizard } from "./SetupSupabaseWizard";
+import { useProductTourContext } from "./tour/ProductTourContext";
 
 interface SyncStatusProps {
   syncStatus?: "idle" | "syncing" | "error";
+  className?: string;
 }
 
 export function SyncStatus({
   syncStatus: initialStatus = "idle",
+  className = "",
 }: SyncStatusProps) {
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "error">(
     initialStatus,
@@ -60,7 +63,218 @@ export function SyncStatus({
   const [showExportConfirm, setShowExportConfirm] = useState(false);
   const importFileRef = useRef<HTMLInputElement>(null);
 
+  const { nextStep, isRunning, activeStep } = useProductTourContext();
+  const syncSupabaseInputRef = useRef<HTMLTextAreaElement>(null);
+
   const t = useT();
+  const tHere = useTWithMaps({
+    "zh-TW": {
+      無法連接: "無法連接",
+      待同步筆數: "⏳ 待同步已達 {n} 筆，自動同步中...",
+      自動同步失敗: "❌ 自動同步失敗:",
+      已保存: "已保存",
+      Supabase配置錯誤: "❌ Supabase URL & Key 配置錯誤:",
+      未配置正確無法還原: "❌ 未配置正確，無法還原",
+      還原中: "🔄 還原中...",
+      還原出錯: "❌ 還原出錯:",
+      設置完成已自動同步: "✅ 設置完成，已自動同步",
+      未配置正確無法同步: "❌ 未配置正確，無法同步",
+      同步中: "🔄 同步中...",
+      同步出錯: "❌ 同步出錯:",
+      匯出x格式的檔案: "✅ 已匯出 ${format.toUpperCase()} 格式的備份檔案",
+      匯出失敗: "❌ 匯出失敗",
+      匯入中: "⏳ 匯入中...",
+      匯入完成: "✅ 匯入完成",
+      匯入失敗: "❌ 匯入失敗",
+      剛剛: "剛剛",
+      分鐘前: "{n} 分鐘前",
+      小時前: "{n} 小時前",
+      天前: "{n} 天前",
+      "粘貼 Supabase .env": "粘貼 Supabase .env",
+      "黏貼 GAS Web App URL...": "黏貼 GAS Web App URL...",
+      教學之前警告:
+        "進行教學之前，請先清空 Supabase 配置，然後選擇以supabase 進行同步",
+      請改選其他同步方式: "請改選其他同步方式",
+      設置: "設置",
+      "未配置 GAS URL": "未配置 GAS URL",
+      "同步本地變更到 Google Sheets": "同步本地變更到 Google Sheets",
+      "重新配置 GAS URL": "重新配置 GAS URL",
+      "重新配置 Supabase URL & Key": "重新配置 Supabase URL & Key",
+      從雲端還原資料: "從雲端還原資料",
+      同步: "同步",
+      雲端重新拉取: "本地任務資料將被清除，並從 {n} 重新拉取。",
+      "同時清除本地 Log（危險）": "同時清除本地 Log（危險）",
+      "Log 不會從雲端拉回，勾選後本機 Log 會清空。":
+        "Log 不會從雲端拉回，勾選後本機 Log 會清空。",
+      目前有: "目前有",
+      "筆尚未同步的變更，還原後將遺失！建議先執行「同步」。":
+        "筆尚未同步的變更，還原後將遺失！建議先執行「同步」。",
+      "你選擇了清除 Log。此操作後，Log 將無法透過 pull 還原。":
+        "⚠️ 你選擇了清除 Log。此操作後，Log 將無法透過 pull 還原。",
+      此操作不可復原: "此操作不可復原。",
+      "請選擇匯出格式：JSON（最穩定）或 Markdown 表格（AI/人類友善）。":
+        "請選擇匯出格式：JSON（最穩定）或 Markdown 表格（AI/人類友善）。",
+      "匯出 JSON": "匯出 JSON",
+      "匯出 Markdown": "匯出 Markdown",
+      取消: "取消",
+      確認匯入: "確認匯入",
+      "相同 ID 的記錄將被覆蓋，其餘本地資料不受影響。":
+        "相同 ID 的記錄將被覆蓋，其餘本地資料不受影響。",
+      匯出格式: "匯出格式",
+      匯入備份資料: "匯入備份資料",
+      "筆尚未同步的變更，匯入後不影響這些待同步項目。":
+        "筆尚未同步的變更，匯入後不影響這些待同步項目。",
+      "即將匯入：": "即將匯入：",
+      "{n} 筆已跳過（點開查看詳情）": "{n} 筆已跳過（點開查看詳情）",
+      關閉: "關閉",
+      "從 Google Sheets 還原所有資料（清空本地後重新拉取）":
+        "從 Google Sheets 還原所有資料（清空本地後重新拉取）",
+      "從 Supabase 還原所有資料（清空本地後重新拉取）":
+        "從 Supabase 還原所有資料（清空本地後重新拉取）",
+      匯出本地資料: "匯出本地資料",
+      "從 JSON / MD 備份檔匯入資料（同 ID 會覆蓋）":
+        "從 JSON / MD 備份檔匯入資料（同 ID 會覆蓋）",
+    },
+    en: {
+      無法連接: "Cannot connect",
+      待同步筆數: "⏳ Pending changes have reached {n}, auto-syncing...",
+      自動同步失敗: "❌ Auto-sync failed:",
+      已保存: "Saved",
+      Supabase配置錯誤: "❌ Supabase URL & Key configuration error:",
+      未配置正確無法還原: "❌ Not properly configured, cannot restore",
+      還原中: "🔄 Restoring...",
+      還原出錯: "❌ Restore failed:",
+      設置完成已自動同步: "✅ Setup complete, auto-syncing",
+      未配置正確無法同步: "❌ Not properly configured, cannot sync",
+      同步中: "🔄 syncing...",
+      同步出錯: "❌ Sync failed:",
+      匯出x格式的檔案:
+        "✅ Exported backup file in ${format.toUpperCase()} format",
+      匯出失敗: "❌ Export failed",
+      匯入中: "⏳ Importing...",
+      匯入完成: "✅ Import complete",
+      匯入失敗: "❌ Import failed",
+      剛剛: "Just now",
+      分鐘前: "{n} minutes ago",
+      小時前: "{n} hours ago",
+      天前: "{n} days ago",
+      "粘貼 Supabase .env": "Paste Supabase .env",
+      "黏貼 GAS Web App URL...": "Paste GAS Web App URL...",
+      教學之前警告:
+        "Before starting the tutorial, please clear the Supabase configuration and then choose to sync with Supabase",
+      請改選其他同步方式: "Please choose another sync method",
+      設置: "Setting",
+      "未配置 GAS URL": "Not configured GAS URL",
+      "同步本地變更到 Google Sheets": "Sync local changes to Google Sheets",
+      "重新配置 GAS URL": "Reconfigure GAS URL",
+      "重新配置 Supabase URL & Key": "Reconfigure Supabase URL & Key",
+      從雲端還原資料: "Restore from cloud",
+      同步: "Sync",
+      雲端重新拉取: "Local task data will be cleared and re-fetched from {n}.",
+      "同時清除本地 Log（危險）": "Also clear local log (dangerous)",
+      "Log 不會從雲端拉回，勾選後本機 Log 會清空。":
+        "Log will not be fetched from the cloud, and the local log will be cleared when checked.",
+      目前有: "Currently have",
+      "筆尚未同步的變更，還原後將遺失！建議先執行「同步」。":
+        " unsynced changes, will be lost after restore! It is recommended to perform 'Sync' first.",
+      "你選擇了清除 Log。此操作後，Log 將無法透過 pull 還原。":
+        "⚠️ You have chosen to clear the log. After this operation, the log cannot be restored via pull.",
+      此操作不可復原: "This action cannot be undone.",
+      "請選擇匯出格式：JSON（最穩定）或 Markdown 表格（AI/人類友善）。":
+        "Please choose the export format: JSON (most stable) or Markdown table (AI/human-friendly).",
+      "匯出 JSON": "Export JSON",
+      "匯出 Markdown": "Export Markdown",
+      取消: "Cancel",
+      確認匯入: "Confirm Import",
+      "相同 ID 的記錄將被覆蓋，其餘本地資料不受影響。":
+        "Records with the same ID will be overwritten, and the rest of the local data will not be affected.",
+      匯出格式: "Export format",
+      匯入備份資料: "Import backup data",
+      "筆尚未同步的變更，匯入後不影響這些待同步項目。":
+        "Unsynced changes will not be affected after import.",
+      "即將匯入：": "About to import:",
+      "{n} 筆已跳過（點開查看詳情）":
+        "{n} items skipped (click to view details)",
+      關閉: "Close",
+      "從 Supabase 還原所有資料（清空本地後重新拉取）":
+        "Restore all data from Supabase (clear local and re-fetch)",
+      "從 Google Sheets 還原所有資料（清空本地後重新拉取）":
+        "Restore all data from Google Sheets (clear local and re-fetch)",
+      匯出本地資料: "Export local data",
+      "從 JSON / MD 備份檔匯入資料（同 ID 會覆蓋）":
+        "Import data from JSON / MD backup file (same ID will be overwritten)",
+    },
+    ja: {
+      無法連接: "接続できません",
+      待同步筆數: "⏳ 保留中の変更が {n} 件に達しました。自動同期中...",
+      自動同步失敗: "❌ 自動同步失敗:",
+      已保存: "保存済み",
+      Supabase配置錯誤: "❌ Supabase URL & Key の設定エラー:",
+      未配置正確無法還原: "❌ 正しく設定されていないため、復元できません",
+      還原中: "🔄 復元中...",
+      還原出錯: "❌ 復元に失敗しました:",
+      設置完成已自動同步: "✅ 設定完了、自動同期中",
+      未配置正確無法同步: "❌ 正しく設定されていないため、同期できません",
+      同步中: "🔄 同期中...",
+      同步出錯: "❌ 同期に失敗しました:",
+      匯出x格式的檔案:
+        "✅ ${format.toUpperCase()} 形式のバックアップファイルをエクスポートしました",
+      匯出失敗: "❌ エクスポートに失敗しました",
+      匯入中: "⏳ インポート中...",
+      匯入完成: "✅ インポート完了",
+      匯入失敗: "❌ インポートに失敗しました",
+      剛剛: "たった今",
+      分鐘前: "{n} 分前",
+      小時前: "{n} 時間前",
+      天前: "{n} 日前",
+      "粘貼 Supabase .env": "Supabase の .env を貼り付け",
+      "黏貼 GAS Web App URL...": "GAS Web App URL を貼り付け",
+      教學之前警告:
+        "チュートリアルを開始する前に、Supabase の設定をクリアしてから、Supabase で同期することを選択してください",
+      請改選其他同步方式: "別の同期方法を選択してください",
+      設置: "設定",
+      "未配置 GAS URL": "GASのURLが設定されていない",
+      "同步本地變更到 Google Sheets": "Google Sheets にローカルの変更を同期",
+      "重新配置 GAS URL": "GASのURLを再設定",
+      "重新配置 Supabase URL & Key": "Supabase URL & Key を再設定",
+      從雲端還原資料: "クラウドから復元",
+      同步: "同期",
+      雲端重新拉取:
+        "ローカルのタスクデータはクリアされ、{n} から再取得されます。",
+      "同時清除本地 Log（危險）": "ローカルのログもクリア（危険）",
+      "Log 不會從雲端拉回，勾選後本機 Log 會清空。":
+        "ログはクラウドから取得されず、チェックするとローカルのログがクリアされます。",
+      目前有: "現在の未同期の変更数",
+      "筆尚未同步的變更，還原後將遺失！建議先執行「同步」。":
+        "未同期の変更は復元後に失われます！先に「同期」を実行することをお勧めします。",
+      "你選擇了清除 Log。此操作後，Log 將無法透過 pull 還原。":
+        "チェックするとローカルのログがクリアされ、クラウドからは取得できません。",
+      此操作不可復原: "この操作は元に戻せません。",
+      "請選擇匯出格式：JSON（最穩定）或 Markdown 表格（AI/人類友善）。":
+        "エクスポート形式を選択してください: JSON（最も安定）または Markdown テーブル（AI/人間に優しい）。",
+      "匯出 JSON": "JSON をエクスポート",
+      "匯出 Markdown": "Markdown をエクスポート",
+      取消: "キャンセル",
+      確認匯入: "インポートを確認",
+      "相同 ID 的記錄將被覆蓋，其餘本地資料不受影響。":
+        "同じ ID のレコードは上書きされ、残りのローカルデータには影響しません。",
+      匯出格式: "エクスポート形式",
+      匯入備份資料: "バックアップデータをインポート",
+      "筆尚未同步的變更，匯入後不影響這些待同步項目。":
+        "未同期の変更はインポート後も影響を受けません。",
+      "即將匯入：": "これからインポート:",
+      "{n} 筆已跳過（點開查看詳情）":
+        "{n} 件がスキップされました（詳細を見るにはクリック）",
+      關閉: "閉じる",
+      "從 Google Sheets 還原所有資料（清空本地後重新拉取）":
+        "Google Sheets からすべてのデータを復元（ローカルをクリアして再取得）",
+      "從 Supabase 還原所有資料（清空本地後重新拉取）":
+        "Supabase からすべてのデータを復元（ローカルをクリアして再取得）",
+      匯出本地資料: "ローカルデータをエクスポート",
+      "從 JSON / MD 備份檔匯入資料（同 ID 會覆蓋）":
+        "JSON / MD バックアップファイルからデータをインポート（同じ ID は上書きされます）",
+    },
+  });
 
   // 用於 idle 偵測：記錄最後一次 pendingCount 變化的時間
   const lastPendingChangeRef = useRef<number>(0);
@@ -109,7 +323,9 @@ export function SyncStatus({
       // 測試連接
       mgr?.testConnection().then((ok) => {
         if (!ok) {
-          setMessage(`⚠️ 無法連接 ${syncType === "gas" ? "GAS" : "Supabase"}`);
+          setMessage(
+            `⚠️ ${tHere("無法連接")} ${syncType === "gas" ? "GAS" : "Supabase"}`,
+          );
           setSyncStatus("error");
         } else {
           setShowUrlInput(false);
@@ -153,8 +369,8 @@ export function SyncStatus({
       managerRef.current
     ) {
       setSyncStatus("syncing");
-      setMessage(`⏳ 待同步已達 ${count} 筆，自動同步中...`);
-      setToastMessage(`⏳ 待同步已達 ${count} 筆，自動同步中...`);
+      setMessage(tHere("待同步筆數", { n: count }));
+      setToastMessage(tHere("待同步筆數", { n: count }));
       managerRef.current
         .sync()
         .then((result) => {
@@ -170,7 +386,7 @@ export function SyncStatus({
         })
         .catch((err) => {
           setSyncStatus("error");
-          setMessage(`❌ 自動同步失敗: ${String(err)}`);
+          setMessage(`${tHere("自動同步失敗")} ${String(err)}`);
           setTimeout(() => setMessage(""), 3000);
         });
     }
@@ -234,8 +450,8 @@ export function SyncStatus({
       setShowUrlInput(false);
       setMessage(
         syncType === "gas"
-          ? "✅ GAS URL 已保存"
-          : "✅ Supabase URL & Key 已保存",
+          ? `✅ GAS URL (${tHere("已保存")})`
+          : `✅ Supabase URL & Key (${tHere("已保存")})`,
       );
 
       // 2 秒後清除提示
@@ -250,9 +466,9 @@ export function SyncStatus({
       setSyncStr(urlKeyPair);
       setShowUrlInput(false);
       setShowSetupWizard(false);
-      setMessage("✅ Supabase URL & Key 已保存");
+      setMessage(`✅ Supabase URL & Key (${tHere("已保存")})`);
     } catch (error) {
-      setMessage(`❌ Supabase URL & Key 配置錯誤: ${String(error)}`);
+      setMessage(`${tHere("Supabase配置錯誤")}: ${String(error)}`);
       setShowSetupWizard(true);
       setSyncStatus("error");
     }
@@ -262,13 +478,13 @@ export function SyncStatus({
   const handleResetAndPull = async () => {
     setShowResetConfirm(false);
     if (!manager) {
-      setMessage("❌ 未配置正確，無法還原");
+      setMessage(tHere("未配置正確無法還原"));
       setSyncStatus("error");
       return;
     }
 
     setSyncStatus("syncing");
-    setMessage("🔄 還原中...");
+    setMessage(tHere("還原中"));
 
     try {
       const result: SyncResult = await manager.resetAndPull({
@@ -284,7 +500,7 @@ export function SyncStatus({
       }
     } catch (error) {
       setSyncStatus("error");
-      setMessage(`❌ 還原出錯: ${String(error)}`);
+      setMessage(`${tHere("還原出錯")}: ${String(error)}`);
     }
 
     setTimeout(() => setMessage(""), 4000);
@@ -295,20 +511,20 @@ export function SyncStatus({
     setSyncStr(url);
     setShowUrlInput(false);
     setShowSetupWizard(false);
-    setMessage("✅ 設置完成，已自動同步");
+    setMessage(`✅ (${tHere("設置完成已自動同步")})`);
     setTimeout(() => setMessage(""), 3000);
   };
 
   // 執行同步
   const handleSync = async () => {
     if (!manager) {
-      setMessage("❌ 未配置正確，無法同步");
+      setMessage(tHere("未配置正確無法同步"));
       setSyncStatus("error");
       return;
     }
 
     setSyncStatus("syncing");
-    setMessage("🔄 同步中...");
+    setMessage(tHere("同步中"));
 
     try {
       const result: SyncResult = await manager.sync();
@@ -323,7 +539,7 @@ export function SyncStatus({
       }
     } catch (error) {
       setSyncStatus("error");
-      setMessage(`❌ 同步出錯: ${String(error)}`);
+      setMessage(`${tHere("同步出錯")}: ${String(error)}`);
     }
 
     // 3 秒後清除提示
@@ -335,10 +551,10 @@ export function SyncStatus({
     setShowExportConfirm(false);
     try {
       await exportDB({ format });
-      setMessage(`✅ 已匯出 ${format.toUpperCase()} 備份檔案`);
+      setMessage(`${tHere("匯出x格式的檔案", { n: format.toUpperCase() })}`);
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
-      setMessage(`❌ 匯出失敗: ${String(error)}`);
+      setMessage(`${tHere("匯出失敗")}: ${String(error)}`);
       setTimeout(() => setMessage(""), 3000);
     }
   };
@@ -356,18 +572,18 @@ export function SyncStatus({
   const handleConfirmImport = async () => {
     if (!pendingImportFile) return;
     setShowImportConfirm(false);
-    setMessage("⏳ 匯入中...");
+    setMessage(`${tHere("匯入中")}`);
     try {
       const result = await importDB(pendingImportFile);
       setImportResult(result);
       if (result.status === "success") {
-        setMessage("✅ 匯入完成");
+        setMessage(`${tHere("匯入完成")}`);
       } else {
-        setMessage(`❌ ${result.message}`);
+        setMessage(`${tHere("匯入失敗")}: ${result.message}`);
       }
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
-      setMessage(`❌ 匯入失敗: ${String(error)}`);
+      setMessage(`${tHere("匯入失敗")}: ${String(error)}`);
       setTimeout(() => setMessage(""), 3000);
     }
     setPendingImportFile(null);
@@ -380,12 +596,12 @@ export function SyncStatus({
     const diff = now - lastSyncTime;
     const mins = Math.floor(diff / 60000);
 
-    if (mins < 1) return "剛剛";
-    if (mins < 60) return `${mins} 分鐘前`;
+    if (mins < 1) return tHere("剛剛");
+    if (mins < 60) return `${tHere("分鐘前", { n: mins })}`;
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours} 小時前`;
+    if (hours < 24) return `${tHere("小時前", { n: hours })}`;
     const days = Math.floor(hours / 24);
-    return `${days} 天前`;
+    return `${tHere("天前", { n: days })}`;
   };
 
   const statusIcon: Record<string, string> = {
@@ -409,7 +625,8 @@ export function SyncStatus({
     <div className="flex items-center gap-2 text-sm">
       {syncType === "supabase" ? (
         <textarea
-          placeholder="粘貼 Supabase .env"
+          placeholder={tHere("粘貼 Supabase .env")}
+          ref={syncSupabaseInputRef}
           defaultValue={syncStr}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -421,7 +638,7 @@ export function SyncStatus({
       ) : syncType === "gas" ? (
         <input
           type="text"
-          placeholder="粘貼 GAS Web App URL..."
+          placeholder={tHere("黏貼 GAS Web App URL...")}
           defaultValue={syncStr}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -433,20 +650,32 @@ export function SyncStatus({
       ) : null}
       <button
         onClick={(e) => {
-          const input = (e.target as HTMLElement)
-            .previousElementSibling as HTMLInputElement;
-          if (syncType === "supabase") {
-            handleSetSupabaseUrlKey(input.value);
-          } else if (syncType === "gas") {
-            handleSetGasUrl(input.value);
-          } else if (syncType === "none") {
-            // Do nothing for 'none' sync type
-            alert("請改選其他同步方式");
+          if (isRunning && activeStep?.id === "show-sync-status") {
+            if (
+              !!syncSupabaseInputRef.current?.value ||
+              syncType !== "supabase"
+            ) {
+              alert(tHere("教學之前警告"));
+              return;
+            } else {
+              const input = (e.target as HTMLElement)
+                .previousElementSibling as HTMLInputElement;
+              if (syncType === "supabase") {
+                handleSetSupabaseUrlKey(input.value);
+              } else if (syncType === "gas") {
+                handleSetGasUrl(input.value);
+              } else if (syncType === "none") {
+                // Do nothing for 'none' sync type
+                alert(tHere("請改選其他同步方式"));
+              }
+              nextStep();
+            }
           }
         }}
+        data-tour="sync-status-settings-button"
         className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
       >
-        設置
+        {tHere("設置")}
       </button>
       <select
         value={syncType}
@@ -474,22 +703,29 @@ export function SyncStatus({
       <button
         onClick={handleSync}
         disabled={syncStatus === "syncing"}
-        title={syncStr ? "同步本地變更到 Google Sheets" : "未配置 GAS URL"}
+        title={
+          syncStr
+            ? tHere("同步本地變更到 Google Sheets")
+            : tHere("未配置 GAS URL")
+        }
         className={`ml-4 px-3 py-1 rounded text-xs font-medium transition-colors ${
           syncStatus === "syncing"
             ? "bg-gray-300 text-gray-500 cursor-not-allowed"
             : "bg-blue-500 text-white hover:bg-blue-600 active:scale-95"
         }`}
       >
-        {syncStatus === "syncing" ? "⏳" : "💾"} 同步
+        {syncStatus === "syncing" ? "⏳" : "💾"} {tHere("同步")}
       </button>
 
       <button
-        onClick={() => setShowUrlInput(true)}
+        onClick={() => {
+          setShowUrlInput(true);
+        }}
+        data-tour="sync-status-open-configuration-button"
         title={
           syncType === "gas"
-            ? "重新配置 GAS URL"
-            : "重新配置 Supabase URL & Key"
+            ? tHere("重新配置 GAS URL")
+            : tHere("重新配置 Supabase URL & Key")
         }
         className="px-2 py-1 text-xs text-gray-500 hover:text-blue-500 hover:underline"
       >
@@ -503,8 +739,8 @@ export function SyncStatus({
         }}
         title={
           syncType === "gas"
-            ? "從 Google Sheets 還原所有資料（清空本地後重新拉取）"
-            : "從 Supabase 還原所有資料（清空本地後重新拉取）"
+            ? tHere("從 Google Sheets 還原所有資料（清空本地後重新拉取）")
+            : tHere("從 Supabase 還原所有資料（清空本地後重新拉取）")
         }
         className="px-2 py-1 text-xs text-gray-500 hover:text-orange-500 hover:underline"
       >
@@ -515,12 +751,12 @@ export function SyncStatus({
 
   // 正常顯示：狀態 + 同步按鈕
   return (
-    <>
+    <div data-tour="sync-status-container" className={`flex flex-wrap flex-row gap-1 ${className}`}>
       {showUrlInput ? <UrlInputView /> : <StatusView />}
 
       <button
         onClick={() => setShowExportConfirm(true)}
-        title="匯出本地資料（JSON / Markdown）"
+        title={tHere("匯出本地資料") + "（JSON / Markdown）"}
         className="px-2 py-1 text-xs text-gray-500 hover:text-blue-500 hover:underline"
       >
         📤
@@ -528,7 +764,7 @@ export function SyncStatus({
 
       <button
         onClick={() => importFileRef.current?.click()}
-        title="從 JSON / MD 備份檔匯入資料（同 ID 會覆蓋）"
+        title={tHere("從 JSON / MD 備份檔匯入資料（同 ID 會覆蓋）")}
         className="px-2 py-1 text-xs text-gray-500 hover:text-green-500 hover:underline"
       >
         📥
@@ -575,10 +811,12 @@ export function SyncStatus({
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-2xl">
             <h3 className="text-lg font-bold text-orange-600 mb-3">
-              ☁️ 從雲端還原資料
+              ☁️ {tHere("從雲端還原資料")}
             </h3>
             <p className="text-gray-700 text-sm mb-3">
-              本地任務資料將被清除，並從 {syncType === "gas" ? "Google Sheets" : "Supabase"} 重新拉取。
+              {tHere("雲端重新拉取", {
+                n: syncType === "gas" ? "Google Sheets" : "Supabase",
+              })}
             </p>
             <label className="flex items-start gap-2 mb-3 text-sm text-gray-700 cursor-pointer">
               <input
@@ -588,24 +826,29 @@ export function SyncStatus({
                 className="mt-0.5"
               />
               <span>
-                同時清除本地 Log（危險）
+                {tHere("同時清除本地 Log（危險）")}
                 <span className="block text-xs text-gray-500">
-                  Log 不會從雲端拉回，勾選後本機 Log 會清空。
+                  {tHere("Log 不會從雲端拉回，勾選後本機 Log 會清空。")}
                 </span>
               </span>
             </label>
             {pendingChangeLogs.length > 0 && (
               <div className="bg-red-50 border border-red-200 rounded p-2 mb-3 text-xs text-red-700">
-                ⚠️ 目前有 <strong>{pendingChangeLogs.length}</strong>{" "}
-                筆尚未同步的變更，還原後將遺失！建議先執行「同步」。
+                ⚠️ {tHere("目前有")} <strong>{pendingChangeLogs.length}</strong>{" "}
+                {tHere("筆尚未同步的變更，還原後將遺失！建議先執行「同步」。")}
               </div>
             )}
             {includeLogOnReset && (
               <div className="bg-amber-50 border border-amber-200 rounded p-2 mb-3 text-xs text-amber-700">
-                ⚠️ 你選擇了清除 Log。此操作後，Log 將無法透過 pull 還原。
+                ⚠️{" "}
+                {tHere(
+                  "你選擇了清除 Log。此操作後，Log 將無法透過 pull 還原。",
+                )}
               </div>
             )}
-            <p className="text-gray-400 text-xs mb-4">此操作不可復原。</p>
+            <p className="text-gray-400 text-xs mb-4">
+              {tHere("此操作不可復原")}
+            </p>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setShowResetConfirm(false)}
@@ -631,23 +874,25 @@ export function SyncStatus({
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-2xl">
             <h3 className="text-lg font-bold text-blue-700 mb-3">
-              📤 匯出格式
+              📤 {tHere("匯出格式")}
             </h3>
             <p className="text-gray-700 text-sm mb-4">
-              請選擇匯出格式：JSON（最穩定）或 Markdown 表格（AI/人類友善）。
+              {tHere(
+                "請選擇匯出格式：JSON（最穩定）或 Markdown 表格（AI/人類友善）。",
+              )}
             </p>
             <div className="grid grid-cols-1 gap-2 mb-3">
               <button
                 onClick={() => handleExport("json")}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                匯出 JSON
+                {tHere("匯出 JSON")}
               </button>
               <button
                 onClick={() => handleExport("mdtable")}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
               >
-                匯出 Markdown
+                {tHere("匯出 Markdown")}
               </button>
             </div>
             <div className="flex justify-end">
@@ -655,7 +900,7 @@ export function SyncStatus({
                 onClick={() => setShowExportConfirm(false)}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
               >
-                取消
+                {tHere("取消")}
               </button>
             </div>
           </div>
@@ -667,24 +912,26 @@ export function SyncStatus({
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-2xl">
             <h3 className="text-lg font-bold text-green-700 mb-3">
-              📥 匯入備份資料
+              📥 {tHere("匯入備份資料")}
             </h3>
             <p className="text-gray-700 text-sm mb-2">
-              即將匯入：
+              {tHere("即將匯入：")}
               <span className="font-mono text-xs bg-gray-100 px-1 rounded">
                 {pendingImportFile.name}
               </span>
             </p>
             <p className="text-gray-600 text-sm mb-4">
-              相同 ID 的記錄將被覆蓋，其餘本地資料不受影響。
+              {tHere("相同 ID 的記錄將被覆蓋，其餘本地資料不受影響。")}
             </p>
             {pendingChangeLogs.length > 0 && (
               <div className="bg-amber-50 border border-amber-200 rounded p-2 mb-3 text-xs text-amber-700">
-                ⚠️ 目前有 <strong>{pendingChangeLogs.length}</strong>{" "}
-                筆尚未同步的變更，匯入後不影響這些待同步項目。
+                ⚠️ {tHere("目前有")} <strong>{pendingChangeLogs.length}</strong>{" "}
+                {tHere("筆尚未同步的變更，匯入後不影響這些待同步項目。")}
               </div>
             )}
-            <p className="text-gray-400 text-xs mb-4">此操作不可復原。</p>
+            <p className="text-gray-400 text-xs mb-4">
+              {tHere("此操作不可復原")}
+            </p>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => {
@@ -693,13 +940,13 @@ export function SyncStatus({
                 }}
                 className="px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-50"
               >
-                取消
+                {tHere("取消")}
               </button>
               <button
                 onClick={handleConfirmImport}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
               >
-                確認匯入
+                {tHere("確認匯入")}
               </button>
             </div>
           </div>
@@ -718,8 +965,8 @@ export function SyncStatus({
               }`}
             >
               {importResult.status === "success"
-                ? "✅ 匯入完成"
-                : "❌ 匯入失敗"}
+                ? `${tHere("匯入完成")}`
+                : `${tHere("匯入失敗")}`}
             </h3>
             <p className="text-gray-700 text-sm mb-3">{importResult.message}</p>
             {importResult.counts && (
@@ -735,7 +982,10 @@ export function SyncStatus({
             {importResult.warnings && importResult.warnings.length > 0 && (
               <details className="mb-3">
                 <summary className="text-xs text-amber-600 cursor-pointer">
-                  ⚠️ {importResult.warnings.length} 筆已跳過（點開查看詳情）
+                  ⚠️{" "}
+                  {tHere("{n} 筆已跳過（點開查看詳情）", {
+                    count: importResult.warnings.length,
+                  })}
                 </summary>
                 <ul className="mt-1 text-xs text-gray-500 max-h-28 overflow-y-auto space-y-0.5">
                   {importResult.warnings.map((w, i) => (
@@ -749,7 +999,7 @@ export function SyncStatus({
                 onClick={() => setImportResult(null)}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
               >
-                關閉
+                {tHere("關閉")}
               </button>
             </div>
           </div>
@@ -763,6 +1013,6 @@ export function SyncStatus({
           onClose={() => setToastMessage("")}
         />
       )}
-    </>
+    </div>
   );
 }

@@ -1,5 +1,14 @@
 # Journal
 
+## [2026-10-06] (3.1.4) 增強Supabase 的教學
+1. [productTours.ts](pwa\src\components\tour\productTours.ts) 增強了 Supabase 的教學內容。
+2. [useProductTour.ts](pwa\src\components\tour\useProductTour.ts) 增加了對自訂 beacon 元素顯示的支援，透過 `useStepTargetReady` 來檢查目標元素是否準備好。
+   * 目前尚未使用，未來可能會自訂 beacon 元素的顯示邏輯，透過 `useStepTargetReady` 來確保目標元素已經準備好，一旦準備好，就將beacon 位置定位到目標元素的相對位置。
+3. [SyncStatus.tsx](pwa\src\components\SyncStatus.tsx) 多國語化。
+4. [Toast.tsx](pwa\src\components\Toast.tsx) 修正可能被底部導覽列遮擋的問題。
+5. [ ] [useAlarmQueueWatcher.ts](pwa\src\hooks\useAlarmQueueWatcher.ts) 在 bulkPut 中設法去除重複的(我看不出為何在多國語切換後會出現重複，傷腦筋)。
+6. [syncUtils.ts](pwa\src\utils\syncUtils.ts) 多國語化。
+
 ## [2026-10-02] (3.1.2) 修正 Supabase 同步邏輯
 1. [SupabaseSyncManager.ts](pwa\src\utils\SupabaseSyncManager.ts) 在推送刪除操作時，將 `deleted` 設為 `true` 並更新 `synced_at`，而不是直接刪除資料。
 2. [taskFlow.ts](pwa\src\utils\taskFlow.ts) 加入多國語處理，免得都看到中文，使用 `{n}` 作為佔位符，並在顯示時替換為實際的最大值。

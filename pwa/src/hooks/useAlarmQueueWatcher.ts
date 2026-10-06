@@ -56,7 +56,13 @@ export function useAlarmQueueWatcher(enabled: boolean) {
         }
         try {
           isUpdatingRef.current = true;
-          await db.alarm_queue.bulkPut([...plan.toAdd, ...plan.toUpdate]);
+          // 最後，再次確認只有一個 title, taskId, alarmAt, offsetMinutes 的組合存在於資料庫中
+          const uniqueMap = new Map<string, AlarmQueueItem>();
+          for (const item of [...plan.toAdd, ...plan.toUpdate]) {
+            const key = `${item.title}_${item.taskId}_${item.alarmAt}_${item.offsetMinutes}`;
+            uniqueMap.set(key, item);
+          }
+          await db.alarm_queue.bulkPut(Array.from(uniqueMap.values()));
         } finally {
           isUpdatingRef.current = false;
         }
@@ -88,7 +94,7 @@ export function useAlarmQueueWatcher(enabled: boolean) {
         };
       });
 
-      if(isUpdatingRef.current) {
+      if (isUpdatingRef.current) {
         console.warn("Already updating alarm queue, skipping resetItemsStates");
         return;
       }

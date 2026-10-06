@@ -128,7 +128,7 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: Bug fix: Commands with the same ID are now combined before syncing to Supabase.\n\r The comma issue in CronTask.sql has also been resolved.",
+        "\n\r**Please note**: This update includes a tutorial on Supabase (including YouTube with English Subtitles).",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -142,7 +142,7 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：Bug 修正：同步到Supabase的指令若含有相同id，現在會先組合好再同步。\n\r而CronTask.sql逗號的問題也解決了。",
+        "\n\r**注意**：加入 Supabase 的教學(含YouTube)。",
     },
     ja: {
       "useTwaBridge.twaNotAvailable":
@@ -158,7 +158,7 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：Bug 修正：同じIDを持つコマンドは、Supabaseに同期する前にまとめられるようになりました。\n\rさらに、CronTask.sqlのカンマの問題も解決されました。",
+        "\n\r**注意**：Supabase の教學(英語字幕付きのYouTube含む) が追加されました。",
     },
   });
 
@@ -884,8 +884,8 @@ export default function App() {
 
             {/* 手機選單下拉面板 */}
             {isMobile && showMobileMenu && (
-              <div className="bg-white border-t border-gray-100 px-4 py-3 shadow-md flex flex-wrap flex-row gap-1">
-                <SyncStatus />
+              <div className="bg-white w-full border-t border-gray-100 px-4 py-3 shadow-md flex flex-wrap flex-row gap-1">
+                <SyncStatus className="grow" />
                 <button
                   onClick={() => {
                     setCurrentSheet("debug");

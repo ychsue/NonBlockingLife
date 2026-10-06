@@ -180,3 +180,33 @@ export function useProductTour(currentSheet?: string): UseProductTourResult {
     setActiveStepIndex,
   };
 }
+
+/**
+ * 未來可能可以用在自訂的 beacon 元素的顯示。因為它有可能位置不是照我們所想要的
+ * @param selector The CSS selector of the element to check for readiness.
+ * @returns A DOMRect object if the element is ready (visible and has non-zero dimensions), or null otherwise.
+ */
+function useStepTargetReady(selector: string) {
+  const [ready, setReady] = useState<DOMRect | null>(null);
+
+  useEffect(() => {
+    const check = () => {
+      const el = document.querySelector(selector);
+      if (!el) return null;
+
+      const rect = el.getBoundingClientRect();
+      return (rect.width > 0 && rect.height > 0)? rect : null;
+    };
+
+    const id = setInterval(() => {
+      if (check()) {
+        setReady(check());
+        clearInterval(id);
+      }
+    }, 100);
+
+    return () => clearInterval(id);
+  }, [selector]);
+
+  return ready;
+}

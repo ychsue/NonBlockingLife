@@ -64,6 +64,8 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
         任務已成功開始: "任務已成功開始",
         "要不要開始計時器？": "要不要開始計時器？",
         要不要開始計時器msg: "這段專注剛開始。要不要直接開啟計時器或時鐘介面？",
+        "不用，謝謝": "不用，謝謝",
+        "開啟計時器": "開啟計時器"
       },
       en: {
         已有任務正在執行: "A task is already running",
@@ -72,6 +74,8 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
         "要不要開始計時器？": "Do you want to start the timer?",
         要不要開始計時器msg:
           "This focus session has just started. Do you want to directly open the timer or clock interface?",
+        "不用，謝謝": "No, thanks",
+        "開啟計時器": "Start Timer"
       },
       ja: {
         已有任務正在執行: "既にタスクが実行中です",
@@ -81,6 +85,8 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
         "要不要開始計時器？": "タイマーを開始しますか？",
         要不要開始計時器msg:
           "この集中セッションはちょうど始まったばかりです。タイマーや時計のインターフェースを直接開きますか？",
+        "不用，謝謝": "いいえ、結構です",
+        "開啟計時器": "タイマーを開始"
       },
     };
     return translations[locale]?.[key] ?? key;
@@ -189,8 +195,8 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
           title: text("要不要開始計時器？"),
           message: text("要不要開始計時器msg"),
           actions: [
-            { id: "cancel", label: "不用，謝謝" },
-            { id: "open", label: "開啟" },
+            { id: "cancel", label: text("不用，謝謝") },
+            { id: "open", label: text("開啟計時器") },
           ],
         })
         .then(({ actionId }) => {

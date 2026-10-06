@@ -5,6 +5,9 @@ import type { SupportedLocale } from "../../i18n";
 import { getAppType, type ProductTourConfig } from "./productTourTypes";
 import { useResponsiveTable } from "../../hooks/useResponsiveTable";
 import { getDeviceType } from "../../utils/shortcutUtils";
+import { getStoredSupabaseUrlKey } from "../../utils/SupabaseSyncManager";
+import { useAppStore } from "../../store/appStore";
+import { strToJsx } from "../strToJsx";
 
 const localeMaps = {
   en,
@@ -325,7 +328,7 @@ export function getToursList(
           title: map["tour.setReminderOffset.step7.title"],
           content: map["tour.setReminderOffset.step7.content"],
           target: "[data-tour='edit-dialog-next-run-input']",
-          placement: "bottom",
+          placement: "top",
           hideFooterButton: false,
           waitForElement: true,
           spotlightPadding: 8,
@@ -368,7 +371,6 @@ export function getToursList(
       version: 1,
       title: map["tour.setIcsSources.title"],
       description: map["tour.setIcsSources.description"],
-      app: "androidWebView",
       steps: [
         {
           id: "open-scheduled",
@@ -458,7 +460,6 @@ export function getToursList(
       version: 1,
       title: map["tour.monthDayView.title"],
       description: map["tour.monthDayView.description"],
-      app: "androidWebView",
       steps: [
         {
           id: "open-scheduled",
@@ -562,6 +563,55 @@ export function getToursList(
         },
       ],
     },
+    {
+      id: "supabase-connection",
+      version: 1,
+      title: map["tour.supabaseConnection.title"],
+      description: map["tour.supabaseConnection.description"],
+      steps: [
+        {
+          id: "tour-menu",
+          title: map["tour.supabaseConnection.step1.title"],
+          content: map["tour.supabaseConnection.step1.content"],
+          target: "[data-tour='menu-button']",
+          placement: "bottom",
+          hideFooterButton: true,
+          waitForElement: true,
+          spotlightPadding: 8,
+          device: "mobile",
+        },
+        {
+          id: "show-sync-status",
+          title: map["tour.supabaseConnection.step2.title"],
+          content: strToJsx(map["tour.supabaseConnection.step2.content"]),
+          target: "[data-tour='sync-status-container']",
+          placement: "bottom",
+          hideFooterButton: true,
+          waitForElement: true,
+          spotlightPadding: 8,
+        },
+        // {
+        //   id: "click-settings",
+        //   title: map["tour.supabaseConnection.step3.title"],
+        //   content: map["tour.supabaseConnection.step3.content"],
+        //   target: "[data-tour='sync-status-settings-button']",
+        //   placement: "bottom",
+        //   hideFooterButton: true,
+        //   waitForElement: true,
+        //   spotlightPadding: 8,
+        // },
+        {
+          id: "click-youtube-tutorial",
+          title: map["tour.supabaseConnection.step4.title"],
+          content: map["tour.supabaseConnection.step4.content"],
+          target: "[data-tour='supabase-youtube-tutorial']",
+          placement: "bottom",
+          hideFooterButton: false,
+          waitForElement: true,
+          spotlightPadding: 8,
+        },
+      ],
+    } as ProductTourConfig,
   ];
 
   // Filter out steps that are not applicable to the current device type
