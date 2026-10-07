@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-10-07] 順便把兩個 Sync 的 Wizard 也多國語化
+
 ## [2026-10-07] (3.1.5) 多國語化大致完成與修正 Sync 的 bug
 1. **bug** 修正了 [SupabaseSyncManager.ts](pwa\src\utils\SupabaseSyncManager.ts) 中的同步邏輯問題，他的 taskId 可能不存在，需要將supabase 上的 task_id 映射到本地的 taskId。
 2. 多國語化 *.md 文件與串接到Tables 頁面中。
