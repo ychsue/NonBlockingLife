@@ -1409,7 +1409,7 @@ export function ScheduledTable() {
       {byDateView && (
         <div
           role="dialog"
-          className="fixed inset-0 z-40 flex h-full bg-black/50 p-2"
+          className="fixed inset-0 z-40 flex h-full bg-black/50 p-2 safe-padding-top"
           onClick={() => setByDateView(false)}
         >
           <div
@@ -1435,7 +1435,7 @@ export function ScheduledTable() {
       {byMonthView && (
         <div
           role="dialog"
-          className="fixed inset-0 z-40 flex h-full bg-black/50 p-2"
+          className="fixed inset-0 z-40 flex h-full bg-black/50 p-2 safe-padding-top"
           onClick={() => setByMonthView(false)}
         >
           <div

@@ -1,6 +1,27 @@
+import { useTWithMaps } from "../../i18n";
 import "./page-six-first-setup.css";
 
 export function PageSixFirstSetup() {
+  const tHere = useTWithMaps({
+    "zh-TW": {
+      "TASK POOL": "任務池",
+      "SCHEDULED": "已排程",
+      "READY TO START": "準備開始",
+      "完成兩步後，首頁教學不再自動跳出": "完成兩步後，首頁教學不再自動跳出"
+    },
+    "ja": {
+      "TASK POOL": "タスクプール",
+      "SCHEDULED": "予定済み",
+      "READY TO START": "開始準備完了",
+      "完成兩步後，首頁教學不再自動跳出": "2つのステップを完了すると、ホームページのチュートリアルは自動的に表示されなくなります"
+    },
+    "en": {
+      "TASK POOL": "TASK POOL",
+      "SCHEDULED": "SCHEDULED",
+      "READY TO START": "READY TO START",
+      "完成兩步後，首頁教學不再自動跳出": "After completing the two steps, the homepage tutorial will no longer pop up automatically"
+    }
+  });
   return (
     <div className="carousel-page-six-stage relative flex-1 overflow-hidden rounded-2xl border border-white/75 bg-white/55 px-3 py-4 shadow-inner sm:px-4 sm:py-5">
       <svg
@@ -18,7 +39,7 @@ export function PageSixFirstSetup() {
         <g className="carousel-page-six-card carousel-page-six-card-one">
           <rect x="122" y="210" width="264" height="212" rx="34" fill="#ffffff" stroke="#0ea5e9" strokeWidth="6" />
           <rect x="152" y="248" width="122" height="34" rx="17" fill="#0ea5e9" />
-          <text x="213" y="270" textAnchor="middle" fontSize="18" fontWeight="700" fill="#ffffff">TASK POOL</text>
+          <text x="213" y="270" textAnchor="middle" fontSize="18" fontWeight="700" fill="#ffffff">{tHere("TASK POOL")}</text>
           <rect x="152" y="314" width="156" height="12" rx="6" fill="#0f172a" />
           <rect x="152" y="340" width="186" height="10" rx="5" fill="#94a3b8" />
           <rect x="152" y="364" width="132" height="10" rx="5" fill="#cbd5e1" />
@@ -31,7 +52,7 @@ export function PageSixFirstSetup() {
         <g className="carousel-page-six-card carousel-page-six-card-two">
           <rect x="614" y="210" width="264" height="212" rx="34" fill="#ffffff" stroke="#f59e0b" strokeWidth="6" />
           <rect x="644" y="248" width="132" height="34" rx="17" fill="#f59e0b" />
-          <text x="710" y="270" textAnchor="middle" fontSize="18" fontWeight="700" fill="#ffffff">SCHEDULED</text>
+          <text x="710" y="270" textAnchor="middle" fontSize="18" fontWeight="700" fill="#ffffff">{tHere("SCHEDULED")}</text>
           <rect x="644" y="314" width="168" height="12" rx="6" fill="#0f172a" />
           <rect x="644" y="340" width="152" height="10" rx="5" fill="#94a3b8" />
           <rect x="644" y="364" width="118" height="10" rx="5" fill="#cbd5e1" />
@@ -50,8 +71,8 @@ export function PageSixFirstSetup() {
           <rect x="292" y="646" width="416" height="120" rx="36" fill="#ffffff" stroke="#22c55e" strokeWidth="7" />
           <circle cx="360" cy="706" r="34" fill="#22c55e" className="carousel-page-six-ready-badge" />
           <text x="360" y="717" textAnchor="middle" fontSize="30" fontWeight="700" fill="#ffffff">▶</text>
-          <text x="528" y="694" textAnchor="middle" fontSize="34" fontWeight="700" fill="#166534">READY TO START</text>
-          <text x="528" y="732" textAnchor="middle" fontSize="20" fontWeight="700" fill="#64748b">完成兩步後，首頁教學不再自動跳出</text>
+          <text x="528" y="694" textAnchor="middle" fontSize="34" fontWeight="700" fill="#166534">{tHere("READY TO START")}</text>
+          <text x="528" y="732" textAnchor="middle" fontSize="20" fontWeight="700" fill="#64748b">{tHere("完成兩步後，首頁教學不再自動跳出")}</text>
         </g>
       </svg>
     </div>

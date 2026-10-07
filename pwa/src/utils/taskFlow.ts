@@ -333,6 +333,16 @@ export async function endTask(endNote: string, isInterrupt = false) {
         en: "Task has ended",
         ja: "タスクが終了しました",
       },
+      "不用，謝謝": {
+        "zh-TW": "不用，謝謝",
+        en: "No, thanks",
+        ja: "いいえ、結構です",
+      },
+      "開啟": {
+        "zh-TW": "開啟",
+        en: "Open",
+        ja: "開く",
+      },
     };
     return translations[key]?.[locale] ?? key;
   };
@@ -413,8 +423,8 @@ export async function endTask(endNote: string, isInterrupt = false) {
                 "這段專注似乎提前結束。要不要直接開啟計時器或時鐘介面好結束他？",
               ),
           actions: [
-            { id: "cancel", label: "不用，謝謝" },
-            { id: "open", label: "開啟" },
+            { id: "cancel", label: text("不用，謝謝") },
+            { id: "open", label: text("開啟") },
           ],
         })
         .then(({ actionId }) => {

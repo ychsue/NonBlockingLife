@@ -66,6 +66,8 @@ body {
   --color-lightblue: #3b82f6;
   --color-lightgray: #f1f5f9;
   --color-test-debug: #ff0000; /* 這樣 bg-test-debug 就會立刻生效！ */
+  /* 定義一個名為 safe-min 的全域間距變數 */
+  --spacing-safe-min: max(8px, env(safe-area-inset-bottom, 20px));
 }
 
 button,

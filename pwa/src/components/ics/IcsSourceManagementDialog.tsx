@@ -7,6 +7,7 @@ import Utils from "../../../../gas/src/Utils";
 import { useTwaRpc } from "../../hooks/useTwaRpc";
 import { getDeviceType } from "../../utils/shortcutUtils";
 import { useProductTourContext } from "../tour/ProductTourContext";
+import { useTWithMaps } from "../../i18n";
 
 const DEV_CLIENT_ID = "ics_source_management_dialog";
 
@@ -48,6 +49,116 @@ export function IcsSourceManagementDialog({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadSourceId, setUploadSourceId] = useState<string | null>(null);
+  const tHere = useTWithMaps({
+    "zh-TW": {
+      "Name": "名稱",
+      "URL": "網址",
+      "Color": "顏色",
+      "Save": "保存",
+      "Cancel": "取消",
+      "匯入的日曆": "匯入的日曆",
+      "成功解析n個日曆事件": "成功解析並更新 {n} 個日曆事件！",
+      "匯入 ics 檔案失敗:": "匯入 ics 檔案失敗:",
+      "匯入失敗，請確認檔案格式是否為標準 .ics": "匯入失敗，請確認檔案格式是否為標準 .ics",
+      "外部日曆管理 (ICS Sources)": "外部日曆管理 (ICS Sources)",
+      "匯入 .ics 檔案": "匯入 .ics 檔案",
+      "新增 URL 訂閱": "新增 URL 訂閱",
+      "檔案": "檔案",
+      "編輯": "編輯",
+      "新增": "新增",
+      "取消": "取消",
+      "標籤顏色：": "標籤顏色：",
+      "日曆名稱 (如: Google 工作)": "日曆名稱 (如: Google 工作)",
+      "僅供參考": "僅供參考",
+      "儲存修改": "儲存修改",
+      "匯入檔案": "匯入檔案",
+      "新增 URL": "新增 URL",
+      "目前無任何外部日曆來源": "目前無任何外部日曆來源",
+      "已啟用 (點擊停用)": "已啟用 (點擊停用)",
+      "已停用 (點擊啟用)": "已停用 (點擊啟用)",
+      "未同步": "未同步",
+      "覆蓋檔案": "覆蓋檔案",
+      "編輯設定": "編輯設定",
+      "上次更新": "上次更新",
+      "類型": "類型",
+      "檔案匯入": "檔案匯入",
+      "URL 訂閱": "URL 訂閱",
+      "名稱": "名稱",
+      "關閉": "關閉",
+    },
+    "en": {
+      "Name": "Name",
+      "URL": "URL",
+      "Color": "Color",
+      "Save": "Save",
+      "Cancel": "Cancel",
+      "成功解析n個日曆事件": "Successfully parsed and updated {n} calendar events!",
+      "匯入的日曆": "Imported Calendars",
+      "匯入 ics 檔案失敗:": "Failed to import ics file:",
+      "匯入失敗，請確認檔案格式是否為標準 .ics": "Import failed, please make sure the file format is standard .ics",
+      "外部日曆管理 (ICS Sources)": "External Calendar Management (ICS Sources)",
+      "匯入 .ics 檔案": "Import .ics File",
+      "新增 URL 訂閱": "Add URL Subscription",
+      "檔案": "File",
+      "編輯": "Edit",
+      "新增": "Add",
+      "取消": "Cancel",
+      "標籤顏色：": "Label Color:",
+      "日曆名稱 (如: Google 工作)": "Calendar Name (e.g., Google Work)",
+      "僅供參考": "For reference only",
+      "儲存修改": "Save Changes",
+      "匯入檔案": "Import File",
+      "新增 URL": "Add URL",
+      "目前無任何外部日曆來源": "No external calendar sources at the moment",
+      "已啟用 (點擊停用)": "Enabled (click to disable)",
+      "已停用 (點擊啟用)": "Disabled (click to enable)",
+      "未同步": "Not Synced",
+      "覆蓋檔案": "Overwrite File",
+      "編輯設定": "Edit Settings",
+      "上次更新": "Last Updated",
+      "類型": "Type",
+      "檔案匯入": "File Import",
+      "URL 訂閱": "URL Subscription",
+      "名稱": "Name",
+      "關閉": "Close"
+    },
+    "ja": {
+      "Name": "名前",
+      "URL": "URL",
+      "Color": "色",
+      "Save": "保存",
+      "Cancel": "キャンセル",
+      "匯入的日曆": "インポートされたカレンダー",
+      "成功解析n個日曆事件": "{n} 件のカレンダーイベントを正常に解析して更新しました！",
+      "匯入 ics 檔案失敗:": "ics ファイルのインポートに失敗しました:",
+      "匯入失敗，請確認檔案格式是否為標準 .ics": "インポートに失敗しました。ファイル形式が標準の .ics であることを確認してください。",
+      "外部日曆管理 (ICS Sources)": "外部カレンダー管理 (ICS Sources)",
+      "匯入 .ics 檔案": ".ics ファイルをインポート",
+      "新增 URL 訂閱": "URL サブスクリプションを追加",
+      "檔案": "ファイル",
+      "編輯": "編集",
+      "新增": "追加",
+      "取消": "キャンセル",
+      "標籤顏色：": "ラベルの色：",
+      "日曆名稱 (如: Google 工作)": "カレンダー名 (例: Google Work)",
+      "僅供參考": "参考用のみ",
+      "儲存修改": "変更を保存",
+      "匯入檔案": "ファイルをインポート",
+      "新增 URL": "URL を追加",
+      "目前無任何外部日曆來源": "現在外部カレンダーソースはありません",
+      "已啟用 (點擊停用)": "有効 (クリックで無効化)",
+      "已停用 (點擊啟用)": "無効 (クリックで有効化)",
+      "未同步": "未同期",
+      "覆蓋檔案": "ファイルを上書き",
+      "編輯設定": "設定を編集",
+      "上次更新": "最終更新",
+      "類型": "タイプ",
+      "檔案匯入": "ファイルインポート",
+      "URL 訂閱": "URL サブスクリプション",
+      "名稱": "名前",
+      "關閉": "閉じる"
+    }
+  });
 
   const loadSources = async () => {
     try {
@@ -249,7 +360,7 @@ export function IcsSourceManagementDialog({
         const newSource: IcsSourceItem = {
           sourceId: targetSourceId,
           name:
-            formName.trim() || file.name.replace(/\.ics$/i, "") || "匯入的日曆",
+            formName.trim() || file.name.replace(/\.ics$/i, "") || (tHere("匯入的日曆")),
           url: formUrl.trim(),
           type: "file",
           color: selectedColor,
@@ -272,7 +383,7 @@ export function IcsSourceManagementDialog({
         targetSourceId,
       );
 
-      alert(`成功解析並更新 ${eventsLength} 個日曆事件！`);
+      alert(`${tHere("成功解析n個日曆事件",{n: eventsLength})}`);
       await loadSources();
 
       setEditingSource(null);
@@ -280,8 +391,8 @@ export function IcsSourceManagementDialog({
 
       if (onSynced) onSynced(true);
     } catch (err) {
-      console.error("匯入 ics 檔案失敗:", err);
-      alert("匯入失敗，請確認檔案格式是否為標準 .ics");
+      console.error(tHere("匯入 ics 檔案失敗:"), err);
+      alert(tHere("匯入失敗，請確認檔案格式是否為標準 .ics"));
     } finally {
       setLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -363,7 +474,7 @@ export function IcsSourceManagementDialog({
           editingSourceId,
         );
         isSuccess = true;
-        alert(`成功解析並更新 ${eventsLength} 個日曆事件！`);
+        alert(tHere("成功解析n個日曆事件", { n: eventsLength }));
       } catch (error) {
         isSuccess = false;
       }
@@ -381,7 +492,7 @@ export function IcsSourceManagementDialog({
         {/* Header */}
         <div className="flex items-center justify-between border-b pb-3 mb-3">
           <h2 className="text-base font-bold text-gray-800">
-            外部日曆管理 (ICS Sources)
+            {tHere("外部日曆管理 (ICS Sources)")}
           </h2>
           <button
             onClick={onClose}
@@ -420,7 +531,7 @@ export function IcsSourceManagementDialog({
               }}
               className="flex-1 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition"
             >
-              📁 匯入 .ics 檔案
+              📁 {tHere("匯入 .ics 檔案")}
             </button>
             <button
               type="button"
@@ -436,7 +547,7 @@ export function IcsSourceManagementDialog({
               }}
               className="flex-1 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition"
             >
-              🔗 新增 URL 訂閱
+              🔗 {tHere("新增 URL 訂閱")}
             </button>
           </div>
         ) : (
@@ -455,8 +566,8 @@ export function IcsSourceManagementDialog({
           >
             <div className="flex justify-between items-center">
               <span className="text-xs font-bold text-gray-700">
-                {editingSource ? "編輯" : "新增"}
-                {showAddForm === "file" ? "檔案" : "URL"}
+                {editingSource ? tHere("編輯") : tHere("新增")}
+                {showAddForm === "file" ? tHere("檔案") : tHere("URL")}
               </span>
               <button
                 type="button"
@@ -466,13 +577,13 @@ export function IcsSourceManagementDialog({
                 }}
                 className="text-xs text-gray-500 hover:underline"
               >
-                取消
+                {tHere("取消")}
               </button>
             </div>
 
             {/* 顏色選擇 */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">標籤顏色：</span>
+              <span className="text-xs text-gray-500">{tHere("標籤顏色：")}</span>
               <div className="flex gap-1.5" data-tour="select-a-color">
                 {PRESET_COLORS.map((c) => (
                   <button
@@ -497,7 +608,7 @@ export function IcsSourceManagementDialog({
 
             <input
               type="text"
-              placeholder="日曆名稱 (如: Google 工作)"
+              placeholder={tHere("日曆名稱 (如: Google 工作)")}
               value={formName}
               data-tour="input-src-name"
               required
@@ -506,7 +617,7 @@ export function IcsSourceManagementDialog({
             />
             <input
               type="url"
-              placeholder={`${showAddForm === "url" ? "https://calendar.google.com/.../basic.ics" : "僅供參考"}`}
+              placeholder={`${showAddForm === "url" ? "https://calendar.google.com/.../basic.ics" : tHere("僅供參考")}`}
               value={formUrl}
               data-tour="input-src-url"
               onChange={(e) => setFormUrl(e.target.value)}
@@ -520,8 +631,8 @@ export function IcsSourceManagementDialog({
                 className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700"
               >
                 {editingSource
-                  ? "儲存修改"
-                  : `${showAddForm === "file" ? "匯入檔案" : "新增 URL"}`}
+                  ? tHere("儲存修改")
+                  : `${showAddForm === "file" ? tHere("匯入檔案") : tHere("新增 URL")}`}
               </button>
             </div>
           </form>
@@ -534,36 +645,36 @@ export function IcsSourceManagementDialog({
           <div className="space-y-2.5">
             {sources.length === 0 ? (
               <p className="text-xs text-gray-400 py-8 text-center">
-                目前無任何外部日曆來源
+                {tHere("目前無任何外部日曆來源")}
               </p>
             ) : (
               sources.map((src) => (
                 <TableCard
                   key={src.sourceId}
                   item={src}
-                  editLabel={src.type === "file" ? "覆蓋檔案" : "編輯設定"}
+                  editLabel={src.type === "file" ? (tHere("覆蓋檔案")) : tHere("編輯設定")}
                   accentColor={src.color || "#9E9E9E"}
                   isDisabled={!src.enabled} // 停用時半透明處理
                   fields={[
-                    { label: "名稱", value: src.name },
+                    { label: tHere("名稱"), value: src.name },
                     {
-                      label: "類型",
+                      label: tHere("類型"),
                       value:
-                        src.type === "file" ? "📁 檔案匯入" : "🔗 URL 訂閱",
+                        src.type === "file" ? `📁 ${tHere("檔案匯入")}` : `🔗 ${tHere("URL 訂閱")}`,
                     },
                     {
-                      label: "上次更新",
+                      label: tHere("上次更新"),
                       value: src.lastSyncedAt
                         ? new Date(src.lastSyncedAt).toLocaleString("zh-TW")
-                        : "未同步",
+                        : tHere("未同步"),
                     },
                   ]}
                   onEdit={handleEditSource}
                   onDelete={(item) => deleteSource(item.sourceId)}
                   quickAction={{
                     label: src.enabled
-                      ? "已啟用 (點擊停用)"
-                      : "已停用 (點擊啟用)",
+                      ?( tHere("已啟用 (點擊停用)"))
+                      : tHere("已停用 (點擊啟用)"),
                     onClick: (item) => toggleSourceEnabled(item),
                   }}
                 />
@@ -578,7 +689,7 @@ export function IcsSourceManagementDialog({
             onClick={onClose}
             className="px-4 py-1.5 bg-gray-100 text-gray-700 text-xs rounded-lg hover:bg-gray-200 font-medium"
           >
-            關閉
+            {tHere("關閉")}
           </button>
         </div>
       </div>

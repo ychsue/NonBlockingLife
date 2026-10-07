@@ -1,6 +1,39 @@
+import { useTWithMaps } from "../../i18n";
 import "./page-three-task-control-center.css";
 
 export function PageThreeTaskControlCenter() {
+  const tHere = useTWithMaps({
+    "zh-TW": {
+      "QUERY": "查詢",
+      "CAPTURE": "捕捉",
+      "DAILY SCAN": "每日掃描",
+      "CONTROL": "控制",
+      "INBOX": "收件箱",
+      "TASKS": "任務",
+      "RESOURCES": "資源",
+      "KEEP": "保持"
+    },
+    "en": {
+      "QUERY": "QUERY",
+      "CAPTURE": "CAPTURE",
+      "DAILY SCAN": "DAILY SCAN",
+      "CONTROL": "CONTROL",
+      "INBOX": "INBOX",
+      "TASKS": "TASKS",
+      "RESOURCES": "RESOURCES",
+      "KEEP": "KEEP"
+    },
+    "ja": {
+      "QUERY": "クエリ",
+      "CAPTURE": "キャプチャ",
+      "DAILY SCAN": "毎日のスキャン",
+      "CONTROL": "コントロール",
+      "INBOX": "受信箱",
+      "TASKS": "タスク",
+      "RESOURCES": "リソース",
+      "KEEP": "保持"
+    }
+  });
   return (
     <div className="carousel-page-three-stage relative flex-1 overflow-hidden rounded-2xl border border-white/75 bg-white/55 px-3 py-4 shadow-inner sm:px-4 sm:py-5">
       <svg
@@ -22,13 +55,13 @@ export function PageThreeTaskControlCenter() {
 
         <g className="carousel-page-three-shell">
           <text x="140" y="182" fill="#475569" fontSize="26" fontWeight="700" letterSpacing="3">
-            QUERY
+            {tHere("QUERY")}
           </text>
           <text x="700" y="182" fill="#475569" fontSize="26" fontWeight="700" letterSpacing="3">
-            CAPTURE
+            {tHere("CAPTURE")}
           </text>
           <text x="404" y="646" fill="#475569" fontSize="24" fontWeight="700" letterSpacing="2">
-            DAILY SCAN
+            {tHere("DAILY SCAN")}
           </text>
         </g>
 
@@ -91,7 +124,7 @@ export function PageThreeTaskControlCenter() {
           <rect x="434" y="438" width="132" height="10" rx="5" fill="#0ea5e9" />
           <rect x="434" y="460" width="104" height="10" rx="5" fill="#bae6fd" />
           <text x="500" y="498" textAnchor="middle" fill="#334155" fontSize="22" fontWeight="700" letterSpacing="1.5">
-            CONTROL
+            {tHere("CONTROL")}
           </text>
         </g>
 
@@ -100,7 +133,7 @@ export function PageThreeTaskControlCenter() {
           <path d="M722 326H864" fill="none" stroke="#22c55e" strokeWidth="10" strokeLinecap="round" />
           <path d="M730 330L756 364H830L856 330" fill="none" stroke="#86efac" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
           <text x="792" y="430" textAnchor="middle" fill="#166534" fontSize="24" fontWeight="700" letterSpacing="2">
-            INBOX
+            {tHere("INBOX")}
           </text>
 
           <rect x="738" y="352" width="108" height="12" rx="6" fill="#dcfce7" className="carousel-page-three-inbox-item carousel-page-three-inbox-item-one" />
@@ -137,7 +170,7 @@ export function PageThreeTaskControlCenter() {
         <g className="carousel-page-three-bin carousel-page-three-bin-one">
           <rect x="168" y="700" width="176" height="112" rx="28" fill="#fef3c7" stroke="#f59e0b" strokeWidth="6" />
           <text x="256" y="748" textAnchor="middle" fill="#92400e" fontSize="23" fontWeight="700" letterSpacing="1.5">
-            TASKS
+            {tHere("TASKS")}
           </text>
           <rect x="210" y="770" width="92" height="10" rx="5" fill="#f59e0b" opacity="0.35" />
         </g>
@@ -145,7 +178,7 @@ export function PageThreeTaskControlCenter() {
         <g className="carousel-page-three-bin carousel-page-three-bin-two">
           <rect x="412" y="700" width="176" height="112" rx="28" fill="#e0f2fe" stroke="#0ea5e9" strokeWidth="6" />
           <text x="500" y="748" textAnchor="middle" fill="#0c4a6e" fontSize="21" fontWeight="700" letterSpacing="1.5">
-            RESOURCES
+            {tHere("RESOURCES")}
           </text>
           <rect x="454" y="770" width="92" height="10" rx="5" fill="#0ea5e9" opacity="0.35" />
         </g>
@@ -153,13 +186,13 @@ export function PageThreeTaskControlCenter() {
         <g className="carousel-page-three-bin carousel-page-three-bin-three">
           <rect x="656" y="700" width="176" height="112" rx="28" fill="#f1f5f9" stroke="#64748b" strokeWidth="6" />
           <text x="744" y="748" textAnchor="middle" fill="#334155" fontSize="23" fontWeight="700" letterSpacing="1.5">
-            KEEP
+            {tHere("KEEP")}
           </text>
           <rect x="698" y="770" width="92" height="10" rx="5" fill="#64748b" opacity="0.35" />
         </g>
 
         <text x="500" y="878" textAnchor="middle" fill="#64748b" fontSize="26" fontWeight="700" letterSpacing="2" className="carousel-page-three-shell">
-          QUERY  →  INBOX  →  DAILY ROUTE
+          {tHere("QUERY")}  →  {tHere("INBOX")}  →  {tHere("DAILY SCAN")}
         </text>
       </svg>
 

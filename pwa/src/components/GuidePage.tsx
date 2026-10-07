@@ -9,57 +9,102 @@ import {
 } from "../utils/shortcutUtils";
 import { useTwaRpc } from "../hooks/useTwaRpc";
 import { sleep } from "../utils/timeUtils";
+import { SupportedLocale, useTWithMaps } from "../i18n";
+import { GuidePageIntro } from "./GuideSubComponent/GuidePageIntro";
+import { GuideNotification } from "./GuideSubComponent/GuideNotification";
+import { GuideHowToUse } from "./GuideSubComponent/GuideHowToUse";
+import { GuideDataImportAndExport } from "./GuideSubComponent/GuideDataImportAndExport";
+import { GuideSyncExplanation } from "./GuideSubComponent/GuideSyncExplanation";
+import { GuideProgress } from "./GuideSubComponent/GuideProgress";
 
-const SHORTCUTS = [
+const SHORTCUTS = (locale: SupportedLocale) => [
   {
     name: "QueryOptions",
     url: "https://www.icloud.com/shortcuts/ce9e7a05926244d2aca8eec11860a000",
-    purpose: "由NBL取得候選任務清單",
+    purpose:
+      locale === "zh-TW"
+        ? "由NBL取得候選任務清單"
+        : locale === "ja"
+          ? "NBLから候補タスクを取得する"
+          : "Get candidate task list from NBL",
     api: "/NonBlockingLife?action=query",
   },
   {
     name: "NBL_Timer",
     url: "https://www.icloud.com/shortcuts/cec8d6853e6149f5aff82d8ff0235f36",
-    purpose: "iPhone 裡面接收來自NBL提出的顯示模式與計時器切換的要求。",
+    purpose:
+      locale === "zh-TW"
+        ? "iPhone 裡面接收來自NBL提出的顯示模式與計時器切換的要求。"
+        : locale === "ja"
+          ? "iPhone で NBL からの表示モードとタイマー切り替えの要求を受け取る。"
+          : "Receive display mode and timer switch requests from NBL on iPhone.",
   },
   {
     name: "SHOW_TIMER",
     url: "https://www.icloud.com/shortcuts/370f78a724654baf9a1909472c5bf4fc",
-    purpose: "顯示計時器，只有一行程式碼",
+    purpose:
+      locale === "zh-TW"
+        ? "顯示計時器，只有一行程式碼"
+        : locale === "ja"
+          ? "タイマーを表示する、コードは一行だけ"
+          : "Display the timer, only one line of code",
   },
   {
     name: "NBL Interrupt",
     url: "https://www.icloud.com/shortcuts/dc4620410baf4df6aec49dec77ebad5b",
-    purpose: "遇到打岔時一鍵切換中斷流程",
+    purpose:
+      locale === "zh-TW"
+        ? "遇到打岔時一鍵切換中斷流程"
+        : locale === "ja"
+          ? "中断が発生したときにワンクリックで中断プロセスに切り替える"
+          : "Switch to the interrupt process with one click when an interruption occurs",
     api: "/NonBlockingLife?action=interrupt",
   },
   {
     name: "NBL Inbox",
     url: "https://www.icloud.com/shortcuts/49028b49cdf1441b9d938830948c02dc",
-    purpose: "快速把想法丟進 NBL Inbox",
+    purpose:
+      locale === "zh-TW"
+        ? "快速把想法丟進 NBL Inbox"
+        : locale === "ja"
+          ? "思いついたことを素早く NBL Inbox に入れる"
+          : "Quickly put ideas into NBL Inbox",
     api: "/NonBlockingLife?action=add&sheet=inbox&title={title}&url={url}",
   },
   {
     name: "NBL Scheduled",
     url: "https://www.icloud.com/shortcuts/d45e5661b79946ac98274caa14852e7a",
-    purpose: "快速把想法丟進 NBL Scheduled",
+    purpose:
+      locale === "zh-TW"
+        ? "快速把想法丟進 NBL Scheduled"
+        : locale === "ja"
+          ? "思いついたことを素早く NBL Scheduled に入れる"
+          : "Quickly put ideas into NBL Scheduled",
     api: "/NonBlockingLife?action=add&sheet=scheduled&title={title}&note={note}&nextRun={nextRun}&url={url}",
   },
   {
     name: "Apple Clock (時鐘)",
     url: "https://apps.apple.com/tw/app/clock/id1584215688",
     purpose:
-      "iPhone 該內建的時鐘 App，提供計時器功能，配合 NBL_Timer Shortcut 切換工作/休息模式時會啟動對應的計時器。iPhone 有可能沒有預設安裝。",
+      locale === "zh-TW"
+        ? "iPhone 該內建的時鐘 App，提供計時器功能，配合 NBL_Timer Shortcut 切換工作/休息模式時會啟動對應的計時器。iPhone 有可能沒有預設安裝。"
+        : locale === "ja"
+          ? "iPhone に標準搭載されている時計アプリで、タイマー機能を提供します。NBL_Timer ショートカットと連携して作業/休憩モードを切り替えると、対応するタイマーが起動します。iPhone にはデフォルトでインストールされていない場合があります。"
+          : "The built-in clock app on iPhone provides a timer function. When switching work/rest mode with the NBL_Timer Shortcut, the corresponding timer will be activated. iPhone may not have it pre-installed.",
   },
   {
     name: "NBL Last Log Time",
     url: "https://www.icloud.com/shortcuts/a553937cb1fe49d3bb7c1ee926140115",
     purpose:
-      "這個比較進階，您得先使用`備忘錄`寫個文字類似`2026-04-03`，然後存到iPhone檔案目錄一個檔叫`last_log_time`(.txt會自動補，別加)，然後，在Shortcuts裡面利用自動化執行APP開啟時，串接自動化，先呼叫這個Shortcut，如果傳回的值大於2，就執行Shortcut NBL Query，這樣，就能在打開您要開的APP後，自動呼叫NBL 來管理您的任務了！這是我個人用來在打開社交媒體時自動呼叫NBL，提醒自己先看看待辦清單再決定要不要打開的做法，您也可以發揮創意串接在其他情境！",
+      locale === "zh-TW"
+        ? "這個比較進階，您得先使用`備忘錄`寫個文字類似`2026-04-03`，然後存到iPhone檔案目錄一個檔叫`last_log_time`(.txt會自動補，別加)，然後，在Shortcuts裡面利用自動化執行APP開啟時，串接自動化，先呼叫這個Shortcut，如果傳回的值大於2，就執行Shortcut NBL Query，這樣，就能在打開您要開的APP後，自動呼叫NBL 來管理您的任務了！這是我個人用來在打開社交媒體時自動呼叫NBL，提醒自己先看看待辦清單再決定要不要打開的做法，您也可以發揮創意串接在其他情境！"
+        : locale === "ja"
+          ? "これは少し高度です。まず「メモ」を使って `2026-04-03` のようなテキストを書き、iPhone のファイルディレクトリに `last_log_time` というファイルとして保存します（.txt は自動的に追加されるので、追加しないでください）。その後、Shortcuts の自動化でアプリ起動時にこのショートカットを呼び出し、返された値が 2 より大きければ Shortcut NBL Query を実行します。こうすることで、開きたいアプリを開いた後に自動的に NBL を呼び出してタスクを管理できます。これは私がソーシャルメディアを開くときに自動的に NBL を呼び出し、まずやることリストを確認してから開くかどうかを決める方法で、他の状況でも創意的に応用できます。"
+          : "This is a bit advanced. You first use the `Notes` app to write a text like `2026-04-03`, then save it to the iPhone file directory as a file called `last_log_time` (.txt will be added automatically, do not add it). Then, in Shortcuts automation, when the app is opened, call this shortcut first. If the returned value is greater than 2, execute the Shortcut NBL Query. This way, after opening the app you want to open, NBL will be automatically called to manage your tasks. This is my personal method to automatically call NBL when opening social media, reminding myself to check the to-do list before deciding whether to open it. You can also creatively apply it in other situations!",
   },
 ];
 
-const VIDEO_RESOURCES = [
+const VIDEO_RESOURCES = (locale: SupportedLocale) => [
   {
     title:
       "NonBlockingLife: A Practical Way to Recover Focus After Interruptions",
@@ -67,7 +112,11 @@ const VIDEO_RESOURCES = [
     type: "Concept Intro",
     url: "https://youtu.be/UTtDZrytIbc",
     description:
-      "介紹 Non-Blocking Life 的核心思路，示範面對中斷時，如何快速回到主線任務。",
+      locale === "zh-TW"
+        ? "介紹 Non-Blocking Life 的核心思路，示範面對中斷時，如何快速回到主線任務。"
+        : locale === "ja"
+          ? "Non-Blocking Life の核心的な考え方を紹介し、中断に直面したときにどのように迅速に主線のタスクに戻るかを示します。"
+          : "Introduces the core idea of Non-Blocking Life and demonstrates how to quickly return to the mainline task when faced with interruptions.",
   },
   {
     title: "NonBlockingLife｜別讓清單管理成為負擔：把大腦當單執行緒",
@@ -75,14 +124,32 @@ const VIDEO_RESOURCES = [
     type: "概念介紹",
     url: "https://youtu.be/NueGZACV7zw",
     description:
-      "用中文說明為什麼「任務管理不應該打斷生活」，以及如何建立可持續的日常流程。",
+      locale === "zh-TW"
+        ? "用中文說明為什麼「任務管理不應該打斷生活」，以及如何建立可持續的日常流程。"
+        : locale === "ja"
+          ? "なぜ「タスク管理は生活を中断すべきではない」のか、そして持続可能な日常の流れをどのように構築するかを中国語で説明します。"
+          : "Explains in Chinese why 'task management should not interrupt life' and how to establish a sustainable daily routine.",
   },
   {
-    title: "Android 版的展示(請幫忙封測)",
-    type: "實際操作",
+    title:
+      locale === "zh-TW"
+        ? "Android 版的展示(請幫忙封測)"
+        : locale === "ja"
+          ? "Android 版のデモ（ベータテストにご協力ください）"
+          : "Android Version Demo (Please Help Beta Test)",
+    type:
+      locale === "zh-TW"
+        ? "實際操作"
+        : locale === "ja"
+          ? "実際の操作"
+          : "Hands-on",
     url: "https://youtube.com/shorts/2UUsPNVpdkE",
     description:
-      "展示 Android 版的操作流程，請幫忙封測，提供回饋，這樣才能夠在Play商店被公開安裝。",
+      locale === "zh-TW"
+        ? "展示 Android 版的操作流程，請幫忙封測，提供回饋，這樣才能夠在Play商店被公開安裝。"
+        : locale === "ja"
+          ? "Android 版の操作手順を示し、ベータテストへの協力とフィードバックを求めます。これにより、Play ストアで公開インストールが可能になります。"
+          : "Demonstrates the operation process of the Android version, asks for help with beta testing and feedback, so that it can be publicly installed on the Play Store.",
   },
 ];
 
@@ -96,33 +163,59 @@ export function GuidePage() {
   const [timerUrlInput, setTimerUrlInput] = useState(getNblTimerInstallUrl());
   const [saved, setSaved] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [notificationPermission, setNotificationPermission] = useState<
-    NotificationPermission | "unsupported"
-  >("unsupported");
-  const [requestingPermission, setRequestingPermission] = useState(false);
   const [isIOS] = useState(getDeviceType() === "Shortcuts");
-  const [androidNotificationGranted, setAndroidNotificationGranted] = useState<
-    boolean | null
-  >(null);
 
   const deviceType = useMemo(() => getDeviceType(), []);
   const { sendRequest } = useTwaRpc();
-  const [androidWebViewVersion, setAndroidWebViewVersion] = useState<string | null>(null);
-  const [refreshAndroidWebViewInfo, setRefreshAndroidWebViewInfo] = useState(false);
+  const [androidWebViewVersion, setAndroidWebViewVersion] = useState<
+    string | null
+  >(null);
+  const [refreshAndroidWebViewInfo, setRefreshAndroidWebViewInfo] =
+    useState(false);
+
+  const tHere = useTWithMaps({
+    "zh-TW": {
+      "說明頁": "說明頁",
+      "查看首次教學輪播": "查看首次教學輪播",
+      "可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。": "可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。",
+      介紹影片與使用案例: "介紹影片與使用案例",
+      "先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。": "先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。",
+      "前往 YouTube 頻道": "前往 YouTube 頻道",
+      "觀看影片": "觀看影片",
+      "安裝 Shortcut": "安裝 Shortcut",
+      "API 範例": "API 範例",
+      "iOS Shortcuts 安裝": "iOS Shortcuts 安裝",
+    },
+    en: {
+      "說明頁": "Guide Page",
+      "查看首次教學輪播": "View the first tutorial carousel",
+      "可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。": "You can reopen the homepage tutorial at any time, and when adding animations page by page later, you will also enter from here.",
+      "介紹影片與使用案例": "Introduction Videos and Use Cases",
+      "先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。": "First watch the concept video to get started quickly, and various practical cases will continue to be added here later.",
+      "前往 YouTube 頻道": "Go to YouTube Channel",
+      "觀看影片": "Watch Video",
+      "安裝 Shortcut": "Install Shortcut",
+      "API 範例": "API Examples",
+      "iOS Shortcuts 安裝": "iOS Shortcuts Installation",
+    },
+    ja: {
+      "說明頁": "ガイドページ",
+      "查看首次教學輪播": "最初のチュートリアルカルーセルを見る",
+      "可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。": "ホームページのチュートリアルはいつでも再度開くことができ、後でページごとにアニメーションを追加する際にもここから入ります。",
+      "介紹影片與使用案例": "紹介動画と使用例",
+      "先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。": "まず概念動画を見て素早く始め、その後さまざまな実践例がここに追加され続けます。",
+      "前往 YouTube 頻道": "YouTube チャンネルへ",
+      "觀看影片": "動画を見る",
+      "安裝 Shortcut": "ショートカットをインストール",
+      "API 範例": "API の例",
+      "iOS Shortcuts 安裝": "iOS ショートカットのインストール",
+    }
+  });
 
   useEffect(() => {
     if (!import.meta.env.DEV && !["TWA", "AndroidWebView"].includes(deviceType))
       return;
 
-    // 改用 sendRequest 來取代 twaPort.postMessage
-    sleep(10)
-      .then(() => sendRequest("nbl:query-notification-permission", {}))
-      .then((response: any) => {
-        if (response?.type === "nbl:notification-permission-status") {
-          console.log("Notification permission status response:", response);
-          setAndroidNotificationGranted(Boolean(response.granted));
-        }
-      });
     sleep(20)
       .then(() => sendRequest("nbl:version", {}))
       .then((response: any) => {
@@ -134,20 +227,6 @@ export function GuidePage() {
     setRefreshAndroidWebViewInfo(false);
   }, [deviceType, sendRequest, refreshAndroidWebViewInfo]);
 
-  const handleOpenAndroidNotificationSettings = () => {
-    // Chrome (foreground) must issue this navigation itself so Android treats the resulting
-    // Activity start as user-initiated; a postMessage from our background process gets blocked.
-    window.location.href = "nonblockinglife://notification-settings";
-    sleep(100).then(() => setRefreshAndroidWebViewInfo(true));
-  };
-
-  useEffect(() => {
-    if (typeof Notification === "undefined") {
-      setNotificationPermission("unsupported");
-      return;
-    }
-    setNotificationPermission(Notification.permission);
-  }, []);
 
   const canInstallNblTimer = useMemo(
     () => isValidICloudShortcutUrl(timerUrlInput),
@@ -172,38 +251,10 @@ export function GuidePage() {
     [setCurrentSheet],
   );
 
-  const handleRequestNotificationPermission = async () => {
-    if (typeof Notification === "undefined") {
-      setNotificationPermission("unsupported");
-      return;
-    }
 
-    setRequestingPermission(true);
-    try {
-      const permission = await Notification.requestPermission();
-      setNotificationPermission(permission);
-    } finally {
-      setRequestingPermission(false);
-    }
-  };
-
-  const handleSetNotificationPermission = async (
-    next: "granted" | "denied",
-  ) => {
-    if (next === "granted") {
-      await handleRequestNotificationPermission();
-      return;
-    }
-
-    if (typeof Notification === "undefined") {
-      setNotificationPermission("unsupported");
-      return;
-    }
-
-    setNotificationPermission("denied");
-  };
-
-  function isVideoForCurrentLocale(video: (typeof VIDEO_RESOURCES)[number]) {
+  function isVideoForCurrentLocale(
+    video: (Record<string, any> & { language?: string })[number],
+  ) {
     if (!!!video.language) return true; // If no language specified, show for all locales
     if (locale === "zh-TW") {
       return video.language === "中文";
@@ -240,172 +291,30 @@ export function GuidePage() {
   return (
     <>
       <section className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
-        {locale !== "zh-TW" && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            {locale === "ja"
-              ? "このページは主に中国語です。Safari / Chrome のページ翻訳をご利用ください。"
-              : "This page is primarily written in Chinese. Please use your browser built-in translation (Safari/Chrome Translate)."}
-          </div>
-        )}
         <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <h2 className="text-xl font-bold text-gray-800 mb-2">📘 說明頁</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">📘 {tHere("說明頁")}</h2>
           <div>version: {import.meta.env.__APP_VERSION__}</div>
           {(import.meta.env.DEV || ["AndroidWebView"].includes(deviceType)) && (
             <div className="text-gray-700 leading-relaxed">
               [Android WebView] version: {androidWebViewVersion}
             </div>
           )}
-          <p className="text-gray-700 leading-relaxed">
-            Non-Blocking Life
-            的目的是把任務管理做成「不打斷主線」的日常系統，讓你在 iPhone 與 PWA
-            之間可以快速開始、結束、打岔與回到任務。 在{" "}
-            <a
-              href="https://vocus.cc/article/6a3e2565fd89780001a92977"
-              target="_blank"
-              rel="noreferrer"
-              className="text-blue-600 hover:underline"
-            >
-              vocus.cc 上的文章
-            </a>
-            有較詳細的解說。
-            <br />
-            v2.0 已升級為「PWA 本地優先 + GAS
-            雲端同步」架構，平常在本機快速操作，需要時再同步到 Google Sheets。
-            這是
-            <a
-              href="https://ychsue.github.io/superconductorlike_society/"
-              target="_blank"
-              rel="noreferrer"
-              className="text-blue-600 hover:underline"
-            >
-              我之前寫的「超導體般社會」
-            </a>
-            裡面個人時間管理系統的實驗性版本。
-          </p>
+          <GuidePageIntro locale={locale} />
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
             <button
               type="button"
               onClick={() => setShowTutorial(true)}
               className="inline-flex items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
             >
-              查看首次教學輪播
+              {tHere("查看首次教學輪播")}
             </button>
             <p className="text-sm text-gray-500">
-              可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。
+              {tHere("可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。")}
             </p>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">
-            🔔 背景提醒（可選）
-          </h3>
-          <p className="text-sm text-gray-700 leading-relaxed">
-            啟用後，當你切到其他視窗時，NBL 可在「開始工作 /
-            結束工作」時顯示系統通知。
-          </p>
-
-          <div className="mt-3">
-            {["TWA", "AndroidWebView"].includes(deviceType) ? (
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <button
-                  type="button"
-                  onClick={handleOpenAndroidNotificationSettings}
-                  className="rounded-full bg-sky-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-sky-700"
-                >
-                  重設通知權限
-                </button>
-                <p className="text-sm text-gray-600">
-                  {androidNotificationGranted === null
-                    ? "正在確認 Android 通知權限狀態..."
-                    : androidNotificationGranted
-                      ? "已啟用通知權限。背景時可收到工作狀態提醒。"
-                      : "尚未允許通知。點「重設通知權限」會開啟系統設定頁面，將 NonBlockingLife 的通知改為允許。"}
-                </p>
-              </div>
-            ) : (
-              <>
-                {notificationPermission === "unsupported" && (
-                  <p className="text-sm text-amber-700">
-                    此瀏覽器目前不支援 Web Notification。
-                  </p>
-                )}
-
-                {(notificationPermission === "granted" ||
-                  notificationPermission === "default") && (
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <div className="inline-flex rounded-full border border-sky-200 bg-sky-50 p-1">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          void handleSetNotificationPermission("granted")
-                        }
-                        disabled={
-                          requestingPermission ||
-                          notificationPermission === "granted"
-                        }
-                        className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-                          notificationPermission === "granted"
-                            ? "bg-sky-600 text-white shadow-sm"
-                            : "text-sky-700 hover:bg-sky-100"
-                        }`}
-                      >
-                        {requestingPermission ? "請稍候..." : "允許"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          void handleSetNotificationPermission("denied")
-                        }
-                        className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${"text-slate-700 hover:bg-slate-100"}`}
-                      >
-                        停用
-                      </button>
-                    </div>
-
-                    <p className="text-sm text-gray-600">
-                      {notificationPermission === "granted"
-                        ? "已啟用通知權限。背景時可收到工作狀態提醒。"
-                        : "若你選擇允許，系統會請求通知權限；若已被封鎖，可在下方直接重試。"}
-                    </p>
-                  </div>
-                )}
-
-                {notificationPermission === "denied" && (
-                  <div className="space-y-3">
-                    <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-1">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          void handleSetNotificationPermission("granted")
-                        }
-                        disabled={requestingPermission}
-                        className="rounded-full bg-sky-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {requestingPermission ? "請稍候..." : "重新允許"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          void handleSetNotificationPermission("denied")
-                        }
-                        className="rounded-full px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
-                      >
-                        已停用
-                      </button>
-                    </div>
-
-                    <p className="text-sm text-amber-700">
-                      已封鎖通知。若是 TWA/Android App
-                      內部狀態，點「重新允許」會再請求一次；若瀏覽器仍拒絕，請到系統或瀏覽器設定將
-                      Notifications 改為 Allow。
-                    </p>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+        <GuideNotification />
 
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <h3 className="text-lg font-semibold text-gray-800 mb-2">
@@ -457,10 +366,10 @@ export function GuidePage() {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-800">
-                🎬 介紹影片與使用案例
+                🎬 {tHere("介紹影片與使用案例")}
               </h3>
               <p className="text-sm text-gray-600 mt-1">
-                先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。
+                {tHere("先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。")}
               </p>
             </div>
             <a
@@ -469,12 +378,12 @@ export function GuidePage() {
               rel="noreferrer"
               className="inline-flex items-center text-sm font-medium text-red-600 hover:underline"
             >
-              前往 YouTube 頻道
+              {tHere("前往 YouTube 頻道")}
             </a>
           </div>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {VIDEO_RESOURCES.filter((video) =>
+            {VIDEO_RESOURCES(locale).filter((video) =>
               isVideoForCurrentLocale(video),
             ).map((video) => (
               <article
@@ -501,13 +410,13 @@ export function GuidePage() {
                   rel="noreferrer"
                   className="mt-4 inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
                 >
-                  觀看影片
+                  {tHere("觀看影片")}
                 </a>
               </article>
             ))}
           </div>
 
-          <div className="mt-4 rounded-md border border-dashed border-gray-300 bg-white p-4 text-sm text-gray-700">
+          {/* <div className="mt-4 rounded-md border border-dashed border-gray-300 bg-white p-4 text-sm text-gray-700">
             <p className="font-medium text-gray-800">
               接下來預計補上的案例方向
             </p>
@@ -516,214 +425,14 @@ export function GuidePage() {
               <li>如何透過Task Pool 戒除不想要的習慣</li>
               <li>如何透過 Scheduled 提醒自己定時做某件事，比如早晚的養生操</li>
             </ul>
-          </div>
+          </div> */}
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">
-            🚀 怎麼用（最短流程）
-          </h3>
-          <ol className="list-decimal pl-5 space-y-2 text-gray-700">
-            <li>
-              先開啟本 PWA，確認可看到 Inbox / Task Pool / Scheduled 等頁籤。
-            </li>
-            <li>
-              iPhone的使用者，請確認不是在 `私密瀏覽模式`
-              下使用，若是的話，請切換到一般模式，不然會無法紀錄。
-            </li>
-            <li>
-              [可選] 第一次使用請先設定同步 URL：點右上角「⚙️」貼上 GAS Web App
-              URL。
-            </li>
-            <li>[可選] 按一次「💾 同步」確認可成功 push / pull。</li>
-            <li>
-              在 iPhone 安裝下方 Shortcuts，並將除了 <b>NBL_Timer</b> 以外的
-              Shortcuts 加入 iPhone 下拉式控制項目。
-            </li>
-            <li>
-              日常用法：用 <b>QueryOptions</b>{" "}
-              直接挑下一個建議任務執行，或者結束當前任務。
-            </li>
-            <li>
-              若有任務想納入管理，請在 PWA 新增。特定時間執行請加到{" "}
-              <b>NBL Scheduled</b>，其他請加到 <b>Task Pool</b> 或{" "}
-              <b>Micro Task</b>。
-            </li>
-            <li>
-              遇到突發狀況需要中斷時，請使用 <b>NBL Interrupt</b>。
-            </li>
-            <li>
-              若有好想法，請使用 <b>NBL Inbox</b> 快速記錄。我是把它設為 iPhone
-              的 <b>輔助使用➡️觸控➡️背面輕點</b>，可快速紀錄。
-            </li>
-            <li>
-              若有行事曆要記錄，請使用 <b>NBL Scheduled</b>，會先寫入 iPhone
-              行事曆，再同步到 NBL Scheduled。
-            </li>
-            <li>
-              開始與結束任務都會在 <b>Log</b> 頁籤紀錄，完整 Log 會推送到 Google
-              Sheets 供 AI/Excel 分析。
-            </li>
-          </ol>
-        </div>
+        <GuideHowToUse />
 
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">
-            📦 資料匯出與匯入
-          </h3>
-          <p className="text-gray-700 text-sm mb-4">
-            NBL 支援把本地資料匯出成 JSON 或 Markdown table
-            備份，也可從備份檔案匯入資料。這對跨設備遷移、備份、AI 分析或 Excel
-            檢視都很有幫助。
-          </p>
+        <GuideDataImportAndExport />
 
-          <div className="space-y-4">
-            {/* 匯出說明 */}
-            <div className="rounded-md bg-blue-50 border border-blue-200 p-3">
-              <h4 className="font-semibold text-blue-900 text-sm mb-2">
-                📤 匯出備份
-              </h4>
-              <ol className="list-decimal pl-5 space-y-1 text-sm text-blue-800">
-                <li>
-                  點擊同步狀態列右方的 <strong>📤 按鈕</strong>
-                </li>
-                <li>
-                  可選擇輸出 JSON 或 Markdown table，會下載{" "}
-                  <code className="bg-white px-1 rounded">
-                    nbl-backup-YYYY-MM-DD.json
-                  </code>{" "}
-                  或{" "}
-                  <code className="bg-white px-1 rounded">
-                    nbl-backup-YYYY-MM-DD.md
-                  </code>
-                </li>
-                <li>
-                  兩種格式都包含 6 張表：Task Pool / Scheduled / Micro Tasks /
-                  Inbox / Resource / Log
-                </li>
-              </ol>
-              <p className="text-xs text-blue-700 mt-2">
-                💡 提示：JSON 適合程式處理與 Power Query；Markdown table
-                可直接閱讀，且用{" "}
-                <code className="bg-white px-1 rounded">## 📊 table_name</code>{" "}
-                分段，適合 AI 與人工檢查
-              </p>
-            </div>
-
-            {/* 匯入說明 */}
-            <div className="rounded-md bg-green-50 border border-green-200 p-3">
-              <h4 className="font-semibold text-green-900 text-sm mb-2">
-                📥 匯入資料
-              </h4>
-              <ol className="list-decimal pl-5 space-y-1 text-sm text-green-800">
-                <li>
-                  點擊同步狀態列右方的 <strong>📥 按鈕</strong>
-                </li>
-                <li>選擇要匯入的 JSON 或 Markdown table 備份檔案</li>
-                <li>確認 modal 提醒有無未同步的變更</li>
-                <li>
-                  確認後開始匯入，相同 ID 的記錄會被覆蓋，其他本地資料保留
-                </li>
-                <li>結果 modal 會顯示各表匯入筆數與任何跳過的記錄</li>
-              </ol>
-              <p className="text-xs text-green-700 mt-2">
-                ⚠️ 提醒：匯入會用 upsert（更新或插入）模式，相同 ID
-                會被覆蓋，但不會刪除其他記錄
-              </p>
-            </div>
-
-            {/* Excel 整合說明 */}
-            <div className="rounded-md bg-amber-50 border border-amber-200 p-3">
-              <h4 className="font-semibold text-amber-900 text-sm mb-2">
-                📊 在 Excel 檢視資料
-              </h4>
-              <p className="text-sm text-amber-800 mb-2">
-                可先匯出 JSON 或 Markdown table；思考中：
-              </p>
-              {/* <ol className="list-decimal pl-5 space-y-1 text-sm text-amber-800">
-              <li><strong>Power Query 方式</strong>（適合進階使用者）：
-                <ul className="list-disc pl-5 mt-1 space-y-0.5">
-                  <li>Excel → <strong>資料</strong> → <strong>取得資料</strong> → <strong>自檔案</strong> → <strong>自 JSON</strong></li>
-                  <li>選擇匯出的 JSON 檔案，Power Query 會自動解析 6 張表</li>
-                  <li>但需手動為每張表設定查詢，首次建議使用提供的範例 Excel 檔</li>
-                </ul>
-              </li>
-              <li><strong>Google Sheets 方式</strong>（推薦，最簡單）：
-                <ul className="list-disc pl-5 mt-1 space-y-0.5">
-                  <li>用文字編輯器打開 JSON，複製其中一個表的陣列（如 <code className="bg-white px-0.5 rounded text-xs">"task_pool": [...]</code>）</li>
-                  <li>開啟 <a href="https://sheets.google.com" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Google Sheets</a> → 新增試算表</li>
-                  <li>在儲存格 A1 貼上陣列 JSON，Google Sheets 自動解析成表格</li>
-                  <li>為其他表重複步驟（task_pool / scheduled / micro_tasks / inbox / resource / log）</li>
-                  <li>可在 Google Sheets 中編輯後，再複製欄位值回成 JSON 格式以匯入 PWA</li>
-                </ul>
-              </li>
-              <li><strong>Excel 複製貼上方式</strong>（替代方案）：
-                <ul className="list-disc pl-5 mt-1 space-y-0.5">
-                  <li>複製 JSON 中一個表的陣列部分</li>
-                  <li>貼到 Excel，選擇「從 JSON 轉換」或直接作為文字</li>
-                  <li>手動調整格式（功能有限，不太推薦）</li>
-                </ul>
-              </li>
-            </ol> */}
-            </div>
-
-            {/* 常見情境 */}
-            <div className="rounded-md bg-purple-50 border border-purple-200 p-3">
-              <h4 className="font-semibold text-purple-900 text-sm mb-2">
-                🎯 常見使用情境
-              </h4>
-              <ul className="space-y-1 text-sm text-purple-800 list-disc pl-5">
-                {/* <li><strong>在 Excel 中修改後匯入</strong>：export JSON → 在 Excel 中編輯 → 存回 JSON → 用 📥 匯入</li> */}
-                <li>
-                  <strong>跨裝置遷移</strong>：新裝置先 export 空備份確認格式 →
-                  從舊裝置 export → 在新裝置 import
-                </li>
-                <li>
-                  <strong>AI 分析</strong>：export Markdown table → 貼給
-                  Gemini/Copilot/Claude 做分析或摘要（保留{" "}
-                  <code className="bg-white px-1 rounded">
-                    ## 📊 table_name
-                  </code>{" "}
-                  區塊）
-                </li>
-                <li>
-                  <strong>完整備份</strong>：定期 export JSON 與 Markdown table
-                  各一份，兼顧系統還原與人工可讀
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">
-            🔄 同步說明（v2.0）
-          </h3>
-          <ul className="space-y-2 text-gray-700 list-disc pl-5">
-            <li>
-              <b>資料主體在 PWA：</b>
-              本機 Dexie/IndexedDB 為主資料庫，操作速度快且可離線。
-            </li>
-            <li>
-              <b>GAS + Google Sheets 是雲端資料層：</b>
-              用於跨設備同步與備份。
-            </li>
-            <li>
-              <b>雙向同步表：</b>
-              Task Pool / Scheduled / Micro Tasks / Inbox。
-            </li>
-            <li>
-              <b>Log 表目前採單向推送：</b>
-              PWA 會推送 Log 到 Google
-              Sheets，但不自動拉回，避免重複與大量傳輸。
-            </li>
-            <li>
-              <b>☁️ 還原功能：</b>
-              可清空本地後從 Google Sheets 重新拉取。預設保留 Log，也可切換連
-              Log 一起清除。
-            </li>
-          </ul>
-        </div>
+        <GuideSyncExplanation />
 
         {(isIOS || import.meta.env.DEV) && (
           <div
@@ -731,10 +440,10 @@ export function GuidePage() {
             data-tour="iphone-shortcuts"
           >
             <h3 className="text-lg font-semibold text-gray-800 mb-3">
-              📱 iOS Shortcuts 安裝
+              📱 {tHere("iOS Shortcuts 安裝")}
             </h3>
             <div className="space-y-3">
-              {SHORTCUTS.map((shortcut) => (
+              {SHORTCUTS(locale).map((shortcut) => (
                 <div
                   key={shortcut.name}
                   className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border border-gray-100 rounded-md p-3"
@@ -749,7 +458,7 @@ export function GuidePage() {
                         rel="noreferrer"
                         className="text-blue-600 hover:underline text-sm"
                       >
-                        API 範例
+                        {tHere("API 範例")}
                       </a>
                     )}
                   </div>
@@ -759,7 +468,7 @@ export function GuidePage() {
                     rel="noreferrer"
                     className="inline-flex items-center justify-center px-3 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700"
                   >
-                    安裝 Shortcut
+                    {tHere("安裝 Shortcut")}
                   </a>
                 </div>
               ))}
@@ -767,24 +476,7 @@ export function GuidePage() {
           </div>
         )}
 
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">
-            🧩 整合進度
-          </h3>
-          <ul className="space-y-2 text-gray-700">
-            <li>✅ Start 後切單色 + 30 分鐘計時（由 NBL_Timer 處理）</li>
-            <li>✅ End 後恢復色彩 + 10 分鐘計時（由 NBL_Timer 處理）</li>
-            <li>✅ Inbox 新增（iPhone 已完成）</li>
-            <li>✅ Interrupt 啟動 start interrupt（iPhone 已完成）</li>
-            <li>✅ Scheduled add：開啟行事曆後再寫入 Scheduled</li>
-            <li>
-              <i>
-                🚧 Log 深度分析與身心健康整合尚未實作，現階段建議先使用 Google
-                Sheets + AI 工具分析。
-              </i>
-            </li>
-          </ul>
-        </div>
+        <GuideProgress />
 
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <h3 className="text-lg font-semibold text-gray-800 mb-3">

@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-10-07] 進行多國語化中
+1. [styles.css](pwa\src\styles.css) 定義了 safe-min 的全域間距變數，用於避免底部導覽列遮擋內容。他的出現是因為，`.safe-padding-bottom` 修改了整個 padding 的行為，導致需要一個最小安全間距來確保整個 Toast 不會變得太壅擠。
+
 ## [2026-10-06] (3.1.4) 增強Supabase 的教學
 1. [productTours.ts](pwa\src\components\tour\productTours.ts) 增強了 Supabase 的教學內容。
 2. [useProductTour.ts](pwa\src\components\tour\useProductTour.ts) 增加了對自訂 beacon 元素顯示的支援，透過 `useStepTargetReady` 來檢查目標元素是否準備好。

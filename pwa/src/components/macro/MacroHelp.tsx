@@ -1,17 +1,38 @@
 import { stringify } from 'yaml'
 import { ADD_TARGET_TABLES, COMMAND_SPECS } from '../../macro/commandRegistry'
+import { useTWithMaps } from '../../i18n'
 
 export function MacroHelp() {
+  const tHere = useTWithMaps({
+    "zh-TW": {
+      "Macro Command Help": "巨集指令說明",
+      "Allowed add targets": "允許的新增目標",
+      "Required": "必填",
+      "YouTube Tutorial": "YouTube 教學"
+    },
+    "ja": {
+      "Macro Command Help": "マクロコマンドの説明",
+      "Allowed add targets": "許可されている追加ターゲット",
+      "Required": "必須",
+      "YouTube Tutorial": "YouTube チュートリアル"
+    },
+    en: {
+      "Macro Command Help": "Macro Command Help",
+      "Allowed add targets": "Allowed add targets",
+      "Required": "Required",
+      "YouTube Tutorial": "YouTube Tutorial",
+    }
+  });
   return (
     <details className="rounded-lg border border-gray-200 bg-white p-4">
-      <summary className="cursor-pointer text-sm font-semibold text-gray-700">Macro Command Help</summary>
+      <summary className="cursor-pointer text-sm font-semibold text-gray-700">{tHere("Macro Command Help")}</summary>
       <div className="mt-3 space-y-4 text-sm text-gray-700">
         <div>
-          <div className="font-medium text-gray-800">Allowed add targets</div>
+          <div className="font-medium text-gray-800">{tHere("Allowed add targets")}</div>
           <div>{ADD_TARGET_TABLES.join(', ')}</div>
           {/* 讓<a>看起來像Button */}
           <a href="https://youtube.com/shorts/fmzZwrnK8oo" className="inline-block rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600" target="_blank" rel="noopener noreferrer">
-            YouTube Tutorial
+            {tHere("YouTube Tutorial")}
           </a>
         </div>
 
@@ -20,7 +41,7 @@ export function MacroHelp() {
             <div className="font-semibold text-gray-800">{spec.type}</div>
             <div className="mt-1">{spec.summary}</div>
             {spec.requiredFields.length > 0 && (
-              <div className="mt-1 text-xs text-gray-600">Required: {spec.requiredFields.join(', ')}</div>
+              <div className="mt-1 text-xs text-gray-600">{tHere("Required")}: {spec.requiredFields.join(', ')}</div>
             )}
             <pre className="mt-2 overflow-auto rounded border border-gray-200 bg-white p-2 text-xs">
               {stringify([spec.example])}
