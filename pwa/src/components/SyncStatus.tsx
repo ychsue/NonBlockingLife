@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { db } from "../db/index";
 import { SetupGASWizard } from "./SetupGASWizard";
 import { Toast } from "./Toast";
-import { type SyncResult } from "../utils/syncUtils";
+import { SYNC_TABLES, SyncTable, type SyncResult } from "../utils/syncUtils";
 import { parse } from "yaml";
 import {
   exportDB,
@@ -26,6 +26,7 @@ import { parseEnvString } from "../utils/parseEnvString";
 import { useAppStore } from "../store/appStore";
 import { SetupSupabaseWizard } from "./SetupSupabaseWizard";
 import { useProductTourContext } from "./tour/ProductTourContext";
+import _ from "lodash";
 
 interface SyncStatusProps {
   syncStatus?: "idle" | "syncing" | "error";
@@ -50,6 +51,9 @@ export function SyncStatus({
   const setPendingChangeLogs = useAppStore(
     (state) => state.setPendingChangeLogs,
   );
+  const [filteredPendingChangeLogs, setFilteredPendingChangeLogs] = useState<
+    typeof pendingChangeLogs
+  >([]);
   const [showUrlInput, setShowUrlInput] = useState(!syncStr);
   const [message, setMessage] = useState("");
   const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
@@ -358,7 +362,15 @@ export function SyncStatus({
   const syncPendingChangeLogs = () => {
     const AUTO_SYNC_THRESHOLD = syncType === "gas" ? 20 : 3;
     const IDLE_DELAY_MS = syncType === "gas" ? 3000 : 0;
-    const count = pendingChangeLogs.length;
+    const filteredPendingChangeLogs_buf = pendingChangeLogs.filter((log) =>
+      SYNC_TABLES.includes(log.table as SyncTable),
+    );
+    setFilteredPendingChangeLogs((prev) =>
+      _.isEqual(prev, filteredPendingChangeLogs_buf)
+        ? prev
+        : filteredPendingChangeLogs_buf,
+    );
+    const count = filteredPendingChangeLogs_buf.length;
     if (count !== 0) lastPendingChangeRef.current = Date.now();
     // 自動同步：筆數 >= 20 且距上次變化 >= 3 秒且目前不在 syncing 且已設定 GAS URL
     if (
@@ -613,13 +625,13 @@ export function SyncStatus({
   const statusText: Record<string, string> = useMemo(() => {
     return {
       idle:
-        pendingChangeLogs.length > 0
-          ? `Pending ${pendingChangeLogs.length}`
+        filteredPendingChangeLogs.length > 0
+          ? `Pending ${filteredPendingChangeLogs.length}`
           : "Synced",
       syncing: "Syncing...",
       error: "Sync Error",
     };
-  }, [pendingChangeLogs]);
+  }, [filteredPendingChangeLogs]);
 
   const UrlInputView = () => (
     <div className="flex items-center gap-2 text-sm">
@@ -657,19 +669,19 @@ export function SyncStatus({
             ) {
               alert(tHere("教學之前警告"));
               return;
-            } else {
-              const input = (e.target as HTMLElement)
-                .previousElementSibling as HTMLInputElement;
-              if (syncType === "supabase") {
-                handleSetSupabaseUrlKey(input.value);
-              } else if (syncType === "gas") {
-                handleSetGasUrl(input.value);
-              } else if (syncType === "none") {
-                // Do nothing for 'none' sync type
-                alert(tHere("請改選其他同步方式"));
-              }
-              nextStep();
             }
+          } else {
+            const input = (e.target as HTMLElement)
+              .previousElementSibling as HTMLInputElement;
+            if (syncType === "supabase") {
+              handleSetSupabaseUrlKey(input.value);
+            } else if (syncType === "gas") {
+              handleSetGasUrl(input.value);
+            } else if (syncType === "none") {
+              // Do nothing for 'none' sync type
+              alert(tHere("請改選其他同步方式"));
+            }
+            nextStep();
           }
         }}
         data-tour="sync-status-settings-button"
@@ -751,7 +763,10 @@ export function SyncStatus({
 
   // 正常顯示：狀態 + 同步按鈕
   return (
-    <div data-tour="sync-status-container" className={`flex flex-wrap flex-row gap-1 ${className}`}>
+    <div
+      data-tour="sync-status-container"
+      className={`flex flex-wrap flex-row gap-1 ${className}`}
+    >
       {showUrlInput ? <UrlInputView /> : <StatusView />}
 
       <button
@@ -832,9 +847,10 @@ export function SyncStatus({
                 </span>
               </span>
             </label>
-            {pendingChangeLogs.length > 0 && (
+            {filteredPendingChangeLogs.length > 0 && (
               <div className="bg-red-50 border border-red-200 rounded p-2 mb-3 text-xs text-red-700">
-                ⚠️ {tHere("目前有")} <strong>{pendingChangeLogs.length}</strong>{" "}
+                ⚠️ {tHere("目前有")}{" "}
+                <strong>{filteredPendingChangeLogs.length}</strong>{" "}
                 {tHere("筆尚未同步的變更，還原後將遺失！建議先執行「同步」。")}
               </div>
             )}
@@ -923,9 +939,10 @@ export function SyncStatus({
             <p className="text-gray-600 text-sm mb-4">
               {tHere("相同 ID 的記錄將被覆蓋，其餘本地資料不受影響。")}
             </p>
-            {pendingChangeLogs.length > 0 && (
+            {filteredPendingChangeLogs.length > 0 && (
               <div className="bg-amber-50 border border-amber-200 rounded p-2 mb-3 text-xs text-amber-700">
-                ⚠️ {tHere("目前有")} <strong>{pendingChangeLogs.length}</strong>{" "}
+                ⚠️ {tHere("目前有")}{" "}
+                <strong>{filteredPendingChangeLogs.length}</strong>{" "}
                 {tHere("筆尚未同步的變更，匯入後不影響這些待同步項目。")}
               </div>
             )}

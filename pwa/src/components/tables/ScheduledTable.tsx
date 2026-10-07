@@ -28,7 +28,6 @@ import { useT, useTWithMaps } from "../../i18n";
 import { TableCard } from "../TableCard";
 import { EditDialog, type FieldType } from "../EditDialog";
 import { TableHelpDialog } from "../TableHelpDialog";
-import scheduledHelpMarkdown from "./ScheduledHelp.md?raw";
 import { useSearchFilter, useHideDone } from "../../hooks/useSearchFilter";
 import {
   buildCronExpr,
@@ -59,6 +58,7 @@ import dayjs from "dayjs";
 import { MonthView } from "../calendar/MonthView";
 import { ProjectTreeSelector } from "../ProjectTreeSelector";
 import { IcsExportConfigTable } from "./IcsExportConfigTable";
+import { useMarkdown } from "../../hooks/useMarkdown";
 
 const DEV_CLIENT_ID = "dev-client";
 const columnHelper = createColumnHelper<UnifiedCalendarItem>();
@@ -98,9 +98,8 @@ function createNewScheduledRow(
 export function ScheduledTable() {
   const t = useT();
   const locale = useAppStore((state) => state.locale);
-  const experimentalFeaturesEnabled = useAppStore(
-    (state) => state.experimentalFeaturesEnabled,
-  );
+  const { content: scheduledHelpMarkdown, loading: scheduledHelpLoading } =
+    useMarkdown("scheduled", locale);
 
   const [rows, setRows] = useState<UnifiedCalendarItem[]>([]);
   const [loading, setLoading] = useState(true);

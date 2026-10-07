@@ -17,7 +17,7 @@
 ### 搜尋資源
 
 - 在搜尋框輸入關鍵字
-- 可按 **Title、Category、Note、URL** 進行全文搜尋
+- 可根據 **Title、Category、Note、URL** 進行全文搜尋
 - 支援兩種搜尋模式：
   - **OR 模式**（預設）：只要匹配任意一個關鍵字即可（例如搜尋 "React Vue" 會顯示包含 "React" **或** "Vue" 的項目）
   - **AND 模式**：必須匹配所有關鍵字（例如搜尋 "React Tutorial" 會顯示同時包含 "React" **和** "Tutorial" 的項目）

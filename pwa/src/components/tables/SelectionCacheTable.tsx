@@ -35,7 +35,6 @@ import {
 import { useAppStore } from "../../store/appStore";
 import { TableHelpDialog } from "../TableHelpDialog";
 import { BaseDialog } from "./BaseDialog";
-import selectionCacheHelpMarkdown from "./SelectionCacheHelp.md?raw";
 import { useResponsiveTable } from "../../hooks/useResponsiveTable";
 import { useT } from "../../i18n";
 import type { SheetName } from "../../hooks/useUrlAction";
@@ -53,6 +52,7 @@ import {
   mapIcsToUnifiedItem,
   UnifiedTypeName,
 } from "../../utils/icsAdapter";
+import { useMarkdown } from "../../hooks/useMarkdown";
 
 const DEV_CLIENT_ID = "dev-selection-cache";
 const columnHelper = createColumnHelper<SelectionCacheItem>();
@@ -135,6 +135,11 @@ export function SelectionCacheTable() {
   const [isInitialLoaded, setIsInitialLoaded] = useState(false);
 
   const locale = useAppStore((state) => state.locale);
+  const { content: selectionCacheHelpContent } = useMarkdown(
+    "selection_cache",
+    locale,
+  );
+
   const handleDialogButtonTouchEnd = useCallback(
     (event: TouchEvent<HTMLButtonElement>, action: () => void) => {
       if (event.currentTarget.disabled) return;
@@ -1193,7 +1198,7 @@ export function SelectionCacheTable() {
       <TableHelpDialog
         isOpen={showHelp}
         title="Candidates 使用說明"
-        markdown={selectionCacheHelpMarkdown}
+        markdown={selectionCacheHelpContent}
         onClose={() => setShowHelp(false)}
       />
 

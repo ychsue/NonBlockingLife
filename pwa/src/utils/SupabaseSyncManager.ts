@@ -72,7 +72,9 @@ export class SupabaseSyncManager extends SyncManagerBase {
       )) {
         if (deleteChanges.length > 0) {
           // 確保一個 primary key 對應的記錄唯一
-          const ids = (deleteChanges.map((c) => c.recordId).filter((v, i, a) => a.indexOf(v) === i));
+          const ids = deleteChanges
+            .map((c) => c.recordId)
+            .filter((v, i, a) => a.indexOf(v) === i);
           const primaryKey = this.getPrimaryKeyName(table as SyncTable);
           // const { error } = await this.supabase
           //   .from(table)
@@ -81,7 +83,7 @@ export class SupabaseSyncManager extends SyncManagerBase {
           // 應該改為將他們的 deleted 設為 true，而不是直接刪除
           const { error } = await this.supabase
             .from(table)
-            .update({ deleted: true , synced_at: now})
+            .update({ deleted: true, synced_at: now })
             .in(primaryKey, ids);
 
           if (!error) {
@@ -185,6 +187,8 @@ export class SupabaseSyncManager extends SyncManagerBase {
    * 從 Supabase 拉取最新變更
    */
   async pull(): Promise<{ success: number; error?: string }> {
+    let currentType = null;
+    let currentRecord = null;
     try {
       const lastSync = this.lastSyncTimestamp;
       const tables: SyncTable[] = [
@@ -224,7 +228,7 @@ export class SupabaseSyncManager extends SyncManagerBase {
               ? row
               : {
                   ...row.data,
-                  taskId: row.data.taskId,
+                  taskId: row.data.taskId ?? row.data.task_id ?? row.task_id,
                   updatedAt: row.updated_at,
                 };
 
@@ -233,9 +237,12 @@ export class SupabaseSyncManager extends SyncManagerBase {
             record[primaryKey] = row[primaryKey];
           }
 
+          currentRecord = record; //DEBUG
           if (row.deleted) {
+            currentType = "delete"; //DEBUG
             await db.table(table).delete(row[primaryKey]);
           } else {
+            currentType = "update"; // DEBUG
             await db.table(table).put(record);
           }
           mergedCount++;
@@ -246,7 +253,12 @@ export class SupabaseSyncManager extends SyncManagerBase {
       return { success: mergedCount };
     } catch (error) {
       console.error("Supabase Pull 失敗:", error);
-      return { success: 0, error: String(error) };
+      return {
+        success: 0,
+        error: `[${
+          currentType ?? "unknown"
+        }][${JSON.stringify(currentRecord) ?? "no record"}] ${String(error)}`,
+      };
     }
   }
 

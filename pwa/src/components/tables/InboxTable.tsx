@@ -18,11 +18,11 @@ import { useT } from "../../i18n";
 import { TableCard } from "../TableCard";
 import { EditDialog, type FieldType } from "../EditDialog";
 import { TableHelpDialog } from "../TableHelpDialog";
-import inboxHelpMarkdown from "./InboxHelp.md?raw";
 import { shouldOpenRowEdit } from "./rowEditUtils";
 import { handleDialogTextFieldInteractionEnd } from "../../utils/dialogInteractionUtils";
 import { useProductTourContext } from "../tour/ProductTourContext";
 import _ from "lodash";
+import { useMarkdown } from "../../hooks/useMarkdown";
 
 const DEV_CLIENT_ID = "dev-client";
 const columnHelper = createColumnHelper<InboxItem>();
@@ -125,6 +125,11 @@ function createNewInboxRow(): InboxItem {
 
 export function InboxTable() {
   const t = useT();
+  const locale = useAppStore((state) => state.locale);
+  const { content: inboxHelpContent, loading: inboxHelpLoading } = useMarkdown(
+    "inbox",
+    locale,
+  );
   const [rows, setRows] = useState<InboxItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
@@ -143,15 +148,19 @@ export function InboxTable() {
   );
 
   const [createdNewRowId, setCreatedNewRowId] = useState("");
-  const currentSheetByAction = useAppStore((state) => state.currentSheetByAction);
+  const currentSheetByAction = useAppStore(
+    (state) => state.currentSheetByAction,
+  );
 
-  const { isRunning, activeStep, nextStep,} = useProductTourContext();
+  const { isRunning, activeStep, nextStep } = useProductTourContext();
 
   // 這是因為有可能透過useUrlAction加入 Inbox，所以，需要這兩個
-  const currentSheet = useAppStore((state) => state.currentSheet)
-  const pendingEditIntent = useAppStore((state) => state.pendingEditIntent)
-  const clearPendingEditIntent = useAppStore((state) => state.clearPendingEditIntent)
-  
+  const currentSheet = useAppStore((state) => state.currentSheet);
+  const pendingEditIntent = useAppStore((state) => state.pendingEditIntent);
+  const clearPendingEditIntent = useAppStore(
+    (state) => state.clearPendingEditIntent,
+  );
+
   const showGlobalToast = useAppStore((state) => state.showGlobalToast);
   const clearGlobalToast = useAppStore((state) => state.clearGlobalToast);
   const text = {
@@ -175,7 +184,7 @@ export function InboxTable() {
         if (active) {
           // taskId 降序排列（新的在前面）
           const sorted = data.sort((a, b) => b.taskId.localeCompare(a.taskId));
-          setRows(prev => _.isEqual(prev, sorted) ? prev : sorted);
+          setRows((prev) => (_.isEqual(prev, sorted) ? prev : sorted));
           setLoading(false);
         }
       })
@@ -193,16 +202,17 @@ export function InboxTable() {
   }, [currentSheetByAction]);
 
   useEffect(() => {
-    if (!pendingEditIntent || pendingEditIntent.sheet !== 'inbox') return
-    if (currentSheet !== 'inbox') return
+    if (!pendingEditIntent || pendingEditIntent.sheet !== "inbox") return;
+    if (currentSheet !== "inbox") return;
 
-    const targetRow = rows.find((row) => row.taskId === pendingEditIntent.taskId)
-    if (!targetRow) return
+    const targetRow = rows.find(
+      (row) => row.taskId === pendingEditIntent.taskId,
+    );
+    if (!targetRow) return;
 
-    setEditingItem(targetRow)
-    clearPendingEditIntent()
-  }, [rows, pendingEditIntent, currentSheet, clearPendingEditIntent])
-
+    setEditingItem(targetRow);
+    clearPendingEditIntent();
+  }, [rows, pendingEditIntent, currentSheet, clearPendingEditIntent]);
 
   const updateLocalRow = (taskId: string, patch: Partial<InboxItem>) => {
     setRows((prev) =>
@@ -268,7 +278,10 @@ export function InboxTable() {
     await saveUpdate(editingItem.taskId, patch);
     setEditingItem(null);
     // 如果有Joyride導覽，則執行nextStep，讓導覽可以繼續
-    if (isRunning && activeStep?.target === "[data-tour='edit-dialog-save-button']") {
+    if (
+      isRunning &&
+      activeStep?.target === "[data-tour='edit-dialog-save-button']"
+    ) {
       nextStep();
     }
   };
@@ -557,22 +570,25 @@ export function InboxTable() {
         // 移動視圖 - 卡片
         <div className="grid grid-cols-1 gap-3">
           {rows.map((item) => (
-              <TableCard
-                key={item.taskId}
-                item={item}
-                fields={[
-                  { label: t("col.title"), value: item.title || t("table.empty") },
-                  {
-                    label: t("card.receivedAt"),
-                    value: item.receivedAt
-                      ? new Date(item.receivedAt).toLocaleString("zh-TW")
-                      : t("table.notSet"),
-                  },
-                ]}
-                onEdit={setEditingItem}
-                onDelete={(item) => deleteRow(item.taskId)}
-              />
-            ))}
+            <TableCard
+              key={item.taskId}
+              item={item}
+              fields={[
+                {
+                  label: t("col.title"),
+                  value: item.title || t("table.empty"),
+                },
+                {
+                  label: t("card.receivedAt"),
+                  value: item.receivedAt
+                    ? new Date(item.receivedAt).toLocaleString("zh-TW")
+                    : t("table.notSet"),
+                },
+              ]}
+              onEdit={setEditingItem}
+              onDelete={(item) => deleteRow(item.taskId)}
+            />
+          ))}
         </div>
       ) : (
         // 桌面視圖 - 表格
@@ -678,7 +694,7 @@ export function InboxTable() {
       <TableHelpDialog
         isOpen={showHelp}
         title={text.helpTitle}
-        markdown={inboxHelpMarkdown}
+        markdown={inboxHelpContent}
         onClose={() => setShowHelp(false)}
       />
     </div>

@@ -1,5 +1,12 @@
 # Journal
 
+## [2026-10-07] (3.1.5) 多國語化大致完成與修正 Sync 的 bug
+1. **bug** 修正了 [SupabaseSyncManager.ts](pwa\src\utils\SupabaseSyncManager.ts) 中的同步邏輯問題，他的 taskId 可能不存在，需要將supabase 上的 task_id 映射到本地的 taskId。
+2. 多國語化 *.md 文件與串接到Tables 頁面中。
+   * [useMarkdown.ts](pwa\src\hooks\useMarkdown.ts) 多國語化的自訂 hook，用於lazy 取得 Markdown 文件。
+3. [SyncStatus.tsx](pwa\src\components\SyncStatus.tsx) 調整了 pendingChangeLogs 的顯示邏輯，改為只顯示需要同步的部分，因為並非所有的修改都要上到雲端。
+4. 
+
 ## [2026-10-07] 進行多國語化中
 1. [styles.css](pwa\src\styles.css) 定義了 safe-min 的全域間距變數，用於避免底部導覽列遮擋內容。他的出現是因為，`.safe-padding-bottom` 修改了整個 padding 的行為，導致需要一個最小安全間距來確保整個 Toast 不會變得太壅擠。
 

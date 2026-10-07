@@ -10,6 +10,8 @@
    1. 點 `+Add` 就可以新增
    2. iPhone 上可以將`捷徑`的 `NBL Inbox` 綁定到 `設定➡️輔助使用➡️觸控➡️背面輕點➡️點兩下` ，這樣，只要點兩下手機背面，就可以自動新增一筆想法
    3. iPhone 上任何網頁，在安裝 `NBL Inbox` 後，也可以分享該網址給 NonBlockingLife 的 Inbox
+   4. Android 上可以將 `NBL Inbox` 的 Widget 加到主畫面，方便快速新增靈感紀錄。
+   5. YouTube, Chrome 等的`分享`功能，也可以將內容分享到 NonBlockingLife 的 Inbox。
 2. 刪除：
    1. 每一筆紀錄都有個 `Delete` 鈕，或者手機上向左滑也可
    2. 每天自己找時間分類，分類完就刪除

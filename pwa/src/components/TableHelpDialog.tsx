@@ -1,12 +1,13 @@
-import { useEffect, useRef } from 'react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import { useEffect, useRef } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { useAppStore } from "../store/appStore";
 
 interface TableHelpDialogProps {
-  isOpen: boolean
-  title: string
-  markdown: string
-  onClose: () => void
+  isOpen: boolean;
+  title: string;
+  markdown: string;
+  onClose: () => void;
 }
 
 export function TableHelpDialog({
@@ -15,20 +16,21 @@ export function TableHelpDialog({
   markdown,
   onClose,
 }: TableHelpDialogProps) {
-  const dialogRef = useRef<HTMLDialogElement | null>(null)
+  const dialogRef = useRef<HTMLDialogElement | null>(null);
+  const locale = useAppStore((state) => state.locale);
 
   useEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog) return
+    const dialog = dialogRef.current;
+    if (!dialog) return;
 
     if (isOpen) {
       if (!dialog.open) {
-        dialog.showModal()
+        dialog.showModal();
       }
     } else if (dialog.open) {
-      dialog.close()
+      dialog.close();
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   return (
     <dialog
@@ -45,7 +47,7 @@ export function TableHelpDialog({
             onClick={onClose}
             className="ml-auto px-3 py-1 border border-gray-300 rounded hover:bg-gray-100"
           >
-            關閉
+            {locale === "zh-TW" ? "關閉" : locale === "ja" ? "閉じる" : "Close"}
           </button>
         </div>
 
@@ -55,12 +57,12 @@ export function TableHelpDialog({
             components={{
               a: ({ href, children, ...props }) => {
                 // 檢查網址結尾是不是 #btn
-                const isButton = href && href.endsWith('#btn');
-                    
+                const isButton = href && href.endsWith("#btn");
+
                 if (isButton) {
                   // 把結尾的 #btn 拿掉，恢復正常網址
-                  const cleanHref = href.replace('#btn', '');
-                
+                  const cleanHref = href.replace("#btn", "");
+
                   return (
                     <a
                       href={cleanHref}
@@ -74,13 +76,17 @@ export function TableHelpDialog({
                     </a>
                   );
                 }
-              
+
                 // 一般的超連結樣式
                 return (
-                  <a href={href} className="text-blue-600 hover:text-blue-800 underline" {...props}>
+                  <a
+                    href={href}
+                    className="text-blue-600 hover:text-blue-800 underline"
+                    {...props}
+                  >
                     {children}
                   </a>
-                );                
+                );
               },
               h1: ({ children }) => (
                 <h1 className="text-xl font-bold mb-3">{children}</h1>
@@ -108,5 +114,5 @@ export function TableHelpDialog({
         </div>
       </div>
     </dialog>
-  )
+  );
 }
