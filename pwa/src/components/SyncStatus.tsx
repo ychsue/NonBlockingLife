@@ -662,14 +662,13 @@ export function SyncStatus({
       ) : null}
       <button
         onClick={(e) => {
-          if (isRunning && activeStep?.id === "show-sync-status") {
-            if (
-              !!syncSupabaseInputRef.current?.value ||
-              syncType !== "supabase"
-            ) {
-              alert(tHere("教學之前警告"));
-              return;
-            }
+          if (
+            isRunning &&
+            activeStep?.id === "show-sync-status" &&
+            (!!syncSupabaseInputRef.current?.value || syncType !== "supabase")
+          ) {
+            alert(tHere("教學之前警告"));
+            return;
           } else {
             const input = (e.target as HTMLElement)
               .previousElementSibling as HTMLInputElement;
