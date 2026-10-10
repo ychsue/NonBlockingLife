@@ -42,6 +42,7 @@ export function ResourceTable() {
   const locale = useAppStore((state) => state.locale);
   const { content: resourceHelpContent, loading: resourceHelpLoading } =
     useMarkdown("resource", locale);
+  const pendingChangeLogs = useAppStore((state) => state.pendingChangeLogs);
 
   const [rows, setRows] = useState<ResourceItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,7 +104,7 @@ export function ResourceTable() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [pendingChangeLogs]);
 
   useEffect(() => {
     if (!pendingEditIntent || pendingEditIntent.sheet !== "resource") return;

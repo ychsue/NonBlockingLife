@@ -69,6 +69,7 @@ export function SyncStatus({
 
   const { nextStep, isRunning, activeStep } = useProductTourContext();
   const syncSupabaseInputRef = useRef<HTMLTextAreaElement>(null);
+  const needToTestSync = useRef(false);
 
   const t = useT();
   const tHere = useTWithMaps({
@@ -324,23 +325,32 @@ export function SyncStatus({
             ? new SupabaseSyncManager(syncStr)
             : null;
       setManager(mgr);
-      // 測試連接
-      mgr?.testConnection().then((ok) => {
-        if (!ok) {
-          setMessage(
-            `⚠️ ${tHere("無法連接")} ${syncType === "gas" ? "GAS" : "Supabase"}`,
-          );
-          setSyncStatus("error");
-        } else {
-          setShowUrlInput(false);
-        }
-      });
+      if (needToTestSync.current) {
+        needToTestSync.current = false;
+        // 測試連接
+        mgr?.testConnection().then((ok) => {
+          if (!ok) {
+            setMessage(
+              `⚠️ ${tHere("無法連接")} ${syncType === "gas" ? "GAS" : "Supabase"}`,
+            );
+            setSyncStatus("error");
+          } else {
+            setShowUrlInput(false);
+          }
+        });
+      } else {
+        // 不需要測試連接，直接隱藏 URL 輸入框
+        setShowUrlInput(false);
+      }
       // 如有必要，save syncStr 到本地存儲
       if (syncType === "gas") {
         saveGasUrl(syncStr);
       } else if (syncType === "supabase") {
         saveSupabaseUrlKey(syncStr);
       }
+    } else {
+      // 如果 syncStr 為空，顯示 URL 輸入框以便用戶輸入
+      setShowUrlInput(true);
     }
   }, [syncStr]);
 
@@ -475,6 +485,7 @@ export function SyncStatus({
   const handleSetSupabaseUrlKey = (urlKeyPair: string) => {
     try {
       getUrlAndKey(urlKeyPair); // 如果格式不對會報錯
+      needToTestSync.current = true;
       setSyncStr(urlKeyPair);
       setShowUrlInput(false);
       setShowSetupWizard(false);

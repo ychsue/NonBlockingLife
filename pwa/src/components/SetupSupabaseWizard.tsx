@@ -29,7 +29,7 @@ export function SetupSupabaseWizard({
   const setSyncType = useAppStore((state) => state.setSyncType);
   const tHere = useTWithMaps({
     "zh-TW": {
-      "supabaseSetup": "Supabase 設置",
+      supabaseSetup: "Supabase 設置",
       "解說：NBL Supabase Sync 設定教學":
         "中文解說：NBL Supabase Sync 設定教學",
       "step1.header": "首次與更新同步設置",
@@ -65,16 +65,21 @@ export function SetupSupabaseWizard({
       "step3.3.header": "步驟 3: 在 Supabase 排程每小時自動執行",
       "step3.2.instruction":
         "在 Supabase 控制台中，導航到 Edge Functions，然後為生成 ics 的函數配置適當的權限，以便它可以訪問剛剛創建的 storage bucket。",
-      "step3.nextStep": "下一步：完成 →",
-      "step4.header": "設置完成！",
-      "step4.instruction": "您現在可以開始使用Supabase 同步功能了",
-      "step4.complete": "完成",
-      "step5.header": "您的輸入有誤！",
-      "step5.instruction": "您輸入的值有誤或其他原因導致無法完成設置。",
-      "step5.back": "返回",
+      "step3.nextStep": "下一步：使用Edge Function 取得別的日曆系統ICS →",
+      "step4.header": "透過 Supabase 取得 ICS 檔案(可選)",
+      "step4.instruction":
+        "配置完成後，您可以透過 Supabase 取得別的日曆系統的 ICS 檔案，避免 CORS的問題。",
+      "step4.nextStep": "下一步：完成 →",
+      "step4.1.header": "設定 Edge Function",
+      "step5.header": "設置完成！",
+      "step5.instruction": "您現在可以開始使用Supabase 同步功能了",
+      "step5.complete": "完成",
+      "fail.header": "您的輸入有誤！",
+      "fail.instruction": "您輸入的值有誤或其他原因導致無法完成設置。",
+      "fail.back": "返回",
     },
     en: {
-      "supabaseSetup": "Supabase Setup",
+      supabaseSetup: "Supabase Setup",
       "解說：NBL Supabase Sync 設定教學":
         "English Walkthrough: NBL Supabase Sync Setup (You need to turn on Subtitles)",
       "step1.header": "Initial and Update Sync Setup",
@@ -116,16 +121,23 @@ export function SetupSupabaseWizard({
       "step3.3.header": "Step 3: Schedule Supabase to run it every hour",
       "step3.2.instruction":
         "In the Supabase console, navigate to Edge Functions and configure the appropriate permissions for the function that generates ics files, so that it can access the storage bucket you just created.",
-      "step3.nextStep": "Next step: Complete →",
-      "step4.header": "Setup Complete!",
-      "step4.instruction": "You can now start using the Supabase sync feature.",
-      "step4.complete": "Complete",
-      "step5.header": "There was an error with your input!",
-      "step5.instruction": "The value you entered is incorrect or for other reasons the setup could not be completed.",
-      "step5.back": "Back",
+      "step3.nextStep": "Get ICS files through Supabase →",
+      "step4.header": "Get ICS files through Supabase (optional)",
+      "step4.instruction":
+        "After the setup is complete, you can obtain ICS files through Supabase for use with other calendar systems.",
+      "step4.1.header": "Configure the Edge Function",
+      "step4.nextStep": "Next step: Complete →",
+
+      "step5.header": "Setup Complete!",
+      "step5.instruction": "You can now start using the Supabase sync feature.",
+      "step5.complete": "Complete",
+      "fail.header": "There was an error with your input!",
+      "fail.instruction":
+        "The value you entered is incorrect or for other reasons the setup could not be completed.",
+      "fail.back": "Back",
     },
     ja: {
-      "supabaseSetup": "Supabase 設置",
+      supabaseSetup: "Supabase 設置",
       "解說：NBL Supabase Sync 設定教學":
         "華語の解説：NBL Supabase Sync 設定ガイド(字幕をオンにする必要があります)",
       "step1.header": "初回および更新の同期設定",
@@ -167,13 +179,21 @@ export function SetupSupabaseWizard({
       "step3.3.header": "ステップ 3: Supabase で毎時実行するようにスケジュール",
       "step3.2.instruction":
         "Supabase コンソールで、Edge Functions に移動し、ICS を生成する関数に適切な権限を設定して、先ほど作成したストレージバケットにアクセスできるようにしてください。",
-      "step3.nextStep": "次のステップ: 完了 →",
-      "step4.header": "設置完了！",
-      "step4.instruction": "これで Supabase 同期の設定が完了しました。",
-      "step4.complete": "完成",
-      "step5.header": "入力に誤りがあります！",
-      "step5.instruction": "入力した値が正しくないか、その他の理由で設定を完了できませんでした。",
-      "step5.back": "戻る"
+      "step3.nextStep":
+        "次のステップ: SupabaseからICSファイルを取得する（任意） →",
+      "step4.header": "SupabaseからICSファイルを取得する（任意）",
+      "step4.instruction":
+        "設定が完了したら、Supabase を通じて自動生成された ICS ファイルを取得し、他のカレンダーシステムで使用できます。",
+      "step4.1.header": "Edge Function を設定する",
+
+      "step4.nextStep": "次のステップ: 完了 →",
+      "step5.header": "設置完了！",
+      "step5.instruction": "これで Supabase 同期の設定が完了しました。",
+      "step5.complete": "完成",
+      "fail.header": "入力に誤りがあります！",
+      "fail.instruction":
+        "入力した値が正しくないか、その他の理由で設定を完了できませんでした。",
+      "fail.back": "戻る",
     },
   });
 
@@ -212,13 +232,13 @@ export function SetupSupabaseWizard({
       const ok = await manager.testConnection();
       if (!ok) {
         alert(`❌ ${t("setup.connectFailed")}`);
-        setStep(5);
+        setStep(1000);
         return;
       }
       setStep(3);
     } catch (e) {
       alert(`❌ ${t("setup.connectFailed")}`);
-      setStep(5);
+      setStep(1000);
     }
   };
 
@@ -253,7 +273,7 @@ export function SetupSupabaseWizard({
         >
           Edge Function 內容
         </a>{" "}
-        作為參考，配置相應的權限。
+        作為參考，命名為 <strong>export-ics</strong>，配置相應的權限。
       </p>
     ) : locale === "ja" ? (
       <p>
@@ -266,7 +286,8 @@ export function SetupSupabaseWizard({
         >
           Edge Function の内容
         </a>{" "}
-        を参考に、適切な権限を設定してください。
+        を参考に、<strong>export-ics</strong>{" "}
+        と命名し、適切な権限を設定してください。
       </p>
     ) : (
       <p>
@@ -279,7 +300,8 @@ export function SetupSupabaseWizard({
         >
           Edge Function content
         </a>{" "}
-        and configure the appropriate permissions.
+        naming it <strong>export-ics</strong> and configure the appropriate
+        permissions.
       </p>
     );
 
@@ -326,6 +348,90 @@ export function SetupSupabaseWizard({
         to set up a schedule for automatically generating ics files every hour.
       </p>
     );
+
+  const Step4_1_Instruction = () =>
+    locale == "zh-TW" ? (
+      <ol>
+        <li>
+          1. 請先複製{" "}
+          <a
+            href="https://github.com/ychsue/NonBlockingLife/tree/main/pwa/src/db/supabase/fetch-ics.ts"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline"
+          >
+            GitHub fetch-ics.ts
+          </a>
+          裡面的程式碼
+        </li>
+        <li>
+          2. 在 Supabase 控制台中，導航到 Edge Functions，將剛剛的程式碼貼到{" "}
+          <code>index.ts</code> 文件中。
+        </li>
+        <li>
+          3. 完成後，記得將其名稱設為 <strong>fetch-ics</strong>，然後部署 Edge
+          Function 以使更改生效。
+        </li>
+        <li>
+          4. 這樣，就算是在 PWA 中，也能在給定別的日曆的 URL 時，能順利抓取 ICS
+          檔案。
+        </li>
+      </ol>
+    ) : locale == "ja" ? (
+      <ol>
+        <li>
+          1. まず、{" "}
+          <a
+            href="https://github.com/ychsue/NonBlockingLife/tree/main/pwa/src/db/supabase/fetch-ics.ts"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline"
+          >
+            GitHub fetch-ics.ts
+          </a>
+        </li>
+        <li>
+          2. Supabase コンソールで、Edge Functions に移動し、コピーしたコードを{" "}
+          <code>index.ts</code> ファイルに貼り付けます。
+        </li>
+        <li>
+          3. 完了したら、名前を <strong>fetch-ics</strong> に設定し、Edge
+          Function をデプロイして変更を有効にします。
+        </li>
+        <li>
+          4. これにより、PWA 内でも、他のカレンダーの URL が与えられた場合に ICS
+          ファイルを正常に取得できるようになります。
+        </li>
+      </ol>
+    ) : (
+      <ol>
+        <li>
+          1. Please copy the code from{" "}
+          <a
+            href="https://github.com/ychsue/NonBlockingLife/tree/main/pwa/src/db/supabase/fetch-ics.ts"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline"
+          >
+            GitHub fetch-ics.ts
+          </a>
+          .
+        </li>
+        <li>
+          2. In the Supabase console, navigate to Edge Functions, and paste the
+          copied code into the <code>index.ts</code> file.
+        </li>
+        <li>
+          3. After that, set its name to <strong>fetch-ics</strong> and deploy
+          the Edge Function to apply the changes.
+        </li>
+        <li>
+          4. This way, even within the PWA, ICS files can be successfully
+          fetched when given the URL of another calendar.
+        </li>
+      </ol>
+    );
+
   const content = (
     <div className="space-y-6">
       {step === 1 && (
@@ -480,31 +586,52 @@ export function SetupSupabaseWizard({
       )}
 
       {step === 4 && (
-        <div className="space-y-4 text-center">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-2xl font-bold text-green-600">{tHere("step4.header")}</h2>
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold mb-2">{tHere("step4.header")}</h2>
           <p className="text-gray-600">{tHere("step4.instruction")}</p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-2">
+            <h3 className="font-semibold text-blue-900">
+              {tHere("step4.1.header")}
+            </h3>
+            <Step4_1_Instruction />
+          </div>
           <button
-            onClick={handleComplete}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+            onClick={() => setStep(5)}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
           >
-            {tHere("step4.complete")}
+            {tHere("step4.nextStep")}
           </button>
         </div>
       )}
 
       {step === 5 && (
         <div className="space-y-4 text-center">
-          <div className="text-6xl mb-4">❌</div>
-          <h2 className="text-2xl font-bold text-red-600">{tHere("step5.header")}</h2>
-          <p className="text-gray-600">
-            {tHere("step5.instruction")}
-          </p>
+          <div className="text-6xl mb-4">🎉</div>
+          <h2 className="text-2xl font-bold text-green-600">
+            {tHere("step5.header")}
+          </h2>
+          <p className="text-gray-600">{tHere("step5.instruction")}</p>
           <button
             onClick={handleComplete}
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
           >
-            {tHere("step5.back")}
+            {tHere("step5.complete")}
+          </button>
+        </div>
+      )}
+
+      {step === 1000 && (
+        <div className="space-y-4 text-center">
+          <div className="text-6xl mb-4">❌</div>
+          <h2 className="text-2xl font-bold text-red-600">
+            {tHere("fail.header")}
+          </h2>
+          <p className="text-gray-600">{tHere("fail.instruction")}</p>
+          <button
+            onClick={handleComplete}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+          >
+            {tHere("fail.back")}
           </button>
         </div>
       )}

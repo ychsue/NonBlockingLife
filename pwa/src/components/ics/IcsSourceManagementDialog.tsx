@@ -8,6 +8,11 @@ import { useTwaRpc } from "../../hooks/useTwaRpc";
 import { getDeviceType } from "../../utils/shortcutUtils";
 import { useProductTourContext } from "../tour/ProductTourContext";
 import { useTWithMaps } from "../../i18n";
+import { useAppStore } from "../../store/appStore";
+import {
+  getStoredSupabaseUrlKey,
+  SupabaseSyncManager,
+} from "../../utils/SupabaseSyncManager";
 
 const DEV_CLIENT_ID = "ics_source_management_dialog";
 
@@ -33,6 +38,8 @@ export function IcsSourceManagementDialog({
 }: Props) {
   const [sources, setSources] = useState<IcsSourceItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const syncType = useAppStore((state) => state.syncType);
+
   const { sendRequest } = useTwaRpc();
   const { nextStep, isRunning, activeStep } = useProductTourContext();
 
@@ -51,113 +58,119 @@ export function IcsSourceManagementDialog({
   const [uploadSourceId, setUploadSourceId] = useState<string | null>(null);
   const tHere = useTWithMaps({
     "zh-TW": {
-      "Name": "名稱",
-      "URL": "網址",
-      "Color": "顏色",
-      "Save": "保存",
-      "Cancel": "取消",
-      "匯入的日曆": "匯入的日曆",
-      "成功解析n個日曆事件": "成功解析並更新 {n} 個日曆事件！",
+      Name: "名稱",
+      URL: "網址",
+      Color: "顏色",
+      Save: "保存",
+      Cancel: "取消",
+      匯入的日曆: "匯入的日曆",
+      成功解析n個日曆事件: "成功解析並更新 {n} 個日曆事件！",
       "匯入 ics 檔案失敗:": "匯入 ics 檔案失敗:",
-      "匯入失敗，請確認檔案格式是否為標準 .ics": "匯入失敗，請確認檔案格式是否為標準 .ics",
+      "匯入失敗，請確認檔案格式是否為標準 .ics":
+        "匯入失敗，請確認檔案格式是否為標準 .ics",
       "外部日曆管理 (ICS Sources)": "外部日曆管理 (ICS Sources)",
       "匯入 .ics 檔案": "匯入 .ics 檔案",
       "新增 URL 訂閱": "新增 URL 訂閱",
-      "檔案": "檔案",
-      "編輯": "編輯",
-      "新增": "新增",
-      "取消": "取消",
+      檔案: "檔案",
+      編輯: "編輯",
+      新增: "新增",
+      取消: "取消",
       "標籤顏色：": "標籤顏色：",
       "日曆名稱 (如: Google 工作)": "日曆名稱 (如: Google 工作)",
-      "僅供參考": "僅供參考",
-      "儲存修改": "儲存修改",
-      "匯入檔案": "匯入檔案",
+      僅供參考: "僅供參考",
+      儲存修改: "儲存修改",
+      匯入檔案: "匯入檔案",
       "新增 URL": "新增 URL",
-      "目前無任何外部日曆來源": "目前無任何外部日曆來源",
+      目前無任何外部日曆來源: "目前無任何外部日曆來源",
       "已啟用 (點擊停用)": "已啟用 (點擊停用)",
       "已停用 (點擊啟用)": "已停用 (點擊啟用)",
-      "未同步": "未同步",
-      "覆蓋檔案": "覆蓋檔案",
-      "編輯設定": "編輯設定",
-      "上次更新": "上次更新",
-      "類型": "類型",
-      "檔案匯入": "檔案匯入",
+      未同步: "未同步",
+      覆蓋檔案: "覆蓋檔案",
+      編輯設定: "編輯設定",
+      上次更新: "上次更新",
+      類型: "類型",
+      檔案匯入: "檔案匯入",
       "URL 訂閱": "URL 訂閱",
-      "名稱": "名稱",
-      "關閉": "關閉",
+      名稱: "名稱",
+      關閉: "關閉",
     },
-    "en": {
-      "Name": "Name",
-      "URL": "URL",
-      "Color": "Color",
-      "Save": "Save",
-      "Cancel": "Cancel",
-      "成功解析n個日曆事件": "Successfully parsed and updated {n} calendar events!",
-      "匯入的日曆": "Imported Calendars",
+    en: {
+      Name: "Name",
+      URL: "URL",
+      Color: "Color",
+      Save: "Save",
+      Cancel: "Cancel",
+      成功解析n個日曆事件:
+        "Successfully parsed and updated {n} calendar events!",
+      匯入的日曆: "Imported Calendars",
       "匯入 ics 檔案失敗:": "Failed to import ics file:",
-      "匯入失敗，請確認檔案格式是否為標準 .ics": "Import failed, please make sure the file format is standard .ics",
-      "外部日曆管理 (ICS Sources)": "External Calendar Management (ICS Sources)",
+      "匯入失敗，請確認檔案格式是否為標準 .ics":
+        "Import failed, please make sure the file format is standard .ics",
+      "外部日曆管理 (ICS Sources)":
+        "External Calendar Management (ICS Sources)",
       "匯入 .ics 檔案": "Import .ics File",
       "新增 URL 訂閱": "Add URL Subscription",
-      "檔案": "File",
-      "編輯": "Edit",
-      "新增": "Add",
-      "取消": "Cancel",
+      檔案: "File",
+      編輯: "Edit",
+      新增: "Add",
+      取消: "Cancel",
       "標籤顏色：": "Label Color:",
       "日曆名稱 (如: Google 工作)": "Calendar Name (e.g., Google Work)",
-      "僅供參考": "For reference only",
-      "儲存修改": "Save Changes",
-      "匯入檔案": "Import File",
+      僅供參考: "For reference only",
+      儲存修改: "Save Changes",
+      匯入檔案: "Import File",
       "新增 URL": "Add URL",
-      "目前無任何外部日曆來源": "No external calendar sources at the moment",
+      目前無任何外部日曆來源: "No external calendar sources at the moment",
       "已啟用 (點擊停用)": "Enabled (click to disable)",
       "已停用 (點擊啟用)": "Disabled (click to enable)",
-      "未同步": "Not Synced",
-      "覆蓋檔案": "Overwrite File",
-      "編輯設定": "Edit Settings",
-      "上次更新": "Last Updated",
-      "類型": "Type",
-      "檔案匯入": "File Import",
+      未同步: "Not Synced",
+      覆蓋檔案: "Overwrite File",
+      編輯設定: "Edit Settings",
+      上次更新: "Last Updated",
+      類型: "Type",
+      檔案匯入: "File Import",
       "URL 訂閱": "URL Subscription",
-      "名稱": "Name",
-      "關閉": "Close"
+      名稱: "Name",
+      關閉: "Close",
     },
-    "ja": {
-      "Name": "名前",
-      "URL": "URL",
-      "Color": "色",
-      "Save": "保存",
-      "Cancel": "キャンセル",
-      "匯入的日曆": "インポートされたカレンダー",
-      "成功解析n個日曆事件": "{n} 件のカレンダーイベントを正常に解析して更新しました！",
+    ja: {
+      Name: "名前",
+      URL: "URL",
+      Color: "色",
+      Save: "保存",
+      Cancel: "キャンセル",
+      匯入的日曆: "インポートされたカレンダー",
+      成功解析n個日曆事件:
+        "{n} 件のカレンダーイベントを正常に解析して更新しました！",
       "匯入 ics 檔案失敗:": "ics ファイルのインポートに失敗しました:",
-      "匯入失敗，請確認檔案格式是否為標準 .ics": "インポートに失敗しました。ファイル形式が標準の .ics であることを確認してください。",
+      "匯入失敗，請確認檔案格式是否為標準 .ics":
+        "インポートに失敗しました。ファイル形式が標準の .ics であることを確認してください。",
       "外部日曆管理 (ICS Sources)": "外部カレンダー管理 (ICS Sources)",
       "匯入 .ics 檔案": ".ics ファイルをインポート",
       "新增 URL 訂閱": "URL サブスクリプションを追加",
-      "檔案": "ファイル",
-      "編輯": "編集",
-      "新增": "追加",
-      "取消": "キャンセル",
+      檔案: "ファイル",
+      編輯: "編集",
+      新增: "追加",
+      取消: "キャンセル",
       "標籤顏色：": "ラベルの色：",
       "日曆名稱 (如: Google 工作)": "カレンダー名 (例: Google Work)",
-      "僅供參考": "参考用のみ",
-      "儲存修改": "変更を保存",
-      "匯入檔案": "ファイルをインポート",
+      僅供參考: "参考用のみ",
+      儲存修改: "変更を保存",
+      匯入檔案: "ファイルをインポート",
       "新增 URL": "URL を追加",
-      "目前無任何外部日曆來源": "現在外部カレンダーソースはありません",
+      目前無任何外部日曆來源: "現在外部カレンダーソースはありません",
       "已啟用 (點擊停用)": "有効 (クリックで無効化)",
       "已停用 (點擊啟用)": "無効 (クリックで有効化)",
-      "未同步": "未同期",
-      "覆蓋檔案": "ファイルを上書き",
-      "編輯設定": "設定を編集",
-      "上次更新": "最終更新",
-      "類型": "タイプ",
-      "檔案匯入": "ファイルインポート",
+      未同步: "未同期",
+      覆蓋檔案: "ファイルを上書き",
+      編輯設定: "設定を編集",
+      上次更新: "最終更新",
+      類型: "タイプ",
+      檔案匯入: "ファイルインポート",
       "URL 訂閱": "URL サブスクリプション",
-      "名稱": "名前",
-      "關閉": "閉じる"
-    }
+      名稱: "名前",
+      關閉: "閉じる",
+    },
   });
 
   const loadSources = async () => {
@@ -360,7 +373,9 @@ export function IcsSourceManagementDialog({
         const newSource: IcsSourceItem = {
           sourceId: targetSourceId,
           name:
-            formName.trim() || file.name.replace(/\.ics$/i, "") || (tHere("匯入的日曆")),
+            formName.trim() ||
+            file.name.replace(/\.ics$/i, "") ||
+            tHere("匯入的日曆"),
           url: formUrl.trim(),
           type: "file",
           color: selectedColor,
@@ -383,7 +398,7 @@ export function IcsSourceManagementDialog({
         targetSourceId,
       );
 
-      alert(`${tHere("成功解析n個日曆事件",{n: eventsLength})}`);
+      alert(`${tHere("成功解析n個日曆事件", { n: eventsLength })}`);
       await loadSources();
 
       setEditingSource(null);
@@ -462,9 +477,10 @@ export function IcsSourceManagementDialog({
     await loadSources();
 
     const dType = getDeviceType();
-    let isSuccess = !!!["AndroidWebView"].includes(dType);
-    // TODO 若為 Android WebView，則可以透過 WebView 的接口通知原生層更新 ICS Sources
-    if (import.meta.env.DEV || ["AndroidWebView"].includes(dType)) {
+    let isSuccess = false;
+    // 分為四階段取得 ics，1. Android WebView, 2. 直連, 3. Supabase fetch-ics Edge function, 4. 告知使用者改用手動匯入
+    // 1. 直連
+    if (["AndroidWebView"].includes(dType)) {
       try {
         const res = (await sendRequest("nbl:fetch-ics", {
           url: formUrl.trim(),
@@ -477,6 +493,39 @@ export function IcsSourceManagementDialog({
         alert(tHere("成功解析n個日曆事件", { n: eventsLength }));
       } catch (error) {
         isSuccess = false;
+      }
+    } else {
+      // 2. 直連 ics URL
+      try {
+        const res = await (await fetch(formUrl.trim())).text();
+        const eventsLength = await parseAndUpdateIcsTables(
+          res,
+          editingSourceId,
+        );
+        isSuccess = true;
+        alert(tHere("成功解析n個日曆事件", { n: eventsLength }));
+      } catch (error) {
+        isSuccess = false;
+      }
+      // 3. Supabase fetch-ics Edge function
+      if (
+        !isSuccess &&
+        syncType === "supabase" &&
+        !!getStoredSupabaseUrlKey()
+      ) {
+        try {
+          const syncSupabaseStr = getStoredSupabaseUrlKey();
+          const manager = new SupabaseSyncManager(syncSupabaseStr);
+          const data = await manager.fetchIcs(formUrl.trim());
+          const eventsLength = await parseAndUpdateIcsTables(
+            data.icsContent,
+            editingSourceId,
+          );
+          isSuccess = true;
+          alert(tHere("成功解析n個日曆事件", { n: eventsLength }));
+        } catch (error) {
+          isSuccess = false;
+        }
       }
     }
 
@@ -583,7 +632,9 @@ export function IcsSourceManagementDialog({
 
             {/* 顏色選擇 */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">{tHere("標籤顏色：")}</span>
+              <span className="text-xs text-gray-500">
+                {tHere("標籤顏色：")}
+              </span>
               <div className="flex gap-1.5" data-tour="select-a-color">
                 {PRESET_COLORS.map((c) => (
                   <button
@@ -652,7 +703,9 @@ export function IcsSourceManagementDialog({
                 <TableCard
                   key={src.sourceId}
                   item={src}
-                  editLabel={src.type === "file" ? (tHere("覆蓋檔案")) : tHere("編輯設定")}
+                  editLabel={
+                    src.type === "file" ? tHere("覆蓋檔案") : tHere("編輯設定")
+                  }
                   accentColor={src.color || "#9E9E9E"}
                   isDisabled={!src.enabled} // 停用時半透明處理
                   fields={[
@@ -660,7 +713,9 @@ export function IcsSourceManagementDialog({
                     {
                       label: tHere("類型"),
                       value:
-                        src.type === "file" ? `📁 ${tHere("檔案匯入")}` : `🔗 ${tHere("URL 訂閱")}`,
+                        src.type === "file"
+                          ? `📁 ${tHere("檔案匯入")}`
+                          : `🔗 ${tHere("URL 訂閱")}`,
                     },
                     {
                       label: tHere("上次更新"),
@@ -673,7 +728,7 @@ export function IcsSourceManagementDialog({
                   onDelete={(item) => deleteSource(item.sourceId)}
                   quickAction={{
                     label: src.enabled
-                      ?( tHere("已啟用 (點擊停用)"))
+                      ? tHere("已啟用 (點擊停用)")
                       : tHere("已停用 (點擊啟用)"),
                     onClick: (item) => toggleSourceEnabled(item),
                   }}

@@ -130,6 +130,7 @@ export function InboxTable() {
     "inbox",
     locale,
   );
+  const pendingChangeLogs = useAppStore((state) => state.pendingChangeLogs);
   const [rows, setRows] = useState<InboxItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
@@ -199,7 +200,7 @@ export function InboxTable() {
     return () => {
       active = false;
     };
-  }, [currentSheetByAction]);
+  }, [currentSheetByAction, pendingChangeLogs]);
 
   useEffect(() => {
     if (!pendingEditIntent || pendingEditIntent.sheet !== "inbox") return;

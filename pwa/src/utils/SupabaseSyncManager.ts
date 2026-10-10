@@ -30,6 +30,14 @@ export class SupabaseSyncManager extends SyncManagerBase {
     }
   }
 
+  async fetchIcs(url: string): Promise<{ icsContent: string }> {
+    const res = await this.supabase.functions.invoke("fetch-ics", {
+      body: { icsUrl: url },
+    });
+    const data = res.data;
+    return { icsContent: data };
+  }
+
   async testConnection(): Promise<boolean> {
     const { data, error } = await this.supabase
       .from("log")

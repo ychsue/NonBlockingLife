@@ -128,7 +128,7 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: 1. Fixed issues inadvertently introduced by the Supabase tutorial.\n\r  2. Implemented multi-language support.\n\r  3. Other minor fixes.",
+        "\n\r**Please note**: This update enables the PWA to fetch ICS files from other calendars via Supabase (needs setting the `fetch-ics` Edge Function).",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -142,7 +142,7 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：1.修改因加入 Supabase 的教學而不小心引進的錯誤。\n\r  2.大致完成多國語言支援。\n\r   3.其他小修正。",
+        "\n\r**注意**：讓PWA也可透過 Supabase 取得別的日曆的 ICS 文件。(須設定 `fetch-ics` Edge Function)。",
     },
     ja: {
       "useTwaBridge.twaNotAvailable":
@@ -158,7 +158,7 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：1. Supabase の教學(英語字幕付きのYouTube含む) により不注意で導入された問題を修正しました。\n\r  2. 多言語対応を実装しました。\n\r  3. その他の小さな修正。",
+        "\n\r**注意**：この更新により、PWAはSupabaseを介して他のカレンダーからICSファイルを取得できるようになりました（`fetch-ics` Edge Functionの設定が必要です）。",
     },
   });
 

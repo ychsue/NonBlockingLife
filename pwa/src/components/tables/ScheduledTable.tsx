@@ -180,10 +180,20 @@ export function ScheduledTable() {
     if (success) {
       updateIcsSourceRows(true); // 這裡應該更新 ICS source rows，根據實際情況修改
     }
+    const successMessage =
+      locale === "zh-TW"
+        ? success
+          ? "ICS 資源已成功同步。"
+          : "ICS 資源同步失敗。建議使用supabase，外加部署fetch-ics Edge function來抓取外部日曆資料。"
+        : locale === "ja"
+          ? success
+            ? "ICS リソースは正常に同期されました。"
+            : "ICS リソースの同期に失敗しました。supabase を使用し、外部カレンダーのデータを取得するために fetch-ics Edge function をデプロイすることを検討してください。"
+          : success
+            ? "ICS sources have been successfully synced."
+            : "Failed to sync ICS sources. Consider using supabase along with deploying the fetch-ics Edge function to fetch external calendar data.";
     showGlobalToast({
-      message: success
-        ? "ICS sources have been successfully synced."
-        : "Failed to sync ICS sources.",
+      message: successMessage,
       duration: 3000,
     });
   };

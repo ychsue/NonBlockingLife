@@ -76,8 +76,8 @@ android {
         applicationId "com.yescirculation.nonblockinglife"
         minSdkVersion 26
         targetSdkVersion 36
-        versionCode 16
-        versionName "NBL-1.2.2"
+        versionCode 17
+        versionName "NBL-3.1.6"
 
         resValue "string", "versionName", versionName
         // The name for the application

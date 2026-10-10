@@ -1,5 +1,13 @@
 # Journal
 
+## [2026-10-09] (3.1.6) 透過監聽 pendingChangeLogs 的變化，自動更新 ResourceTable 與 InboxTable 的資料。
+1. ResourceTable 與 InboxTable 現在會自動監聽 pendingChangeLogs 的變化，並在資料變更時自動更新。
+2. [fetch-ics.ts](pwa\src\db\supabase\fetch-ics.ts) 透過 Supabase 端的 Edge Function，當作proxy來取得 ICS 文件，以避免 CORS的問題。
+3. [IcsSourceManagementDialog.tsx](pwa\src\components\ics\IcsSourceManagementDialog.tsx) 透過supabase的 fetch-ics，PWA也可以取得其他日曆系統的 ics 了。
+4. [SetupSupabaseWizard.tsx](pwa\src\components\SetupSupabaseWizard.tsx) 增加了 `fetch-ics` 的支援說明。
+5. [SyncStatus.tsx](pwa\src\components\SyncStatus.tsx) 只有在按了`設置`按鈕後，才會去測試能否連到 supabase。
+6. [SupabaseSyncManager.ts](pwa\src\utils\SupabaseSyncManager.ts) 增加了fetchIcs 函數好藉由 `fetch-ics` 取得 ICS 文件。
+
 ## [2026-10-07] 順便把兩個 Sync 的 Wizard 也多國語化
 
 ## [2026-10-07] (3.1.5) 多國語化大致完成與修正 Sync 的 bug

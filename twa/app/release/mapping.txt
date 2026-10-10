@@ -1,5 +1,5 @@
 # compiler: R8
-# compiler_version: 9.4.14
+# compiler_version: 9.4.24
 # min_api: 26
 # common_typos_disable
 # {"id":"com.android.tools.r8.mapping","version":"2.2"}
