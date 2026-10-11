@@ -381,3 +381,49 @@ Deno.serve(async (req) => {
 - 新增 `pwa/src/native/fetchIcs.ts`：`fetchIcsWithFallback` 依序 native（看 capability，不再看 deviceType）→ 直連 → Supabase `fetch-ics`，每階段都檢查內容是否以 `BEGIN:VCALENDAR` 開頭；全部失敗才 reject（UI 提示手動匯入）。
 - `IcsSourceManagementDialog` 改用它；行為差異：Android 原本 native 失敗就放棄，現在會繼續試直連與 Supabase。
 - 因以 capability 判斷，之後桌面殼只要在 hello 回報 `fetchIcs` 就自動生效。測試 10 項通過。
+
+## [2026-10-11] ychsue 我有點懂您當初為何建議使用 dist 了，我目前完全沒安裝 Avalonia，的確，若我在測的時候，GitHub 上不是最新的，除非我 push 上去，這樣會造成很大的困擾。
+有可能開發時使用 dist ，而發布時，若 dist不大，就也包上去給 Windows APP，不過，還是以 GitHub 上面的那個為準？
+這樣會不會很亂？
+我還沒裝 Avalonia，需要我自己裝一裝嗎？應該蠻好玩的。😄
+
+
+## [2026-10-11] ychsue 開發時用 dist、發布時內含 dist 但以 GitHub 為準？要自己裝 Avalonia 嗎？
+
+## [2026-10-11] Copilot 回覆（載入來源策略）
+
+**結論：不亂，只要把「載入來源」做成設定，由殼依序嘗試。**
+
+| 模式 | 載入來源 | 用途 |
+|---|---|---|
+| Dev | `http://localhost:5173`（vite dev）或本機 `pwa/dist` | 開發測試，不必 push |
+| Release | 線上 PWA URL（主）→ 失敗時退回內含 dist（備援） | 正式版 |
+
+- 內含 dist 約 2.1 MB，很小，適合當**離線／首次安裝備援**，並非主要來源。
+- 規則：能連線就以線上版為準（Service Worker 本身也會快取）；內含 dist 只在線上載入失敗時使用。
+- 用 `appsettings` 或命令列參數 `--source dev|dist|online` 切換；origin 白名單只放這三種來源。
+- 風險：內含 dist 與線上版若協定版本差太多，靠 `nbl:hello` 的 protocolVersion 協商與降級處理。
+- 環境：dotnet SDK 9.0 與 10.0 已安裝；Avalonia 只需安裝專案範本（`dotnet new install Avalonia.Templates`），不需要額外 IDE 外掛。
+
+---
+在專案根目錄(`NonBlockingLife`)下執行。依先前規劃,所有 C# 都放 `desktop/` 底下,並用 solution 統一管理:
+
+```powershell
+cd C:\Users\hsuy1\source\repos\NonBlockingLife
+dotnet new install Avalonia.Templates
+
+mkdir desktop; cd desktop
+dotnet new sln -n NBL
+dotnet new avalonia.app -o src/Nbl.Desktop      # 先用 app,不用 mvvm(見下)
+dotnet sln add src/Nbl.Desktop
+dotnet run --project src/Nbl.Desktop
+```
+
+說明:
+
+- **用 `avalonia.app` 而不是 `avalonia.mvvm`:** 這個殼基本上只有一個 WebView 加托盤圖示,業務邏輯都在 PWA,不需要 MVVM 的 ViewModel 和 CommunityToolkit 那一套。之後需要再加也不遲。
+- **放在 `desktop/` 底下:** 避免 `.sln`、`bin/`、`obj/` 散在根目錄,和 `pwa/`、`twa/` 並列。後續會再加的專案(`Nbl.Bridge`、`Nbl.Platform` 等)都放在 `desktop/src/` 底下。
+- **`.gitignore`:** 根目錄的 `.gitignore` 要確認有 `bin/` 和 `obj/`。我建骨架時會一併檢查。
+- **`dotnet new install` 只需執行一次。**
+
+你可以先自己跑一遍看到空白視窗,也可以交給我建。你想自己跑,還是我來建骨架並順便查 WebView 元件的狀態與授權?

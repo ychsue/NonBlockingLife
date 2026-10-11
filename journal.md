@@ -4,6 +4,7 @@
 [16:27] [NativeBridge.ts](pwa\src\native\NativeBridge.ts) 新增了 `NativeBridge` 介面，用於統一 PWA 與原生橋接的呼叫方式。
 [18:00] 多增加 `nbl:hello` / `nbl:hello-response` 訊息，用於能力協商。
 [18:28] 開始實作 `fetchIcsWithFallback`，依序嘗試 native → 直連 → Supabase Edge Function。變乾淨了。
+[18:49] 初始化 Avalonia
 
 ## [2026-10-11] (3.1.7) 修正一些bug，提升穩定性。
 1. [SupabaseSyncManager.ts](pwa\src\utils\SupabaseSyncManager.ts) 當網路連線失敗，error.message 會被正確捕捉並處理。

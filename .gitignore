@@ -201,3 +201,7 @@ android.keystore
 # OS & Editor files
 .DS_Store
 Thumbs.db
+
+# Build artifacts
+obj/
+bin/
