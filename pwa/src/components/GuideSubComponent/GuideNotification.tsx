@@ -149,7 +149,10 @@ export function GuideNotification() {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-5">
+    <div
+      className="bg-white border border-gray-200 rounded-lg p-5"
+      data-tour="notification-div"
+    >
       <h3 className="text-lg font-semibold text-gray-800 mb-2">
         🔔 {tHere("背景提醒（可選）")}
       </h3>

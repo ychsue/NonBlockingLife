@@ -265,7 +265,7 @@ export class SupabaseSyncManager extends SyncManagerBase {
         success: 0,
         error: `[${
           currentType ?? "unknown"
-        }][${JSON.stringify(currentRecord) ?? "no record"}] ${String(error)}`,
+        }][${JSON.stringify(currentRecord) ?? "no record"}] ${(error as Error)?.message??JSON.stringify(error)}`,
       };
     }
   }

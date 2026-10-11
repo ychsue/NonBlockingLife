@@ -153,6 +153,13 @@ export const en = {
   "tour.installIphoneShortcuts.step2.content":
     "Tap the download button to get the iPhone shortcuts.",
 
+  "tour.turnOnNotification.title": "Turn On Notifications",
+  "tour.turnOnNotification.description": "Learn how to turn on notifications.",
+  "tour.turnOnNotification.step1.title": "Turn on notifications (Open the Guide page)",
+  "tour.turnOnNotification.step1.content": "Tap the Guide tab to view the instructions.",
+  "tour.turnOnNotification.step2.title": "Allow notifications",
+  "tour.turnOnNotification.step2.content": "Select allow notifications so that you can receive system notifications when tasks start or complete.",
+
   "tour.changeFontSize.title": "Change Font Size",
   "tour.changeFontSize.description": "Learn how to change the font size.",
   "tour.changeFontSize.step1.title": "Change font size (Open the menu)",

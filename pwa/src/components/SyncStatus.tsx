@@ -365,7 +365,10 @@ export function SyncStatus({
 
   // 當 pendingChangeLog 改變時，自動更新待同步計數
   useEffect(() => {
-    if (pendingChangeLogs.length === 0) return;
+    if (pendingChangeLogs.length === 0) {
+      setFilteredPendingChangeLogs([]); // 少這一宣告，會導致 UI 上仍顯示舊的待同步筆數
+      return;
+    }
     syncPendingChangeLogs();
   }, [pendingChangeLogs]);
 

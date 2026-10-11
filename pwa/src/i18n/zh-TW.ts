@@ -149,6 +149,13 @@ export const zhTW: TranslationMap = {
   'tour.installIphoneShortcuts.step2.title': '下載捷徑',
   'tour.installIphoneShortcuts.step2.content': '點擊下載按鈕以取得 iPhone 捷徑。',
 
+  'tour.turnOnNotification.title': '開啟通知',
+  'tour.turnOnNotification.description': '了解如何開啟通知。',
+  'tour.turnOnNotification.step1.title': '開啟通知(開啟Guide頁面)',
+  'tour.turnOnNotification.step1.content': '點擊 Guide 標籤以查看說明。',
+  'tour.turnOnNotification.step2.title': '允許通知',
+  'tour.turnOnNotification.step2.content': '選擇允許通知，這樣才能在任務開始或完成時收到系統通知。',
+
   'tour.changeFontSize.title': '更改字體大小',
   'tour.changeFontSize.description': '了解如何更改字體大小。',
   'tour.changeFontSize.step1.title': '更改字體大小(開啟選單)',

@@ -1,5 +1,10 @@
 # Journal
 
+## [2026-10-11] (3.1.7) 修正一些bug，提升穩定性。
+1. [SupabaseSyncManager.ts](pwa\src\utils\SupabaseSyncManager.ts) 當網路連線失敗，error.message 會被正確捕捉並處理。
+2. [SyncStatus.tsx](pwa\src\components\SyncStatus.tsx) 修正了當 pendingChangeLogs.length=0 時的顯示邏輯。
+3. 其餘則是補強一些說明與使用者體驗上的細節。
+
 ## [2026-10-09] (3.1.6) 透過監聽 pendingChangeLogs 的變化，自動更新 ResourceTable 與 InboxTable 的資料。
 1. ResourceTable 與 InboxTable 現在會自動監聽 pendingChangeLogs 的變化，並在資料變更時自動更新。
 2. [fetch-ics.ts](pwa\src\db\supabase\fetch-ics.ts) 透過 Supabase 端的 Edge Function，當作proxy來取得 ICS 文件，以避免 CORS的問題。

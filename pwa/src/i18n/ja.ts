@@ -134,6 +134,13 @@ export const ja: TranslationMap = {
   'tour.installIphoneShortcuts.step2.title': 'ショートカットをダウンロード',
   'tour.installIphoneShortcuts.step2.content': 'ダウンロードボタンをタップして、iPhoneショートカットを取得します。',
 
+  'tour.turnOnNotification.title': '通知をオンにする',
+  'tour.turnOnNotification.description': '通知をオンにする方法を学びます。',
+  'tour.turnOnNotification.step1.title': '通知をオンにする (Guideページを開く)',
+  'tour.turnOnNotification.step1.content': 'Guideタブをタップして、手順を確認します。',
+  'tour.turnOnNotification.step2.title': '通知を許可',
+  'tour.turnOnNotification.step2.content': '通知を許可するを選択すると、タスクの開始や完了時にシステム通知を受け取ることができます。',
+
   'tour.changeFontSize.title': 'フォントサイズの変更',
   'tour.changeFontSize.description': 'フォントサイズの変更方法を学びます。',
   'tour.changeFontSize.step1.title': 'フォントサイズの変更(メニューを開く)',

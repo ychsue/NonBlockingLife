@@ -129,6 +129,10 @@ export default function App() {
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
         "\n\r**Please note**: This update enables the PWA to fetch ICS files from other calendars via Supabase (needs setting the `fetch-ics` Edge Function).",
+      "openDialog.clockNotSelected.title": "Clock App Not Selected",
+      "openDialog.clockNotSelected.message": "Please select a clock app in the APP settings before setting an alarm.",
+      "openDialog.exactAlarmPermission.title": "Exact Alarm Permission Not Enabled",
+      "openDialog.exactAlarmPermission.message": "Please enable the exact alarm permission in your APP settings to ensure accurate notifications.",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -143,6 +147,10 @@ export default function App() {
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
         "\n\r**注意**：讓PWA也可透過 Supabase 取得別的日曆的 ICS 文件。(須設定 `fetch-ics` Edge Function)。",
+      "openDialog.clockNotSelected.title": "未選擇時鐘應用",
+      "openDialog.clockNotSelected.message": "請先由APP設定選擇一個時鐘應用以設定鬧鐘。",
+      "openDialog.exactAlarmPermission.title": "精確鬧鐘權限未啟用",
+      "openDialog.exactAlarmPermission.message": "請先由APP設定啟用精確鬧鐘權限，以確保通知的準確性。"
     },
     ja: {
       "useTwaBridge.twaNotAvailable":
@@ -159,6 +167,10 @@ export default function App() {
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
         "\n\r**注意**：この更新により、PWAはSupabaseを介して他のカレンダーからICSファイルを取得できるようになりました（`fetch-ics` Edge Functionの設定が必要です）。",
+      "openDialog.clockNotSelected.title": "時計アプリが選択されていません",
+      "openDialog.clockNotSelected.message": "アラームを設定する前に、APPの設定で時計アプリを選択してください。",
+      "openDialog.exactAlarmPermission.title": "正確なアラーム権限が有効になっていません",
+      "openDialog.exactAlarmPermission.message": "通知の正確性を確保するために、APPの設定で正確なアラーム権限を有効にしてください。",
     },
   });
 
@@ -321,9 +333,9 @@ export default function App() {
         setTwaClocks(resTwaClocks);
         // 4. 叫出 openDialog 讓使用者選擇 Clock App
         const clockAppResult = await openDialog({
-          title: "TWA Clock App Not Selected",
+          title: t("openDialog.clockNotSelected.title"),
           message:
-            "Please select a clock app in TWA settings to enable alarm sync.",
+            t("openDialog.clockNotSelected.message"),
           actions: [{ id: "ok", label: "OK" }],
           selects: [
             {
@@ -367,9 +379,9 @@ export default function App() {
         );
         // 6. 由於他是默默地做，所以需要 openDialog 告知使用者若選用Notification提醒，就必須允許精確鬧鐘的權限
         openDialog({
-          title: "Enable Exact Alarm Permission",
+          title: t("openDialog.exactAlarmPermission.title"),
           message:
-            "To ensure accurate notifications, please enable the exact alarm permission in your TWA settings.",
+            t("openDialog.exactAlarmPermission.message"),
           actions: [{ id: "ok", label: "OK" }],
         });
       }
