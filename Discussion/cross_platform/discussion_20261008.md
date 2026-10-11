@@ -326,3 +326,46 @@ Deno.serve(async (req) => {
 | 沒登入能用 `verify_jwt` 嗎？ | 能，anon key 本身就是有效 JWT；但它只是「門鈴」，不是鎖 |
 | 怎麼防濫用？ | 函式內做 https/內網封鎖/大小/ICS 內容檢查，加上可選的每使用者共享 token |
 | 呼叫網址？ | `https://<ref>.supabase.co/functions/v1/fetch-ics`，PWA 用 `supabase.functions.invoke` 自動呼叫，使用者只需部署一次 |
+
+## [2026-10-11] ychsue 我已經大致部署且測試完 fetch-ics 的部分，運作正常。所以，可以回來繼續[原本的規劃1](#2026-10-08-copilot-回覆windows--linux--macos--ios-擴展建議) [原本的規劃2](#2026-10-08-copilot-回覆)。 
+
+## [2026-10-11] Copilot 回覆（回到主線：施作計畫）
+
+### 1. 現況盤點（PWA 端與 Android 橋接的耦合點）
+
+- `pwa/public/twa-pm-bridge.js`：注入 `window.__NBL_TWA_BRIDGE__`（MessagePort，字串 JSON 訊息）。
+- `pwa/src/hooks/useTwaBridge.ts`：訂閱橋接訊息。
+- `pwa/src/hooks/useTwaRpc.ts`：`sendRequest(type, payload)`，以 `requestId` 配對回應，預設逾時 3 秒。
+- `pwa/src/utils/androidAlarmBridge.ts`：鬧鐘排程請求的資料結構（`taskId/eventAt/alarmAt/dedupeKey...`）。
+- `App.tsx`、`utils/notification.ts` 直接引用上述 hook。
+
+觀察：**現有的 RPC 形狀（`{type, requestId, ...payload}`）已經夠通用**，桌面殼可以直接沿用，不必先發明新協定；只需在其上加一個「handshake / capabilities」訊息。這讓第一步風險很低。
+
+### 2. 修正後的施作順序
+
+| 階段 | 內容 | 產出 | 風險 |
+|---|---|---|---|
+| 0 | 把現有 Android 訊息型別整理成文件（`protocol/messages.md`，之後再轉 JSON Schema） | 協定文件 | 低 |
+| 1 | PWA 新增 `src/native/`：`NativeBridge` 介面 + `twaBridge`（包裝現有 `useTwaRpc`）+ `webBridge`（純 PWA）；呼叫端改走介面，行為不變 | 重構 + 測試 | 低，Android 行為須不變 |
+| 2 | 加 `hello` / `capabilities` 訊息；Android 端回報（Kotlin 小改） | 能力協商 | 低 |
+| 3 | `fetchText` 降級鏈：直連 → native → Edge Function (`fetch-ics`) → 手動匯入 | ICS 在所有平台可用 | 低（Edge Function 已就緒） |
+| 4 | `desktop/` 建 Avalonia 殼（Windows 優先）：載入線上 PWA、origin 白名單、托盤、開機自啟、實作 `notify`/`alarm`/`openExternal`/`share` | Windows 版 | 中（WebView 元件） |
+| 5 | Linux 驗證（WebKitGTK）；不行再換 Photino | Linux 版 | 中高 |
+| 6 | macOS（需 Mac + Apple 開發者帳號）／iOS 維持 PWA + 捷徑 | 視需求 | 高，可延後 |
+
+### 3. 建議的下一步
+
+先做 **階段 0 + 1**（純 PWA 端，不碰任何桌面程式碼，也不動 Android 行為），因為它：
+1. 讓之後 Windows／Linux／macOS 殼都只需實作同一介面；
+2. 可用既有 `androidAlarmBridge.test.ts` 風格的單元測試保護；
+3. 即使桌面殼最後延期，也不浪費。
+
+階段 4 開始前，再花一小段時間確認 Avalonia WebView 元件（目前狀態與授權）以及 WebView2 備案，確定後再建 `desktop/`。
+
+
+### 4. 進度（階段 0、1 完成）
+
+- 新增 `protocol/messages.md`：整理現有 Android 訊息。
+- 新增 `pwa/src/native/`：`NativeBridge` 介面、`createWebBridge` / `createTwaBridge`、`useNativeBridge` hook 與單元測試（4 項通過）。
+- `IcsSourceManagementDialog` 的 `nbl:fetch-ics` 已改走 `nativeBridge.fetchIcs`（行為不變）。
+- 其餘 `sendRequest` 呼叫端（App.tsx 等）暫不動，之後逐步遷移。

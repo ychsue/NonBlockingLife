@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-10-11] 試著做成多平台
+[16:27] [NativeBridge.ts](pwa\src\native\NativeBridge.ts) 新增了 `NativeBridge` 介面，用於統一 PWA 與原生橋接的呼叫方式。
+
 ## [2026-10-11] (3.1.7) 修正一些bug，提升穩定性。
 1. [SupabaseSyncManager.ts](pwa\src\utils\SupabaseSyncManager.ts) 當網路連線失敗，error.message 會被正確捕捉並處理。
 2. [SyncStatus.tsx](pwa\src\components\SyncStatus.tsx) 修正了當 pendingChangeLogs.length=0 時的顯示邏輯。

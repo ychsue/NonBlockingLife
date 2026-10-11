@@ -4,7 +4,7 @@ import type { IcsSourceItem } from "../../db/schema";
 import { parseIcsContent } from "../../utils/icsParser";
 import { TableCard } from "../TableCard"; // 引入已修改好支援 accentColor/editLabel/isDisabled 的 TableCard
 import Utils from "../../../../gas/src/Utils";
-import { useTwaRpc } from "../../hooks/useTwaRpc";
+import { useNativeBridge } from "../../native/useNativeBridge";
 import { getDeviceType } from "../../utils/shortcutUtils";
 import { useProductTourContext } from "../tour/ProductTourContext";
 import { useTWithMaps } from "../../i18n";
@@ -40,7 +40,7 @@ export function IcsSourceManagementDialog({
   const [loading, setLoading] = useState(false);
   const syncType = useAppStore((state) => state.syncType);
 
-  const { sendRequest } = useTwaRpc();
+  const nativeBridge = useNativeBridge();
   const { nextStep, isRunning, activeStep } = useProductTourContext();
 
   // 新增/編輯 URL 來源的狀態
@@ -482,11 +482,9 @@ export function IcsSourceManagementDialog({
     // 1. 直連
     if (["AndroidWebView"].includes(dType)) {
       try {
-        const res = (await sendRequest("nbl:fetch-ics", {
-          url: formUrl.trim(),
-        })) as { icsContent: string };
+        const icsContent = await nativeBridge.fetchIcs(formUrl.trim());
         const eventsLength = await parseAndUpdateIcsTables(
-          res.icsContent,
+          icsContent,
           editingSourceId,
         );
         isSuccess = true;
