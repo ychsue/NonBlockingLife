@@ -2,8 +2,29 @@ import { describe, expect, test, vi } from "vitest";
 import {
   createTwaBridge,
   createWebBridge,
+  negotiateHello,
   NativeUnsupportedError,
 } from "../NativeBridge";
+
+describe("negotiateHello", () => {
+  test("parses response and drops unknown capabilities", async () => {
+    const send = vi.fn().mockResolvedValue({
+      shell: "windows",
+      protocolVersion: 1,
+      capabilities: ["alarm", "bogus", "share"],
+    });
+    const info = await negotiateHello(send);
+    expect(info.capabilities).toEqual(["alarm", "share"]);
+    expect(info.shell).toBe("windows");
+  });
+
+  test("old shell (timeout) falls back to default capabilities", async () => {
+    const send = vi.fn().mockRejectedValue(new Error("timeout"));
+    const info = await negotiateHello(send);
+    expect(info.protocolVersion).toBe(0);
+    expect(info.capabilities).toEqual(["alarm", "notify", "fetchIcs"]);
+  });
+});
 
 describe("NativeBridge", () => {
   test("web bridge has no capabilities and rejects", async () => {

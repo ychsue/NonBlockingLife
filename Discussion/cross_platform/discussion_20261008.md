@@ -369,3 +369,9 @@ Deno.serve(async (req) => {
 - 新增 `pwa/src/native/`：`NativeBridge` 介面、`createWebBridge` / `createTwaBridge`、`useNativeBridge` hook 與單元測試（4 項通過）。
 - `IcsSourceManagementDialog` 的 `nbl:fetch-ics` 已改走 `nativeBridge.fetchIcs`（行為不變）。
 - 其餘 `sendRequest` 呼叫端（App.tsx 等）暫不動，之後逐步遷移。
+
+### 5. 進度（階段 2：nbl:hello）
+
+- Kotlin `AndroidBridge.kt` 新增 `nbl:hello` → `nbl:hello-response`（shell/shellVersion/protocolVersion/capabilities）。
+- PWA `negotiateHello`：逾時或錯誤（舊版 shell 只會忽略未知訊息）即退回預設能力 `alarm/notify/fetchIcs`，因此舊版 APK 不受影響。
+- `useNativeBridge` 啟動後自動協商。測試 6 項通過，Kotlin 編譯通過。

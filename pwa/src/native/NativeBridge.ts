@@ -53,6 +53,44 @@ export function createWebBridge(): NativeBridge {
 
 const TWA_DEFAULT_CAPS: NativeCapability[] = ["alarm", "notify", "fetchIcs"];
 
+/** 協商結果；舊版 shell 不認得 nbl:hello（只會忽略），逾時後退回預設能力 */
+export interface HelloInfo {
+  shell: string;
+  shellVersion?: string;
+  protocolVersion: number;
+  capabilities: NativeCapability[];
+}
+
+const KNOWN_CAPS: NativeCapability[] = [
+  "alarm",
+  "notify",
+  "fetchIcs",
+  "share",
+  "openExternal",
+];
+
+export async function negotiateHello(
+  send: RpcSend,
+  timeoutMs = 1500,
+): Promise<HelloInfo> {
+  try {
+    const res = await send("nbl:hello", { protocolVersion: 1 }, { timeoutMs });
+    const caps = Array.isArray(res?.capabilities)
+      ? (res.capabilities as string[]).filter((c): c is NativeCapability =>
+          (KNOWN_CAPS as string[]).includes(c),
+        )
+      : TWA_DEFAULT_CAPS;
+    return {
+      shell: String(res?.shell ?? "unknown"),
+      shellVersion: res?.shellVersion,
+      protocolVersion: Number(res?.protocolVersion ?? 1),
+      capabilities: caps,
+    };
+  } catch {
+    return { shell: "android", protocolVersion: 0, capabilities: TWA_DEFAULT_CAPS };
+  }
+}
+
 /** 包裝既有 TWA/WebView RPC */
 export function createTwaBridge(
   send: RpcSend,

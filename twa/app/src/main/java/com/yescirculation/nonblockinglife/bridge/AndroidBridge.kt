@@ -13,6 +13,7 @@ import com.yescirculation.nonblockinglife.notification.NOTIFY_MESSAGE_TYPE
 import com.yescirculation.nonblockinglife.notification.QUERY_NOTIFICATION_PERMISSION_TYPE
 import com.yescirculation.nonblockinglife.notification.replyNotificationPermissionStatus
 import com.yescirculation.nonblockinglife.notification.showNativeNotification
+import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -124,6 +125,15 @@ class AndroidBridge (
                     "{\"type\":\"nbl:pong\",\"requestId\":\"$requestId\"}",
                     null
                 )
+            } else if ("nbl:hello" == type) {
+                val hello = JSONObject()
+                    .put("type", "nbl:hello-response")
+                    .put("requestId", requestId)
+                    .put("shell", "android")
+                    .put("shellVersion", context.getString(R.string.versionName))
+                    .put("protocolVersion", 1)
+                    .put("capabilities", JSONArray(listOf("alarm", "notify", "fetchIcs")))
+                mSession.postMessage(hello.toString(), null)
             } else if ("nbl:version" == type) {
                 mSession.postMessage(
                     "{\"type\":\"nbl:version-response\",\"requestId\":\"$requestId\",\"version\":\"${context.getString(R.string.versionName)}\"}",
