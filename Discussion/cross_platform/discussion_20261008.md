@@ -375,3 +375,9 @@ Deno.serve(async (req) => {
 - Kotlin `AndroidBridge.kt` 新增 `nbl:hello` → `nbl:hello-response`（shell/shellVersion/protocolVersion/capabilities）。
 - PWA `negotiateHello`：逾時或錯誤（舊版 shell 只會忽略未知訊息）即退回預設能力 `alarm/notify/fetchIcs`，因此舊版 APK 不受影響。
 - `useNativeBridge` 啟動後自動協商。測試 6 項通過，Kotlin 編譯通過。
+
+### 6. 進度（階段 3：ICS 降級鏈）
+
+- 新增 `pwa/src/native/fetchIcs.ts`：`fetchIcsWithFallback` 依序 native（看 capability，不再看 deviceType）→ 直連 → Supabase `fetch-ics`，每階段都檢查內容是否以 `BEGIN:VCALENDAR` 開頭；全部失敗才 reject（UI 提示手動匯入）。
+- `IcsSourceManagementDialog` 改用它；行為差異：Android 原本 native 失敗就放棄，現在會繼續試直連與 Supabase。
+- 因以 capability 判斷，之後桌面殼只要在 hello 回報 `fetchIcs` 就自動生效。測試 10 項通過。
