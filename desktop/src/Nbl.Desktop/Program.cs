@@ -17,8 +17,14 @@ class Program
             System.Diagnostics.Trace.Listeners.Add(new System.Diagnostics.TextWriterTraceListener(traceFile));
             System.Diagnostics.Trace.AutoFlush = true;
         }
+        var options = LaunchOptions.Parse(args);
+        using var instance = options.AllowMultiple ? null : SingleInstance.TryAcquire();
+        if (!options.AllowMultiple && instance is null) return;
+        Instance = instance;
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
+
+    public static SingleInstance? Instance { get; private set; }
 
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()

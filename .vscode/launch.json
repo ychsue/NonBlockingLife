@@ -32,7 +32,7 @@
       "request": "launch",
       "preLaunchTask": "build-nbl-desktop",
       "program": "${workspaceFolder}/desktop/src/Nbl.Desktop/bin/Debug/net10.0/Nbl.Desktop.dll",
-      "args": ["--source", "dist", "--dist-path", "${workspaceFolder}/pwa/dist"],
+      "args": ["--source", "dist", "--dist-path", "${workspaceFolder}/pwa/dist", "--allow-multiple"],
       "cwd": "${workspaceFolder}/desktop/src/Nbl.Desktop",
       "env": { "NBL_TRACE_FILE": "${workspaceFolder}/desktop/trace.log" },
       "console": "internalConsole",
@@ -44,7 +44,7 @@
       "request": "launch",
       "preLaunchTask": "build-nbl-desktop",
       "program": "${workspaceFolder}/desktop/src/Nbl.Desktop/bin/Debug/net10.0/Nbl.Desktop.dll",
-      "args": ["--source", "dev"],
+      "args": ["--source", "dev", "--allow-multiple"],
       "cwd": "${workspaceFolder}/desktop/src/Nbl.Desktop",
       "env": { "NBL_TRACE_FILE": "${workspaceFolder}/desktop/trace.log" },
       "console": "internalConsole",
@@ -56,11 +56,22 @@
       "request": "launch",
       "preLaunchTask": "build-nbl-desktop",
       "program": "${workspaceFolder}/desktop/src/Nbl.Desktop/bin/Debug/net10.0/Nbl.Desktop.dll",
-      "args": ["--source", "online"],
+      "args": ["--source", "online", "--allow-multiple"],
       "cwd": "${workspaceFolder}/desktop/src/Nbl.Desktop",
       "env": { "NBL_TRACE_FILE": "${workspaceFolder}/desktop/trace.log" },
       "console": "internalConsole",
       "stopAtEntry": false
+    },
+    {
+      "name": "附加上 Avalonia NativeWebView (React)",
+      "type": "msedge",
+      "request": "attach",
+      "port": 9222,
+      "webRoot": "${workspaceFolder}/pwa",
+      "url": "http://localhost:5173",
+      "pathMapping": {
+        "/": "${workspaceFolder}/pwa"
+      }
     }
   ]
 }

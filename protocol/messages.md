@@ -9,16 +9,27 @@
 |---|---|---|---|---|
 | `nbl:ping` | — | 是 | 任意（有回應即可） | — |
 | `nbl:version` | — | 是 | `nbl:version-response` | — |
-| `nbl:query-alarm-setup` | — | 是 | 依 Android 實作 | `alarm` |
-| `nbl:query-clock-apps` | — | 是 | 依 Android 實作 | `alarm` |
+| `nbl:query-alarm-setup` | — | 是 | `nbl:alarm-setup`：`{ selectedClockApp, exactAlarmAllowed }` | `alarm` |
+| `nbl:query-clock-apps` | — | 是 | `nbl:clock-apps`：`{ apps, selectedPackageName }` | `alarm` |
+| `nbl:select-clock-app` | `{ packageName }` | 是 | `nbl:select-clock-app-result` | `alarm` |
 | `nbl:request-exact-alarm-permission` | — | 否 | — | `alarm` |
-| `nbl:set-alarms` | `{ alarms: AlarmItem[] }` | 是 | 依 Android 實作 | `alarm` |
-| `nbl:query-notification-permission` | — | 是 | `nbl:notification-permission-status` | `notify` |
-| `nbl:fetch-ics` | `{ url: string }` | 是 | `{ icsContent: string }` | `fetchIcs` |
+| `nbl:set-alarms` | `{ alarms: AlarmItem[] }` | 是 | `nbl:set-alarms-result`：`{ results: [{id, mode, ok, reason?}] }` | `alarm` |
+| `nbl:notify` | `{ title, body, id, url?, dismissOnClick? }` | 否（有 requestId 時回 `nbl:notification-shown`） | — | `notify` |
+| `nbl:query-notification-permission` | — | 是 | `nbl:notification-permission-status`：`{ granted }` | `notify` |
+| `nbl:fetch-ics` | `{ url: string }` | 是 | `{ icsContent: string }`；桌面端失敗時回 `{ error }` | `fetchIcs` |
+| `nbl:open-external` | `{ url }`（僅 http/https） | 是 | `nbl:open-external-response`：`{ ok }` | `openExternal` |
+| `nbl:share` | `{ title?, text?, url? }` | 是 | `nbl:share-response`：`{ ok }`（桌面端＝複製到剪貼簿） | `share` |
 
-## 規劃中（階段 2）
+## 已實作
 
-- `nbl:hello` → `nbl:hello-response`：`{ shell: "android"|"windows"|"linux"|"macos", shellVersion, protocolVersion: 1, capabilities: string[] }`
+- `nbl:hello` → `nbl:hello-response`：`{ shell: "android"|"windows"|"linux"|"macos", shellVersion, protocolVersion: 1, capabilities: string[] }`（Android 與桌面皆已實作）。
 - 未回應 `nbl:hello` 的舊版 Android shell：PWA 以 `nbl:ping`/`nbl:version` 成功視為 `twa`，並假設 capabilities 為 `alarm|notify|fetchIcs`。
+
+## 桌面端 alarm 語意
+
+- 桌面端自帶計時（shell 程序內），持久化於 `%LocalAppData%/NonBlockingLife/alarms.json`，視窗縮到系統匣仍會響。
+- `clock` 與 `exact` 皆由同一排程處理；同一 `id` 與時間的兩者只響一次。
+- `set-alarms` 為 upsert（key = `id:mode`）；PWA 刪除的項目不會被撤銷（協定目前沒有 cancel）。
+- 逾期超過 1 小時的鬧鐘（例如關機期間錯過）啟動時直接丟棄；`past_time` / `invalid_time` 以 `ok:false` + `reason` 回報。
 
 Capabilities：`alarm | notify | fetchIcs | share | openExternal`

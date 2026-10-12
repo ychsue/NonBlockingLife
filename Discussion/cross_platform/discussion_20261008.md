@@ -473,3 +473,57 @@ Ran terminal command: Add-Content desktop\.gitignore -Value "trace.log" -ErrorAc
 
 要接著做系統匣常駐、notify 和 alarm 嗎?
 
+---
+
+## [2026-10-12] ychsue 
+紀錄一下，在 [MainWindow.axaml.cs](../desktop/src/Nbl.Desktop/MainWindow.axaml.cs) 裡面加上
+```csharp
+        if (options.Source == LoadSource.Dev)
+        {
+            Environment.SetEnvironmentVariable("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--remote-debugging-port=9222");
+        }
+```
+讓我可以使用 VSCode 透過 `msedge` 附加到 WebView2 的遠端除錯埠。
+所以，除錯順序
+1. npm run dev
+2. 啟動 NBL Desktop (dev: localhost:5173) 配置。
+3. 在 VSCode 裡面使用 `msedge` 配置附加到 WebView2 的遠端除錯埠。
+
+好的，下一步:系統匣常駐、notify、alarm(桌面端自帶計時並持久化)、openExternal/share
+---
+
+### 階段 5 進度:系統匣常駐、notify、alarm、openExternal/share(Windows 殼)
+
+**PWA 除錯流程(回答)**:你的流程可行,但順序建議 `npm run dev` → 啟動 NBL Desktop (dev) → 附加 `msedge`(dev server 沒起來時殼會載入失敗)。我把 `--remote-debugging-port=9222` 改成在 `Web.EnvironmentRequested` 內以 `AdditionalBrowserArguments` 設定(只在 `--source dev` 生效),不再靠行程環境變數。另一個替代做法是在 WebView 內按 F12 開 DevTools(Debug 組態),不需附加;要設 VSCode 斷點才需附加。
+
+**實作內容**
+- `Nbl.Bridge/AlarmScheduler`:持久化(`%LocalAppData%/NonBlockingLife/alarms.json`,原子寫入、損毀時忽略)、`clock`(下一個 HH:mm)與 `exact` 時間解析、同 id 同時間去重、逾期超過 1 小時丟棄。
+- `BridgeDispatcher` 新增:`nbl:notify`、`query-notification-permission`、`query-alarm-setup`/`query-clock-apps`/`select-clock-app`(回傳虛擬的「NBL Desktop」時鐘 App,讓 PWA 不跳出選擇對話框)、`request-exact-alarm-permission`、`set-alarms`、`open-external`(僅 http/https)、`share`。capabilities 依注入的功能自動列出。測試共 26 個通過。
+- 殼:`DesktopHost`(`IDesktopHost`)、`ToastWindow`(右下角小視窗,不依賴系統 toast,可跨平台;一般通知 8 秒消失,鬧鐘需點擊)、系統匣圖示(開啟/結束)、關閉視窗=縮到系統匣(ShutdownMode 明確關閉)、1 秒計時器取出到期鬧鐘。
+- 驗證:預寫入 8 秒後的鬧鐘,到期後檔案清空;`CloseMainWindow()` 後程序仍存活。
+
+**已知限制 / 取捨**
+- `share`:桌面沒有統一的分享面板,先做「複製到剪貼簿並提示」;PWA 目前尚未呼叫 `nbl:share` / `nbl:open-external`。
+- 協定沒有「取消鬧鐘」,PWA 刪除的鬧鐘仍會響(Android 端同樣情況),之後可加 `nbl:cancel-alarms`。
+- 沒有開機自動啟動、也沒有單一實例(重複開啟會有兩個圖示);之後再補。
+- Toast 的實際畫面尚未目視確認,請你開 dist 模式用「Scheduled」建一個近期項目看看。
+
+---
+
+## [2026-10-12] ychsue 自動啟動可以由程式這裡設定嗎？單一實例確實有必要。還有，在 [shortcutUtils.ts](/pwa/src/utils/shortcutUtils.ts) 裡面，我有用到 nonblockinglife:// 的 protocol ，那麼，這裡也要改走 postmessage 的路線嗎？
+所以， useNativeBridge 裡面的 useEffect....[] 的區段的 listener 會不會互相打架呢？
+---
+
+## 階段 6:自動啟動、單一實例、`nonblockinglife://`、listener 疑慮(2026-10-08)
+
+**實作**
+- `SingleInstance`(具名 Mutex + 具名管道):第二個實例通知第一個「顯示視窗」後離開。`--allow-multiple` 可略過(launch.json 三個除錯配置已加,避免 F5 被常駐實例擋掉)。
+- `AutoStart`:Windows 寫 `HKCU\...\Run\NonBlockingLife`,Linux 寫 `~/.config/autostart/nonblockinglife.desktop`,macOS 暫不支援。命令列附 `--background`(啟動後直接縮到系統匣)。由系統匣選單「開機時自動啟動」勾選切換,不需改 PWA。
+- `ExternalUriPolicy`:殼只會把 http/https/mailto/ms-clock 交給作業系統,其餘導覽一律擋下(原本是任何非白名單 URI 都 ShellExecute,有安全疑慮)。
+- 踩雷:Avalonia 每次 `Show()` 都會再觸發 `Opened`,「背景啟動就 Hide」必須用一次性 handler,否則之後永遠顯示不出來。
+
+**`nonblockinglife://`**:是 Android 深層連結(show-clock、set-timer…),由 Android 殼處理,桌面不需要,保持原樣,不必改走 postMessage。桌面的 `ms-clock:` 仍走 `window.location.href`,由殼的外開機制處理(WebView2 對自訂 scheme 的行為尚未實測)。
+
+**listener 會不會打架**:不會。每個 `useTwaRpc` 各有自己的 `pendingRequests`,requestId 唯一,收到不屬於自己的訊息就忽略。真正的浪費是每個 `useNativeBridge` 都各送一次 hello,已改為以 port 為 key 快取 promise。
+
+**驗證**:36 個 C# 測試通過;實測第二實例會結束並把隱藏中的第一個實例叫出來;`--background` 啟動時無視窗。自動啟動寫入登錄檔尚未實際點選測試。

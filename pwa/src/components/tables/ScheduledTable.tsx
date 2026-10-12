@@ -1166,7 +1166,9 @@ export function ScheduledTable() {
                   </SettingsCard>
 
                   {(getDeviceType() === "TWA" ||
-                    getDeviceType() === "AndroidWebView") && (
+                    getDeviceType() === "AndroidWebView" ||
+                    true // TODO TODO TODO: 這裡暫時強制為 true，之後再根據實際需求修改
+                  ) && (
                     <SettingsCard
                       title={text.alarmSyncTargetsLabel}
                       description={null}

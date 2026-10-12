@@ -29,13 +29,21 @@ public partial class MainWindow : Window
     private readonly BridgeDispatcher _dispatcher;
     private readonly LocalStaticServer? _server;
 
-    public MainWindow() : this(LaunchOptions.Parse(Environment.GetCommandLineArgs().Skip(1).ToArray())) { }
+    public MainWindow() : this(LaunchOptions.Parse(Array.Empty<string>()), null, null) { }
 
-    public MainWindow(LaunchOptions options)
+    public bool AllowClose { get; set; }
+
+    public MainWindow(LaunchOptions options, IDesktopHost? host, AlarmScheduler? alarms)
     {
         InitializeComponent();
+        Closing += (_, e) =>
+        {
+            if (AllowClose || host is null) return;
+            e.Cancel = true;
+            Hide();
+        };
         _origins = new OriginPolicy(options.AllowedOrigins);
-        _dispatcher = new BridgeDispatcher("windows", "0.1.0", new HttpIcsFetcher());
+        _dispatcher = new BridgeDispatcher("windows", "0.1.0", new HttpIcsFetcher(), host, alarms);
 
         if (options.Source == LoadSource.Dist)
         {
@@ -47,16 +55,24 @@ public partial class MainWindow : Window
         Web.EnvironmentRequested += (_, e) =>
         {
             if (e is Avalonia.Platform.WindowsWebView2EnvironmentRequestedEventArgs w)
+            {
                 w.UserDataFolder = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                     "NonBlockingLife", "WebView2");
+                // 讓 VSCode 的 msedge 配置可附加到此 WebView2 進行 PWA 除錯
+                if (options.Source == LoadSource.Dev)
+                    w.AdditionalBrowserArguments = "--remote-debugging-port=9222";
+            }
         };
         Web.NavigationStarted += (_, e) =>
         {
             if (e.Request is { } uri && !_origins.IsAllowed(uri))
             {
                 e.Cancel = true;
-                Process.Start(new ProcessStartInfo(uri.ToString()) { UseShellExecute = true });
+                if (ExternalUriPolicy.IsSafe(uri))
+                    Process.Start(new ProcessStartInfo(uri.ToString()) { UseShellExecute = true });
+                else
+                    Trace.WriteLine($"[nbl] blocked navigation to {uri}");
             }
         };
         Web.NavigationCompleted += async (_, _) =>

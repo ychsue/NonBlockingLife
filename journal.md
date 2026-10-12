@@ -2,6 +2,7 @@
 
 ## [2026-10-12] 關閉不必要的 import.meta.env.DEV 判斷 與 起始Avalonia 專案
 [08:12] 修正:MainWindow.axaml.cs 現在在 Web.EnvironmentRequested 事件裡,把 UserDataFolder 設成 %LocalAppData%\NonBlockingLife\WebView2 ，這樣， `dotnet ....` 才會使用這個資料夾作為 WebView2 的使用者資料夾。
+[16:26] 加入 Alarm 與 Notification，但還有些問題，比如計時器功能還沒有。
 
 ## [2026-10-11] 試著做成多平台
 [16:27] [NativeBridge.ts](pwa\src\native\NativeBridge.ts) 新增了 `NativeBridge` 介面，用於統一 PWA 與原生橋接的呼叫方式。
