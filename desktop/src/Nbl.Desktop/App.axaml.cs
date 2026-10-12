@@ -11,6 +11,7 @@ namespace Nbl.Desktop;
 public partial class App : Application
 {
     private DispatcherTimer? _alarmTimer;
+    private ClockWindow? _clock;
 
     public override void Initialize()
     {
@@ -28,6 +29,8 @@ public partial class App : Application
             var dataDir = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NonBlockingLife");
             var alarms = new AlarmScheduler(Path.Combine(dataDir, "alarms.json"));
+            var timers = new TimerService(Path.Combine(dataDir, "timers.json"));
+            _clock = new ClockWindow(alarms, timers);
             var host = new DesktopHost();
             var window = new MainWindow(options, host, alarms);
             host.Attach(window);
@@ -42,7 +45,7 @@ public partial class App : Application
                 single.ShowRequested += () => { System.Diagnostics.Trace.WriteLine("[nbl] show requested"); host.ShowMainWindow(); };
 
             SetupTray(desktop, window, host);
-            StartAlarmTimer(alarms, host);
+            StartAlarmTimer(alarms, timers, host);
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -52,6 +55,8 @@ public partial class App : Application
     {
         var open = new NativeMenuItem("開啟 NonBlockingLife");
         open.Click += (_, _) => host.ShowMainWindow();
+        var clock = new NativeMenuItem("鬧鐘與計時器");
+        clock.Click += (_, _) => _clock?.ShowAndActivate();
         var autoStart = new NativeMenuItem("開機時自動啟動")
         {
             ToggleType = MenuItemToggleType.CheckBox,
@@ -72,6 +77,7 @@ public partial class App : Application
         exit.Click += (_, _) =>
         {
             window.AllowClose = true;
+            if (_clock is not null) _clock.AllowClose = true;
             _alarmTimer?.Stop();
             desktop.Shutdown();
         };
@@ -80,19 +86,22 @@ public partial class App : Application
         {
             Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://Nbl.Desktop/Assets/icon.png"))),
             ToolTipText = "NonBlockingLife",
-            Menu = new NativeMenu { open, autoStart, new NativeMenuItemSeparator(), exit },
+            Menu = new NativeMenu { open, clock, autoStart, new NativeMenuItemSeparator(), exit },
         };
         tray.Clicked += (_, _) => host.ShowMainWindow();
         TrayIcon.SetIcons(this, new TrayIcons { tray });
     }
 
-    private void StartAlarmTimer(AlarmScheduler alarms, DesktopHost host)
+    private void StartAlarmTimer(AlarmScheduler alarms, TimerService timers, DesktopHost host)
     {
         _alarmTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _alarmTimer.Tick += (_, _) =>
         {
-            foreach (var due in alarms.TakeDue(DateTimeOffset.Now))
+            var now = DateTimeOffset.Now;
+            foreach (var due in alarms.TakeDue(now))
                 host.ShowNotification(due.Id ?? 0, "⏰ NonBlockingLife", due.Label, isAlarm: true);
+            foreach (var t in timers.TakeFinished(now))
+                host.ShowNotification(0, "⏳ 計時結束", t.Label, isAlarm: true);
         };
         _alarmTimer.Start();
     }

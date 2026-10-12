@@ -84,6 +84,30 @@ public sealed class AlarmScheduler
         }
     }
 
+    /// <summary>移除指定 key 的鬧鐘；回傳是否有移除。</summary>
+    public bool Remove(string key)
+    {
+        lock (_gate)
+        {
+            if (!_entries.Remove(key)) return false;
+            Save();
+            return true;
+        }
+    }
+
+    /// <summary>依 PWA 的鬧鐘 id 移除（clock 與 exact 都會移除）；回傳移除數量。</summary>
+    public int RemoveByIds(IEnumerable<int> ids)
+    {
+        var set = ids.ToHashSet();
+        lock (_gate)
+        {
+            var keys = _entries.Values.Where(e => e.Id is int i && set.Contains(i)).Select(e => e.Key).ToList();
+            foreach (var k in keys) _entries.Remove(k);
+            if (keys.Count > 0) Save();
+            return keys.Count;
+        }
+    }
+
     private static DateTimeOffset? ResolveTime(string mode, JsonArray? time, DateTimeOffset now)
     {
         try

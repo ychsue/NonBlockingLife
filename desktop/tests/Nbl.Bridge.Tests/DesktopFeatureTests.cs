@@ -70,6 +70,25 @@ public class DesktopFeatureTests
     }
 
     [Fact]
+    public async Task GetAndCancelAlarms_RoundTrip()
+    {
+        var d = new BridgeDispatcher("windows", "1", null, new FakeHost(), new AlarmScheduler(), () => Now);
+        await d.HandleAsync("""
+            {"type":"nbl:set-alarms","requestId":"s","alarms":[
+              {"id":1,"mode":"clock","time":[10,30],"label":"a"},
+              {"id":2,"mode":"exact","time":[2026,10,12,11,0],"label":"b"}]}
+            """);
+        var list = Parse(await d.HandleAsync("""{"type":"nbl:get-alarms","requestId":"g"}"""))["alarms"]!.AsArray();
+        Assert.Equal(2, list.Count);
+
+        var res = Parse(await d.HandleAsync("""{"type":"nbl:cancel-alarms","requestId":"c","ids":[1,99]}"""));
+        Assert.Equal("nbl:cancel-alarms-result", (string?)res["type"]);
+        Assert.Equal(1, (int)res["removed"]!);
+        list = Parse(await d.HandleAsync("""{"type":"nbl:get-alarms","requestId":"g2"}"""))["alarms"]!.AsArray();
+        Assert.Single(list);
+    }
+
+    [Fact]
     public async Task OpenExternal_AllowsOnlyHttp()
     {
         var host = new FakeHost();

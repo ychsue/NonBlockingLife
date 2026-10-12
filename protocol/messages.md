@@ -14,6 +14,8 @@
 | `nbl:select-clock-app` | `{ packageName }` | 是 | `nbl:select-clock-app-result` | `alarm` |
 | `nbl:request-exact-alarm-permission` | — | 否 | — | `alarm` |
 | `nbl:set-alarms` | `{ alarms: AlarmItem[] }` | 是 | `nbl:set-alarms-result`：`{ results: [{id, mode, ok, reason?}] }` | `alarm` |
+| `nbl:get-alarms` | — | 是 | `nbl:alarms`：`{ alarms: [{id, mode, label, fireAt(ms)}] }`（僅桌面端） | `alarm` |
+| `nbl:cancel-alarms` | `{ ids: number[] }` | 是 | `nbl:cancel-alarms-result`：`{ removed }`（僅桌面端） | `alarm` |
 | `nbl:notify` | `{ title, body, id, url?, dismissOnClick? }` | 否（有 requestId 時回 `nbl:notification-shown`） | — | `notify` |
 | `nbl:query-notification-permission` | — | 是 | `nbl:notification-permission-status`：`{ granted }` | `notify` |
 | `nbl:fetch-ics` | `{ url: string }` | 是 | `{ icsContent: string }`；桌面端失敗時回 `{ error }` | `fetchIcs` |
@@ -29,7 +31,8 @@
 
 - 桌面端自帶計時（shell 程序內），持久化於 `%LocalAppData%/NonBlockingLife/alarms.json`，視窗縮到系統匣仍會響。
 - `clock` 與 `exact` 皆由同一排程處理；同一 `id` 與時間的兩者只響一次。
-- `set-alarms` 為 upsert（key = `id:mode`）；PWA 刪除的項目不會被撤銷（協定目前沒有 cancel）。
+- `set-alarms` 為 upsert（key = `id:mode`）；撤銷用 `nbl:cancel-alarms`（依 `id`，clock/exact 一併移除）。
+- 小型時鐘視窗（系統匣 →「鬧鐘與計時器」）與 PWA 共用同一份 `alarms.json`；計時器另存 `timers.json`，目前只在桌面殼內管理，尚未開放給 PWA。
 - 逾期超過 1 小時的鬧鐘（例如關機期間錯過）啟動時直接丟棄；`past_time` / `invalid_time` 以 `ok:false` + `reason` 回報。
 
 Capabilities：`alarm | notify | fetchIcs | share | openExternal`

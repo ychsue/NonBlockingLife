@@ -143,6 +143,25 @@ public sealed class BridgeDispatcher
                         return (JsonNode)item;
                     }).ToArray()));
 
+            case "nbl:get-alarms":
+                if (_alarms is null) return null;
+                return Reply("nbl:alarms", requestId, o =>
+                    o["alarms"] = new JsonArray(_alarms.Snapshot().Select(a => (JsonNode)new JsonObject
+                    {
+                        ["id"] = a.Id,
+                        ["mode"] = a.Mode,
+                        ["label"] = a.Label,
+                        ["fireAt"] = a.FireAt.ToUnixTimeMilliseconds(),
+                    }).ToArray()));
+
+            case "nbl:cancel-alarms":
+                if (_alarms is null) return null;
+                var cancelIds = (req["ids"] as JsonArray ?? new JsonArray())
+                    .Select(n => n is JsonValue v && v.TryGetValue<int>(out var i) ? (int?)i : null)
+                    .OfType<int>().ToList();
+                var removed = _alarms.RemoveByIds(cancelIds);
+                return Reply("nbl:cancel-alarms-result", requestId, o => o["removed"] = removed);
+
             case "nbl:open-external":
                 if (_host is null) return null;
                 var ok = Uri.TryCreate(req["url"]?.GetValue<string>(), UriKind.Absolute, out var target)

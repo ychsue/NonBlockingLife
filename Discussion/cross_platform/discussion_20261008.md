@@ -527,3 +527,62 @@ Ran terminal command: Add-Content desktop\.gitignore -Value "trace.log" -ErrorAc
 **listener 會不會打架**:不會。每個 `useTwaRpc` 各有自己的 `pendingRequests`,requestId 唯一,收到不屬於自己的訊息就忽略。真正的浪費是每個 `useNativeBridge` 都各送一次 hello,已改為以 port 為 key 快取 promise。
 
 **驗證**:36 個 C# 測試通過;實測第二實例會結束並把隱藏中的第一個實例叫出來;`--background` 啟動時無視窗。自動啟動寫入登錄檔尚未實際點選測試。
+
+---
+
+## [2026-10-12] ychsue 我是想說，這個APP 的主體當然是PWA，然而，其實好像還需要一個小型的像是 Android 時鐘那樣，有自己的計時器與鬧鐘管理界面，能夠在桌面端常駐並處理通知與鬧鐘。若走 protocol (windows 有 `windows.protocol` 可以設，Linux 我不知道) ，請問這會很麻煩嗎？
+
+## [2026-10-12] Copilot 回覆：
+
+不麻煩。Windows 上註冊 protocol 的工作量跟剛做的 `AutoStart` 差不多，真正要花功夫的是那個小型時鐘介面。
+
+**1. 註冊 protocol**
+
+| 平台 | 做法 |
+|---|---|
+| Windows | 寫入 `HKCU\Software\Classes\nonblockinglife`（含 `URL Protocol` 與 `shell\open\command`）。不需要系統管理員權限，也不需要 MSIX 的 `windows.protocol`，程式第一次啟動時自己寫即可。 |
+| Linux | 在 `~/.local/share/applications/` 放一個 `.desktop` 檔，內含 `MimeType=x-scheme-handler/nonblockinglife;`，再執行 `xdg-mime default`。 |
+| macOS | 寫在 `Info.plist` 的 `CFBundleURLTypes`，且要打包成 .app，所以先不做。 |
+
+**2. 收到 URI 之後怎麼處理**
+
+OS 會為每個 URI 另開一個新行程，並把 URI 當參數傳進來。我們已經有單一實例的具名管道，只要把管道傳的內容從 1 個 byte 改成 URI 字串。第二個行程轉交給常駐的第一個實例後就結束，常駐實例再把 URI 對應到 `AlarmScheduler`。Android 的 `show-clock`、`set-timer`、`schedule-alarm` 可以直接沿用同一套語意。
+
+**3. 什麼時候才需要 protocol**
+
+- **PWA 跑在殼裡面**：不需要。postMessage 的 `nbl:set-alarms` 已經能用，比 protocol 好。它不用開新行程，也不用註冊，瀏覽器也不會跳確認視窗。
+- **PWA 跑在一般瀏覽器（Chrome 或 Edge 安裝版）**：需要。這種情況沒有殼可以傳訊息，只能用 `nonblockinglife://` 去叫常駐的桌面時鐘，但瀏覽器每次會問「要開啟此應用程式嗎？」。
+- **其他來源**：桌面捷徑、其他程式、通知被點擊後想帶 PWA 回到某個畫面，也都要 protocol。
+
+**4. 小型時鐘介面**
+
+這才是主要工作量。建議在 Avalonia 加第二個小視窗，從系統匣開啟，內容包含：
+- 鬧鐘清單：新增、刪除、開關。
+- 倒數計時器。
+- 響鈴時的 toast（已經有了）。
+
+資料都放在現有的 `alarms.json`，所以 PWA 和這個視窗看到的是同一份。要補的協定是 `nbl:cancel-alarms` 和 `nbl:get-alarms`，讓 PWA 也能同步清單。
+
+**建議順序**
+1. 先做系統匣的小時鐘視窗，含 `get-alarms`、`cancel-alarms` 和計時器，不用 protocol。
+2. 再註冊 protocol，單一實例管道轉發 URI，並加上參數驗證（只接受已知的 host 與數值範圍）。
+3. Linux 的 protocol 註冊等 Linux 殼驗證時再一起做。
+
+要我從第 1 步開始嗎？
+
+---
+
+## [2026-10-12] ychsue 好，那就由第一步開始，不過，計時器能像 Google 時鐘那樣可以重置、暫停與開始等嗎？
+---
+
+## 階段 7:小型時鐘視窗(鬧鐘 + 計時器)(2026-10-12)
+
+**新增**
+- `TimerService`(Nbl.Bridge,可單元測試):多組計時器,支援開始/暫停/繼續/重置/+1:00/刪除。Running 時存 `EndAt`、暫停與閒置時存 `Remaining`,所以視窗隱藏或程式重啟後都不會失準;持久化於 `timers.json`。到時後回到 Idle(與 Google 時鐘一樣可再按開始)。
+- `ClockWindow`(Avalonia,純程式碼 UI):兩個分頁「鬧鐘」「計時器」,從系統匣「鬧鐘與計時器」開啟,關閉只是隱藏。鬧鐘與 PWA 共用 `alarms.json`。
+- 協定:`nbl:get-alarms`、`nbl:cancel-alarms`(補上先前缺的撤銷),見 `protocol/messages.md`。
+- `App` 的 1 秒計時器同時處理鬧鐘與計時器到時,以 toast 提示。
+
+**驗證**:45 個 C# 測試通過;實測預先寫入的計時器 5 秒後到時並回到 Idle。ClockWindow 的版面尚未目視確認。
+
+**尚未做**:PWA 端呼叫 `get-alarms`/`cancel-alarms`(目前 PWA 刪除鬧鐘仍不會同步撤銷);計時器開放給 PWA;protocol(`nonblockinglife://`)註冊。
