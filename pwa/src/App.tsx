@@ -233,13 +233,6 @@ export default function App() {
     void updateTableBasedOnScheduled(alarmSyncTargets);
   }, [alarmSyncTargets, updateTableBasedOnScheduled]);
 
-  // Listen for TWA messages
-  if (import.meta.env.DEV) {
-    useEffect(() => {
-      mimicTwaMessageChannel();
-    }, []);
-  }
-
   // 如果 alarmSyncTargets !=0 && isTwaAvailable === false，那就10秒後再嘗試一次，因為 TWA 可能還沒啟動，若還是沒有，那就告知使用者，請使用者滑掉這個APP，再重開，好修復這個channel斷掉的問題
   useEffect(() => {
     if (needToCheckTwaChannel) {

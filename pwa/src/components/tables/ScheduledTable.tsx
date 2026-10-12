@@ -1165,8 +1165,7 @@ export function ScheduledTable() {
                     </div>
                   </SettingsCard>
 
-                  {(import.meta.env.DEV ||
-                    getDeviceType() === "TWA" ||
+                  {(getDeviceType() === "TWA" ||
                     getDeviceType() === "AndroidWebView") && (
                     <SettingsCard
                       title={text.alarmSyncTargetsLabel}

@@ -427,3 +427,49 @@ dotnet run --project src/Nbl.Desktop
 - **`dotnet new install` 只需執行一次。**
 
 你可以先自己跑一遍看到空白視窗,也可以交給我建。你想自己跑,還是我來建骨架並順便查 WebView 元件的狀態與授權?
+
+## [2026-10-11] ychsue 初始化 Avalonia 完成，謝謝。現在可以繼續階段4了
+---
+
+### 階段 4 進度:Avalonia Windows 殼(已可運作)
+
+- WebView:採用 Avalonia 12 內建 `Avalonia.Controls.WebView`(`NativeWebView`,MIT;Windows=WebView2、macOS=WKWebView、Linux=WebKitGTK/WPE)。
+- `desktop/src/Nbl.Bridge`:共用、可單元測試的訊息分派(`nbl:ping/version/hello/fetch-ics`)、來源白名單、`HttpIcsFetcher`(15 秒、5 MB、需 `BEGIN:VCALENDAR`);14 個測試通過。`fetch-ics` 失敗時桌面端會回 `error`(Android 則不回)。
+- `desktop/src/Nbl.Desktop`:`--source online|dist|dev`、`--dist-path`、`--dev-url`、`--port`(預設 47615)。dist 模式以本機 HttpListener 於 `/NonBlockingLife/` 提供。非白名單網址改用系統瀏覽器開啟。
+- 橋接:頁面載入完成後注入 shim 偽造 port 並呼叫 `__NBL_TWA_BRIDGE__.setPort`,PWA 既有的 `useTwaRpc` 不需改。因為 port 較 React 晚到,`twa-pm-bridge.js` 在 setPort 後會觸發 `nbl-bridge-connected` 事件,`useNativeBridge` 收到後重新協商 hello。
+- 實測:`--source dist` 啟動後 PWA 載入,ping/pong 往返成功(可用環境變數 `NBL_TRACE_FILE` 輸出 trace)。`nbl:query-alarm-setup` 目前桌面端尚未實作(視為無回應)。
+- **修正先前建議**:IndexedDB/localStorage 以 origin 區分,`ychsue.github.io` 與 `127.0.0.1:47615` 的資料互不相通,所以不能「線上失敗就自動退回 dist」。預設用 online(離線靠 Service Worker),dist/dev 僅明確指定;dist 固定 port 以保持 origin 穩定。
+
+下一步:系統匣常駐、notify、alarm(桌面端自帶計時並持久化)、openExternal/share;再做 Linux 驗證。
+
+---
+
+## [2026-10-11] ychsue 中間插進來一個要求：
+在 `下一步:系統匣常駐、notify、alarm(桌面端自帶計時並持久化)、openExternal/share;再做 Linux 驗證。` 之前，能否幫我在 [launch.json](.vscode\launch.json) 裡面加一個針對 Avalonia Windows 殼的除錯配置?這樣，我好在 VSCode 裡面直接啟動並除錯 Avalonia Windows 殼？
+
+## [2026-10-11] Copilot 回覆
+
+Ran terminal command: Get-Content .vscode\launch.json -ErrorAction SilentlyContinue; Get-Content .vscode\tasks.json -ErrorAction SilentlyContinue | select -first 40; Get-ChildItem desktop\src\Nbl.Desktop\bin\Debug
+
+No tasks.json exists, so I'll add one for the build and then the launch configs.
+
+Create 
+
+Edit 
+
+Ran terminal command: Add-Content desktop\.gitignore -Value "trace.log" -ErrorAction SilentlyContinue; git check-ignore -v desktop/trace.log; Test-Path desktop\src\Nbl.Desktop\bin\Debug\net10.0\Nbl.Desktop.dll
+
+我在 `launch.json` 加了三個 Avalonia Windows 殼的除錯配置。我只確認了編譯產物路徑存在,配置本身沒有實際用 F5 啟動過。
+
+- **NBL Desktop (dist)**:載入 `pwa/dist`。用之前先在 `pwa/` 跑 `npx vite build`。
+- **NBL Desktop (dev: localhost:5173)**:載入 `http://localhost:5173/`,需要先在 `pwa/` 啟動 `npm run dev`。
+- **NBL Desktop (online)**:載入線上版網址。
+
+這三個配置都是啟動前先建置,再用 `coreclr` 啟動 `Nbl.Desktop.dll`,並把橋接訊息寫到 `desktop/trace.log`。
+- **新增 `tasks.json`**:啟動前的建置工作 `build-nbl-desktop` 放在這裡,因為原本沒有這個檔案。
+- **`.gitignore`**:`desktop/.gitignore` 加了 `trace.log`,這個 log 不會被 commit。
+
+在 VSCode 的「執行和偵錯」面板選配置後按 F5 即可,斷點可以設在 `desktop/` 底下的 C# 程式碼。這需要安裝 C# 擴充套件(含 coreclr 偵錯器)。
+
+要接著做系統匣常駐、notify 和 alarm 嗎?
+

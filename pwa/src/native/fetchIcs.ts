@@ -43,7 +43,7 @@ export async function fetchIcsWithFallback(
     opts;
   const attempts: Array<[IcsFetchSource, () => Promise<string>]> = [];
 
-  if (nativeBridge?.has("fetchIcs") && !import.meta.env.DEV) {
+  if (nativeBridge?.has("fetchIcs")) {
     attempts.push(["native", () => nativeBridge.fetchIcs(url)]);
   }
   attempts.push(["direct", () => directFetch(url)]);

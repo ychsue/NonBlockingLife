@@ -95,7 +95,7 @@ export function GuideNotification() {
   }, []);
 
   useEffect(() => {
-    if (!import.meta.env.DEV && !["TWA", "AndroidWebView"].includes(deviceType))
+    if (!["TWA", "AndroidWebView"].includes(deviceType))
       return;
 
     // 改用 sendRequest 來取代 twaPort.postMessage

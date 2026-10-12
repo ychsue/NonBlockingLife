@@ -16,6 +16,9 @@
             this.connected = Boolean(port);
             if (!port) return;
             try {
+                window.dispatchEvent(new Event('nbl-bridge-connected'));
+            } catch (e) { }
+            try {
                 // 若需要，啟動 port
                 if (typeof port.start === 'function') port.start();
                 port.onmessage = (ev) => {

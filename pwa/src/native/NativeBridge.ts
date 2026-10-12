@@ -95,10 +95,11 @@ export async function negotiateHello(
 export function createTwaBridge(
   send: RpcSend,
   caps: NativeCapability[] = TWA_DEFAULT_CAPS,
+  kind: NativeShellKind = "twa",
 ): NativeBridge {
   const set = new Set(caps);
   return {
-    kind: "twa",
+    kind,
     has: (cap) => set.has(cap),
     request: (type, payload = {}, options) => send(type, payload, options),
     async fetchIcs(url) {

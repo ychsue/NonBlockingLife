@@ -213,7 +213,7 @@ export function GuidePage() {
   });
 
   useEffect(() => {
-    if (!import.meta.env.DEV && !["TWA", "AndroidWebView"].includes(deviceType))
+    if (!["TWA", "AndroidWebView"].includes(deviceType))
       return;
 
     sleep(20)
@@ -294,7 +294,7 @@ export function GuidePage() {
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <h2 className="text-xl font-bold text-gray-800 mb-2">📘 {tHere("說明頁")}</h2>
           <div>version: {import.meta.env.__APP_VERSION__}</div>
-          {(import.meta.env.DEV || ["AndroidWebView"].includes(deviceType)) && (
+          {(["AndroidWebView"].includes(deviceType)) && (
             <div className="text-gray-700 leading-relaxed">
               [Android WebView] version: {androidWebViewVersion}
             </div>

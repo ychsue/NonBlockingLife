@@ -9,6 +9,7 @@ const native = (fn: () => Promise<string>, has = true) => ({
 
 describe("fetchIcsWithFallback", () => {
   test("prefers native", async () => {
+    vi.stubEnv("DEV", false);
     const direct = vi.fn();
     const r = await fetchIcsWithFallback("u", {
       nativeBridge: native(async () => ICS),
@@ -16,6 +17,7 @@ describe("fetchIcsWithFallback", () => {
     });
     expect(r.source).toBe("native");
     expect(direct).not.toHaveBeenCalled();
+    vi.unstubAllEnvs();
   });
 
   test("falls through native -> direct -> supabase", async () => {
