@@ -24,6 +24,7 @@ export type RpcSend = (
 export interface NativeBridge {
   readonly kind: NativeShellKind;
   has(cap: NativeCapability): boolean;
+  readonly caps?: NativeCapability[];
   /** 低階 RPC；web 實作會直接 reject */
   request<T = any>(
     type: string,
@@ -101,6 +102,7 @@ export function createTwaBridge(
   return {
     kind,
     has: (cap) => set.has(cap),
+    caps,
     request: (type, payload = {}, options) => send(type, payload, options),
     async fetchIcs(url) {
       if (!set.has("fetchIcs")) throw new NativeUnsupportedError("fetchIcs");

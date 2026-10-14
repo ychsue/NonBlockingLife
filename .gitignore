@@ -205,3 +205,12 @@ Thumbs.db
 # Build artifacts
 obj/
 bin/
+
+CopilotIndices/
+FileContentIndex/
+slnx.sqlite
+.wsuo
+v17/
+v18/
+DesignTimeBuild/
+ProjectEvaluation/

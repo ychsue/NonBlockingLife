@@ -26,9 +26,9 @@ public sealed class ClockWindow : Window
         _alarms = alarms;
         _timers = timers;
         Title = "NonBlockingLife — 鬧鐘與計時器";
-        Width = 420;
+        Width = 480;
         Height = 520;
-        MinWidth = 360;
+        MinWidth = 420;
 
         Content = new TabControl
         {
@@ -142,7 +142,7 @@ public sealed class ClockWindow : Window
         Value = value,
         Increment = 1,
         FormatString = "0",
-        Width = 100,
+        Width = 110,
     };
 
     private void Refresh()

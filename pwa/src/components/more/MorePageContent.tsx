@@ -18,6 +18,7 @@ import {
   SupabaseSyncManager,
 } from "../../utils/SupabaseSyncManager";
 import { useDialogStore } from "../../store/dialogStore";
+import { useNativeBridge } from "../../native/useNativeBridge";
 
 type MoreTab = "settings" | "experiment";
 
@@ -368,6 +369,7 @@ function SettingsPanel() {
 
 function ExperimentPanel() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const bridge = useNativeBridge();
 
   const t = useTWithMaps({
     en: {
@@ -512,13 +514,162 @@ function ExperimentPanel() {
                       );
                     })
                     .finally(() => {
-                      console.log("Finished attempting to sync all tables to Supabase.");
+                      console.log(
+                        "Finished attempting to sync all tables to Supabase.",
+                      );
                       setDialogConfig(null); // Close the dialog after finishing the operation
                     });
                 }}
                 className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
               >
                 All Tables To Supabase
+              </button>
+            </SettingsCard>
+
+            <SettingsCard
+              title={"Avalonia Test"}
+              description={"Test Avalonia integration."}
+            >
+              <div>Capabilities: {bridge?.caps?.join(", ")}</div>
+              <button
+                type="button"
+                onClick={() => {
+                  bridge
+                    ?.request("nbl:notify", {
+                      id: 12,
+                      title: "這是測試",
+                      body: "這是測試內容",
+                    })
+                    .then((res) => {
+                      console.log("nbl:notify response:", res);
+                    })
+                    .catch((err) => {
+                      console.error("nbl:notify error:", err);
+                    });
+                }}
+                className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+              >
+                nbl:notify
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  bridge
+                    ?.request("nbl:query-alarm-setup")
+                    .then((res) => {
+                      console.log("nbl:query-alarm-setup response:", res);
+                    })
+                    .catch((err) => {
+                      console.error("nbl:query-alarm-setup error:", err);
+                    });
+                }}
+                className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+              >
+                nbl:query-alarm-setup
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  bridge
+                    ?.request("nbl:set-alarms", {
+                      alarms: [
+                        {
+                          id: 1001,
+                          mode: "clock",
+                          time: [13, 30],
+                          label: "clock test1...",
+                          skipUi: true,
+                        },
+                        {
+                          id: 1002,
+                          mode: "clock",
+                          time: [14, 30],
+                          label: "clock test2...",
+                          days: [2, 3, 4, 5, 6],
+                          skipUi: true,
+                        },
+                        {
+                          id: 1003,
+                          mode: "exact",
+                          time: [2026, 10, 13, 18, 50],
+                          label: "...",
+                        },
+                      ],
+                    })
+                    .then((res) => {
+                      console.log("nbl:set-alarms response:", res);
+                    })
+                    .catch((err) => {
+                      console.error("nbl:set-alarms error:", err);
+                    });
+                }}
+                className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+              >
+                nbl:set-alarms
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  bridge
+                    ?.request("nbl:get-alarms", {})
+                    .then((res) => {
+                      console.log("nbl:get-alarms response:", res);
+                    })
+                    .catch((err) => {
+                      console.error("nbl:get-alarms error:", err);
+                    });
+                }}
+                className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+              >
+                nbl:get-alarms
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  bridge
+                    ?.request("nbl:cancel-alarms", {ids: [1001, 1002, 1003]})
+                    .then((res) => {
+                      console.log("nbl:cancel-alarms response:", res);
+                    })
+                    .catch((err) => {
+                      console.error("nbl:cancel-alarms error:", err);
+                    });
+                }}
+                className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+              >
+                nbl:cancel-alarms
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  bridge
+                    ?.request("nbl:open-external", {url: "https://tw.yahoo.com"})
+                    .then((res) => {
+                      console.log("nbl:open-external response:", res);
+                    })
+                    .catch((err) => {
+                      console.error("nbl:open-external error:", err);
+                    });
+                }}
+                className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+              >
+                nbl:open-external
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  bridge
+                    ?.request("nbl:share", {url: "https://tw.yahoo.com", title: "Yahoo Taiwan", text: "Check out Yahoo Taiwan!"})
+                    .then((res) => {
+                      console.log("nbl:share response:", res);
+                    })
+                    .catch((err) => {
+                      console.error("nbl:share error:", err);
+                    });
+                }}
+                className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+              >
+                nbl:share
               </button>
             </SettingsCard>
 

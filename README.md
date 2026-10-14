@@ -10,14 +10,18 @@
 
 本專案也是 [Superconductorlike Society](https://ychsue.github.io/superconductorlike_society/) 願景下的關鍵實踐，目標是讓人即使被打岔也能快速回到主線。
 
-## 🛠️ 目前實作 (v2.0)
+## 🛠️ 目前實作 (v3.2)
 
-v2.0 已從「GAS 主體」升級為 **PWA 主體 + GAS 雲端資料層**：
+### 🖥️ 開發注意事項 (Windows 與 Linux 殼)：
+1. 先在 VS Code 裡面，在 `pwa` 目錄執行 `npm run dev`。
+2. 到 Visual Studio 打開 `desktop/src/Nbl.Desktop` 專案並啟動調試。
+3. 在 Edge 執行 `edge://inspect` 就能除錯 PWA。
 
-[PWA 主體](https://ychsue.github.io/NonBlockingLife) 直接可用，資料完全只在您的裝置上，若要跨裝置同步，請依照網頁上的教學，將您的一個 Google Sheets 檔案開出GAS API 給本 PWA 網頁，就可以有個您自己的Google雲端資料層來同步。
+
+[PWA 主體](https://ychsue.github.io/NonBlockingLife) 直接可用，資料完全只在您的裝置上，若要跨裝置同步，請依照網頁上的教學，將您的Supabase 資料庫給本 PWA 網頁，就可以有個您自己的Google雲端資料層來同步。
 
 - **PWA (Local-first)**：以 Dexie/IndexedDB 作為主要資料庫與操作介面。
-- **GAS + Google Sheets**：作為同步後端與雲端備援資料源。
+- **Supabase**：作為同步後端與雲端備援資料源。
 - **iPhone Shortcuts**：作為快速觸發端（Start/End/Interrupt/Inbox/Scheduled）。
 
 目前已支援：
