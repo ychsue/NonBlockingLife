@@ -4,12 +4,12 @@ import { useState } from "react";
 import supabaseCode from "../db/supabase/initialize.sql?raw";
 import { useT, useTWithMaps } from "../i18n";
 import { useAppStore } from "../store/appStore";
-import { satisfies } from "compare-versions";
 import {
   getUrlAndKey,
   SupabaseSyncManager,
 } from "../utils/SupabaseSyncManager";
 import { strToJsx } from "./strToJsx";
+import { ExternalA } from "./ExternalA";
 
 interface SetupWizardProps {
   isModal?: boolean;
@@ -474,13 +474,12 @@ export function SetupSupabaseWizard({
             <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700 ml-2">
               <li>
                 {tHere("打開")}{" "}
-                <a
-                  href="https://supabase.com"
-                  target="_blank"
+                <ExternalA
+                  href={"https://supabase.com"}
                   className="text-blue-600 hover:underline"
                 >
                   Supabase
-                </a>
+                </ExternalA>
               </li>
               <li>{tHere("step1.1.createAccountAndDatabase.instruction")}</li>
             </ol>

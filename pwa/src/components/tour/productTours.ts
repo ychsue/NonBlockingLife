@@ -27,7 +27,7 @@ export function getToursList(
       version: 1,
       title: map["tour.installIphoneShortcuts.title"],
       description: map["tour.installIphoneShortcuts.description"],
-      app: "shortcuts",
+      app: ["shortcuts"],
       steps: [
         {
           id: "open-guide",
@@ -56,6 +56,7 @@ export function getToursList(
       version: 1,
       title: map["tour.turnOnNotification.title"],
       description: map["tour.turnOnNotification.description"],
+      app: ["pwa", "androidWebView", "shortcuts"],
       steps: [
         {
           id: "open-guide",
@@ -288,7 +289,7 @@ export function getToursList(
       version: 1,
       title: map["tour.setReminderOffset.title"],
       description: map["tour.setReminderOffset.description"],
-      app: "androidWebView",
+      app: ["androidWebView", "windows", "linux"],
       steps: [
         {
           id: "open-scheduled",
@@ -647,7 +648,8 @@ export function getToursList(
   const tours = ideaTours
     .filter(
       (tour) =>
-        (tour.app ? tour.app === currentApp : true) || import.meta.env.DEV,
+        (tour.app ? tour.app.includes(currentApp) : true) // ||
+//        import.meta.env.DEV,
     )
     .map((tour) => {
       tour.steps = tour.steps.filter((step) => {

@@ -1,7 +1,11 @@
 # Journal
 
 ## [2026-10-14] 修正一些小問題與優化使用者體驗。還有，思考缺乏的功能。
-
+[12:02] 1. [MainWindow.axaml.cs](desktop\src\Nbl.Desktop\MainWindow.axaml.cs) 讓他由 [Nbl.Desktop.csproj](desktop\src\Nbl.Desktop\Nbl.Desktop.csproj) 來取得 Version。
+2. 讓 windows 與 linux 能夠由網頁URL 取得 ics。
+3. [ScheduledTable.tsx](pwa\src\components\tables\ScheduledTable.tsx) 讓他 alarms 只使用 exact alarm 那一部份。
+4. [useNativeBridge.ts](pwa\src\native\useNativeBridge.ts) 讓他在取得 nbl:hello 就存到 AppStore 裡面。
+5. [ExternalA.tsx](pwa\src\components\ExternalA.tsx) 讓在桌面與 PWA 環境下都能正確處理外部連結。
 
 ## [2026-10-12] 關閉不必要的 import.meta.env.DEV 判斷 與 起始Avalonia 專案
 [08:12] 修正:MainWindow.axaml.cs 現在在 Web.EnvironmentRequested 事件裡,把 UserDataFolder 設成 %LocalAppData%\NonBlockingLife\WebView2 ，這樣， `dotnet ....` 才會使用這個資料夾作為 WebView2 的使用者資料夾。

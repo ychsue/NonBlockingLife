@@ -1,5 +1,6 @@
 import { StepTarget } from "react-joyride";
 import { getDeviceType } from "../../utils/shortcutUtils";
+import { useAppStore } from "../../store/appStore";
 
 export type TourSheet =
   | "inbox"
@@ -39,15 +40,19 @@ export interface ProductTourConfig {
   description: string;
   requiredSheet?: TourSheet;
   steps: ProductTourStep[];
-  app?: ReturnType<typeof getAppType>;
+  app?: ReturnType<typeof getAppType>[];
 }
 
 export function getAppType():
   | "pwa"
   | "extension"
   | "androidWebView"
+  | "windows"
+  | "linux"
   | "shortcuts" {
   const deviceType = getDeviceType();
+  const { kind } = useAppStore.getState().capabilitiesAndKind;
+  if (["windows", "linux"].includes(kind)) return kind as "windows" | "linux";
   switch (deviceType) {
     case "TWA":
     case "AndroidWebView":

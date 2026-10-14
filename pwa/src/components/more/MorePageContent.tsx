@@ -19,6 +19,7 @@ import {
 } from "../../utils/SupabaseSyncManager";
 import { useDialogStore } from "../../store/dialogStore";
 import { useNativeBridge } from "../../native/useNativeBridge";
+import { notify } from "../../utils/notification";
 
 type MoreTab = "settings" | "experiment";
 
@@ -553,6 +554,23 @@ function ExperimentPanel() {
               </button>
               <button
                 type="button"
+                onClick={() =>
+                  notify(
+                    "這是測試",
+                    "這是測試內容", 
+                    {
+                      dismissOnClick: false,
+                      url: "https://tw.yahoo.com",
+                      id: 12,
+                    }
+                  )
+                }
+                className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+              >
+                notify()
+              </button>
+              <button
+                type="button"
                 onClick={() => {
                   bridge
                     ?.request("nbl:query-alarm-setup")
@@ -627,7 +645,7 @@ function ExperimentPanel() {
                 type="button"
                 onClick={() => {
                   bridge
-                    ?.request("nbl:cancel-alarms", {ids: [1001, 1002, 1003]})
+                    ?.request("nbl:cancel-alarms", { ids: [1001, 1002, 1003] })
                     .then((res) => {
                       console.log("nbl:cancel-alarms response:", res);
                     })
@@ -643,7 +661,9 @@ function ExperimentPanel() {
                 type="button"
                 onClick={() => {
                   bridge
-                    ?.request("nbl:open-external", {url: "https://tw.yahoo.com"})
+                    ?.request("nbl:open-external", {
+                      url: "https://tw.yahoo.com",
+                    })
                     .then((res) => {
                       console.log("nbl:open-external response:", res);
                     })
@@ -659,7 +679,11 @@ function ExperimentPanel() {
                 type="button"
                 onClick={() => {
                   bridge
-                    ?.request("nbl:share", {url: "https://tw.yahoo.com", title: "Yahoo Taiwan", text: "Check out Yahoo Taiwan!"})
+                    ?.request("nbl:share", {
+                      url: "https://tw.yahoo.com",
+                      title: "Yahoo Taiwan",
+                      text: "Check out Yahoo Taiwan!",
+                    })
                     .then((res) => {
                       console.log("nbl:share response:", res);
                     })

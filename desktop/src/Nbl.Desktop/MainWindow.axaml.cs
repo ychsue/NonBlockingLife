@@ -3,6 +3,7 @@ using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using Nbl.Bridge;
+using System.Reflection;
 
 namespace Nbl.Desktop;
 
@@ -36,6 +37,7 @@ public partial class MainWindow : Window
     public MainWindow(LaunchOptions options, IDesktopHost? host, AlarmScheduler? alarms)
     {
         InitializeComponent();
+        String? version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3);
         Closing += (_, e) =>
         {
             if (AllowClose || host is null) return;
@@ -43,7 +45,7 @@ public partial class MainWindow : Window
             Hide();
         };
         _origins = new OriginPolicy(options.AllowedOrigins);
-        _dispatcher = new BridgeDispatcher("windows", "0.1.0", new HttpIcsFetcher(), host, alarms);
+        _dispatcher = new BridgeDispatcher("windows", version?? "0.1.0", new HttpIcsFetcher(), host, alarms);
 
         if (options.Source == LoadSource.Dist)
         {

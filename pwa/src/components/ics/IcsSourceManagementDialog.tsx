@@ -55,6 +55,8 @@ export function IcsSourceManagementDialog({
     false,
   );
 
+  const capabilitiesAndKind = useAppStore((state) => state.capabilitiesAndKind);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadSourceId, setUploadSourceId] = useState<string | null>(null);
   const tHere = useTWithMaps({
@@ -537,7 +539,7 @@ export function IcsSourceManagementDialog({
             <button
               type="button"
               disabled={
-                loading || (isRunning && getDeviceType() === "AndroidWebView")
+                loading || (isRunning && (getDeviceType() === "AndroidWebView" || capabilitiesAndKind.capabilities.includes("fetchIcs")))
               }
               onClick={() => {
                 setUploadSourceId(null);
@@ -555,7 +557,7 @@ export function IcsSourceManagementDialog({
             </button>
             <button
               type="button"
-              disabled={getDeviceType() !== "AndroidWebView"}
+              disabled={getDeviceType() !== "AndroidWebView" && !capabilitiesAndKind.capabilities.includes("fetchIcs")}
               onClick={() => {
                 setEditingSource(null);
                 setFormName("");

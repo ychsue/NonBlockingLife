@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useAppStore } from "../store/appStore";
 import { useTwaRpc } from "../hooks/useTwaRpc";
 import {
   createTwaBridge,
@@ -6,6 +7,7 @@ import {
   HelloInfo,
   negotiateHello,
   NativeBridge,
+  NativeShellKind,
 } from "./NativeBridge";
 
 // 每個 port 只協商一次，避免多個元件各送一次 hello
@@ -29,25 +31,34 @@ export function useNativeBridge(): NativeBridge {
     typeof window !== "undefined" && !!(window as any).__NBL_TWA_BRIDGE__?.port;
   const [hasShell, setHasShell] = useState(readPort);
   const [info, setInfo] = useState<HelloInfo | undefined>();
+  const setCapabilitiesAndKind = useAppStore((state) => state.setCapabilitiesAndKind);
 
   // 桌面殼會在頁面載入後才注入 port，所以要監聽 twa-pm-bridge.js 發出的事件
   useEffect(() => {
     const onConnected = () => setHasShell(readPort());
     window.addEventListener("nbl-bridge-connected", onConnected);
     onConnected();
-    return () => window.removeEventListener("nbl-bridge-connected", onConnected);
+    return () =>
+      window.removeEventListener("nbl-bridge-connected", onConnected);
   }, []);
 
   useEffect(() => {
     if (!hasShell) return;
     let cancelled = false;
     cachedHello(sendRequest).then((i) => {
-      if (!cancelled) setInfo(i);
+      if (!cancelled) {
+        setInfo(i);
+        setCapabilitiesAndKind({
+          capabilities: i.capabilities,
+          kind: i.shell as NativeShellKind,
+        }); // 更新整個AppStore的nbl:hello 的資訊
+        console.log("[useNativeBridge] Updated capabilities and kind:", i);
+      }
     });
     return () => {
       cancelled = true;
     };
-  }, [hasShell, sendRequest]);
+  }, [hasShell, sendRequest, setCapabilitiesAndKind]);
 
   return useMemo(
     () =>

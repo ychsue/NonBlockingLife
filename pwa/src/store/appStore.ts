@@ -3,6 +3,7 @@ import type { SheetName } from "../hooks/useUrlAction";
 import { ChangeLogEntry, Dashboard, db, ProjectItem } from "../db/schema";
 import type { SupportedLocale } from "../i18n";
 import { debounce } from "lodash";
+import { NativeCapability, NativeShellKind } from "../native/NativeBridge";
 
 function getInitialLocale(): SupportedLocale {
   const storage =
@@ -271,6 +272,18 @@ interface AppState {
 
   pendingChangeLogs: ChangeLogEntry[]; // Assuming ChangeLogItem is the type for change logs
   setPendingChangeLogs: (logs: ChangeLogEntry[]) => void;
+
+  capabilitiesAndKind: {
+    capabilities: NativeCapability[];
+    kind: NativeShellKind;
+  };
+  setCapabilitiesAndKind: ({
+    capabilities,
+    kind,
+  }: {
+    capabilities: NativeCapability[];
+    kind: NativeShellKind;
+  }) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -402,4 +415,11 @@ export const useAppStore = create<AppState>((set) => ({
 
   pendingChangeLogs: [],
   setPendingChangeLogs: (logs) => set({ pendingChangeLogs: logs }),
+
+  capabilitiesAndKind: { capabilities: [], kind: "web" } as {
+    capabilities: NativeCapability[];
+    kind: NativeShellKind;
+  },
+  setCapabilitiesAndKind: ({ capabilities, kind }) =>
+    set({ capabilitiesAndKind: { capabilities, kind } }),
 }));
