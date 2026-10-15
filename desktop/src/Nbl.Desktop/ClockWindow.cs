@@ -19,6 +19,8 @@ public sealed class ClockWindow : Window
     private string _alarmSig = "";
     private string _timerSig = "";
 
+    private readonly TabControl _tabControl;
+
     public bool AllowClose { get; set; }
 
     public ClockWindow(AlarmScheduler alarms, TimerService timers)
@@ -30,7 +32,7 @@ public sealed class ClockWindow : Window
         Height = 520;
         MinWidth = 420;
 
-        Content = new TabControl
+        _tabControl = new TabControl
         {
             Items =
             {
@@ -38,6 +40,7 @@ public sealed class ClockWindow : Window
                 new TabItem { Header = "計時器", Content = BuildTimerTab() },
             },
         };
+        Content = _tabControl;
 
         Closing += (_, e) =>
         {
@@ -53,8 +56,10 @@ public sealed class ClockWindow : Window
         };
     }
 
-    public void ShowAndActivate()
+    public void ShowAndActivate(int tabIndex = 0)
     {
+        if (_tabControl.SelectedIndex != tabIndex) _tabControl.SelectedIndex = tabIndex;
+
         Show();
         if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
         Activate();

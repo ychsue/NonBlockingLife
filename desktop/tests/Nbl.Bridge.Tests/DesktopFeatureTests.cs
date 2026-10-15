@@ -108,6 +108,53 @@ public class DesktopFeatureTests
     }
 }
 
+public class ProtocolTests
+{
+    private static readonly Uri Base = new("https://ychsue.github.io/NonBlockingLife/?old=1#x");
+
+    [Theory]
+    [InlineData("nonblockinglife://?action=interrupt&name=a%20b", "https://ychsue.github.io/NonBlockingLife/?action=interrupt&name=a%20b")]
+    [InlineData("nonblockinglife:?action=x", "https://ychsue.github.io/NonBlockingLife/?action=x")]
+    [InlineData("nonblockinglife://open/some/path?a=1#frag", "https://ychsue.github.io/NonBlockingLife/?a=1#frag")]
+    [InlineData("NonBlockingLife://", "https://ychsue.github.io/NonBlockingLife/")]
+    public void Resolve_MapsToPwaUrl(string raw, string expected)
+    {
+        var a = ProtocolUri.Resolve(raw, Base);
+        Assert.Equal(ProtocolActionKind.Navigate, a!.Kind);
+        Assert.Equal(expected, a.Target!.AbsoluteUri);
+    }
+
+    [Theory]
+    [InlineData("nonblockinglife://show-clock")]
+    [InlineData("nonblockinglife://SHOW-CLOCK?x=1")]
+    public void Resolve_ShowClock(string raw) =>
+        Assert.Equal(ProtocolActionKind.ShowClock, ProtocolUri.Resolve(raw, Base)!.Kind);
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("https://evil.example/?a=1")]
+    [InlineData("nonblockinglife://?a=1\r\nb")]
+    public void Resolve_RejectsInvalid(string? raw) => Assert.Null(ProtocolUri.Resolve(raw, Base));
+
+    [Fact]
+    public void Resolve_RejectsTooLong() =>
+        Assert.Null(ProtocolUri.Resolve("nonblockinglife://?a=" + new string('x', 3000), Base));
+
+    [Fact]
+    public void WindowsCommand_QuotesEverything()
+    {
+        var c = ProtocolRegistration.ResolveCommand(@"C:\Program Files\dotnet\dotnet.exe", @"C:\x\Nbl.Desktop.dll");
+        Assert.Equal("\"C:\\Program Files\\dotnet\\dotnet.exe\" \"C:\\x\\Nbl.Desktop.dll\" \"%1\"",
+            ProtocolRegistration.BuildWindowsCommand(c));
+    }
+
+    [Fact]
+    public void DesktopEntry_DeclaresSchemeHandler() =>
+        Assert.Contains("MimeType=x-scheme-handler/nonblockinglife;",
+            ProtocolRegistration.BuildDesktopEntry(new[] { "/opt/nbl" }));
+}
+
 public class PolicyAndAutoStartTests
 {
     [Theory]

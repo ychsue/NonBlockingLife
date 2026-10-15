@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-10-15] 做出 protocol 與顯示小型時鐘視窗的功能
+
 ## [2026-10-14] 修正一些小問題與優化使用者體驗。還有，思考缺乏的功能。
 [12:02] 1. [MainWindow.axaml.cs](desktop\src\Nbl.Desktop\MainWindow.axaml.cs) 讓他由 [Nbl.Desktop.csproj](desktop\src\Nbl.Desktop\Nbl.Desktop.csproj) 來取得 Version。
 2. 讓 windows 與 linux 能夠由網頁URL 取得 ics。

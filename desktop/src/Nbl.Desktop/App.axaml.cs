@@ -36,19 +36,41 @@ public partial class App : Application
             host.Attach(window);
             desktop.MainWindow = window;
 
-            if (options.Background)
+            var startAction = options.StartAction;
+            if (options.Background || startAction?.Kind == ProtocolActionKind.ShowClock)
             {
                 void HideOnce(object? s, EventArgs e) { window.Opened -= HideOnce; window.Hide(); }
                 window.Opened += HideOnce;
             }
+            if (startAction?.Kind == ProtocolActionKind.ShowClock)
+                Dispatcher.UIThread.Post(() => _clock.ShowAndActivate(1));
             if (Program.Instance is { } single)
-                single.ShowRequested += () => { System.Diagnostics.Trace.WriteLine("[nbl] show requested"); host.ShowMainWindow(); };
+                single.ShowRequested += payload => Dispatcher.UIThread.Post(() => HandleProtocol(payload, options, window, host));
 
             SetupTray(desktop, window, host);
             StartAlarmTimer(alarms, timers, host);
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private void HandleProtocol(string? payload, LaunchOptions options, MainWindow window, DesktopHost host)
+    {
+        System.Diagnostics.Trace.WriteLine($"[nbl] show requested: {payload}");
+        var action = ProtocolUri.Resolve(payload, options.BaseUri);
+        switch (action)
+        {
+            case { Kind: ProtocolActionKind.ShowClock }:
+                _clock?.ShowAndActivate(1);
+                break;
+            case { Kind: ProtocolActionKind.Navigate, Target: { } target }:
+                window.NavigateTo(target);
+                host.ShowMainWindow();
+                break;
+            default:
+                host.ShowMainWindow();
+                break;
+        }
     }
 
     private void SetupTray(IClassicDesktopStyleApplicationLifetime desktop, MainWindow window, DesktopHost host)
@@ -73,6 +95,22 @@ public partial class App : Application
                 host.ShowNotification(0, "NonBlockingLife", "無法設定開機自動啟動", isAlarm: false);
             }
         };
+        var protocol = new NativeMenuItem("註冊 nonblockinglife:// 連結")
+        {
+            ToggleType = MenuItemToggleType.CheckBox,
+            IsEnabled = ProtocolRegistration.IsSupported,
+        };
+        try { protocol.IsChecked = ProtocolRegistration.IsRegistered(); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+        protocol.Click += (_, _) =>
+        {
+            try { ProtocolRegistration.SetRegistered(protocol.IsChecked); }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                protocol.IsChecked = !protocol.IsChecked;
+                host.ShowNotification(0, "NonBlockingLife", "無法註冊 nonblockinglife:// 連結", isAlarm: false);
+            }
+        };
         var exit = new NativeMenuItem("結束");
         exit.Click += (_, _) =>
         {
@@ -86,7 +124,7 @@ public partial class App : Application
         {
             Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://Nbl.Desktop/Assets/icon.png"))),
             ToolTipText = "NonBlockingLife",
-            Menu = new NativeMenu { open, clock, autoStart, new NativeMenuItemSeparator(), exit },
+            Menu = new NativeMenu { open, clock, autoStart, protocol, new NativeMenuItemSeparator(), exit },
         };
         tray.Clicked += (_, _) => host.ShowMainWindow();
         TrayIcon.SetIcons(this, new TrayIcons { tray });

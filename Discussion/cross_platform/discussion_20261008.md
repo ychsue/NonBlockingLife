@@ -586,3 +586,17 @@ OS 會為每個 URI 另開一個新行程，並把 URI 當參數傳進來。我�
 **驗證**:45 個 C# 測試通過;實測預先寫入的計時器 5 秒後到時並回到 Idle。ClockWindow 的版面尚未目視確認。
 
 **尚未做**:PWA 端呼叫 `get-alarms`/`cancel-alarms`(目前 PWA 刪除鬧鐘仍不會同步撤銷);計時器開放給 PWA;protocol(`nonblockinglife://`)註冊。
+
+---
+
+## [2026-10-14] ychsue 先 protocol 好了，由於這個App本可以透過 https://ychsue.github.io/NonBlockingLife/ (測試時，為 localhost:5173) 外加 parameters 來啟動特定功能，所以， protocol `nonblockinglife://` 預設行為應該是把 `nonblockinglife` 換成對應的 PWA 網址再送給 NativeWebView。還是您有更好的想法？
+## 階段 8:`nonblockinglife://` 桌面協定(2026-10-08)
+
+- 預設行為:把 `nonblockinglife://...` 換成 PWA 網址(線上 / dev / dist 依啟動來源),**只保留 query 與 fragment**,host 與 path 忽略,然後交給 NativeWebView。
+- 特例:`nonblockinglife://show-clock` 由桌面殼直接開啟時鐘視窗(主視窗保持隱藏)。
+- 第二個實例會經 named pipe 把 URI 轉給第一個實例;第一個實例直接用啟動參數。
+- 驗證:長度 ≤ 2048、無控制字元、scheme 必須相符。
+- 註冊:Windows 寫 HKCU\Software\Classes\nonblockinglife;Linux 寫 `.desktop` + `xdg-mime`。採托盤選單手動勾選,避免 Debug 版搶走已安裝版的 handler。
+- 安全:任何網頁都能觸發此協定,但效果僅等同於造訪公開 PWA 網址或顯示時鐘。
+- 注意:PWA 只在載入時讀 `location.search`,所以對執行中的實例導向新 URL 會整頁重載。
+- 未驗證:Linux handler、WebView2 對自訂 scheme 的行為、時鐘視窗外觀。

@@ -11,7 +11,7 @@ public sealed class SingleInstance : IDisposable
     private readonly string _pipeName;
     private readonly CancellationTokenSource _cts = new();
 
-    public event Action? ShowRequested;
+    public event Action<string?>? ShowRequested;
 
     private SingleInstance(Mutex mutex, string pipeName)
     {
@@ -19,8 +19,9 @@ public sealed class SingleInstance : IDisposable
         _pipeName = pipeName;
     }
 
-    /// <returns>取得則回傳實例；已有其他實例執行時回傳 null（並已通知它顯示視窗）。</returns>
-    public static SingleInstance? TryAcquire(string name = "NonBlockingLife.Desktop")
+    /// <param name="payload">已有實例時，轉交給它的內容（例如 nonblockinglife:// 連結）。</param>
+    /// <returns>取得則回傳實例；已有其他實例執行時回傳 null（並已通知它）。</returns>
+    public static SingleInstance? TryAcquire(string? payload = null, string name = "NonBlockingLife.Desktop")
     {
         var user = Environment.UserName.Replace('\\', '_');
         var pipe = $"{name}.{user}";
@@ -28,7 +29,7 @@ public sealed class SingleInstance : IDisposable
         if (!createdNew)
         {
             mutex.Dispose();
-            Notify(pipe);
+            Notify(pipe, payload);
             return null;
         }
         var instance = new SingleInstance(mutex, pipe);
@@ -36,13 +37,14 @@ public sealed class SingleInstance : IDisposable
         return instance;
     }
 
-    private static void Notify(string pipeName)
+    private static void Notify(string pipeName, string? payload)
     {
         try
         {
             using var client = new NamedPipeClientStream(".", pipeName, PipeDirection.Out);
             client.Connect(1500);
-            client.WriteByte(1);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(payload ?? "");
+            client.Write(bytes, 0, bytes.Length);
         }
         catch (Exception e) when (e is TimeoutException or IOException)
         {
@@ -59,8 +61,13 @@ public sealed class SingleInstance : IDisposable
                 await using var server = new NamedPipeServerStream(
                     _pipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
                 await server.WaitForConnectionAsync(_cts.Token);
-                var buf = new byte[1];
-                if (await server.ReadAsync(buf, _cts.Token) > 0) ShowRequested?.Invoke();
+                using var ms = new MemoryStream();
+                var buf = new byte[1024];
+                int n;
+                while (ms.Length < 4096 && (n = await server.ReadAsync(buf, _cts.Token)) > 0)
+                    ms.Write(buf, 0, n);
+                var text = System.Text.Encoding.UTF8.GetString(ms.ToArray());
+                ShowRequested?.Invoke(text.Length == 0 ? null : text);
             }
             catch (OperationCanceledException) { return; }
             catch (IOException) { await Task.Delay(500); }

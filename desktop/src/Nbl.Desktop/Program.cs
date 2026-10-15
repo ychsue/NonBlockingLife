@@ -18,7 +18,7 @@ class Program
             System.Diagnostics.Trace.AutoFlush = true;
         }
         var options = LaunchOptions.Parse(args);
-        using var instance = options.AllowMultiple ? null : SingleInstance.TryAcquire();
+        using var instance = options.AllowMultiple ? null : SingleInstance.TryAcquire(options.ProtocolUri);
         if (!options.AllowMultiple && instance is null) return;
         Instance = instance;
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);

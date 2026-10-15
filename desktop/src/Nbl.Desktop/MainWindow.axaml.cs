@@ -34,6 +34,12 @@ public partial class MainWindow : Window
 
     public bool AllowClose { get; set; }
 
+    /// <summary>導覽到 PWA 內的網址（相同 origin 才允許）。</summary>
+    public void NavigateTo(Uri uri)
+    {
+        if (_origins.IsAllowed(uri)) Web.Source = uri;
+    }
+
     public MainWindow(LaunchOptions options, IDesktopHost? host, AlarmScheduler? alarms)
     {
         InitializeComponent();
