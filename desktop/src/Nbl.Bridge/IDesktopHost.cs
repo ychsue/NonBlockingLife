@@ -10,4 +10,14 @@ public interface IDesktopHost
 
     /// <summary>桌面沒有統一的分享面板，目前實作為複製到剪貼簿並通知。</summary>
     void Share(string title, string text);
+
+    /// <summary>
+    /// 顯示主視窗。
+    /// </summary>
+    void ShowMainWindow();
+
+    /// <summary>
+    /// 顯示Clock視窗（通常為小型時鐘視窗）
+    /// </summary>
+    void ShowClockWindow(int tabIndex = 0);
 }

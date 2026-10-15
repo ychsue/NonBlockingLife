@@ -54,6 +54,23 @@ public sealed class TimerService
         }
     }
 
+    public TimerEntry? UpdateOrCreateByLabel(string label, TimeSpan duration, DateTimeOffset now, bool start = true)
+    {
+        lock (_gate)
+        {
+            // 只比對前六個字元以避免過長的標籤造成不必要的錯誤，若少於六個字元，則比對整個標籤。
+            var existing = _timers.Values.FirstOrDefault(t => (t.Label.Length >= 6 ? t.Label[0..6] : t.Label) == (label.Length >= 6 ? label[0..6] : label));
+            if (existing is not null)
+            {
+                var updated = existing with { Duration = duration, Remaining = duration };
+                _timers[existing.Id] = start ? Started(updated, now) : updated;
+                Save();
+                return _timers[existing.Id];
+            }
+        }
+        return Create(duration, label, now, start);
+    }
+
     /// <summary>開始或繼續。</summary>
     public bool Start(string id, DateTimeOffset now) => Update(id, t => t.State == TimerState.Running ? t : Started(t, now));
 
@@ -128,5 +145,27 @@ public sealed class TimerService
         var tmp = _path + ".tmp";
         File.WriteAllText(tmp, JsonSerializer.Serialize(_timers.Values.ToList()));
         File.Move(tmp, _path, overwrite: true);
+    }
+
+    /// <summary>由set-timer Uri 加入一個計時器。</summary>
+    /// <param name="uri">set-timer Uri</param>
+    /// <param name="now">當前時間</param>
+    /// <param name="host">桌面宿主，用於顯示時鐘窗口</param>
+    /// <returns>是否成功加入計時器</returns>
+    /// <remarks>Uri 必須是 nonblockinglife://set-timer 開頭的連結。</remarks>
+    public bool AddFromUri(Uri uri, DateTimeOffset now, IDesktopHost? host)
+    {
+        if (uri.Scheme != ProtocolUri.Scheme || !uri.Host.Equals("set-timer", StringComparison.OrdinalIgnoreCase))
+            return false;
+        // 這裡可以解析 query 參數來設定計時器，例如 duration
+        // 假設 query 參數有 duration=秒數
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        if (!int.TryParse(query["duration"], out var seconds)) return false;
+        var skipUi = bool.TryParse(query["skipUi"], out var result) && result;
+        var title = query["title"] ?? "";
+        UpdateOrCreateByLabel(title, TimeSpan.FromSeconds(seconds), now);
+        if (!skipUi && host is not null)
+            host.ShowClockWindow(1);
+        return true;
     }
 }

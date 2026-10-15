@@ -1,9 +1,12 @@
-export type NativeCapability =
-  | "alarm"
-  | "notify"
-  | "fetchIcs"
-  | "share"
-  | "openExternal";
+const KNOWN_CAPS = [
+  "alarm",
+  "timer",
+  "notify",
+  "fetchIcs",
+  "share",
+  "openExternal",
+] as const;
+export type NativeCapability = (typeof KNOWN_CAPS)[number];
 
 export type NativeShellKind = "web" | "twa" | "desktop";
 
@@ -62,14 +65,6 @@ export interface HelloInfo {
   capabilities: NativeCapability[];
 }
 
-const KNOWN_CAPS: NativeCapability[] = [
-  "alarm",
-  "notify",
-  "fetchIcs",
-  "share",
-  "openExternal",
-];
-
 export async function negotiateHello(
   send: RpcSend,
   timeoutMs = 1500,
@@ -78,7 +73,7 @@ export async function negotiateHello(
     const res = await send("nbl:hello", { protocolVersion: 1 }, { timeoutMs });
     const caps = Array.isArray(res?.capabilities)
       ? (res.capabilities as string[]).filter((c): c is NativeCapability =>
-          (KNOWN_CAPS as string[]).includes(c),
+          KNOWN_CAPS.includes(c as NativeCapability),
         )
       : TWA_DEFAULT_CAPS;
     return {
@@ -88,7 +83,11 @@ export async function negotiateHello(
       capabilities: caps,
     };
   } catch {
-    return { shell: "android", protocolVersion: 0, capabilities: TWA_DEFAULT_CAPS };
+    return {
+      shell: "android",
+      protocolVersion: 0,
+      capabilities: TWA_DEFAULT_CAPS,
+    };
   }
 }
 

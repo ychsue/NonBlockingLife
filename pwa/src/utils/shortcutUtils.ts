@@ -278,6 +278,7 @@ export function triggerShortcutTimer(
 ): boolean {
   config = { ...config, taskTitle };
   const deviceType = getDeviceType();
+  const capabilitiesAndKind = useAppStore.getState().capabilitiesAndKind;
 
   if (deviceType === "Shortcuts") {
     try {
@@ -292,7 +293,7 @@ export function triggerShortcutTimer(
       console.error("Failed to trigger shortcut:", error);
       return false;
     }
-  } else if (deviceType === "TWA" || deviceType === "AndroidWebView") {
+  } else if (deviceType === "TWA" || deviceType === "AndroidWebView" || capabilitiesAndKind?.capabilities.includes("timer")) {
     const timerUri = buildTwaTimerUri(
       taskTitle,
       config.timerMinutes,

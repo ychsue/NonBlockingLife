@@ -30,7 +30,7 @@ public partial class MainWindow : Window
     private readonly BridgeDispatcher _dispatcher;
     private readonly LocalStaticServer? _server;
 
-    public MainWindow() : this(LaunchOptions.Parse(Array.Empty<string>()), null, null) { }
+    public MainWindow() : this(LaunchOptions.Parse(Array.Empty<string>()), null, null, null) { }
 
     public bool AllowClose { get; set; }
 
@@ -40,7 +40,7 @@ public partial class MainWindow : Window
         if (_origins.IsAllowed(uri)) Web.Source = uri;
     }
 
-    public MainWindow(LaunchOptions options, IDesktopHost? host, AlarmScheduler? alarms)
+    public MainWindow(LaunchOptions options, IDesktopHost? host, AlarmScheduler? alarms, TimerService? timers)
     {
         InitializeComponent();
         String? version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3);
@@ -51,7 +51,7 @@ public partial class MainWindow : Window
             Hide();
         };
         _origins = new OriginPolicy(options.AllowedOrigins);
-        _dispatcher = new BridgeDispatcher("windows", version?? "0.1.0", new HttpIcsFetcher(), host, alarms);
+        _dispatcher = new BridgeDispatcher("windows", version ?? "0.1.0", new HttpIcsFetcher(), host, alarms, timers);
 
         if (options.Source == LoadSource.Dist)
         {
@@ -74,13 +74,33 @@ public partial class MainWindow : Window
         };
         Web.NavigationStarted += (_, e) =>
         {
-            if (e.Request is { } uri && !_origins.IsAllowed(uri))
+            var uri = e.Request;
+            if (uri is not null)
             {
-                e.Cancel = true;
-                if (ExternalUriPolicy.IsSafe(uri))
-                    Process.Start(new ProcessStartInfo(uri.ToString()) { UseShellExecute = true });
-                else
-                    Trace.WriteLine($"[nbl] blocked navigation to {uri}");
+                if (uri.Scheme == ProtocolUri.Scheme)
+                {
+                    // 第一種 show-clock，沒參數
+                    if (uri.Authority == "show-clock")
+                    {
+                        e.Cancel = true;
+                        host?.ShowClockWindow(1);
+                    }
+                    else if (uri.Authority == "set-timer")
+                    {
+                        e.Cancel = true;
+                        // 解析 `nonblockinglife://set-timer?duration=${durationSeconds}&skipUi=true&title=${encodeURIComponent(normalizedTitle)}` 然後在 timer 新增一條
+                        timers?.AddFromUri(uri, DateTime.Now, host);
+                    }
+
+                }
+                else if (!_origins.IsAllowed(uri))
+                {
+                    e.Cancel = true;
+                    if (ExternalUriPolicy.IsSafe(uri))
+                        Process.Start(new ProcessStartInfo(uri.ToString()) { UseShellExecute = true });
+                    else
+                        Trace.WriteLine($"[nbl] blocked navigation to {uri}");
+                }
             }
         };
         Web.NavigationCompleted += async (_, _) =>

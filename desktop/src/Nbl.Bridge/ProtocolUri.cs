@@ -1,6 +1,6 @@
 namespace Nbl.Bridge;
 
-public enum ProtocolActionKind { ShowClock, Navigate }
+public enum ProtocolActionKind { ShowClock, SetTimer, Navigate }
 
 public sealed record ProtocolAction(ProtocolActionKind Kind, Uri? Target = null);
 
@@ -29,11 +29,19 @@ public static class ProtocolUri
         var host = hostAndPath.Split('/', 2)[0];
 
         if (host.Equals("show-clock", StringComparison.OrdinalIgnoreCase))
+        {
             return new ProtocolAction(ProtocolActionKind.ShowClock);
-
-        var baseUrl = pwaBase.GetLeftPart(UriPartial.Path);
-        return Uri.TryCreate(baseUrl + suffix, UriKind.Absolute, out var target)
-            ? new ProtocolAction(ProtocolActionKind.Navigate, target)
-            : null;
+        }
+        else if (host.Equals("set-timer", StringComparison.OrdinalIgnoreCase))
+        {
+            return Uri.TryCreate(raw, UriKind.Absolute, out var target) ? new ProtocolAction(ProtocolActionKind.SetTimer, target) : null;
+        }
+        else
+        {
+            var baseUrl = pwaBase.GetLeftPart(UriPartial.Path);
+            return Uri.TryCreate(baseUrl + suffix, UriKind.Absolute, out var target)
+                ? new ProtocolAction(ProtocolActionKind.Navigate, target)
+                : null;
+        }
     }
 }

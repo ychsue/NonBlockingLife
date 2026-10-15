@@ -22,6 +22,7 @@ public sealed class BridgeDispatcher
     private readonly IIcsFetcher? _ics;
     private readonly IDesktopHost? _host;
     private readonly AlarmScheduler? _alarms;
+    private readonly TimerService? _timers;
     private readonly Func<DateTimeOffset> _now;
 
     public BridgeDispatcher(
@@ -30,6 +31,7 @@ public sealed class BridgeDispatcher
         IIcsFetcher? icsFetcher = null,
         IDesktopHost? host = null,
         AlarmScheduler? alarms = null,
+        TimerService? timers = null,
         Func<DateTimeOffset>? now = null)
     {
         _shell = shell;
@@ -37,6 +39,7 @@ public sealed class BridgeDispatcher
         _ics = icsFetcher;
         _host = host;
         _alarms = alarms;
+        _timers = timers;
         _now = now ?? (() => DateTimeOffset.Now);
     }
 
@@ -48,6 +51,7 @@ public sealed class BridgeDispatcher
             if (_ics is not null) caps.Add("fetchIcs");
             if (_host is not null) caps.AddRange(new[] { "notify", "openExternal", "share" });
             if (_host is not null && _alarms is not null) caps.Add("alarm");
+            if (_host is not null && _timers is not null) caps.Add("timer");
             return caps;
         }
     }
@@ -164,9 +168,27 @@ public sealed class BridgeDispatcher
 
             case "nbl:open-external":
                 if (_host is null) return null;
-                var ok = Uri.TryCreate(req["url"]?.GetValue<string>(), UriKind.Absolute, out var target)
-                         && target.Scheme is "http" or "https";
-                if (ok) _host.OpenExternal(target!);
+                var ok = false;
+                // 1. 先確定是否是 nonblockinglife:// 連結
+                var resolved = ProtocolUri.Resolve(req["url"]?.GetValue<string>(), new Uri("about:blank"));
+                if (resolved is not null)
+                {
+                    if (resolved.Kind == ProtocolActionKind.ShowClock)
+                    {
+                        _host.ShowClockWindow(1);
+                    }
+                    else if (resolved.Kind == ProtocolActionKind.SetTimer)
+                    {
+                        // Handle set-timer action if needed
+                        _timers?.AddFromUri(resolved.Target ?? new Uri("about:blank"), DateTime.Now, _host);
+                    }
+                }
+                else
+                {
+                    ok = Uri.TryCreate(req["url"]?.GetValue<string>(), UriKind.Absolute, out var target)
+                             && target.Scheme is "http" or "https";
+                    if (ok) _host.OpenExternal(target!);
+                }
                 return Reply("nbl:open-external-response", requestId, o => o["ok"] = ok);
 
             case "nbl:share":

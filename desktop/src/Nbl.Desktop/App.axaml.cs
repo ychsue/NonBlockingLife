@@ -32,8 +32,8 @@ public partial class App : Application
             var timers = new TimerService(Path.Combine(dataDir, "timers.json"));
             _clock = new ClockWindow(alarms, timers);
             var host = new DesktopHost();
-            var window = new MainWindow(options, host, alarms);
-            host.Attach(window);
+            var window = new MainWindow(options, host, alarms, timers);
+            host.Attach(window, _clock);
             desktop.MainWindow = window;
 
             var startAction = options.StartAction;
@@ -43,9 +43,15 @@ public partial class App : Application
                 window.Opened += HideOnce;
             }
             if (startAction?.Kind == ProtocolActionKind.ShowClock)
+            {
                 Dispatcher.UIThread.Post(() => _clock.ShowAndActivate(1));
+            }
+            else if (startAction?.Kind == ProtocolActionKind.SetTimer)
+            {
+                timers.AddFromUri(startAction.Target ?? new Uri("about:blank"), DateTime.Now, host);
+            }
             if (Program.Instance is { } single)
-                single.ShowRequested += payload => Dispatcher.UIThread.Post(() => HandleProtocol(payload, options, window, host));
+                single.ShowRequested += payload => Dispatcher.UIThread.Post(() => HandleProtocol(payload, options, window, timers, host));
 
             SetupTray(desktop, window, host);
             StartAlarmTimer(alarms, timers, host);
@@ -54,7 +60,7 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
-    private void HandleProtocol(string? payload, LaunchOptions options, MainWindow window, DesktopHost host)
+    private void HandleProtocol(string? payload, LaunchOptions options, MainWindow window, TimerService timers, DesktopHost host)
     {
         System.Diagnostics.Trace.WriteLine($"[nbl] show requested: {payload}");
         var action = ProtocolUri.Resolve(payload, options.BaseUri);
@@ -62,6 +68,10 @@ public partial class App : Application
         {
             case { Kind: ProtocolActionKind.ShowClock }:
                 _clock?.ShowAndActivate(1);
+                break;
+            case { Kind: ProtocolActionKind.SetTimer, Target: { } target }:
+                // Handle set-timer action if needed
+                timers?.AddFromUri(target, DateTime.Now, host);
                 break;
             case { Kind: ProtocolActionKind.Navigate, Target: { } target }:
                 window.NavigateTo(target);
@@ -78,7 +88,7 @@ public partial class App : Application
         var open = new NativeMenuItem("開啟 NonBlockingLife");
         open.Click += (_, _) => host.ShowMainWindow();
         var clock = new NativeMenuItem("鬧鐘與計時器");
-        clock.Click += (_, _) => _clock?.ShowAndActivate();
+        clock.Click += (_, _) => _clock?.ShowAndActivate(0);
         var autoStart = new NativeMenuItem("開機時自動啟動")
         {
             ToggleType = MenuItemToggleType.CheckBox,

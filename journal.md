@@ -1,6 +1,14 @@
 # Journal
 
 ## [2026-10-15] 做出 protocol 與顯示小型時鐘視窗的功能
+1. 讓 `nonblockinglife://....` 可以 ShowClockWindow、 SetTimer，而且也能代替本App的URL。
+   1. 首先是 protocol 的部分，得讓 [App.axaml.cs](desktop\src\Nbl.Desktop\App.axaml.cs) 處理來自瀏覽器的 `nonblockinglife://` 的連結。
+   2. 在 [MainWindow.axaml.cs](desktop\src\Nbl.Desktop\MainWindow.axaml.cs) 處理來自WebView 內部PWA送出的 protocol 的 ShowClock 與 SetTimer 動作與轉譯。這裡利用 `ProtocolUri.Resolve` 來解析 `nonblockinglife://` 的連結。使他只能是 nonblockinglife 或 baseUri 的連結。
+   3. 在 [BridgeDispatcher.cs](desktop\src\Nbl.Bridge\BridgeDispatcher.cs) 的 `nbl:open-external` 處理來自 PWA 的 protocol 請求，解析 `nonblockinglife://` 的連結，並根據不同的 action 進行相應的處理，例如 ShowClock 與 SetTimer。若都不是，就開啟外部瀏覽器來連結。
+3. 為了能自由選定顯示MainWindow 或 ClockWindow，所以在 [IDesktopHost.cs](desktop\src\Nbl.Bridge\IDesktopHost.cs) 中宣告了對應的方法來顯示不同的視窗。
+4. [ProtocolUri.cs](desktop\src\Nbl.Bridge\ProtocolUri.cs) 的 Resolve 負責解析 `nonblockinglife://` 的連結，並將其轉譯為對應的 action，例如 ShowClock 與 SetTimer。
+5. 前端 [shortcutUtils.ts](pwa\src\utils\shortcutUtils.ts) 也支援解析 `nonblockinglife://` 的連結，並根據不同的 action 進行相應的處理，例如 ShowClock 與 SetTimer。
+
 
 ## [2026-10-14] 修正一些小問題與優化使用者體驗。還有，思考缺乏的功能。
 [12:02] 1. [MainWindow.axaml.cs](desktop\src\Nbl.Desktop\MainWindow.axaml.cs) 讓他由 [Nbl.Desktop.csproj](desktop\src\Nbl.Desktop\Nbl.Desktop.csproj) 來取得 Version。

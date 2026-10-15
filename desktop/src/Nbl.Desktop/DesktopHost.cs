@@ -9,8 +9,9 @@ namespace Nbl.Desktop;
 public sealed class DesktopHost : IDesktopHost
 {
     private Window? _main;
+    private ClockWindow? _clock;
 
-    public void Attach(Window main) => _main = main;
+    public void Attach(Window main, ClockWindow clock) => (_main, _clock) = (main, clock);
 
     public void ShowMainWindow()
     {
@@ -20,6 +21,15 @@ public sealed class DesktopHost : IDesktopHost
             _main.Show();
             if (_main.WindowState == WindowState.Minimized) _main.WindowState = WindowState.Normal;
             _main.Activate();
+        });
+    }
+
+    public void ShowClockWindow(int tabIndex = 0)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_clock is null) return;
+            _clock.ShowAndActivate(tabIndex);
         });
     }
 
