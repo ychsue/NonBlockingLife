@@ -85,11 +85,11 @@ public partial class App : Application
 
     private void SetupTray(IClassicDesktopStyleApplicationLifetime desktop, MainWindow window, DesktopHost host)
     {
-        var open = new NativeMenuItem("開啟 NonBlockingLife");
+        var open = new NativeMenuItem(L10n.Tray1Title);
         open.Click += (_, _) => host.ShowMainWindow();
-        var clock = new NativeMenuItem("鬧鐘與計時器");
+        var clock = new NativeMenuItem(L10n.Tray2Title);
         clock.Click += (_, _) => _clock?.ShowAndActivate(0);
-        var autoStart = new NativeMenuItem("開機時自動啟動")
+        var autoStart = new NativeMenuItem(L10n.Tray3Title)
         {
             ToggleType = MenuItemToggleType.CheckBox,
             IsEnabled = AutoStart.IsSupported,
@@ -102,10 +102,10 @@ public partial class App : Application
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
                 autoStart.IsChecked = !autoStart.IsChecked;
-                host.ShowNotification(0, "NonBlockingLife", "無法設定開機自動啟動", isAlarm: false);
+                host.ShowNotification(new ToastOptions { Title = "NonBlockingLife", Body = L10n.CannotSetAutoStart, IsAlarm = false });
             }
         };
-        var protocol = new NativeMenuItem("註冊 nonblockinglife:// 連結")
+        var protocol = new NativeMenuItem(L10n.Tray4Title)
         {
             ToggleType = MenuItemToggleType.CheckBox,
             IsEnabled = ProtocolRegistration.IsSupported,
@@ -118,10 +118,10 @@ public partial class App : Application
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
                 protocol.IsChecked = !protocol.IsChecked;
-                host.ShowNotification(0, "NonBlockingLife", "無法註冊 nonblockinglife:// 連結", isAlarm: false);
+                host.ShowNotification(new ToastOptions { Title = "NonBlockingLife", Body = L10n.CannotRegisterProtocol, IsAlarm = false });
             }
         };
-        var exit = new NativeMenuItem("結束");
+        var exit = new NativeMenuItem(L10n.TrayExitTitle);
         exit.Click += (_, _) =>
         {
             window.AllowClose = true;
@@ -147,9 +147,9 @@ public partial class App : Application
         {
             var now = DateTimeOffset.Now;
             foreach (var due in alarms.TakeDue(now))
-                host.ShowNotification(due.Id ?? 0, "⏰ NonBlockingLife", due.Label, isAlarm: true);
+                host.ShowNotification(new ToastOptions { Title = "⏰ NonBlockingLife", Body = due.Label, IsAlarm = true });
             foreach (var t in timers.TakeFinished(now))
-                host.ShowNotification(0, "⏳ 計時結束", t.Label, isAlarm: true);
+                host.ShowNotification(new ToastOptions { Title = "⏳ " + L10n.TimerFinished, Body = t.Label, IsAlarm = true });
         };
         _alarmTimer.Start();
     }

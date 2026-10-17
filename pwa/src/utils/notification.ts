@@ -12,7 +12,12 @@ import { getDeviceType } from "./shortcutUtils";
 export const notify = (
   title: string,
   body: string,
-  options?: { dismissOnClick?: boolean; url?: string; id?: number },
+  options?: {
+    dismissOnClick?: boolean;
+    url?: string;
+    id?: number;
+    duration?: number;
+  },
 ) => {
   const dismissOnClick = options?.dismissOnClick ?? true;
   const twaPort = (
@@ -34,6 +39,7 @@ export const notify = (
         id: options?.id ?? Date.now() & 0x7fffffff,
         url: options?.url ?? window.location.href,
         dismissOnClick,
+        duration: options?.duration ?? 0,
       }),
     );
     return;
@@ -109,7 +115,11 @@ export const notify = (
 };
 
 export const notifies = {
-  taskStarted: (taskTitle: string, locale: string) => {
+  taskStarted: (
+    taskTitle: string,
+    locale: string,
+    durationInMinutes: number,
+  ) => {
     notify(
       locale === "zh-TW"
         ? "工作進行中"
@@ -121,7 +131,7 @@ export const notifies = {
         : locale === "ja"
           ? `${taskTitle} を開始しました。`
           : `${taskTitle} has started. Stay focused.`,
-      { dismissOnClick: false, id: 1 },
+      { dismissOnClick: false, id: 1, duration: durationInMinutes * 60 },
     );
   },
   taskEnded: (previousTaskTitle: string, locale: string) => {

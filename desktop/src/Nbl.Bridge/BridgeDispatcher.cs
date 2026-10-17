@@ -100,11 +100,15 @@ public sealed class BridgeDispatcher
 
             case "nbl:notify":
                 if (_host is null) return null;
-                _host.ShowNotification(
-                    req["id"]?.GetValue<int>() ?? 0,
-                    req["title"]?.GetValue<string>() ?? "NonBlockingLife",
-                    req["body"]?.GetValue<string>() ?? "",
-                    isAlarm: false);
+                _host.ShowNotification(new ToastOptions
+                {
+                    Id = JsonExtensions.GetStringOrNumber(req["id"]) ?? Guid.NewGuid().ToString(),
+                    Title = req["title"]?.GetValue<string>() ?? "NonBlockingLife",
+                    Body = req["body"]?.GetValue<string>() ?? "",
+                    IsAlarm = false,
+                    ClickToClose = req["dismissOnClick"]?.GetValue<bool>() ?? false,
+                    Duration = TimeSpan.FromSeconds(req["duration"]?.GetValue<int?>() ?? 0)
+                });
                 return requestId is null
                     ? null
                     : Reply("nbl:notification-shown", requestId, o => o["notificationId"] = req["id"]?.DeepClone());

@@ -319,6 +319,7 @@ export function SelectionCacheTable() {
           source: c.source,
           status: c.status,
           totalMinsInPool: totalMinsPool,
+          focusTime: c.focusTime,
           url: c.url,
           deadline: c.deadline,
           usedTodayCount: c.usedTodayCount,
@@ -419,6 +420,7 @@ export function SelectionCacheTable() {
       notifies.taskStarted(
         selectedTask.title ?? selectedTask.taskId ?? "",
         locale,
+        selectedTask.focusTime ?? 30,
       );
       // 可選：自動刷新候選列表，或讓用戶手動刷新
       // await handleRefreshCandidates()
@@ -510,7 +512,7 @@ export function SelectionCacheTable() {
         task: runningTask?.title ?? runningTask?.taskId ?? "🧠 ",
       });
       const title = t("candidates.interrupt");
-      notifies.taskStarted(title, body);
+      notifies.taskStarted(title, body, runningTask?.focusTime ?? 30);
       if ("payload" in result && result.payload) {
         setRunningTask(result.payload as Dashboard);
       }

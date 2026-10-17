@@ -33,8 +33,17 @@ public sealed class DesktopHost : IDesktopHost
         });
     }
 
-    public void ShowNotification(int id, string title, string body, bool isAlarm) =>
-        Dispatcher.UIThread.Post(() => new ToastWindow(title, body, isAlarm, ShowMainWindow).Show());
+    public void ShowNotification(ToastOptions options)
+    {
+        if (options.OnClick == null)
+        {
+            if (options.IsAlarm)
+                options.OnClick = () => ShowClockWindow(1);
+            else
+                options.OnClick = ShowMainWindow;
+        }
+        ToastWindow.Show(options);
+    }
 
     public void OpenExternal(Uri url) =>
         Process.Start(new ProcessStartInfo(url.ToString()) { UseShellExecute = true });
@@ -45,6 +54,6 @@ public sealed class DesktopHost : IDesktopHost
             var clipboard = _main is null ? null : TopLevel.GetTopLevel(_main)?.Clipboard;
             if (clipboard is null) return;
             await clipboard.SetTextAsync(string.IsNullOrEmpty(title) ? text : $"{title}\n{text}");
-            ShowNotification(0, "NonBlockingLife", "已複製到剪貼簿", isAlarm: false);
+            ShowNotification(new ToastOptions { Title = "NonBlockingLife", Body = L10n.CopiedToClipboard, IsAlarm = false, OnClick = ShowMainWindow });
         });
 }

@@ -128,6 +128,7 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
       plannedTimerMinutes > 0
         ? now + plannedTimerMinutes * 60 * 1000
         : undefined,
+    focusTime: focusTime, // 任務的專注時長 (分鐘)
   };
 
   await applyChange({
@@ -605,6 +606,7 @@ export async function interruptTask(
     notes: "",
     startAt: now,
     systemStatus: "DOING",
+    focusTime: 30, // 預設任務的專注時長 (分鐘)
   };
 
   await applyChange({

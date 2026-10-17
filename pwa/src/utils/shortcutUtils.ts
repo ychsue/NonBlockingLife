@@ -256,10 +256,15 @@ export function buildTwaTimerUri(
  */
 export function showTimer(): void {
   const deviceType = getDeviceType();
+  const candidatesAndKind = useAppStore.getState().capabilitiesAndKind;
   let timerUrl = "";
   if (deviceType === "Shortcuts") {
     timerUrl = "shortcuts://run-shortcut?name=Show_Timer";
-  } else if (deviceType === "TWA" || deviceType === "AndroidWebView") {
+  } else if (
+    deviceType === "TWA" ||
+    deviceType === "AndroidWebView" ||
+    candidatesAndKind?.capabilities.includes("timer")
+  ) {
     timerUrl = "nonblockinglife://show-clock";
   } else if (deviceType === "Windows") {
     timerUrl = "ms-clock:timer";
@@ -293,7 +298,11 @@ export function triggerShortcutTimer(
       console.error("Failed to trigger shortcut:", error);
       return false;
     }
-  } else if (deviceType === "TWA" || deviceType === "AndroidWebView" || capabilitiesAndKind?.capabilities.includes("timer")) {
+  } else if (
+    deviceType === "TWA" ||
+    deviceType === "AndroidWebView" ||
+    capabilitiesAndKind?.capabilities.includes("timer")
+  ) {
     const timerUri = buildTwaTimerUri(
       taskTitle,
       config.timerMinutes,

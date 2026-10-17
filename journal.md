@@ -1,5 +1,14 @@
 # Journal
 
+## [2026-10-15] 改良 ToastWindow、Notification 與 多國語 Localization.cs
+1. 改良 ToastWindow，使他可以顯示還剩多少時間，超過會 blink
+2. Notification 前端則為了能將 focusTime 傳下來，做了 schema 的修改，不曉得有沒有不小心引進甚麼問題。
+3. Notification 後端則
+   * [BridgeDispatcher.cs](desktop\src\Nbl.Bridge\BridgeDispatcher.cs) 的 `nbl:notify` 需要多讀取一些欄位
+   * 由於前端送來的 id 為 number，因此，多了 [JsonExtensions.cs](desktop\src\Nbl.Bridge\JsonExtensions.cs) 的對應轉換為String的處理。
+   * 改造 [ToastWindow.cs](desktop\src\Nbl.Desktop\ToastWindow.cs) 以支援新的通知 schema，並且改吃 ToastOptions，方便日後擴充。
+4. 加入多國語 [Localization.cs](desktop\src\Nbl.Desktop\Localization.cs) 提供 `L10n` 支援。
+
 ## [2026-10-15] 做出 protocol 與顯示小型時鐘視窗的功能
 1. 讓 `nonblockinglife://....` 可以 ShowClockWindow、 SetTimer，而且也能代替本App的URL。
    1. 首先是 protocol 的部分，得讓 [App.axaml.cs](desktop\src\Nbl.Desktop\App.axaml.cs) 處理來自瀏覽器的 `nonblockinglife://` 的連結。

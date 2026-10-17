@@ -182,7 +182,11 @@ export function MicroTasksTable() {
       );
       return;
     }
-    notifies.taskStarted(item.title ?? item.taskId ?? "", locale);
+    notifies.taskStarted(
+      item.title ?? item.taskId ?? "",
+      locale,
+      item.focusTime ?? 30,
+    );
     await loadRunningTask();
   };
 

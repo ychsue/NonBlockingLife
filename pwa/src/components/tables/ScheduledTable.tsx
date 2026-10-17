@@ -413,7 +413,11 @@ export function ScheduledTable() {
       );
       return;
     }
-    notifies.taskStarted(item.title ?? item.taskId ?? "", locale);
+    notifies.taskStarted(
+      item.title ?? item.taskId ?? "",
+      locale,
+      item.focusTime ?? 30,
+    );
     await loadRunningTask();
   };
 
@@ -1745,7 +1749,11 @@ function AlarmSyncTargetsCheckList({
               checked={(tempST & 2) !== 0}
               className="w-4 h-4"
               onChange={(e) => {
-                if (!e.target.checked || ["windows", "linux"].includes(capabilitiesAndKind.kind) || confirm(t("確認exactAlarm"))) {
+                if (
+                  !e.target.checked ||
+                  ["windows", "linux"].includes(capabilitiesAndKind.kind) ||
+                  confirm(t("確認exactAlarm"))
+                ) {
                   setTempST((prev) =>
                     e.target.checked ? prev | 2 : prev & ~2,
                   );

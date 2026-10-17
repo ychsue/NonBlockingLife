@@ -27,7 +27,7 @@ public sealed class ClockWindow : Window
     {
         _alarms = alarms;
         _timers = timers;
-        Title = "NonBlockingLife — 鬧鐘與計時器";
+        Title = "NonBlockingLife — " + L10n.Tray2Title;
         Width = 480;
         Height = 520;
         MinWidth = 420;
@@ -36,8 +36,8 @@ public sealed class ClockWindow : Window
         {
             Items =
             {
-                new TabItem { Header = "鬧鐘", Content = BuildAlarmTab() },
-                new TabItem { Header = "計時器", Content = BuildTimerTab() },
+                new TabItem { Header = L10n.CW_Alarm, Content = BuildAlarmTab() },
+                new TabItem { Header = L10n.CW_Timer, Content = BuildTimerTab() },
             },
         };
         Content = _tabControl;
@@ -69,15 +69,15 @@ public sealed class ClockWindow : Window
     {
         var hour = Num(0, 23, DateTime.Now.Hour);
         var minute = Num(0, 59, DateTime.Now.Minute);
-        var label = new TextBox { PlaceholderText = "標籤", MinWidth = 120, HorizontalAlignment = HorizontalAlignment.Stretch };
-        var add = new Button { Content = "新增鬧鐘" };
+        var label = new TextBox { PlaceholderText = L10n.CW_NewAlarmLabel, MinWidth = 120, HorizontalAlignment = HorizontalAlignment.Stretch };
+        var add = new Button { Content = L10n.CW_AddAlarm };
         add.Click += (_, _) =>
         {
             var item = new JsonObject
             {
                 ["mode"] = "clock",
                 ["time"] = new JsonArray((int)hour.Value!, (int)minute.Value!),
-                ["label"] = string.IsNullOrWhiteSpace(label.Text) ? "鬧鐘" : label.Text,
+                ["label"] = string.IsNullOrWhiteSpace(label.Text) ? L10n.CW_Alarm : label.Text,
             };
             _alarms.Set(new JsonArray(item), DateTimeOffset.Now);
             label.Text = "";
@@ -99,12 +99,12 @@ public sealed class ClockWindow : Window
         var hour = Num(0, 99, 0);
         var minute = Num(0, 59, 5);
         var second = Num(0, 59, 0);
-        var label = new TextBox { PlaceholderText = "標籤", MinWidth = 100 };
-        var add = new Button { Content = "新增並開始" };
+        var label = new TextBox { PlaceholderText = L10n.CW_NewTimerLabel, MinWidth = 100 };
+        var add = new Button { Content = L10n.CW_AddTimer };
         add.Click += (_, _) =>
         {
             var d = new TimeSpan((int)hour.Value!, (int)minute.Value!, (int)second.Value!);
-            _timers.Create(d, string.IsNullOrWhiteSpace(label.Text) ? "計時器" : label.Text, DateTimeOffset.Now);
+            _timers.Create(d, string.IsNullOrWhiteSpace(label.Text) ? L10n.CW_Timer : label.Text, DateTimeOffset.Now);
             label.Text = "";
             Refresh();
         };
@@ -114,9 +114,9 @@ public sealed class ClockWindow : Window
             {
                 Children =
                 {
-                    hour, new TextBlock { Text = "時", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0) },
-                    minute, new TextBlock { Text = "分", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0) },
-                    second, new TextBlock { Text = "秒", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0) },
+                    hour, new TextBlock { Text = L10n.Hour, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0) },
+                    minute, new TextBlock { Text = L10n.Minute, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0) },
+                    second, new TextBlock { Text = L10n.Second, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0) },
                     label, add,
                 },
             },
@@ -165,10 +165,10 @@ public sealed class ClockWindow : Window
         _alarmSig = sig;
         _alarmList.Children.Clear();
         if (alarms.Count == 0)
-            _alarmList.Children.Add(new TextBlock { Text = "目前沒有鬧鐘", Opacity = 0.6 });
+            _alarmList.Children.Add(new TextBlock { Text = L10n.CW_NoAlarm, Opacity = 0.6 });
         foreach (var a in alarms)
         {
-            var del = new Button { Content = "刪除" };
+            var del = new Button { Content = L10n.Delete };
             var key = a.Key;
             del.Click += (_, _) => { _alarms.Remove(key); Refresh(); };
             _alarmList.Children.Add(Row(
@@ -194,7 +194,7 @@ public sealed class ClockWindow : Window
             _timerList.Children.Clear();
             _remainingTexts.Clear();
             if (timers.Count == 0)
-                _timerList.Children.Add(new TextBlock { Text = "目前沒有計時器", Opacity = 0.6 });
+                _timerList.Children.Add(new TextBlock { Text = L10n.CW_NoTimer, Opacity = 0.6 });
             foreach (var t in timers) _timerList.Children.Add(BuildTimerRow(t));
         }
         foreach (var t in timers)
@@ -207,18 +207,18 @@ public sealed class ClockWindow : Window
         var remaining = new TextBlock { FontSize = 28 };
         _remainingTexts[id] = remaining;
 
-        var toggle = new Button { Content = t.State == TimerState.Running ? "暫停" : t.State == TimerState.Paused ? "繼續" : "開始" };
+        var toggle = new Button { Content = t.State == TimerState.Running ? L10n.Pause : t.State == TimerState.Paused ? L10n.Resume : L10n.Start };
         toggle.Click += (_, _) =>
         {
             if (t.State == TimerState.Running) _timers.Pause(id, DateTimeOffset.Now);
             else _timers.Start(id, DateTimeOffset.Now);
             Refresh();
         };
-        var reset = new Button { Content = "重置" };
+        var reset = new Button { Content = L10n.Reset };
         reset.Click += (_, _) => { _timers.Reset(id); Refresh(); };
         var plus = new Button { Content = "+1:00" };
         plus.Click += (_, _) => { _timers.AddMinute(id, DateTimeOffset.Now); Refresh(); };
-        var del = new Button { Content = "刪除" };
+        var del = new Button { Content = L10n.Delete };
         del.Click += (_, _) => { _timers.Remove(id); Refresh(); };
 
         return Row(

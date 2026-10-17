@@ -3,7 +3,7 @@ namespace Nbl.Bridge;
 /// <summary>shell 提供的平台動作；Bridge 只依賴此介面，方便測試。</summary>
 public interface IDesktopHost
 {
-    void ShowNotification(int id, string title, string body, bool isAlarm);
+    void ShowNotification(ToastOptions options);
 
     /// <summary>以系統預設程式開啟（呼叫端已確認為 http/https）。</summary>
     void OpenExternal(Uri url);
