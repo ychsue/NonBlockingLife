@@ -164,6 +164,16 @@ CREATE TABLE IF NOT EXISTS public.global_settings (
   synced_at BIGINT DEFAULT (extract(epoch from now())::bigint * 1000)
 );
 
+-- (12) dashboard
+CREATE TABLE IF NOT EXISTS public.dashboard (
+  task_id TEXT PRIMARY KEY,
+  data JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at BIGINT NOT NULL,
+  deleted BOOLEAN DEFAULT false,
+  operation_id TEXT,
+  device_id TEXT,
+  synced_at BIGINT DEFAULT (extract(epoch from now())::bigint * 1000)
+);
 
 -- ------------------------------------------
 -- 4. 設定安全權限 (Row Level Security & Policies)
@@ -177,7 +187,7 @@ DECLARE
   tables TEXT[] := ARRAY[
     'log', 'task_pool', 'scheduled', 'micro_tasks', 'inbox', 
     'resource', 'macro', 'ics_events', 'ics_sources', 'projects', 
-    'ics_export_configs', 'global_settings'
+    'ics_export_configs', 'global_settings', 'dashboard'
   ];
 BEGIN
   FOREACH t IN ARRAY tables LOOP
@@ -204,7 +214,7 @@ END $$;
 INSERT INTO public.global_settings (key, data, updated_at)
 VALUES (
   'supabase_schema_version', 
-  '{"version": "1.0.0", "description": "Initial Supabase Star Schema"}'::jsonb, 
+  '{"version": "1.0.1", "description": "Initial Supabase Star Schema"}'::jsonb, 
   extract(epoch from now())::bigint * 1000
 )
 ON CONFLICT (key) DO UPDATE 

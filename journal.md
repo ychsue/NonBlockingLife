@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-10-17] 讓 dashboard 也加入 supabase 的管理裡面
+這樣，就算在不同主機上，也可以接續任務的狀態變化。
+
 ## [2026-10-15] 改良 ToastWindow、Notification 與 多國語 Localization.cs
 1. 改良 ToastWindow，使他可以顯示還剩多少時間，超過會 blink
 2. Notification 前端則為了能將 focusTime 傳下來，做了 schema 的修改，不曉得有沒有不小心引進甚麼問題。

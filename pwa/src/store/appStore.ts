@@ -4,6 +4,7 @@ import { ChangeLogEntry, Dashboard, db, ProjectItem } from "../db/schema";
 import type { SupportedLocale } from "../i18n";
 import { debounce } from "lodash";
 import { NativeCapability, NativeShellKind } from "../native/NativeBridge";
+import _ from "lodash";
 
 function getInitialLocale(): SupportedLocale {
   const storage =
@@ -339,6 +340,8 @@ export const useAppStore = create<AppState>((set) => ({
   loadRunningTask: async () => {
     const rows = await db.dashboard.toArray();
     const current = rows[0] ?? null;
+    // 如果沒改變`runningTask`，就不更新狀態
+    if (_.isEqual(current, useAppStore.getState().runningTask)) return;
     set({ runningTask: current });
   },
 

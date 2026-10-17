@@ -151,6 +151,7 @@ export class SupabaseSyncManager extends SyncManagerBase {
                 updated_at: c.createdAt,
                 device_id: this.deviceId,
                 operation_id: c.id,
+                deleted: localRecord ? false : true,
                 synced_at: now,
               });
             }
@@ -199,19 +200,7 @@ export class SupabaseSyncManager extends SyncManagerBase {
     let currentRecord = null;
     try {
       const lastSync = this.lastSyncTimestamp;
-      const tables: SyncTable[] = [
-        "task_pool",
-        "scheduled",
-        "micro_tasks",
-        "inbox",
-        "resource",
-        "macro",
-        "ics_events",
-        "ics_sources",
-        "projects",
-        "ics_export_configs",
-        "global_settings",
-      ]; // 注意：Log 保持單向推送，不從雲端 pull
+      const tables = SYNC_TABLES.filter((t) => t !== "log"); // 注意：Log 保持單向推送，不從雲端 pull
 
       let mergedCount = 0;
       const nowSyncTime = Date.now();
@@ -232,7 +221,7 @@ export class SupabaseSyncManager extends SyncManagerBase {
 
         for (const row of data) {
           const record =
-            table === "log"
+            table === ("log" as "task_pool" | "scheduled") // 因為目前 log 不含在內，未來不一定
               ? row
               : {
                   ...row.data,
@@ -265,7 +254,7 @@ export class SupabaseSyncManager extends SyncManagerBase {
         success: 0,
         error: `[${
           currentType ?? "unknown"
-        }][${JSON.stringify(currentRecord) ?? "no record"}] ${(error as Error)?.message??JSON.stringify(error)}`,
+        }][${JSON.stringify(currentRecord) ?? "no record"}] ${(error as Error)?.message ?? JSON.stringify(error)}`,
       };
     }
   }

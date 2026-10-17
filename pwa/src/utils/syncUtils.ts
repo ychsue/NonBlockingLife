@@ -17,6 +17,7 @@ export const SYNC_TABLES = [
   "projects",
   "ics_export_configs",
   "global_settings",
+  "dashboard",
 ] as const;
 
 export type SyncTable = (typeof SYNC_TABLES)[number];
@@ -147,27 +148,29 @@ export abstract class SyncManagerBase implements ISyncManager {
    */
   async sync(): Promise<SyncResult> {
     const locale = useAppStore.getState().locale;
-    function createTranslations<T extends Record<string, Record<SupportedLocale, string>>>(dict: T): T {
-  return dict;
-}
+    function createTranslations<
+      T extends Record<string, Record<SupportedLocale, string>>,
+    >(dict: T): T {
+      return dict;
+    }
     const tHere = (key: string) => {
       const translations: Record<string, Record<SupportedLocale, string>> = {
-        "推送失敗": {
+        推送失敗: {
           "zh-TW": "推送失敗",
           en: "Push failed",
           ja: "プッシュ失敗",
         },
-        "拉取失敗": {
+        拉取失敗: {
           "zh-TW": "拉取失敗",
           en: "Pull failed",
           ja: "プル失敗",
         },
-        "同步完成": {
+        同步完成: {
           "zh-TW": "同步完成",
           en: "Sync completed",
           ja: "同期完了",
         },
-        "同步出錯": {
+        同步出錯: {
           "zh-TW": "同步出錯",
           en: "Sync error",
           ja: "同期エラー",
@@ -228,23 +231,22 @@ export abstract class SyncManagerBase implements ISyncManager {
     const locale = useAppStore.getState().locale;
     const tHere = (key: string, params?: Record<string, unknown>) => {
       const translations: Record<string, Record<SupportedLocale, string>> = {
-        "還原失敗": {
+        還原失敗: {
           "zh-TW": "還原失敗",
           en: "Restore failed",
           ja: "復元失敗",
-          
         },
-        "還原完成": {
+        還原完成: {
           "zh-TW": "還原完成，已從雲端載入 {a} 筆資料 {b} ({c}ms)",
           en: "Restore completed, loaded {a} records from the cloud {b} ({c}ms)",
           ja: "復元完了、クラウドから {a} 件のデータを読み込みました {b} ({c}ms)",
         },
-        "含清除Log": {
+        含清除Log: {
           "zh-TW": "含清除 Log",
           en: "including clearing Log",
           ja: "ログをクリアを含む",
         },
-        "保留Log": {
+        保留Log: {
           "zh-TW": "保留 Log",
           en: "retaining Log",
           ja: "ログを保持",
@@ -349,7 +351,7 @@ export abstract class SyncManagerBase implements ISyncManager {
         status: "success",
         pushed: 0,
         pulled: pullResult.success,
-        message: `${tHere("還原完成",{a: pullResult.success, b: includeLog ? tHere("含清除Log") : tHere("保留Log"), c: Date.now() - startTime})}`,
+        message: `${tHere("還原完成", { a: pullResult.success, b: includeLog ? tHere("含清除Log") : tHere("保留Log"), c: Date.now() - startTime })}`,
         timestamp: Date.now(),
       };
     } catch (error) {
@@ -378,5 +380,4 @@ export abstract class SyncManagerBase implements ISyncManager {
   ): Promise<unknown> {
     return await db.table(table).get(recordId);
   }
-
 }

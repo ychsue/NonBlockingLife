@@ -70,6 +70,8 @@ export default function App() {
   const projects = useAppStore((state) => state.projects);
   const setProjects = useAppStore((state) => state.setProjects);
 
+  const lastRemoteSyncTime = useAppStore((state) => state.lastRemoteSyncTime);
+
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
@@ -550,7 +552,7 @@ export default function App() {
   useEffect(() => {
     // 初始加载时获取当前正在运行的任务
     loadRunningTask();
-  }, [loadRunningTask]);
+  }, [loadRunningTask, lastRemoteSyncTime]);
 
   useEffect(() => {
     defaultTitleRef.current = document.title || BASE_TITLE;
