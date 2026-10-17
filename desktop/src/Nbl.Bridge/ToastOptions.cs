@@ -14,4 +14,7 @@ public class ToastOptions
 
     /// <summary>點擊 Toast 時觸發的行為（不會自動關閉視窗）</summary>
     public Action? OnClick { get; set; }
+
+    /// <summary>Toast 關閉時觸發（例如停止對應的鈴聲）。</summary>
+    public Action? OnClosed { get; set; }
 }

@@ -12,6 +12,7 @@ public sealed class ClockWindow : Window
 {
     private readonly AlarmScheduler _alarms;
     private readonly TimerService _timers;
+    private readonly AlarmAudioManager? _audio;
     private readonly StackPanel _alarmList = new() { Spacing = 6 };
     private readonly StackPanel _timerList = new() { Spacing = 6 };
     private readonly Dictionary<string, TextBlock> _remainingTexts = new();
@@ -23,10 +24,11 @@ public sealed class ClockWindow : Window
 
     public bool AllowClose { get; set; }
 
-    public ClockWindow(AlarmScheduler alarms, TimerService timers)
+    public ClockWindow(AlarmScheduler alarms, TimerService timers, AlarmAudioManager? audio = null)
     {
         _alarms = alarms;
         _timers = timers;
+        _audio = audio;
         Title = "NonBlockingLife — " + L10n.Tray2Title;
         Width = 480;
         Height = 520;
@@ -210,16 +212,17 @@ public sealed class ClockWindow : Window
         var toggle = new Button { Content = t.State == TimerState.Running ? L10n.Pause : t.State == TimerState.Paused ? L10n.Resume : L10n.Start };
         toggle.Click += (_, _) =>
         {
+            _audio?.Stop("timer:" + id);
             if (t.State == TimerState.Running) _timers.Pause(id, DateTimeOffset.Now);
             else _timers.Start(id, DateTimeOffset.Now);
             Refresh();
         };
         var reset = new Button { Content = L10n.Reset };
-        reset.Click += (_, _) => { _timers.Reset(id); Refresh(); };
+        reset.Click += (_, _) => { _audio?.Stop("timer:" + id); _timers.Reset(id); Refresh(); };
         var plus = new Button { Content = "+1:00" };
         plus.Click += (_, _) => { _timers.AddMinute(id, DateTimeOffset.Now); Refresh(); };
         var del = new Button { Content = L10n.Delete };
-        del.Click += (_, _) => { _timers.Remove(id); Refresh(); };
+        del.Click += (_, _) => { _audio?.Stop("timer:" + id); _timers.Remove(id); Refresh(); };
 
         return Row(
             new StackPanel

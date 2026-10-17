@@ -3,6 +3,7 @@
 ## [2026-10-17] 讓 dashboard 也加入 supabase 的管理裡面
 1. 這樣，就算在不同主機上，也可以接續任務的狀態變化。
 2. 做些 NuGet 套件的更新與管理。
+3. [16:58] 會播放預設聲音了
 
 ## [2026-10-15] 改良 ToastWindow、Notification 與 多國語 Localization.cs
 1. 改良 ToastWindow，使他可以顯示還剩多少時間，超過會 blink

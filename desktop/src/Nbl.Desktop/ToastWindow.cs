@@ -141,6 +141,7 @@ public sealed class ToastWindow : Window
             ActiveToasts.Remove(ToastId);
             OpenList.Remove(this);
             foreach (var t in OpenList.ToArray()) t.Reposition();
+            options.OnClosed?.Invoke();
         };
 
         // 每秒更新計時器

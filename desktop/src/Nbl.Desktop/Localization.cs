@@ -60,6 +60,14 @@ public static class L10n
             _ => "Register nonblockinglife:// Link"
         };
 
+    public static string TrayStopAlarmsTitle =>
+        CurrentLanguage switch
+        {
+            "zh-TW" => "停止所有鈴聲",
+            "ja" => "すべての音を停止",
+            _ => "Stop All Sounds"
+        };
+
     public static string TrayExitTitle =>
         CurrentLanguage switch
         {

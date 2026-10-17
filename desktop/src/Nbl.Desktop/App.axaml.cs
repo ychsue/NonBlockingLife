@@ -12,6 +12,7 @@ public partial class App : Application
 {
     private DispatcherTimer? _alarmTimer;
     private ClockWindow? _clock;
+    private AlarmAudioManager _audio = new(new NullAudioPlayer());
 
     public override void Initialize()
     {
@@ -30,7 +31,8 @@ public partial class App : Application
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NonBlockingLife");
             var alarms = new AlarmScheduler(Path.Combine(dataDir, "alarms.json"));
             var timers = new TimerService(Path.Combine(dataDir, "timers.json"));
-            _clock = new ClockWindow(alarms, timers);
+            _audio = new AlarmAudioManager(OperatingSystem.IsWindows() ? new NAudioPlayer() : new NullAudioPlayer());
+            _clock = new ClockWindow(alarms, timers, _audio);
             var host = new DesktopHost();
             var window = new MainWindow(options, host, alarms, timers);
             host.Attach(window, _clock);
@@ -121,9 +123,12 @@ public partial class App : Application
                 host.ShowNotification(new ToastOptions { Title = "NonBlockingLife", Body = L10n.CannotRegisterProtocol, IsAlarm = false });
             }
         };
+        var stopSounds = new NativeMenuItem(L10n.TrayStopAlarmsTitle);
+        stopSounds.Click += (_, _) => _audio.StopAll();
         var exit = new NativeMenuItem(L10n.TrayExitTitle);
         exit.Click += (_, _) =>
         {
+            _audio.StopAll();
             window.AllowClose = true;
             if (_clock is not null) _clock.AllowClose = true;
             _alarmTimer?.Stop();
@@ -134,7 +139,7 @@ public partial class App : Application
         {
             Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://Nbl.Desktop/Assets/icon.png"))),
             ToolTipText = "NonBlockingLife",
-            Menu = new NativeMenu { open, clock, autoStart, protocol, new NativeMenuItemSeparator(), exit },
+            Menu = new NativeMenu { open, clock, stopSounds, autoStart, protocol, new NativeMenuItemSeparator(), exit },
         };
         tray.Clicked += (_, _) => host.ShowMainWindow();
         TrayIcon.SetIcons(this, new TrayIcons { tray });
@@ -147,9 +152,17 @@ public partial class App : Application
         {
             var now = DateTimeOffset.Now;
             foreach (var due in alarms.TakeDue(now))
-                host.ShowNotification(new ToastOptions { Title = "⏰ NonBlockingLife", Body = due.Label, IsAlarm = true });
+            {
+                var key = "alarm:" + due.Key;
+                _audio.Start(key);
+                host.ShowNotification(new ToastOptions { Title = "⏰ NonBlockingLife", Body = due.Label, IsAlarm = true, OnClosed = () => _audio.Stop(key) });
+            }
             foreach (var t in timers.TakeFinished(now))
-                host.ShowNotification(new ToastOptions { Title = "⏳ " + L10n.TimerFinished, Body = t.Label, IsAlarm = true });
+            {
+                var key = "timer:" + t.Id;
+                _audio.Start(key);
+                host.ShowNotification(new ToastOptions { Title = "⏳ " + L10n.TimerFinished, Body = t.Label, IsAlarm = true, OnClosed = () => _audio.Stop(key) });
+            }
         };
         _alarmTimer.Start();
     }

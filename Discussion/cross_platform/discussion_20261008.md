@@ -600,3 +600,103 @@ OS 會為每個 URI 另開一個新行程，並把 URI 當參數傳進來。我�
 - 安全:任何網頁都能觸發此協定,但效果僅等同於造訪公開 PWA 網址或顯示時鐘。
 - 注意:PWA 只在載入時讀 `location.search`,所以對執行中的實例導向新 URL 會整頁重載。
 - 未驗證:Linux handler、WebView2 對自訂 scheme 的行為、時鐘視窗外觀。
+
+---
+
+## [2026-10-17] ychsue 我已經大致修改與驗證了Windows 的部分，現在我希望可以 ClockWindow 的部分可以有聲音，我有放一個 [DEFAULT.mp3](/desktop/src/Nbl.Desktop/Assets/DEFAULT.mp3) 作為預設鈴聲。
+未來想給使用者可以設定自訂鈴聲。
+由於鈴聲可以由 ClockWindow 的 Alarm & Timer 來啟動與關閉，也可以由 Notification 來關閉，所以，我想說可能需要一個類似
+AlarmAudioManager 來統一管理鬧鐘與計時器的鈴聲播放與停止。
+若要能自訂鈴聲，那麼，放在哪好呢？怎麼讓使用者選呢？ TimerEntry 和 AlarmEntry 都需要有對應的鈴聲設定欄位，並且在 ClockWindow 的 UI 提供選擇鈴聲的功能。
+先討論，會很複雜嗎？
+
+## [2026-10-17] Copilot's Alarm audio design
+
+不會太複雜。難的是跨平台音訊引擎，ClockWindow 的 UI 和資料欄位都很直接。以下是我的建議。
+
+### 1. 音訊引擎（主要風險）
+Avalonia 沒有內建音訊播放，專案目前也沒有任何音訊套件。選項如下：
+
+| 選項 | 優點 | 缺點 |
+|---|---|---|
+| **LibVLCSharp** | 跨平台、mp3/wav/ogg 都能播、可循環 | 套件大（約 30–60MB 原生 libvlc） |
+| **NAudio**（`WaveOutEvent` + `Mp3FileReader`） | 輕量、穩定 | 僅限 Windows |
+| **SoundFlow / OpenTK-OpenAL** | 跨平台、較輕 | 較新，mp3 解碼需另外確認 |
+
+你說「Windows 部分已驗證」，所以應該有 macOS/Linux 的計畫。我建議：
+- 在 `Nbl.Bridge` 定義 `IAudioPlayer`（`Play(path, loop)` / `Stop()`），讓 `DesktopHost` 注入實作。
+- 先做 Windows 版（NAudio），其他平台之後再補。這和現有的 `IDesktopHost` 模式一致。
+
+### 2. AlarmAudioManager
+- 放在 `Nbl.Bridge`，邏輯與平台無關，只依賴 `IAudioPlayer`。
+- API：`Start(string key, string? soundId)`、`Stop(string key)`、`StopAll()`。
+- 狀態：以 `key`（也就是 `AlarmEntry.Key` 和 timer 的 key）記錄正在響的項目。
+- 多個同時響時只播一個聲音，等 `Stop` 到沒有項目才真正停止。
+- 在 `Stop` 時加上最大響鈴時間（例如 60 秒）自動停止，避免一直響。
+- 觸發點：`App.axaml.cs` 第 150/152 行的 alarm/timer 到期處，以及 ClockWindow 的關閉鈕、Toast 的關閉/點擊事件。這些都只要呼叫 `Stop(key)`。
+- `ToastOptions` 要加 `Key` 和 `OnDismiss`，讓 Toast 關閉時能通知 manager。
+
+### 3. 自訂鈴聲的儲存
+- 使用者檔案複製到 `%AppData%\NonBlockingLife\sounds\`（對應平台的 app data 目錄）。
+- 設定只存**檔名**（或 id）。不存絕對路徑，原檔被移動或刪除時才不會壞掉。
+- 特殊值 `null` 或 `"default"` 代表內建的 `DEFAULT.mp3`，它要設為 `AvaloniaResource` 或 `Content` 並複製到輸出。
+- 找不到檔案時退回預設鈴聲。
+
+### 4. 資料欄位
+- 在 `AlarmEntry` 和 `TimerEntry` 各加 `string? Sound = null`（record 的預設參數，舊資料反序列化後是 null，等於預設）。
+- 持久化 JSON 若是手寫解析，要確認它能容忍缺少的欄位。
+- 如果 Web 前端（Bridge）也會建立這些項目，`BridgeDispatcher` 的訊息要多帶 `sound`。
+
+### 5. UI 選擇
+- ClockWindow 的 Alarm 和 Timer 新增表單各加一個 ComboBox：「預設」、已匯入的自訂鈴聲、「瀏覽…」。
+- 「瀏覽…」用 Avalonia 的 `StorageProvider.OpenFilePickerAsync`（篩選 mp3/wav/ogg）。選好後複製到 sounds 目錄並選取。
+- 旁邊加一個試聽按鈕，用同一個 manager 播放。
+- 之後可以在設定頁加「全域預設鈴聲」，每個項目的 Sound 預設取自它。
+
+### 建議分階段
+1. `IAudioPlayer` + Windows 實作 + `AlarmAudioManager` + 預設鈴聲，接上到期事件和 Stop。
+2. `Sound` 欄位、sounds 目錄和 ClockWindow 選單及選檔。
+3. macOS/Linux 的播放實作。
+
+### 請你決定
+1. 是否需要跨平台？這會決定用 NAudio 還是 LibVLCSharp。
+2. 響鈴要循環到手動關閉，還是播一次或固定秒數？
+3. 同時有多個提醒時，是只播一個，還是各播各的？
+
+你回覆後我就可以開始實作第 1 階段。
+
+---
+
+## [2026-10-17] ychsue 
+1. 請問那麼可以 Windows 使用 NAudio，而 Linux 使用 LibVLCSharp 嗎？
+2. 響鈴要循環到手動關閉
+3. 同時有多個提醒時，只播一個。
+---
+
+## [2026-10-17] Copilot
+
+### 決議
+1. **可以**：Windows 用 NAudio（`WaveOutEvent` + `Mp3FileReader`），Linux 用 LibVLCSharp。兩者都實作 `IAudioPlayer`，由各平台的 host 注入；`Nbl.Bridge` 的 `AlarmAudioManager` 不依賴具體引擎。
+   - LibVLCSharp 在 Linux 需要系統安裝 `libvlc`（或隨套件附帶），要在文件和打包流程註明；找不到時應優雅降級（記錄 log、不播聲音，不要讓程式崩潰）。
+   - macOS 先不處理（沿用 LibVLCSharp 應該可行，之後再驗證）。
+2. 響鈴**循環到手動關閉**（ClockWindow 的 Alarm/Timer 停止、或 Toast 關閉）。不設自動逾時。
+3. 多個提醒同時到期**只播一個聲音**：`AlarmAudioManager` 以 key 集合追蹤，集合為空才真正停止播放。
+
+### 實作備註
+- 循環：NAudio 用自訂 `LoopStream` 包住 reader；LibVLC 用 `:input-repeat=-1` 媒體選項。
+- `ToastOptions` 需加 `Key` / `OnDismiss`，讓 Toast 關閉時呼叫 `Stop(key)`。
+- 因為沒有逾時，應用程式結束時必須呼叫 `StopAll()`。
+- `Sound` 欄位預設 `null` = 內建 `DEFAULT.mp3`；自訂鈴聲複製到 app data 的 `sounds\`，只存檔名。
+
+---
+
+## [2026-10-17] ychsue 您考慮得比我細，謝謝。請幫我在 Tray 的選單也加上「停止所有鈴聲」的選項。這樣，就無須結束應用程式才能全部關閉了。
+
+---
+
+## [2026-10-17] Copilot — 第 1 階段已實作
+- 新增 `AlarmAudioManager` / `IAudioPlayer`（Bridge）、`NAudioPlayer` / `NullAudioPlayer`（Desktop，`AudioPlayers.cs`）。
+- Tray 選單新增「停止所有鈴聲」（`StopAll()`）；結束應用程式時也會 `StopAll()`。
+- 響鈴 key：`alarm:<Key>`、`timer:<Id>`。停止時機：Toast 關閉（`ToastOptions.OnClosed`）、ClockWindow 計時器的開始/暫停/重置/刪除、Tray。
+- 鬧鐘到期即從清單移除，因此只能從 Toast 或 Tray 停止。
+- 非 Windows 目前用 `NullAudioPlayer`（無聲）；LibVLCSharp 實作待辦。自訂鈴聲（`Sound` 欄位與 UI）為第 2 階段。
