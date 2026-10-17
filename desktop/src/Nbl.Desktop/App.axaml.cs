@@ -31,7 +31,7 @@ public partial class App : Application
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NonBlockingLife");
             var alarms = new AlarmScheduler(Path.Combine(dataDir, "alarms.json"));
             var timers = new TimerService(Path.Combine(dataDir, "timers.json"));
-            _audio = new AlarmAudioManager(OperatingSystem.IsWindows() ? new NAudioPlayer() : new NullAudioPlayer());
+            _audio = new AlarmAudioManager(AudioPlayerFactory.Create());
             _clock = new ClockWindow(alarms, timers, _audio);
             var host = new DesktopHost();
             var window = new MainWindow(options, host, alarms, timers);

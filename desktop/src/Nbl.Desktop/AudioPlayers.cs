@@ -1,15 +1,35 @@
 using Avalonia.Platform;
-using Nbl.Bridge;
+using LibVLCSharp.Shared;
 using NAudio.Wave;
-
-#if LINUX
-using NAudio.SoundFile;
-using NAudio.Alsa;
-#endif
+using Nbl.Bridge;
 
 namespace Nbl.Desktop;
 
-/// <summary>沒有可用音訊後端的平台（暫時）：不出聲。</summary>
+public static class AudioPlayerFactory
+{
+    // 以執行期的 OS 判斷平台，不需要在 csproj 做條件編譯
+    public static IAudioPlayer Create()
+    {
+        if (OperatingSystem.IsWindows()) return new NAudioPlayer();
+        if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS()) return new LibVlcPlayer();
+        return new NullAudioPlayer();
+    }
+
+    /// <summary>把內建的 DEFAULT.mp3 落地成暫存檔（播放器多半只認檔案路徑，不認 avares://）。</summary>
+    internal static string ExtractDefaultSound()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "NonBlockingLife", "DEFAULT.mp3");
+        if (File.Exists(path)) return path;
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        using var asset = AssetLoader.Open(new Uri("avares://Nbl.Desktop/Assets/DEFAULT.mp3"));
+        var tmp = path + "." + Environment.ProcessId + ".tmp";
+        using (var fs = File.Create(tmp)) asset.CopyTo(fs);
+        File.Move(tmp, path, overwrite: true);
+        return path;
+    }
+}
+
+/// <summary>沒有可用音訊後端的平台：不出聲。</summary>
 public sealed class NullAudioPlayer : IAudioPlayer
 {
     public void PlayLoop(string? sound) { }
@@ -19,28 +39,15 @@ public sealed class NullAudioPlayer : IAudioPlayer
 /// <summary>Windows：NAudio 循環播放。sound 為 null 時播放內建 DEFAULT.mp3，否則為檔案路徑。</summary>
 public sealed class NAudioPlayer : IAudioPlayer
 {
-    private IWavePlayer? _output;
+    private WaveOutEvent? _output;
     private WaveStream? _reader;
 
     public void PlayLoop(string? sound)
     {
         Stop();
-        var reader = OpenReader(sound);
-        IWavePlayer output;
-        if (OperatingSystem.IsWindows())
-        {
-            output = new WasapiPlayerBuilder()
-                .WithLatency(20) //延遲20ms
-                .Build();
-        } else if (OperatingSystem.IsLinux())
-        {
-            throw new PlatformNotSupportedException("Unsupported platform for audio playback.");
-            // output = new AlsaPlayerBuilder()
-            //     .Build();
-        } else
-        {
-            throw new PlatformNotSupportedException("Unsupported platform for audio playback.");
-        }
+        var path = !string.IsNullOrEmpty(sound) && File.Exists(sound) ? sound : AudioPlayerFactory.ExtractDefaultSound();
+        var reader = new MediaFoundationReader(path);
+        var output = new WaveOutEvent();
         try
         {
             output.Init(new LoopStream(reader));
@@ -62,40 +69,6 @@ public sealed class NAudioPlayer : IAudioPlayer
         output?.Stop();
         output?.Dispose();
         reader?.Dispose();
-    }
-
-    private static WaveStream OpenReader(string? sound)
-    {
-        if (!string.IsNullOrEmpty(sound) && File.Exists(sound))
-            return new AudioFileReader(sound);
-        // 預設播放內建 DEFAULT.mp3
-        if (OperatingSystem.IsWindows())
-            return new MediaFoundationReader(ExtractDefaultSound());
-        else if (OperatingSystem.IsLinux())
-        {
-            // using var asset = AssetLoader.Open(new Uri("avares://Nbl.Desktop/Assets/DEFAULT.mp3"));
-            // var ms = new MemoryStream();
-            // asset.CopyTo(ms);
-            // ms.Position = 0;
-            // return new Mp3FileReader(ms);
-        } else
-        {
-            throw new PlatformNotSupportedException("Unsupported platform for audio playback.");
-        }
-        throw new PlatformNotSupportedException("Unsupported platform for audio playback.");
-    }
-
-    // MediaFoundationReader 只認檔案路徑／URL，不認 avares://，所以把內建資源落地成暫存檔
-    private static string ExtractDefaultSound()
-    {
-        var path = Path.Combine(Path.GetTempPath(), "NonBlockingLife", "DEFAULT.mp3");
-        if (File.Exists(path)) return path;
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        using var asset = AssetLoader.Open(new Uri("avares://Nbl.Desktop/Assets/DEFAULT.mp3"));
-        var tmp = path + "." + Environment.ProcessId + ".tmp";
-        using (var fs = File.Create(tmp)) asset.CopyTo(fs);
-        File.Move(tmp, path, overwrite: true);
-        return path;
     }
 
     private sealed class LoopStream : WaveStream
@@ -126,5 +99,36 @@ public sealed class NAudioPlayer : IAudioPlayer
             }
             return total;
         }
+    }
+}
+
+/// <summary>Linux／macOS：LibVLCSharp 循環播放。需要系統安裝 libvlc（例如 apt install libvlc-dev vlc）。</summary>
+public sealed class LibVlcPlayer : IAudioPlayer
+{
+    private LibVLC? _vlc;
+    private MediaPlayer? _player;
+
+    public void PlayLoop(string? sound)
+    {
+        Stop();
+        if (_vlc is null)
+        {
+            Core.Initialize(); // 找不到 libvlc 時會丟例外，由 AlarmAudioManager 記錄後略過
+            _vlc = new LibVLC("--no-video");
+        }
+        var path = !string.IsNullOrEmpty(sound) && File.Exists(sound) ? sound : AudioPlayerFactory.ExtractDefaultSound();
+        using var media = new Media(_vlc, path, FromType.FromPath);
+        media.AddOption(":input-repeat=65535");
+        _player = new MediaPlayer(media);
+        _player.Play();
+    }
+
+    public void Stop()
+    {
+        var player = _player;
+        _player = null;
+        if (player is null) return;
+        player.Stop();
+        player.Dispose();
     }
 }

@@ -700,3 +700,7 @@ Avalonia 沒有內建音訊播放，專案目前也沒有任何音訊套件。�
 - 響鈴 key：`alarm:<Key>`、`timer:<Id>`。停止時機：Toast 關閉（`ToastOptions.OnClosed`）、ClockWindow 計時器的開始/暫停/重置/刪除、Tray。
 - 鬧鐘到期即從清單移除，因此只能從 Toast 或 Tray 停止。
 - 非 Windows 目前用 `NullAudioPlayer`（無聲）；LibVLCSharp 實作待辦。自訂鈴聲（`Sound` 欄位與 UI）為第 2 階段。
+
+---
+
+## [2026-10-17] ychsue 對不起，我的修改不成熟，請您照您原本的作法好了，幫我改一下 Nbl.Desktop.csproj 與 AudioPlayers.cs，謝謝。那個 `C:` 是為了判讀是否為 Windows，若有更好的辦法，請使用。不過，Linux 在我的Windows 主機測不了，等開發一個段落，我再到 Linux 上面測試。
