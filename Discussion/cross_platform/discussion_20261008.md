@@ -704,3 +704,56 @@ Avalonia 沒有內建音訊播放，專案目前也沒有任何音訊套件。�
 ---
 
 ## [2026-10-17] ychsue 對不起，我的修改不成熟，請您照您原本的作法好了，幫我改一下 Nbl.Desktop.csproj 與 AudioPlayers.cs，謝謝。那個 `C:` 是為了判讀是否為 Windows，若有更好的辦法，請使用。不過，Linux 在我的Windows 主機測不了，等開發一個段落，我再到 Linux 上面測試。
+
+我已經照原本的做法改好，編譯通過（0 警告、0 錯誤）。不過 Nbl.Desktop 還在執行中、鎖住輸出檔，所以我是另外輸出到暫存目錄驗證的。請先關掉應用程式，重新建置後再試鈴聲。
+
+**`Nbl.Desktop.csproj`**
+- NAudio 退回 2.2.1。
+- 新增 `LibVLCSharp` 3.10.2。
+- 移除 NAudio 3.x 的 Wasapi、Alsa、SoundFile，以及兩個條件式 ItemGroup。
+- 不再需要用 `C:` 判斷 Windows：套件全部無條件引用，改在執行期用 `OperatingSystem.IsWindows()` 這類判斷選平台。
+
+**`AudioPlayers.cs`**
+- 新增 `AudioPlayerFactory.Create()`：Windows 回傳 `NAudioPlayer`，Linux 和 macOS 回傳 `LibVlcPlayer`，其他平台不出聲。
+- `NAudioPlayer`（Windows）：改回 `WaveOutEvent`，並維持上次修好的暫存檔做法，避免再踩 `avares://` 的坑。
+- `LibVlcPlayer`（Linux/macOS）：用 `:input-repeat=65535` 循環播放，所以 libvlc 找不到時，只會被 `AlarmAudioManager` 記錄後略過，程式不會崩潰。
+
+App.axaml.cs 現在改用 `AudioPlayerFactory.Create()`。
+
+Linux 版我在 Windows 上測不了，等你到 Linux 時要先安裝 libvlc（例如 `apt install vlc libvlc-dev`）。
+
+你的 `AudioPlayers copy.cs.origin` 我沒動。
+
+## [2026-10-17] ychsue 那麼，可以做階段2的讓使用者可以自選鈴聲了嗎？我覺得可以讓使用者在 TrayIcon 裡可以打開 sounds 目錄給他們自己添加鈴聲。
+然後在 ClockWindow 可以給他們選擇要使用的鈴聲。
+鈴聲先找 sounds 的，若找不到，就找內建的 DEFAULT.mp3
+也就是說，使用者一旦修改鈴聲，就要修改 audio player 鈴聲的設定，才能生效。
+您覺得呢？還是有更好的辦法？依您的想法。
+---
+
+## [2026-10-17] Copilot — 第 2 階段（自訂鈴聲）已實作
+- 目錄：`%LocalAppData%\NonBlockingLife\sounds`（`SoundLibrary`），支援 mp3/wav/ogg/flac/m4a/wma。Tray 新增「開啟鈴聲資料夾」。
+- `AlarmEntry.Sound` / `TimerEntry.Sound`（`string?`，只存檔名，null = 預設）。舊的 JSON 檔缺欄位時自動為 null。PWA 的 `set-alarms` 也可帶 `sound`。
+- 響鈴時才用 `SoundLibrary.Resolve(name)` 解析（只取檔名，防路徑跳脫）；找不到就回傳 null，播放器退回內建 DEFAULT.mp3。因此不用重啟、也不必另外設定播放器。
+- ClockWindow 的新增鬧鐘／計時器列各有鈴聲下拉選單；每次展開重新掃描目錄。
+- 待辦：試聽按鈕、既有項目事後改鈴聲、全域預設鈴聲。
+
+---
+
+## [2026-10-17] ychsue 我試聽了，很棒！不過，我覺得應該可以讓使用者在 ClockWindow 裡面的每個 alarm & timer 可以有個 🎶 按鈕，來改變選擇，因為我的 PWA不會告訴他要播放哪個音效😅 還是您有更好的想法？有的話，就用您的。可以的話，順便幫我修理一下 Nbl.Bridge.Tests，因為我的確有改動 IDesktopHost 而沒連同修改 Tests
+---
+
+## [2026-10-17] Copilot — 每列 🎶 按鈕
+- ClockWindow 每個鬧鐘／計時器列新增 🎶 按鈕（MenuFlyout：預設 + sounds 目錄檔案，目前選中者打勾），並在列內顯示目前鈴聲。PWA 不必知道鈴聲。
+- Bridge：`AlarmScheduler.SetSound(key, sound)`、`TimerService.SetSound(id, sound)`。
+- 修復 `Nbl.Bridge.Tests`：`FakeHost` 對齊 `IDesktopHost`；`BridgeDispatcher` 的 `now` 改用具名參數；新增 `SoundTests`。
+
+## [2026-10-17] ychsue 每列 🎶 按了出現一條垂直灰線，無法選擇，是寬度出問題嗎？
+
+多半不是寬度，是選單當下是空的。我在 `Opening` 事件裡才填項目，這時 flyout 的外觀已經建好，所以只看到一條線。我改成點按鈕時才建立選單，項目填好後再顯示。
+
+應該不是寬度的問題，我判斷是選單在顯示當下還是空的。原本的 🎶 選單是在 flyout 的 `Opening` 事件裡才加入項目，那時 flyout 外觀已經建好，所以只剩一條空的細線。
+
+我已改在 `ClockWindow.cs` 的 `BuildSoundButton`：點按鈕時才建立選單、填好項目，再用 `ShowAt` 顯示。編譯通過，但我沒能在畫面上確認，請你關掉程式重新建置後再點一次 🎶。
+
+如果選單還是不對，請告訴我現在看到什麼，另外確認一下 `%LocalAppData%\NonBlockingLife\sounds` 裡有沒有放檔案。至少會有一個「預設鈴聲」可選。

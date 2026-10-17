@@ -68,6 +68,22 @@ public static class L10n
             _ => "Stop All Sounds"
         };
 
+    public static string TrayOpenSoundsTitle =>
+        CurrentLanguage switch
+        {
+            "zh-TW" => "開啟鈴聲資料夾",
+            "ja" => "サウンドフォルダーを開く",
+            _ => "Open Sounds Folder"
+        };
+
+    public static string CW_DefaultSound =>
+        CurrentLanguage switch
+        {
+            "zh-TW" => "預設鈴聲",
+            "ja" => "既定のサウンド",
+            _ => "Default sound"
+        };
+
     public static string TrayExitTitle =>
         CurrentLanguage switch
         {

@@ -8,12 +8,14 @@ public class DesktopFeatureTests
 {
     private sealed class FakeHost : IDesktopHost
     {
-        public List<(int Id, string Title, string Body, bool Alarm)> Notes = new();
+        public List<(string Id, string Title, string Body, bool Alarm)> Notes = new();
         public List<Uri> Opened = new();
         public List<(string Title, string Text)> Shared = new();
-        public void ShowNotification(int id, string title, string body, bool isAlarm) => Notes.Add((id, title, body, isAlarm));
+        public void ShowNotification(ToastOptions options) => Notes.Add((options.Id, options.Title, options.Body, options.IsAlarm));
         public void OpenExternal(Uri url) => Opened.Add(url);
         public void Share(string title, string text) => Shared.Add((title, text));
+        public void ShowMainWindow() { }
+        public void ShowClockWindow(int tabIndex = 0) { }
     }
 
     private static readonly DateTimeOffset Now = new(2026, 10, 12, 9, 0, 0, TimeZoneInfo.Local.GetUtcOffset(new DateTime(2026, 10, 12)));
@@ -55,7 +57,7 @@ public class DesktopFeatureTests
     [Fact]
     public async Task SetAlarms_ReturnsPerItemResults()
     {
-        var d = new BridgeDispatcher("windows", "1", null, new FakeHost(), new AlarmScheduler(), () => Now);
+        var d = new BridgeDispatcher("windows", "1", null, new FakeHost(), new AlarmScheduler(), now: () => Now);
         var msg = """
             {"type":"nbl:set-alarms","requestId":"s","alarms":[
               {"id":1,"mode":"clock","time":[10,30],"label":"a"},
@@ -72,7 +74,7 @@ public class DesktopFeatureTests
     [Fact]
     public async Task GetAndCancelAlarms_RoundTrip()
     {
-        var d = new BridgeDispatcher("windows", "1", null, new FakeHost(), new AlarmScheduler(), () => Now);
+        var d = new BridgeDispatcher("windows", "1", null, new FakeHost(), new AlarmScheduler(), now: () => Now);
         await d.HandleAsync("""
             {"type":"nbl:set-alarms","requestId":"s","alarms":[
               {"id":1,"mode":"clock","time":[10,30],"label":"a"},

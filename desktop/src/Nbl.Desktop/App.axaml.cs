@@ -125,6 +125,15 @@ public partial class App : Application
         };
         var stopSounds = new NativeMenuItem(L10n.TrayStopAlarmsTitle);
         stopSounds.Click += (_, _) => _audio.StopAll();
+        var openSounds = new NativeMenuItem(L10n.TrayOpenSoundsTitle);
+        openSounds.Click += (_, _) =>
+        {
+            try { SoundLibrary.OpenFolder(); }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+            {
+                System.Diagnostics.Trace.WriteLine($"[nbl] open sounds folder failed: {e.Message}");
+            }
+        };
         var exit = new NativeMenuItem(L10n.TrayExitTitle);
         exit.Click += (_, _) =>
         {
@@ -139,7 +148,7 @@ public partial class App : Application
         {
             Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://Nbl.Desktop/Assets/icon.png"))),
             ToolTipText = "NonBlockingLife",
-            Menu = new NativeMenu { open, clock, stopSounds, autoStart, protocol, new NativeMenuItemSeparator(), exit },
+            Menu = new NativeMenu { open, clock, stopSounds, openSounds, autoStart, protocol, new NativeMenuItemSeparator(), exit },
         };
         tray.Clicked += (_, _) => host.ShowMainWindow();
         TrayIcon.SetIcons(this, new TrayIcons { tray });
@@ -154,13 +163,13 @@ public partial class App : Application
             foreach (var due in alarms.TakeDue(now))
             {
                 var key = "alarm:" + due.Key;
-                _audio.Start(key);
+                _audio.Start(key, SoundLibrary.Resolve(due.Sound));
                 host.ShowNotification(new ToastOptions { Title = "⏰ NonBlockingLife", Body = due.Label, IsAlarm = true, OnClosed = () => _audio.Stop(key) });
             }
             foreach (var t in timers.TakeFinished(now))
             {
                 var key = "timer:" + t.Id;
-                _audio.Start(key);
+                _audio.Start(key, SoundLibrary.Resolve(t.Sound));
                 host.ShowNotification(new ToastOptions { Title = "⏳ " + L10n.TimerFinished, Body = t.Label, IsAlarm = true, OnClosed = () => _audio.Stop(key) });
             }
         };

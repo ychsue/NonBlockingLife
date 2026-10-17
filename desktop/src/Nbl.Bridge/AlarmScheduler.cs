@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 
 namespace Nbl.Bridge;
 
-public sealed record AlarmEntry(string Key, int? Id, string Mode, DateTimeOffset FireAt, string Label);
+public sealed record AlarmEntry(string Key, int? Id, string Mode, DateTimeOffset FireAt, string Label, string? Sound = null);
 
 public sealed record AlarmSetResult(int? Id, string Mode, bool Ok, string? Reason = null);
 
@@ -40,6 +40,7 @@ public sealed class AlarmScheduler
                 var id = a["id"]?.GetValue<int>();
                 var mode = a["mode"]?.GetValue<string>() ?? "exact";
                 var label = a["label"]?.GetValue<string>() ?? "";
+                var sound = a["sound"]?.GetValue<string>();
                 var time = a["time"] as JsonArray;
 
                 var fireAt = ResolveTime(mode, time, now);
@@ -55,7 +56,7 @@ public sealed class AlarmScheduler
                 }
 
                 var key = id is null ? Guid.NewGuid().ToString("N") : $"{id}:{mode}";
-                _entries[key] = new AlarmEntry(key, id, mode, fireAt.Value, label);
+                _entries[key] = new AlarmEntry(key, id, mode, fireAt.Value, label, sound);
                 results.Add(new AlarmSetResult(id, mode, true));
             }
             Save();
@@ -81,6 +82,18 @@ public sealed class AlarmScheduler
                 .GroupBy(e => (e.Id, e.FireAt))
                 .Select(g => g.First())
                 .ToList();
+        }
+    }
+
+    /// <summary>變更鬧鐘的鈴聲（null = 預設）；回傳是否找到該鬧鐘。</summary>
+    public bool SetSound(string key, string? sound)
+    {
+        lock (_gate)
+        {
+            if (!_entries.TryGetValue(key, out var e)) return false;
+            _entries[key] = e with { Sound = sound };
+            Save();
+            return true;
         }
     }
 

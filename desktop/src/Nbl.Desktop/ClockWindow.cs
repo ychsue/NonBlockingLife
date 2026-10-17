@@ -72,6 +72,7 @@ public sealed class ClockWindow : Window
         var hour = Num(0, 23, DateTime.Now.Hour);
         var minute = Num(0, 59, DateTime.Now.Minute);
         var label = new TextBox { PlaceholderText = L10n.CW_NewAlarmLabel, MinWidth = 120, HorizontalAlignment = HorizontalAlignment.Stretch };
+        var sound = BuildSoundPicker();
         var add = new Button { Content = L10n.CW_AddAlarm };
         add.Click += (_, _) =>
         {
@@ -80,6 +81,7 @@ public sealed class ClockWindow : Window
                 ["mode"] = "clock",
                 ["time"] = new JsonArray((int)hour.Value!, (int)minute.Value!),
                 ["label"] = string.IsNullOrWhiteSpace(label.Text) ? L10n.CW_Alarm : label.Text,
+                ["sound"] = SelectedSound(sound),
             };
             _alarms.Set(new JsonArray(item), DateTimeOffset.Now);
             label.Text = "";
@@ -87,14 +89,33 @@ public sealed class ClockWindow : Window
         };
 
         return Page(
-            new StackPanel
+            new WrapPanel
             {
-                Orientation = Orientation.Horizontal,
-                Spacing = 6,
-                Children = { hour, new TextBlock { Text = ":", VerticalAlignment = VerticalAlignment.Center }, minute, label, add },
+                Children = { hour, new TextBlock { Text = ":", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0) }, minute, label, sound, add },
             },
             _alarmList);
     }
+
+    // 第 0 項是「預設鈴聲」（Sound = null）；其餘為 sounds 目錄中的檔名。展開時重新掃描，新增檔案不用重啟。
+    private static ComboBox BuildSoundPicker()
+    {
+        var combo = new ComboBox { MinWidth = 130 };
+        void Fill()
+        {
+            var current = SelectedSound(combo);
+            combo.Items.Clear();
+            combo.Items.Add(L10n.CW_DefaultSound);
+            foreach (var s in SoundLibrary.List()) combo.Items.Add(s);
+            var idx = current is null ? 0 : combo.Items.IndexOf(current);
+            combo.SelectedIndex = idx < 0 ? 0 : idx;
+        }
+        Fill();
+        combo.DropDownOpened += (_, _) => Fill();
+        return combo;
+    }
+
+    private static string? SelectedSound(ComboBox combo) =>
+        combo.SelectedIndex > 0 ? combo.SelectedItem as string : null;
 
     private Control BuildTimerTab()
     {
@@ -102,11 +123,12 @@ public sealed class ClockWindow : Window
         var minute = Num(0, 59, 5);
         var second = Num(0, 59, 0);
         var label = new TextBox { PlaceholderText = L10n.CW_NewTimerLabel, MinWidth = 100 };
+        var sound = BuildSoundPicker();
         var add = new Button { Content = L10n.CW_AddTimer };
         add.Click += (_, _) =>
         {
             var d = new TimeSpan((int)hour.Value!, (int)minute.Value!, (int)second.Value!);
-            _timers.Create(d, string.IsNullOrWhiteSpace(label.Text) ? L10n.CW_Timer : label.Text, DateTimeOffset.Now);
+            _timers.Create(d, string.IsNullOrWhiteSpace(label.Text) ? L10n.CW_Timer : label.Text, DateTimeOffset.Now, sound: SelectedSound(sound));
             label.Text = "";
             Refresh();
         };
@@ -119,7 +141,7 @@ public sealed class ClockWindow : Window
                     hour, new TextBlock { Text = L10n.Hour, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0) },
                     minute, new TextBlock { Text = L10n.Minute, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0) },
                     second, new TextBlock { Text = L10n.Second, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0) },
-                    label, add,
+                    label, sound, add,
                 },
             },
             _timerList);
@@ -162,7 +184,7 @@ public sealed class ClockWindow : Window
     private void RefreshAlarms()
     {
         var alarms = _alarms.Snapshot();
-        var sig = string.Join("|", alarms.Select(a => $"{a.Key}@{a.FireAt.ToUnixTimeSeconds()}"));
+        var sig = string.Join("|", alarms.Select(a => $"{a.Key}@{a.FireAt.ToUnixTimeSeconds()}:{a.Sound}"));
         if (sig == _alarmSig) return;
         _alarmSig = sig;
         _alarmList.Children.Clear();
@@ -172,7 +194,8 @@ public sealed class ClockWindow : Window
         {
             var del = new Button { Content = L10n.Delete };
             var key = a.Key;
-            del.Click += (_, _) => { _alarms.Remove(key); Refresh(); };
+            del.Click += (_, _) => { _audio?.Stop("alarm:" + key); _alarms.Remove(key); Refresh(); };
+            var pick = BuildSoundButton(a.Sound, s => { _alarms.SetSound(key, s); Refresh(); });
             _alarmList.Children.Add(Row(
                 new StackPanel
                 {
@@ -180,16 +203,17 @@ public sealed class ClockWindow : Window
                     {
                         new TextBlock { Text = a.FireAt.ToLocalTime().ToString("MM/dd HH:mm"), FontSize = 20 },
                         new TextBlock { Text = a.Label, Opacity = 0.7 },
+                        SoundCaption(a.Sound),
                     },
                 },
-                del));
+                new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { pick, del } }));
         }
     }
 
     private void RefreshTimers(DateTimeOffset now)
     {
         var timers = _timers.Snapshot();
-        var sig = string.Join("|", timers.Select(t => $"{t.Id}:{t.State}:{t.Duration.Ticks}:{t.EndAt?.ToUnixTimeSeconds()}"));
+        var sig = string.Join("|", timers.Select(t => $"{t.Id}:{t.State}:{t.Duration.Ticks}:{t.EndAt?.ToUnixTimeSeconds()}:{t.Sound}"));
         if (sig != _timerSig)
         {
             _timerSig = sig;
@@ -224,12 +248,42 @@ public sealed class ClockWindow : Window
         var del = new Button { Content = L10n.Delete };
         del.Click += (_, _) => { _audio?.Stop("timer:" + id); _timers.Remove(id); Refresh(); };
 
+        var pick = BuildSoundButton(t.Sound, s => { _timers.SetSound(id, s); Refresh(); });
+
         return Row(
             new StackPanel
             {
-                Children = { remaining, new TextBlock { Text = $"{t.Label}（{Format(t.Duration)}）", Opacity = 0.7 } },
+                Children = { remaining, new TextBlock { Text = $"{t.Label}（{Format(t.Duration)}）", Opacity = 0.7 }, SoundCaption(t.Sound) },
             },
-            new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { toggle, reset, plus, del } });
+            new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { toggle, reset, plus, pick, del } });
+    }
+
+    private static TextBlock SoundCaption(string? sound) => new()
+    {
+        Text = "🎶 " + (SoundLibrary.Resolve(sound) is null ? L10n.CW_DefaultSound : sound),
+        Opacity = 0.5,
+        FontSize = 12,
+    };
+
+    // 🎶 按鈕：點開選單選鈴聲。每次點擊都重新掃描 sounds 目錄並建立新的選單；目前選中的項目前面打勾。
+    private static Button BuildSoundButton(string? current, Action<string?> apply)
+    {
+        var button = new Button { Content = "🎶" };
+        button.Click += (_, _) =>
+        {
+            var menu = new MenuFlyout();
+            var selected = SoundLibrary.Resolve(current) is null ? null : current;
+            void Add(string header, string? value)
+            {
+                var item = new MenuItem { Header = (value == selected ? "✓ " : "    ") + header };
+                item.Click += (_, _) => apply(value);
+                menu.Items.Add(item);
+            }
+            Add(L10n.CW_DefaultSound, null);
+            foreach (var s in SoundLibrary.List()) Add(s, s);
+            menu.ShowAt(button);
+        };
+        return button;
     }
 
     private static Control Row(Control left, Control right)

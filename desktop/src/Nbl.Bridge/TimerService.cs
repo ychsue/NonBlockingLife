@@ -14,7 +14,8 @@ public sealed record TimerEntry(
     TimeSpan Duration,
     TimerState State,
     DateTimeOffset? EndAt,
-    TimeSpan Remaining)
+    TimeSpan Remaining,
+    string? Sound = null)
 {
     public TimeSpan RemainingAt(DateTimeOffset now) => State switch
     {
@@ -41,11 +42,11 @@ public sealed class TimerService
         lock (_gate) return _timers.Values.OrderBy(t => t.Id).ToList();
     }
 
-    public TimerEntry? Create(TimeSpan duration, string label, DateTimeOffset now, bool start = true)
+    public TimerEntry? Create(TimeSpan duration, string label, DateTimeOffset now, bool start = true, string? sound = null)
     {
         if (duration <= TimeSpan.Zero || duration > TimeSpan.FromHours(100)) return null;
         var id = Guid.NewGuid().ToString("N");
-        var entry = new TimerEntry(id, label, duration, TimerState.Idle, null, duration);
+        var entry = new TimerEntry(id, label, duration, TimerState.Idle, null, duration, sound);
         lock (_gate)
         {
             _timers[id] = start ? Started(entry, now) : entry;
@@ -84,6 +85,9 @@ public sealed class TimerService
     public bool AddMinute(string id, DateTimeOffset now) => Update(id, t => t.State == TimerState.Running
         ? t with { EndAt = t.EndAt + TimeSpan.FromMinutes(1) }
         : t with { Remaining = t.Remaining + TimeSpan.FromMinutes(1) });
+
+    /// <summary>變更計時器的鈴聲（null = 預設）。</summary>
+    public bool SetSound(string id, string? sound) => Update(id, t => t with { Sound = sound });
 
     public bool Remove(string id)
     {
