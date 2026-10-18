@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-10-18] 讓 app.manifest 也被 git 到
+
 ## [2026-10-17] 讓 dashboard 也加入 supabase 的管理裡面
 1. 這樣，就算在不同主機上，也可以接續任務的狀態變化。
 2. 做些 NuGet 套件的更新與管理。
