@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-10-20] 總算解決在Linux裡面垂直滾動的問題了
+原來不是scrolling 的命令沒傳過去，而是，GtkWebView 對於 css的解讀與一般瀏覽器不同，導致scrolling的訊號雖然有傳到前端，卻是被css當作該忽略的。謝謝 Copilot Claud。
+請見 [explain](Discussion/cross_platform/discussion_20261008.md#copilot-回覆除錯路徑與解法)
+
 ## [2026-10-19] 大致讓 Linux 也能像是 Windows 那樣跑
 1. [ProtocolRegistration.cs](desktop/src/Nbl.Bridge/ProtocolRegistration.cs) 裡面Linux的部份需要 update-desktop-database 才能使用
 2. [App.axaml.cs](desktop/src/Nbl.Desktop/App.axaml.cs) 則是修改在 TrayIcon 那裡 SetRegistered(!isChecked)，原本沒有 !, 也不更新 isChecked, 可能 AI 漏想了吧？

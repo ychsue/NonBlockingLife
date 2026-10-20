@@ -535,8 +535,16 @@ export default function App() {
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    //desktop 有可能一直開著，所以，需要setInterval 來定期 updateTable吧？
+    const intervalId = window.setInterval(
+      () => {
+        void updateTableBasedOnScheduled(alarmSyncTargets);
+      },
+      1000 * 60 * 60,
+    ); // 每 1 小時更新一次
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.clearInterval(intervalId);
     };
   }, [syncTwaSettings]);
 

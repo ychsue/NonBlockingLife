@@ -35,12 +35,17 @@
 
 html,
 body {
-  overscroll-behavior-y: contain;
-  overscroll-behavior-x: contain;
+  /* 不可在 html/body 設 overscroll-behavior: contain，Linux WebKitGTK 會讓垂直雙指捲動失效 */
   /* 強制切除 X 軸任何超出邊界的元件 */
   /* max-width: 100%; */
   overflow-x: clip;
   font-size: 16px;
+}
+
+/* 利用 class 來決定是否設置這條要求*/
+html.is-android,
+body.is-android {
+  overscroll-behavior: contain;
 }
 
 .react-joyride__tooltip {

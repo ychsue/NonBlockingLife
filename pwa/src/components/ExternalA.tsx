@@ -8,6 +8,7 @@ interface ExternalAProps {
   target?: string;
   rel?: string;
   className?: string;
+  "data-tour"?: string;
   title?: string;
   onTouchStart?: (event: React.TouchEvent<HTMLAnchorElement>) => void;
   onTouchEnd?: (event: React.TouchEvent<HTMLAnchorElement>) => void;
@@ -18,14 +19,10 @@ interface ExternalAProps {
 export function ExternalA({
   href,
   children,
-  className,
   target,
   rel,
-  onTouchStart,
-  onTouchEnd,
-  onTouchMove,
   onClick,
-  title,
+  ...rest
 }: ExternalAProps) {
   const capabilitiesAndKind = useAppStore((state) => state.capabilitiesAndKind);
   const canOpenExternal =
@@ -44,11 +41,7 @@ export function ExternalA({
       }}
       target={target ?? "_blank"}
       rel={rel ?? "noopener noreferrer"}
-      className={className}
-      title={title}
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-      onTouchMove={onTouchMove}
+      {...rest}
     >
       {children}
     </a>

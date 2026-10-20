@@ -66,7 +66,7 @@ public partial class MainWindow : Window
             Hide();
         };
         _origins = new OriginPolicy(options.AllowedOrigins);
-        _dispatcher = new BridgeDispatcher("windows", version ?? "0.1.0", new HttpIcsFetcher(), host, alarms, timers);
+        _dispatcher = new BridgeDispatcher(OperatingSystem.IsLinux() ? "linux" : "windows", version ?? "0.1.0", new HttpIcsFetcher(), host, alarms, timers);
 
         if (options.Source == LoadSource.Dist)
         {

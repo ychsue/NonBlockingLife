@@ -757,3 +757,29 @@ Linux 版我在 Windows 上測不了，等你到 Linux 時要先安裝 libvlc（
 我已改在 `ClockWindow.cs` 的 `BuildSoundButton`：點按鈕時才建立選單、填好項目，再用 `ShowAt` 顯示。編譯通過，但我沒能在畫面上確認，請你關掉程式重新建置後再點一次 🎶。
 
 如果選單還是不對，請告訴我現在看到什麼，另外確認一下 `%LocalAppData%\NonBlockingLife\sounds` 裡有沒有放檔案。至少會有一個「預設鈴聲」可選。
+
+---
+
+## [2026-10-20] ychsue 垂直滾動在 Linux 沒反應
+
+
+### Copilot 回覆：除錯路徑與解法
+
+**結論**：不是 Avalonia／GTK 沒轉送手勢，而是 PWA 的 CSS。`html, body { overscroll-behavior: contain }` 會讓 WebKitGTK 的垂直雙指捲動失效。
+
+**走過的錯誤方向**
+1. 改 `GtkWebViewEnvironmentRequestedEventArgs` 與 `GDK_*` 環境變數：無效。
+2. 在 Avalonia 層攔截 `PointerWheelChanged` 再用 JS 捲動：中斷點完全不觸發，因為 GTK WebView 是原生子視窗，事件不會進入 Avalonia。（此程式碼已還原。）
+
+**轉折**：在 WebView 的 DevTools Console 掛 `wheel` 監聽，可以收到事件。這表示事件有進 WebKit，問題在頁面端。Firefox、Android、Windows 都正常，所以問題只出在 WebKitGTK 對 CSS 的處理。
+
+**驗證**：在 Console 執行 `document.documentElement.style.overscrollBehavior='auto'; document.body.style.overscrollBehavior='auto'`，立刻恢復捲動。
+
+**修正**
+- [styles.css](/pwa/src/styles.css)：移除 `html, body` 的 `overscroll-behavior-x/y: contain`。
+- [MainWindow.axaml.cs](/desktop/src/Nbl.Desktop/MainWindow.axaml.cs)：`BridgeDispatcher` 的 kind 改成 Linux 傳 `"linux"`，其餘傳 `"windows"`，讓前端能區分平台。
+
+**未來**
+只在 Android 保留：在 useNativeBridge 收到 kind 之後，對 document.documentElement 加 data-kind，CSS 寫成 html[data-kind="android"] { overscroll-behavior: contain; }。這樣其他平台預設為 auto。
+
+**教訓**：先在 DevTools 確認事件有沒有進頁面，再決定要改殼還是改前端。若 Android 之後出現下拉重新整理，改成只對 `html[data-kind="android"]` 套用 `overscroll-behavior: contain`。
