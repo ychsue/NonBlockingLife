@@ -9,7 +9,12 @@ namespace Nbl.Desktop;
 
 public partial class MainWindow : Window
 {
-    // 在頁面載入後建立與 twa-pm-bridge.js 相容的 port（只需 postMessage / onmessage / start）
+    // 在頁面載入後建立與 twa-pm-bridge.js 相容的 port（只需 postMessage / onmessage / start） 
+    // 由於 window.__NBL_TWA_BRIDGE__ 可能尚未初始化，可能若它還沒出現，得設定 setTimeout 來延遲設置 port，以確保 bridge 能正確連接
+    // 例如：
+    // setTimeout(function() {
+    //     if (window.__NBL_TWA_BRIDGE__) window.__NBL_TWA_BRIDGE__.setPort(port);
+    // }, 100);
     private const string Shim = """
         (function () {
           if (window.__NBL_DESKTOP_SHIM__) return;
@@ -21,7 +26,17 @@ public partial class MainWindow : Window
           var port = { onmessage: null, start: function () {},
                        postMessage: function (m) { send(typeof m === 'string' ? m : JSON.stringify(m)); } };
           window.__nblDesktopReceive = function (s) { if (port.onmessage) port.onmessage({ data: s }); };
+          // 若 bridge 尚未初始化，延遲設置 port
+          var v = setInterval(function() {
+              if (window.__NBL_TWA_BRIDGE__) {
+                window.__NBL_TWA_BRIDGE__.setPort(port);
+                console.log("Bridge port set via shim.");
+                clearInterval(v);
+              }
+              console.log("Waiting for bridge to initialize...");
+          }, 300);
           var b = window.__NBL_TWA_BRIDGE__;
+          console.log("Bridge object (Shim):", b);
           if (b) b.setPort(port);
         })();
         """;
@@ -62,15 +77,49 @@ public partial class MainWindow : Window
 
         Web.EnvironmentRequested += (_, e) =>
         {
-            if (e is Avalonia.Platform.WindowsWebView2EnvironmentRequestedEventArgs w)
+            // 1. 通用設定：如果是 Dev 模式，直接開啟跨平台的開發者工具通道
+            if (options.Source == LoadSource.Dev)
             {
-                w.UserDataFolder = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "NonBlockingLife", "WebView2");
-                // 讓 VSCode 的 msedge 配置可附加到此 WebView2 進行 PWA 除錯
-                if (options.Source == LoadSource.Dev)
-                    w.AdditionalBrowserArguments = "--remote-debugging-port=9222";
+                e.EnableDevTools = true;
             }
+
+            // 2. 針對不同平台進行細部環境變數或資料夾設定
+            switch (e)
+            {
+                case Avalonia.Platform.WindowsWebView2EnvironmentRequestedEventArgs w:
+                    w.UserDataFolder = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        "NonBlockingLife", "WebView2");
+                    // 讓 VSCode 的 msedge 配置可附加到此 WebView2 進行 PWA 除錯
+                    if (options.Source == LoadSource.Dev)
+                        w.AdditionalBrowserArguments = "--remote-debugging-port=9222";
+                    break;
+                // case Avalonia.Platform.MacOSWebViewEnvironmentRequestedEventArgs m:
+                //     // macOS-specific environment setup can go here
+                //     break;
+                case Avalonia.Platform.GtkWebViewEnvironmentRequestedEventArgs l:
+
+                    // 解析出 Linux 標準的本地應用程式資料路徑 (通常對應 ~/.local/share/)
+                    var linuxAppData = Environment.GetFolderPath(
+                        Environment.SpecialFolder.LocalApplicationData,
+                        Environment.SpecialFolderOption.Create); // 自動建立
+
+                    // 建立您的專屬資料夾路徑，例如 ~/.local/share/NonBlockingLife/GtkWebView
+                    var linuxDataFolder = Path.Combine(linuxAppData, "NonBlockingLife", "GtkWebView");
+
+                    // 建立以下三個 WebKit 專用的資料目錄
+                    var dataDir = Path.Combine(linuxDataFolder, "Data");
+                    var cacheDir = Path.Combine(linuxDataFolder, "Cache");
+
+                    // 核心設定：指定 WebKitGtk 將所有 Cookie、IndexedDB (Dexie) 存到固定位置
+                    l.BaseDataDirectory = dataDir;
+                    l.BaseCacheDirectory = cacheDir;
+            
+                    // 確保沒有開啟不留痕跡（無痕）模式
+                    l.EphemeralDataManager = false; 
+                    break;
+            }
+
         };
         Web.NavigationStarted += (_, e) =>
         {

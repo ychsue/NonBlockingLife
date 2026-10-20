@@ -21,6 +21,7 @@ import { TableHelpDialog } from "../TableHelpDialog";
 import { useSearchFilter } from "../../hooks/useSearchFilter";
 import { shouldOpenRowEdit } from "./rowEditUtils";
 import { useMarkdown } from "../../hooks/useMarkdown";
+import { ExternalA } from "../ExternalA";
 
 const DEV_CLIENT_ID = "dev-client";
 const columnHelper = createColumnHelper<ResourceItem>();
@@ -317,14 +318,14 @@ export function ResourceTable() {
                 }
               />
               {hasValidUrl && (
-                <a
+                <ExternalA
                   href={value}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 whitespace-nowrap"
                 >
                   {text.open}
-                </a>
+                </ExternalA>
               )}
             </div>
           );

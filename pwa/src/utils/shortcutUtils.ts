@@ -199,7 +199,7 @@ export function triggerAutomateFlow(
   try {
     const fullConfig = { ...config, taskTitle };
     const intentUrl = buildAutomateIntentUrl(fullConfig);
-    window.location.href = intentUrl;
+    openExternalHref(intentUrl);
     console.log(
       `✅ Triggered Automate flow: ${config.flowName} with task: ${taskTitle} (started=${config.started})`,
     );
@@ -207,6 +207,27 @@ export function triggerAutomateFlow(
   } catch (error) {
     console.error("Failed to trigger Automate flow:", error);
     return false;
+  }
+}
+
+export function openExternalHref(intentUrl: string): void {
+  if (
+    useAppStore
+      .getState()
+      .capabilitiesAndKind.capabilities.includes("openExternal")
+  ) {
+    const twaPort = (
+      window as unknown as {
+        __NBL_TWA_BRIDGE__?: { port: MessagePort | null };
+      }
+    ).__NBL_TWA_BRIDGE__?.port;
+    if (twaPort) {
+      twaPort.postMessage({ type: "nbl:open-external", url: intentUrl });
+    } else {
+      window.location.href = intentUrl;
+    }
+  } else {
+    window.location.href = intentUrl;
   }
 }
 
@@ -270,7 +291,7 @@ export function showTimer(): void {
     timerUrl = "ms-clock:timer";
   }
   if (timerUrl) {
-    window.location.href = timerUrl;
+    openExternalHref(timerUrl);
   }
 }
 
@@ -289,7 +310,7 @@ export function triggerShortcutTimer(
     try {
       // 格式: shortcuts://run-shortcut?name=<shortcut_name>&input=<input_value>
       const shortcutUrl = `shortcuts://run-shortcut?name=${encodeURIComponent(config.shortcutName)}&input=${encodeURIComponent(JSON.stringify(config))}`;
-      window.location.href = shortcutUrl;
+      openExternalHref(shortcutUrl);
       console.log(
         `✅ Triggered shortcut: ${config.shortcutName} with task: ${taskTitle} (${config.timerMinutes} mins)`,
       );
@@ -315,7 +336,7 @@ export function triggerShortcutTimer(
       return false;
     }
 
-    window.location.href = timerUri;
+    openExternalHref(timerUri);
     return true;
     // const aConfig = automateConfig ?? getAutomateConfig(config.started ? "start" : "end");
     // return triggerAutomateFlow(taskTitle, { ...aConfig, taskTitle });
@@ -323,7 +344,7 @@ export function triggerShortcutTimer(
     // 用ms-clock 協定來觸發 Windows 時鐘 app 的計時器功能
     try {
       const shortcutUrl = `ms-clock:timer?duration=${config.timerMinutes * 60}&title=${encodeURIComponent(taskTitle)}`;
-      window.location.href = shortcutUrl;
+      openExternalHref(shortcutUrl);
       console.log(
         `✅ Triggered Windows timer with task: ${taskTitle} (${config.timerMinutes} mins)`,
       );

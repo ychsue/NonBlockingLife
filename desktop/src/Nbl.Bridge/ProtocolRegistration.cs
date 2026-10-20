@@ -78,9 +78,18 @@ public static class ProtocolRegistration
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                 File.WriteAllText(path, BuildDesktopEntry(cmd));
+
+                // 1. 設定預設處理器
                 RunQuietly("xdg-mime", "default", Path.GetFileName(path), "x-scheme-handler/" + ProtocolUri.Scheme);
+
+                // 2. 【新增】強制讓系統重新整理資料庫，這樣才不用手動下指令
+                RunQuietly("update-desktop-database", Path.GetDirectoryName(path)!);
             }
-            else if (File.Exists(path)) File.Delete(path);
+            else if (File.Exists(path))
+            {
+                File.Delete(path);
+                RunQuietly("update-desktop-database", Path.GetDirectoryName(path)!);
+            }
         }
         else
         {

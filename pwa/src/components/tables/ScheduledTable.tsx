@@ -23,6 +23,7 @@ import {
   parseFromDateTimeLocal,
 } from "../../utils/timeUtils";
 import { useResponsiveTable } from "../../hooks/useResponsiveTable";
+import { ExternalA } from "../ExternalA";
 import { useAppStore } from "../../store/appStore";
 import { useT, useTWithMaps } from "../../i18n";
 import { TableCard } from "../TableCard";
@@ -941,14 +942,14 @@ export function ScheduledTable() {
                 }
               />
               {hasValidUrl && (
-                <a
+                <ExternalA
                   href={value}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 whitespace-nowrap"
                 >
                   {text.open}
-                </a>
+                </ExternalA>
               )}
             </div>
           );

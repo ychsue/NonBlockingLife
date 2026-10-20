@@ -20,4 +20,6 @@ public interface IDesktopHost
     /// 顯示Clock視窗（通常為小型時鐘視窗）
     /// </summary>
     void ShowClockWindow(int tabIndex = 0);
+
+    Uri? BaseUri { get; }
 }

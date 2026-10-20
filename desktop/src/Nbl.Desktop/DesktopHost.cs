@@ -11,7 +11,11 @@ public sealed class DesktopHost : IDesktopHost
     private Window? _main;
     private ClockWindow? _clock;
 
+    public Uri? BaseUri { get; set; }
+
     public void Attach(Window main, ClockWindow clock) => (_main, _clock) = (main, clock);
+
+
 
     public void ShowMainWindow()
     {

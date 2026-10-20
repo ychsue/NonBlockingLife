@@ -5,6 +5,7 @@ import gasCode from "../gas/程式碼.js?raw";
 import { useT, useTWithMaps } from "../i18n";
 import { useAppStore } from "../store/appStore";
 import { satisfies } from "compare-versions";
+import { ExternalA } from "./ExternalA";
 
 interface SetupWizardProps {
   isModal?: boolean;
@@ -67,9 +68,9 @@ export function SetupGASWizard({
         "請貼上從 Google Apps Script 部署後取得的 URL",
       "）": "）",
       "下一步：輸入 URL →": "下一步：輸入 URL →",
-      "保存並測試連接": "保存並測試連接",
+      保存並測試連接: "保存並測試連接",
       "設置完成！": "設置完成！",
-      "您現在可以開始使用同步功能了": "您現在可以開始使用同步功能了",
+      您現在可以開始使用同步功能了: "您現在可以開始使用同步功能了",
       完成: "完成",
     },
     en: {
@@ -118,9 +119,9 @@ export function SetupGASWizard({
       "請貼上從 Google Apps Script 部署後取得的 URL":
         "Paste the URL obtained from deploying Google Apps Script",
       "下一步：輸入 URL →": "Next: Enter URL →",
-      "保存並測試連接": "Save and test the connection",
+      保存並測試連接: "Save and test the connection",
       "設置完成！": "Setup Complete!",
-      "您現在可以開始使用同步功能了": "You can now start using the sync feature",
+      您現在可以開始使用同步功能了: "You can now start using the sync feature",
       完成: "Complete",
     },
     ja: {
@@ -170,9 +171,9 @@ export function SetupGASWizard({
       "請貼上從 Google Apps Script 部署後取得的 URL":
         "Google Apps Script のデプロイ後に取得した URL を貼り付けてください",
       "下一步：輸入 URL →": "次へ: URL を入力 →",
-      "保存並測試連接": "接続を保存してテストする ...",
+      保存並測試連接: "接続を保存してテストする ...",
       "設置完成！": "設定完了！",
-      "您現在可以開始使用同步功能了": "これで同期機能を使用開始できます",
+      您現在可以開始使用同步功能了: "これで同期機能を使用開始できます",
       完成: "完了",
     },
   });
@@ -268,14 +269,14 @@ export function SetupGASWizard({
             <p className="text-sm text-red-800">
               {tHere("建議先看 1 次影片，照著做會更快完成設定。")}
             </p>
-            <a
+            <ExternalA
               href={syncTutorialVideo.url}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
             >
               {tHere("觀看 YouTube")}：{syncTutorialVideo.title}
-            </a>
+            </ExternalA>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
@@ -285,13 +286,14 @@ export function SetupGASWizard({
             <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700 ml-2">
               <li>
                 {tHere("打開")}{" "}
-                <a
+                <ExternalA
                   href="https://sheets.google.com"
                   target="_blank"
+                  rel="noreferrer"
                   className="text-blue-600 hover:underline"
                 >
                   Google Sheets
-                </a>
+                </ExternalA>
               </li>
               <li>
                 {tHere("建立新試算表，命名為")}{" "}
@@ -398,8 +400,12 @@ export function SetupGASWizard({
       {step === 3 && !isModal && (
         <div className="space-y-4 text-center">
           <div className="text-6xl mb-4">✅</div>
-          <h2 className="text-2xl font-bold text-green-600">{tHere("設置完成！")}</h2>
-          <p className="text-gray-600">{tHere("您現在可以開始使用同步功能了")}</p>
+          <h2 className="text-2xl font-bold text-green-600">
+            {tHere("設置完成！")}
+          </h2>
+          <p className="text-gray-600">
+            {tHere("您現在可以開始使用同步功能了")}
+          </p>
           <button
             onClick={handleComplete}
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"

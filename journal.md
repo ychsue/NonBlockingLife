@@ -1,5 +1,12 @@
 # Journal
 
+## [2026-10-19] 大致讓 Linux 也能像是 Windows 那樣跑
+1. [ProtocolRegistration.cs](desktop/src/Nbl.Bridge/ProtocolRegistration.cs) 裡面Linux的部份需要 update-desktop-database 才能使用
+2. [App.axaml.cs](desktop/src/Nbl.Desktop/App.axaml.cs) 則是修改在 TrayIcon 那裡 SetRegistered(!isChecked)，原本沒有 !, 也不更新 isChecked, 可能 AI 漏想了吧？
+3. [MainWindow.axaml.cs](desktop/src/Nbl.Desktop/MainWindow.axaml.cs) 加入 Linux 專屬防護，並且，那個 Shim 裡面使用了 timeInterval 強制它直到連上前端的 port
+4. [shortcutUtils.ts](pwa/src/utils/shortcutUtils.ts) 讓它改用 `nbl:open-external` 來開啟，而非使用 `location.href=`，這種寫法 Linux 下頁面會直接跳轉。
+5. 使用 `ExternalA` 結果, 也要考慮 `/NonBlockingLife/.....` 。
+
 ## [2026-10-18] 讓 app.manifest 也被 git 到
 
 ## [2026-10-17] 讓 dashboard 也加入 supabase 的管理裡面

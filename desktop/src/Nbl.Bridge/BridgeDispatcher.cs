@@ -173,8 +173,9 @@ public sealed class BridgeDispatcher
             case "nbl:open-external":
                 if (_host is null) return null;
                 var ok = false;
+                var oeUrl = req["url"]?.GetValue<string>();
                 // 1. 先確定是否是 nonblockinglife:// 連結
-                var resolved = ProtocolUri.Resolve(req["url"]?.GetValue<string>(), new Uri("about:blank"));
+                var resolved = ProtocolUri.Resolve(oeUrl, _host.BaseUri ?? new Uri("about:blank"));
                 if (resolved is not null)
                 {
                     if (resolved.Kind == ProtocolActionKind.ShowClock)
@@ -186,10 +187,25 @@ public sealed class BridgeDispatcher
                         // Handle set-timer action if needed
                         _timers?.AddFromUri(resolved.Target ?? new Uri("about:blank"), DateTime.Now, _host);
                     }
+                    else
+                    {
+                        //在 外部瀏覽器 打開此連結，因為這個是 open-external 的情境
+                        if (_host is not null && resolved.Target is not null)
+                        {
+                            _host.OpenExternal(resolved.Target);
+                        }
+                    }
                 }
                 else
                 {
-                    ok = Uri.TryCreate(req["url"]?.GetValue<string>(), UriKind.Absolute, out var target)
+                    // 如果不是 nonblockinglife:// 連結，則嘗試作為 http 或 https 連結打開
+                    // 若是 `/NonBlockingLife/` 開頭的相對路徑，則嘗試將它改為以_host.BaseUri 為基礎的完整的 http 或 https 連結
+                    if (oeUrl is not null && oeUrl.StartsWith("/NonBlockingLife/") && _host.BaseUri is not null)
+                    {
+                        oeUrl = _host.BaseUri.ToString() + oeUrl["/NonBlockingLife/".Length..];
+                    }
+
+                    ok = Uri.TryCreate(oeUrl, UriKind.Absolute, out var target)
                              && target.Scheme is "http" or "https";
                     if (ok) _host.OpenExternal(target!);
                 }

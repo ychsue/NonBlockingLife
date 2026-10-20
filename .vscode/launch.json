@@ -44,7 +44,7 @@
       "request": "launch",
       "preLaunchTask": "build-nbl-desktop",
       "program": "${workspaceFolder}/desktop/src/Nbl.Desktop/bin/Debug/net10.0/Nbl.Desktop.dll",
-      "args": ["--source", "dev", "--allow-multiple"],
+      "args": ["--source", "dev",],
       "cwd": "${workspaceFolder}/desktop/src/Nbl.Desktop",
       "env": { "NBL_TRACE_FILE": "${workspaceFolder}/desktop/trace.log" },
       "console": "internalConsole",

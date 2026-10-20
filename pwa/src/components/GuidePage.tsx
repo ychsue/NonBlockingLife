@@ -16,6 +16,7 @@ import { GuideDataImportAndExport } from "./GuideSubComponent/GuideDataImportAnd
 import { GuideSyncExplanation } from "./GuideSubComponent/GuideSyncExplanation";
 import { GuideProgress } from "./GuideSubComponent/GuideProgress";
 import { useNativeBridge } from "../native/useNativeBridge";
+import { ExternalA } from "./ExternalA";
 
 const SHORTCUTS = (locale: SupportedLocale) => [
   {
@@ -385,14 +386,14 @@ export function GuidePage() {
                 )}
               </p>
             </div>
-            <a
+            <ExternalA
               href="https://www.youtube.com/@young-chunghsue4363"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center text-sm font-medium text-red-600 hover:underline"
             >
               {tHere("前往 YouTube 頻道")}
-            </a>
+            </ExternalA>
           </div>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -417,14 +418,14 @@ export function GuidePage() {
                   <p className="mt-2 text-sm text-gray-600 leading-relaxed flex-1">
                     {video.description}
                   </p>
-                  <a
+                  <ExternalA
                     href={video.url}
                     target="_blank"
                     rel="noreferrer"
                     className="mt-4 inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
                   >
                     {tHere("觀看影片")}
-                  </a>
+                  </ExternalA>
                 </article>
               ))}
           </div>
@@ -465,24 +466,24 @@ export function GuidePage() {
                     <p className="font-medium text-gray-800">{shortcut.name}</p>
                     <p className="text-sm text-gray-600">{shortcut.purpose}</p>
                     {shortcut.api && (
-                      <a
+                      <ExternalA
                         href={"/" + shortcut.api}
                         target="_blank"
                         rel="noreferrer"
                         className="text-blue-600 hover:underline text-sm"
                       >
                         {tHere("API 範例")}
-                      </a>
+                      </ExternalA>
                     )}
                   </div>
-                  <a
+                  <ExternalA
                     href={shortcut.url}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center justify-center px-3 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700"
                   >
                     {tHere("安裝 Shortcut")}
-                  </a>
+                  </ExternalA>
                 </div>
               ))}
             </div>
@@ -507,7 +508,7 @@ export function GuidePage() {
                 : "查看我們的隱私權政策和使用條款。"}
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
-            <a
+            <ExternalA
               href={
                 locale === "zh-TW"
                   ? "/NonBlockingLife/privacy-policy-zh-TW.html"
@@ -522,8 +523,8 @@ export function GuidePage() {
                 : locale === "en"
                   ? "Privacy Policy"
                   : "隱私權政策"}
-            </a>
-            <a
+            </ExternalA>
+            <ExternalA
               href={
                 locale === "zh-TW"
                   ? "/NonBlockingLife/terms-zh-TW.html"
@@ -538,8 +539,8 @@ export function GuidePage() {
                 : locale === "en"
                   ? "Terms of Service"
                   : "使用條款"}
-            </a>
-            <a
+            </ExternalA>
+            <ExternalA
               href="https://ychsue.github.io/superconductorlike_society/"
               target="_blank"
               rel="noopener noreferrer"
@@ -550,7 +551,7 @@ export function GuidePage() {
                 : locale === "en"
                   ? "Superconductor-like Society"
                   : "Superconductor-like Society"}
-            </a>
+            </ExternalA>
           </div>
         </div>
       </section>

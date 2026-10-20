@@ -600,6 +600,7 @@ export default function App() {
 
   useEffect(() => {
     if (!runningTask) return;
+    if (bridge.caps?.includes("notify")) return; // 如果已經支援通知，則不需要再提示
     if (typeof Notification === "undefined") return;
     if (Notification.permission !== "default") return;
     if (sessionStorage.getItem(NOTIFICATION_NUDGE_SESSION_KEY) === "1") return;

@@ -34,6 +34,7 @@ public partial class App : Application
             _audio = new AlarmAudioManager(AudioPlayerFactory.Create());
             _clock = new ClockWindow(alarms, timers, _audio);
             var host = new DesktopHost();
+            host.BaseUri = options.BaseUri;
             var window = new MainWindow(options, host, alarms, timers);
             host.Attach(window, _clock);
             desktop.MainWindow = window;
@@ -116,7 +117,10 @@ public partial class App : Application
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
         protocol.Click += (_, _) =>
         {
-            try { ProtocolRegistration.SetRegistered(protocol.IsChecked); }
+            try { 
+                ProtocolRegistration.SetRegistered(!protocol.IsChecked); 
+                protocol.IsChecked = !protocol.IsChecked;
+            }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
                 protocol.IsChecked = !protocol.IsChecked;

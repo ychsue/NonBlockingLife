@@ -53,6 +53,7 @@ import {
   UnifiedTypeName,
 } from "../../utils/icsAdapter";
 import { useMarkdown } from "../../hooks/useMarkdown";
+import { ExternalA } from "../ExternalA";
 
 const DEV_CLIENT_ID = "dev-selection-cache";
 const columnHelper = createColumnHelper<SelectionCacheItem>();
@@ -628,7 +629,7 @@ export function SelectionCacheTable() {
               {deadlineBadge}
               {usedTodayBadge}
               {hasUrl && (
-                <a
+                <ExternalA
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -637,7 +638,7 @@ export function SelectionCacheTable() {
                   title={url}
                 >
                   🔗
-                </a>
+                </ExternalA>
               )}
             </span>
           );
