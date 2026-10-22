@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-10-22] 改用新的 Supabase 同步管理方式， 謝謝 Github Copilot (GPT-6 Luna)，他的方法比較好。
+
 ## [2026-10-20] 總算解決在Linux裡面垂直滾動的問題了
 原來不是scrolling 的命令沒傳過去，而是，GtkWebView 對於 css的解讀與一般瀏覽器不同，導致scrolling的訊號雖然有傳到前端，卻是被css當作該忽略的。謝謝 Copilot Claud。
 請見 [explain](Discussion/cross_platform/discussion_20261008.md#copilot-回覆除錯路徑與解法)

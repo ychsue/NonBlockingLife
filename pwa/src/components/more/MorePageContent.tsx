@@ -487,6 +487,26 @@ function ExperimentPanel() {
               <button
                 type="button"
                 onClick={() => {
+                  const manager = new SupabaseSyncManager(
+                    getStoredSupabaseUrlKey(),
+                  );
+                  manager
+                    .getGlobalSettings()
+                    .then((res) => {
+                      console.log("Fetched global settings:", res);
+                      alert("Fetched global settings: " + JSON.stringify(res));
+                    })
+                    .catch((err) => {
+                      console.error("Failed to fetch global settings:", err);
+                    });
+                }}
+                className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+              >
+                Fetch Global Settings
+              </button>
+              <button
+                type="button"
+                onClick={() => {
                   setDialogConfig({
                     title: "All Tables To Supabase",
                     message: "正在傳送所有Tables中...",
@@ -555,15 +575,11 @@ function ExperimentPanel() {
               <button
                 type="button"
                 onClick={() =>
-                  notify(
-                    "這是測試",
-                    "這是測試內容", 
-                    {
-                      dismissOnClick: false,
-                      url: "https://tw.yahoo.com",
-                      id: 12,
-                    }
-                  )
+                  notify("這是測試", "這是測試內容", {
+                    dismissOnClick: false,
+                    url: "https://tw.yahoo.com",
+                    id: 12,
+                  })
                 }
                 className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
               >
