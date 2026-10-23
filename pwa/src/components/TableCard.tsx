@@ -6,6 +6,7 @@ import {
   type TouchEvent,
 } from "react";
 import { useT } from "../i18n";
+import { ExternalA } from "./ExternalA";
 
 export interface TableCardProps<T> {
   item: T;
@@ -51,6 +52,7 @@ export function TableCard<
   const displayEditLabel = editLabel ?? t("tableCard.edit");
   const [offsetX, setOffsetX] = useState(0);
   const [pendingDeleteConfirm, setPendingDeleteConfirm] = useState(false);
+
   const startRef = useRef<{ x: number; y: number } | null>(null);
   const swipingRef = useRef(false);
   const confirmTimerRef = useRef<number | null>(null);
@@ -205,18 +207,15 @@ export function TableCard<
         <div className="flex flex-col">
           {itemUrl && (
             <div className="mt-4 flex justify-end">
-              <a
+              <ExternalA
                 href={itemUrl}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="inline-flex items-center rounded-md bg-blue-500 px-3 py-2 text-sm font-medium text-white hover:bg-blue-600"
-                onClick={(event) => event.stopPropagation()}
                 onTouchStart={(event) => event.stopPropagation()}
                 onTouchMove={(event) => event.stopPropagation()}
                 onTouchEnd={(event) => event.stopPropagation()}
               >
                 {t("tableCard.openLink")}
-              </a>
+              </ExternalA>
             </div>
           )}
 

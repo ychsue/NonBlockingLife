@@ -17,6 +17,7 @@ export interface Candidate {
   url?: string;
   deadline?: number;
   usedTodayCount?: number;
+  focusTime?: number; // 任務的專注時長 (分鐘)
 }
 
 export interface CalculateCandidatesResult {
@@ -284,6 +285,7 @@ export function calculateCandidates(
         url: task.url || undefined,
         deadline: task.deadline,
         usedTodayCount,
+        focusTime: task.focusTime,
       });
     }
 
@@ -320,6 +322,7 @@ export function calculateCandidates(
         source: task.itemType === "scheduled" ? "Scheduled" : "ICS_Event",
         status,
         url: task.url || undefined,
+        focusTime: task.focusTime,
       });
     }
   });
@@ -361,6 +364,7 @@ export function calculateCandidates(
         status,
         url: task.url || undefined,
         deadline: task.deadline,
+        focusTime: task.focusTime,
       });
     }
   });

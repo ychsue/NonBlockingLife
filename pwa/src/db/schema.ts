@@ -2,7 +2,7 @@ import { Dexie, type Table } from "dexie";
 
 export interface GlobalSettingItem {
   key: string; // 設定項的唯一鍵
-  value?: string| JSON; // 設定項的值
+  value?: string | JSON; // 設定項的值
 }
 
 export interface LogEntry {
@@ -26,15 +26,16 @@ export interface Dashboard {
   endAt?: number;
   systemStatus?: string;
   totalFocusToday?: number;
+  focusTime?: number; // 任務的專注時長 (分鐘)
 }
 
 export interface ProjectItem {
-  id: string              // 主鍵 e.g. 'proj_health_01' 或 UUID
-  name: string            // 專案/分類名稱 e.g. '運動健康'
-  parentId?: string | null// 父專案 ID (根目錄則為 null 或 undefined)
-  color?: string          // 可選：用於 UI 標籤顏色/圖示
-  sortOrder?: number      // 可選：同階層排序
-  updatedAt: number       // 異動時間戳 (利於同步)
+  id: string; // 主鍵 e.g. 'proj_health_01' 或 UUID
+  name: string; // 專案/分類名稱 e.g. '運動健康'
+  parentId?: string | null; // 父專案 ID (根目錄則為 null 或 undefined)
+  color?: string; // 可選：用於 UI 標籤顏色/圖示
+  sortOrder?: number; // 可選：同階層排序
+  updatedAt: number; // 異動時間戳 (利於同步)
 }
 
 export interface InboxItem {
@@ -69,7 +70,7 @@ export interface ScheduledItem {
   status?: string;
   focusTime?: number;
   cronExpr?: string;
-  projectIds?: string[]   // 存放 Project ID 陣列 (e.g. ['proj_exercise', 'proj_personal'])
+  projectIds?: string[]; // 存放 Project ID 陣列 (e.g. ['proj_exercise', 'proj_personal'])
   remindBefore?: string | number;
   remindAfter?: string | number;
   reminderOffsets?: string | number[];
@@ -113,9 +114,9 @@ export interface IcsEventItem {
 }
 
 export interface IcsExportConfigItem {
-  id: string;         // 主鍵, e.g. 'EXP_GOOGLE_WORK'
-  name: string;       // 匯出設定的名稱
-  fileName: string;   // 匯出檔案的檔名 (例如 'work_calendar.ics')
+  id: string; // 主鍵, e.g. 'EXP_GOOGLE_WORK'
+  name: string; // 匯出設定的名稱
+  fileName: string; // 匯出檔案的檔名 (例如 'work_calendar.ics')
   enabled: boolean; // 是否啟用 (true/false)
   description?: string; // 匯出設定的描述
 
@@ -135,7 +136,6 @@ export interface IcsExportConfigItem {
   updatedAt?: number; // 最後異動的時間戳
 }
 
-
 export interface SelectionCacheItem {
   taskId: string;
   title?: string;
@@ -143,6 +143,7 @@ export interface SelectionCacheItem {
   source?: string;
   status?: string;
   totalMinsInPool?: number;
+  focusTime?: number; // 任務的專注時長 (分鐘)
   url?: string;
   deadline?: number;
   usedTodayCount?: number;
@@ -412,7 +413,7 @@ export class AppDB extends Dexie {
         // Reserved for future ics data backfill.
       });
 
-          this.version(7)
+    this.version(7)
       .stores({
         log: "id, timestamp, taskId, action, state, title",
         dashboard: "taskId, systemStatus",
@@ -434,13 +435,13 @@ export class AppDB extends Dexie {
         ics_sources: "sourceId, enabled, updatedAt",
         ics_events: "eventId, sourceId, title, uid, startAt, [sourceId+uid]",
         projects: "id, name, parentId, updatedAt",
-        ics_export_configs: "id, timeRangeDaysBefore, timeRangeDaysAfter, exportPrivateNotes, driveFileId, url, lastGeneratedAt, updatedAt",
+        ics_export_configs:
+          "id, timeRangeDaysBefore, timeRangeDaysAfter, exportPrivateNotes, driveFileId, url, lastGeneratedAt, updatedAt",
         global_settings: "key, value, updatedAt",
       })
       .upgrade(() => {
         // Reserved for future ics data backfill.
       });
-
   }
 }
 

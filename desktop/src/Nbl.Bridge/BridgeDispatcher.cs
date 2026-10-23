@@ -1,0 +1,238 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
+
+namespace Nbl.Bridge;
+
+public interface IIcsFetcher
+{
+    /// <summary>抓取 ICS 文字；失敗時丟出例外。</summary>
+    Task<string> FetchAsync(string url, CancellationToken ct);
+}
+
+/// <summary>
+/// 處理來自 PWA 的 nbl:* 訊息（協定見 protocol/messages.md）。
+/// 輸入/輸出皆為 JSON 字串；回傳 null 表示不需回應。
+/// </summary>
+public sealed class BridgeDispatcher
+{
+    public const int ProtocolVersion = 1;
+
+    private readonly string _shell;
+    private readonly string _shellVersion;
+    private readonly IIcsFetcher? _ics;
+    private readonly IDesktopHost? _host;
+    private readonly AlarmScheduler? _alarms;
+    private readonly TimerService? _timers;
+    private readonly Func<DateTimeOffset> _now;
+
+    public BridgeDispatcher(
+        string shell,
+        string shellVersion,
+        IIcsFetcher? icsFetcher = null,
+        IDesktopHost? host = null,
+        AlarmScheduler? alarms = null,
+        TimerService? timers = null,
+        Func<DateTimeOffset>? now = null)
+    {
+        _shell = shell;
+        _shellVersion = shellVersion;
+        _ics = icsFetcher;
+        _host = host;
+        _alarms = alarms;
+        _timers = timers;
+        _now = now ?? (() => DateTimeOffset.Now);
+    }
+
+    public IReadOnlyList<string> Capabilities
+    {
+        get
+        {
+            var caps = new List<string>();
+            if (_ics is not null) caps.Add("fetchIcs");
+            if (_host is not null) caps.AddRange(new[] { "notify", "openExternal", "share" });
+            if (_host is not null && _alarms is not null) caps.Add("alarm");
+            if (_host is not null && _timers is not null) caps.Add("timer");
+            return caps;
+        }
+    }
+
+    public async Task<string?> HandleAsync(string message, CancellationToken ct = default)
+    {
+        JsonObject? req;
+        try { req = JsonNode.Parse(message) as JsonObject; }
+        catch (JsonException) { return null; }
+
+        var type = req?["type"]?.GetValue<string>();
+        var requestId = req?["requestId"]?.GetValue<string>();
+        if (req is null || type is null) return null;
+
+        switch (type)
+        {
+            case "nbl:ping":
+                return Reply("nbl:pong", requestId, _ => { });
+
+            case "nbl:version":
+                return Reply("nbl:version-response", requestId,
+                    o => o["version"] = _shellVersion);
+
+            case "nbl:hello":
+                return Reply("nbl:hello-response", requestId, o =>
+                {
+                    o["shell"] = _shell;
+                    o["shellVersion"] = _shellVersion;
+                    o["protocolVersion"] = ProtocolVersion;
+                    o["capabilities"] = new JsonArray(
+                        Capabilities.Select(c => (JsonNode)JsonValue.Create(c)!).ToArray());
+                });
+
+            case "nbl:fetch-ics":
+                if (_ics is null) return null;
+                var url = req["url"]?.GetValue<string>() ?? "";
+                try
+                {
+                    var ics = await _ics.FetchAsync(url, ct);
+                    return Reply("nbl:fetch-ics-response", requestId, o => o["icsContent"] = ics);
+                }
+                catch (Exception e) when (e is not OperationCanceledException)
+                {
+                    return Reply("nbl:fetch-ics-response", requestId, o => o["error"] = e.Message);
+                }
+
+            case "nbl:notify":
+                if (_host is null) return null;
+                _host.ShowNotification(new ToastOptions
+                {
+                    Id = JsonExtensions.GetStringOrNumber(req["id"]) ?? Guid.NewGuid().ToString(),
+                    Title = req["title"]?.GetValue<string>() ?? "NonBlockingLife",
+                    Body = req["body"]?.GetValue<string>() ?? "",
+                    IsAlarm = false,
+                    ClickToClose = req["dismissOnClick"]?.GetValue<bool>() ?? false,
+                    Duration = TimeSpan.FromSeconds(req["duration"]?.GetValue<int?>() ?? 0)
+                });
+                return requestId is null
+                    ? null
+                    : Reply("nbl:notification-shown", requestId, o => o["notificationId"] = req["id"]?.DeepClone());
+
+            case "nbl:query-notification-permission":
+                if (_host is null) return null;
+                return Reply("nbl:notification-permission-status", requestId, o => o["granted"] = true);
+
+            case "nbl:query-alarm-setup":
+                if (_alarms is null) return null;
+                return Reply("nbl:alarm-setup", requestId, o =>
+                {
+                    o["selectedClockApp"] = ClockApp();
+                    o["exactAlarmAllowed"] = true;
+                });
+
+            case "nbl:query-clock-apps":
+                if (_alarms is null) return null;
+                return Reply("nbl:clock-apps", requestId, o =>
+                {
+                    o["apps"] = new JsonArray(ClockApp());
+                    o["selectedPackageName"] = DesktopClockPackage;
+                });
+
+            case "nbl:select-clock-app":
+                if (_alarms is null) return null;
+                return Reply("nbl:select-clock-app-result", requestId, o => o["selectedClockApp"] = ClockApp());
+
+            case "nbl:request-exact-alarm-permission":
+                return null;
+
+            case "nbl:set-alarms":
+                if (_alarms is null) return null;
+                var results = _alarms.Set(req["alarms"] as JsonArray ?? new JsonArray(), _now());
+                return Reply("nbl:set-alarms-result", requestId, o =>
+                    o["results"] = new JsonArray(results.Select(r =>
+                    {
+                        var item = new JsonObject { ["id"] = r.Id, ["mode"] = r.Mode, ["ok"] = r.Ok };
+                        if (r.Reason is not null) item["reason"] = r.Reason;
+                        return (JsonNode)item;
+                    }).ToArray()));
+
+            case "nbl:get-alarms":
+                if (_alarms is null) return null;
+                return Reply("nbl:alarms", requestId, o =>
+                    o["alarms"] = new JsonArray(_alarms.Snapshot().Select(a => (JsonNode)new JsonObject
+                    {
+                        ["id"] = a.Id,
+                        ["mode"] = a.Mode,
+                        ["label"] = a.Label,
+                        ["fireAt"] = a.FireAt.ToUnixTimeMilliseconds(),
+                    }).ToArray()));
+
+            case "nbl:cancel-alarms":
+                if (_alarms is null) return null;
+                var cancelIds = (req["ids"] as JsonArray ?? new JsonArray())
+                    .Select(n => n is JsonValue v && v.TryGetValue<int>(out var i) ? (int?)i : null)
+                    .OfType<int>().ToList();
+                var removed = _alarms.RemoveByIds(cancelIds);
+                return Reply("nbl:cancel-alarms-result", requestId, o => o["removed"] = removed);
+
+            case "nbl:open-external":
+                if (_host is null) return null;
+                var ok = false;
+                var oeUrl = req["url"]?.GetValue<string>();
+                // 1. 先確定是否是 nonblockinglife:// 連結
+                var resolved = ProtocolUri.Resolve(oeUrl, _host.BaseUri ?? new Uri("about:blank"));
+                if (resolved is not null)
+                {
+                    if (resolved.Kind == ProtocolActionKind.ShowClock)
+                    {
+                        _host.ShowClockWindow(1);
+                    }
+                    else if (resolved.Kind == ProtocolActionKind.SetTimer)
+                    {
+                        // Handle set-timer action if needed
+                        _timers?.AddFromUri(resolved.Target ?? new Uri("about:blank"), DateTime.Now, _host);
+                    }
+                    else
+                    {
+                        //在 外部瀏覽器 打開此連結，因為這個是 open-external 的情境
+                        if (_host is not null && resolved.Target is not null)
+                        {
+                            _host.OpenExternal(resolved.Target);
+                        }
+                    }
+                }
+                else
+                {
+                    // 如果不是 nonblockinglife:// 連結，則嘗試作為 http 或 https 連結打開
+                    // 若是 `/NonBlockingLife/` 開頭的相對路徑，則嘗試將它改為以_host.BaseUri 為基礎的完整的 http 或 https 連結
+                    if (oeUrl is not null && oeUrl.StartsWith("/NonBlockingLife/") && _host.BaseUri is not null)
+                    {
+                        oeUrl = _host.BaseUri.ToString() + oeUrl["/NonBlockingLife/".Length..];
+                    }
+
+                    ok = Uri.TryCreate(oeUrl, UriKind.Absolute, out var target)
+                             && target.Scheme is "http" or "https";
+                    if (ok) _host.OpenExternal(target!);
+                }
+                return Reply("nbl:open-external-response", requestId, o => o["ok"] = ok);
+
+            case "nbl:share":
+                if (_host is null) return null;
+                var title = req["title"]?.GetValue<string>() ?? "";
+                var text = string.Join("\n", new[] { req["text"]?.GetValue<string>(), req["url"]?.GetValue<string>() }
+                    .Where(s => !string.IsNullOrWhiteSpace(s)));
+                _host.Share(title, text);
+                return Reply("nbl:share-response", requestId, o => o["ok"] = true);
+
+            default:
+                return null;
+        }
+    }
+
+    private const string DesktopClockPackage = "nbl.desktop";
+
+    private static JsonObject ClockApp() =>
+        new() { ["packageName"] = DesktopClockPackage, ["label"] = "NBL Desktop" };
+
+    private static string Reply(string type, string? requestId, Action<JsonObject> fill)
+    {
+        var o = new JsonObject { ["type"] = type, ["requestId"] = requestId };
+        fill(o);
+        return o.ToJsonString();
+    }
+}

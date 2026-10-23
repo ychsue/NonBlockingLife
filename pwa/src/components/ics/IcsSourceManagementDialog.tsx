@@ -4,7 +4,8 @@ import type { IcsSourceItem } from "../../db/schema";
 import { parseIcsContent } from "../../utils/icsParser";
 import { TableCard } from "../TableCard"; // 引入已修改好支援 accentColor/editLabel/isDisabled 的 TableCard
 import Utils from "../../../../gas/src/Utils";
-import { useTwaRpc } from "../../hooks/useTwaRpc";
+import { useNativeBridge } from "../../native/useNativeBridge";
+import { fetchIcsWithFallback } from "../../native/fetchIcs";
 import { getDeviceType } from "../../utils/shortcutUtils";
 import { useProductTourContext } from "../tour/ProductTourContext";
 import { useTWithMaps } from "../../i18n";
@@ -40,7 +41,7 @@ export function IcsSourceManagementDialog({
   const [loading, setLoading] = useState(false);
   const syncType = useAppStore((state) => state.syncType);
 
-  const { sendRequest } = useTwaRpc();
+  const nativeBridge = useNativeBridge();
   const { nextStep, isRunning, activeStep } = useProductTourContext();
 
   // 新增/編輯 URL 來源的狀態
@@ -53,6 +54,8 @@ export function IcsSourceManagementDialog({
   const [showAddForm, setShowAddForm] = useState<IcsSourceItem["type"] | false>(
     false,
   );
+
+  const capabilitiesAndKind = useAppStore((state) => state.capabilitiesAndKind);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadSourceId, setUploadSourceId] = useState<string | null>(null);
@@ -476,57 +479,27 @@ export function IcsSourceManagementDialog({
     setFormUrl("");
     await loadSources();
 
-    const dType = getDeviceType();
     let isSuccess = false;
-    // 分為四階段取得 ics，1. Android WebView, 2. 直連, 3. Supabase fetch-ics Edge function, 4. 告知使用者改用手動匯入
-    // 1. 直連
-    if (["AndroidWebView"].includes(dType)) {
-      try {
-        const res = (await sendRequest("nbl:fetch-ics", {
-          url: formUrl.trim(),
-        })) as { icsContent: string };
-        const eventsLength = await parseAndUpdateIcsTables(
-          res.icsContent,
-          editingSourceId,
-        );
-        isSuccess = true;
-        alert(tHere("成功解析n個日曆事件", { n: eventsLength }));
-      } catch (error) {
-        isSuccess = false;
-      }
-    } else {
-      // 2. 直連 ics URL
-      try {
-        const res = await (await fetch(formUrl.trim())).text();
-        const eventsLength = await parseAndUpdateIcsTables(
-          res,
-          editingSourceId,
-        );
-        isSuccess = true;
-        alert(tHere("成功解析n個日曆事件", { n: eventsLength }));
-      } catch (error) {
-        isSuccess = false;
-      }
-      // 3. Supabase fetch-ics Edge function
-      if (
-        !isSuccess &&
-        syncType === "supabase" &&
-        !!getStoredSupabaseUrlKey()
-      ) {
-        try {
-          const syncSupabaseStr = getStoredSupabaseUrlKey();
-          const manager = new SupabaseSyncManager(syncSupabaseStr);
-          const data = await manager.fetchIcs(formUrl.trim());
-          const eventsLength = await parseAndUpdateIcsTables(
-            data.icsContent,
-            editingSourceId,
-          );
-          isSuccess = true;
-          alert(tHere("成功解析n個日曆事件", { n: eventsLength }));
-        } catch (error) {
-          isSuccess = false;
-        }
-      }
+    // 取得順序：native shell → 直連 → Supabase fetch-ics → (失敗) 由呼叫端提示手動匯入
+    const supabaseStr = getStoredSupabaseUrlKey();
+    try {
+      const { icsContent } = await fetchIcsWithFallback(formUrl.trim(), {
+        nativeBridge,
+        supabaseFetchIcs:
+          syncType === "supabase" && supabaseStr
+            ? async (u) =>
+                (await new SupabaseSyncManager(supabaseStr).fetchIcs(u))
+                  .icsContent
+            : undefined,
+      });
+      const eventsLength = await parseAndUpdateIcsTables(
+        icsContent,
+        editingSourceId,
+      );
+      isSuccess = true;
+      alert(tHere("成功解析n個日曆事件", { n: eventsLength }));
+    } catch (error) {
+      isSuccess = false;
     }
 
     if (onSynced) onSynced(isSuccess);
@@ -566,7 +539,7 @@ export function IcsSourceManagementDialog({
             <button
               type="button"
               disabled={
-                loading || (isRunning && getDeviceType() === "AndroidWebView")
+                loading || (isRunning && (getDeviceType() === "AndroidWebView" || capabilitiesAndKind.capabilities.includes("fetchIcs")))
               }
               onClick={() => {
                 setUploadSourceId(null);
@@ -584,7 +557,7 @@ export function IcsSourceManagementDialog({
             </button>
             <button
               type="button"
-              disabled={getDeviceType() !== "AndroidWebView"}
+              disabled={getDeviceType() !== "AndroidWebView" && !capabilitiesAndKind.capabilities.includes("fetchIcs")}
               onClick={() => {
                 setEditingSource(null);
                 setFormName("");

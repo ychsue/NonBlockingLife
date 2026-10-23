@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import { SupportedLocale, useTWithMaps } from "../i18n";
 
 // 一次捕捉 docs 資料夾下所有子目錄的 .md 檔案，並以純文字 (raw) 讀取
-const allMarkdownFiles = import.meta.glob("/src/docs/**/*.md", { as: "raw" });
+const allMarkdownFiles = import.meta.glob("/src/docs/**/*.md", {
+  query: "?raw",
+  import: "default",
+});
 
 /**
  * 通用動態載入 Markdown 的 Hook

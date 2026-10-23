@@ -1,5 +1,65 @@
 # Journal
 
+## [2026-10-23] 更新 TWA 版本號至 NBL-3.2.1，準備發布前測試
+
+## [2026-10-22] 改用新的 Supabase 同步管理方式， 謝謝 Github Copilot (GPT-6 Luna)，他的方法比較好。
+
+## [2026-10-20] 總算解決在Linux裡面垂直滾動的問題了
+原來不是scrolling 的命令沒傳過去，而是，GtkWebView 對於 css的解讀與一般瀏覽器不同，導致scrolling的訊號雖然有傳到前端，卻是被css當作該忽略的。謝謝 Copilot Claud。
+請見 [explain](Discussion/cross_platform/discussion_20261008.md#copilot-回覆除錯路徑與解法)
+
+## [2026-10-19] 大致讓 Linux 也能像是 Windows 那樣跑
+1. [ProtocolRegistration.cs](desktop/src/Nbl.Bridge/ProtocolRegistration.cs) 裡面Linux的部份需要 update-desktop-database 才能使用
+2. [App.axaml.cs](desktop/src/Nbl.Desktop/App.axaml.cs) 則是修改在 TrayIcon 那裡 SetRegistered(!isChecked)，原本沒有 !, 也不更新 isChecked, 可能 AI 漏想了吧？
+3. [MainWindow.axaml.cs](desktop/src/Nbl.Desktop/MainWindow.axaml.cs) 加入 Linux 專屬防護，並且，那個 Shim 裡面使用了 timeInterval 強制它直到連上前端的 port
+4. [shortcutUtils.ts](pwa/src/utils/shortcutUtils.ts) 讓它改用 `nbl:open-external` 來開啟，而非使用 `location.href=`，這種寫法 Linux 下頁面會直接跳轉。
+5. 使用 `ExternalA` 結果, 也要考慮 `/NonBlockingLife/.....` 。
+
+## [2026-10-18] 讓 app.manifest 也被 git 到
+
+## [2026-10-17] 讓 dashboard 也加入 supabase 的管理裡面
+1. 這樣，就算在不同主機上，也可以接續任務的狀態變化。
+2. 做些 NuGet 套件的更新與管理。
+3. [16:58] 會播放預設聲音了
+4. [18:51] 可以放自己想要播放的鈴聲了，而且，每個鬧鐘與計時器隨時可以調整對應的音效
+
+## [2026-10-15] 改良 ToastWindow、Notification 與 多國語 Localization.cs
+1. 改良 ToastWindow，使他可以顯示還剩多少時間，超過會 blink
+2. Notification 前端則為了能將 focusTime 傳下來，做了 schema 的修改，不曉得有沒有不小心引進甚麼問題。
+3. Notification 後端則
+   * [BridgeDispatcher.cs](desktop\src\Nbl.Bridge\BridgeDispatcher.cs) 的 `nbl:notify` 需要多讀取一些欄位
+   * 由於前端送來的 id 為 number，因此，多了 [JsonExtensions.cs](desktop\src\Nbl.Bridge\JsonExtensions.cs) 的對應轉換為String的處理。
+   * 改造 [ToastWindow.cs](desktop\src\Nbl.Desktop\ToastWindow.cs) 以支援新的通知 schema，並且改吃 ToastOptions，方便日後擴充。
+4. 加入多國語 [Localization.cs](desktop\src\Nbl.Desktop\Localization.cs) 提供 `L10n` 支援。
+
+## [2026-10-15] 做出 protocol 與顯示小型時鐘視窗的功能
+1. 讓 `nonblockinglife://....` 可以 ShowClockWindow、 SetTimer，而且也能代替本App的URL。
+   1. 首先是 protocol 的部分，得讓 [App.axaml.cs](desktop\src\Nbl.Desktop\App.axaml.cs) 處理來自瀏覽器的 `nonblockinglife://` 的連結。
+   2. 在 [MainWindow.axaml.cs](desktop\src\Nbl.Desktop\MainWindow.axaml.cs) 處理來自WebView 內部PWA送出的 protocol 的 ShowClock 與 SetTimer 動作與轉譯。這裡利用 `ProtocolUri.Resolve` 來解析 `nonblockinglife://` 的連結。使他只能是 nonblockinglife 或 baseUri 的連結。
+   3. 在 [BridgeDispatcher.cs](desktop\src\Nbl.Bridge\BridgeDispatcher.cs) 的 `nbl:open-external` 處理來自 PWA 的 protocol 請求，解析 `nonblockinglife://` 的連結，並根據不同的 action 進行相應的處理，例如 ShowClock 與 SetTimer。若都不是，就開啟外部瀏覽器來連結。
+3. 為了能自由選定顯示MainWindow 或 ClockWindow，所以在 [IDesktopHost.cs](desktop\src\Nbl.Bridge\IDesktopHost.cs) 中宣告了對應的方法來顯示不同的視窗。
+4. [ProtocolUri.cs](desktop\src\Nbl.Bridge\ProtocolUri.cs) 的 Resolve 負責解析 `nonblockinglife://` 的連結，並將其轉譯為對應的 action，例如 ShowClock 與 SetTimer。
+5. 前端 [shortcutUtils.ts](pwa\src\utils\shortcutUtils.ts) 也支援解析 `nonblockinglife://` 的連結，並根據不同的 action 進行相應的處理，例如 ShowClock 與 SetTimer。
+
+
+## [2026-10-14] 修正一些小問題與優化使用者體驗。還有，思考缺乏的功能。
+[12:02] 1. [MainWindow.axaml.cs](desktop\src\Nbl.Desktop\MainWindow.axaml.cs) 讓他由 [Nbl.Desktop.csproj](desktop\src\Nbl.Desktop\Nbl.Desktop.csproj) 來取得 Version。
+2. 讓 windows 與 linux 能夠由網頁URL 取得 ics。
+3. [ScheduledTable.tsx](pwa\src\components\tables\ScheduledTable.tsx) 讓他 alarms 只使用 exact alarm 那一部份。
+4. [useNativeBridge.ts](pwa\src\native\useNativeBridge.ts) 讓他在取得 nbl:hello 就存到 AppStore 裡面。
+5. [ExternalA.tsx](pwa\src\components\ExternalA.tsx) 讓在桌面與 PWA 環境下都能正確處理外部連結。
+
+## [2026-10-12] 關閉不必要的 import.meta.env.DEV 判斷 與 起始Avalonia 專案
+[08:12] 修正:MainWindow.axaml.cs 現在在 Web.EnvironmentRequested 事件裡,把 UserDataFolder 設成 %LocalAppData%\NonBlockingLife\WebView2 ，這樣， `dotnet ....` 才會使用這個資料夾作為 WebView2 的使用者資料夾。
+[16:26] 加入 Alarm 與 Notification，但還有些問題，比如計時器功能還沒有。
+[20:30] 有完成小型時鐘視窗的初步實作，鬧鐘與計時器功能已經可以使用。
+
+## [2026-10-11] 試著做成多平台
+[16:27] [NativeBridge.ts](pwa\src\native\NativeBridge.ts) 新增了 `NativeBridge` 介面，用於統一 PWA 與原生橋接的呼叫方式。
+[18:00] 多增加 `nbl:hello` / `nbl:hello-response` 訊息，用於能力協商。
+[18:28] 開始實作 `fetchIcsWithFallback`，依序嘗試 native → 直連 → Supabase Edge Function。變乾淨了。
+[18:49] 初始化 Avalonia
+
 ## [2026-10-11] (3.1.7) 修正一些bug，提升穩定性。
 1. [SupabaseSyncManager.ts](pwa\src\utils\SupabaseSyncManager.ts) 當網路連線失敗，error.message 會被正確捕捉並處理。
 2. [SyncStatus.tsx](pwa\src\components\SyncStatus.tsx) 修正了當 pendingChangeLogs.length=0 時的顯示邏輯。

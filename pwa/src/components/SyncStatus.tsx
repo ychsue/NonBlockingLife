@@ -294,6 +294,7 @@ export function SyncStatus({
       .then((logs) => {
         setPendingChangeLogs(logs);
       });
+    needToTestSync.current = true; // 標記需要測試同步連接
   }, []);
 
   /**
@@ -304,6 +305,8 @@ export function SyncStatus({
       setSyncStr(getStoredGasUrl());
     } else if (syncType === "supabase") {
       setSyncStr(getStoredSupabaseUrlKey());
+    } else if (syncType === "none") {
+      setSyncStr("none");
     }
   }, [syncType]);
 

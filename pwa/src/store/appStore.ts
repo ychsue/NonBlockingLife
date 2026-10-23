@@ -3,6 +3,8 @@ import type { SheetName } from "../hooks/useUrlAction";
 import { ChangeLogEntry, Dashboard, db, ProjectItem } from "../db/schema";
 import type { SupportedLocale } from "../i18n";
 import { debounce } from "lodash";
+import { NativeCapability, NativeShellKind } from "../native/NativeBridge";
+import _ from "lodash";
 
 function getInitialLocale(): SupportedLocale {
   const storage =
@@ -271,6 +273,18 @@ interface AppState {
 
   pendingChangeLogs: ChangeLogEntry[]; // Assuming ChangeLogItem is the type for change logs
   setPendingChangeLogs: (logs: ChangeLogEntry[]) => void;
+
+  capabilitiesAndKind: {
+    capabilities: NativeCapability[];
+    kind: NativeShellKind;
+  };
+  setCapabilitiesAndKind: ({
+    capabilities,
+    kind,
+  }: {
+    capabilities: NativeCapability[];
+    kind: NativeShellKind;
+  }) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -326,6 +340,8 @@ export const useAppStore = create<AppState>((set) => ({
   loadRunningTask: async () => {
     const rows = await db.dashboard.toArray();
     const current = rows[0] ?? null;
+    // 如果沒改變`runningTask`，就不更新狀態
+    if (_.isEqual(current, useAppStore.getState().runningTask)) return;
     set({ runningTask: current });
   },
 
@@ -402,4 +418,11 @@ export const useAppStore = create<AppState>((set) => ({
 
   pendingChangeLogs: [],
   setPendingChangeLogs: (logs) => set({ pendingChangeLogs: logs }),
+
+  capabilitiesAndKind: { capabilities: [], kind: "web" } as {
+    capabilities: NativeCapability[];
+    kind: NativeShellKind;
+  },
+  setCapabilitiesAndKind: ({ capabilities, kind }) =>
+    set({ capabilitiesAndKind: { capabilities, kind } }),
 }));

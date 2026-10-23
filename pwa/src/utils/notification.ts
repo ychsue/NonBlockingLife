@@ -12,7 +12,12 @@ import { getDeviceType } from "./shortcutUtils";
 export const notify = (
   title: string,
   body: string,
-  options?: { dismissOnClick?: boolean; url?: string; id?: number },
+  options?: {
+    dismissOnClick?: boolean;
+    url?: string;
+    id?: number;
+    duration?: number;
+  },
 ) => {
   const dismissOnClick = options?.dismissOnClick ?? true;
   const twaPort = (
@@ -34,6 +39,7 @@ export const notify = (
         id: options?.id ?? Date.now() & 0x7fffffff,
         url: options?.url ?? window.location.href,
         dismissOnClick,
+        duration: options?.duration ?? 0,
       }),
     );
     return;
@@ -51,10 +57,10 @@ export const notify = (
   } else if (deviceType === "Android") {
     alert(
       locale == "zh-TW"
-        ? `[Android] 若您正參與Play商店的封閉測試卻看到這訊息，那表示APP內通路可能出問題，PWA版本(${import.meta.env.__APP_VERSION__})更新也會導致通路斷掉，請重啟這個APP。若不是，等通過封閉測試後，安裝此APP就可以主動提醒您。`
+        ? `[Android] 請改使用 Play 商店的版本，連結如下： https://play.google.com/store/apps/details?id=com.yescirculation.nonblockinglife`
         : locale == "ja"
-          ? `[Android] Playストアのクローズドテストに参加していてこのメッセージが表示されたら、アプリの通知経路に問題があるかもしれません。アプリを再起動してください。PWAバージョン(${import.meta.env.__APP_VERSION__})の更新でもチャンネルが切断されることがあります。それ以外の場合は、クローズドテストを通過した後にこのアプリをインストールすると通知を受け取れるようになります。`
-          : `[Android] If you are participating in the Play Store closed test and see this message, it means that there may be a problem with the notification path in the app. Please restart this app. Updating the PWA version (${import.meta.env.__APP_VERSION__}) can also cause the channels to be disconnected. If not, after passing the closed test, installing this app will allow you to receive notifications.`,
+          ? `[Android] Playストアのバージョンを使用してください。リンクはこちら： https://play.google.com/store/apps/details?id=com.yescirculation.nonblockinglife`
+          : `[Android] Please use the version from the Play Store: https://play.google.com/store/apps/details?id=com.yescirculation.nonblockinglife`,
     );
   }
 
@@ -109,7 +115,11 @@ export const notify = (
 };
 
 export const notifies = {
-  taskStarted: (taskTitle: string, locale: string) => {
+  taskStarted: (
+    taskTitle: string,
+    locale: string,
+    durationInMinutes: number,
+  ) => {
     notify(
       locale === "zh-TW"
         ? "工作進行中"
@@ -121,7 +131,7 @@ export const notifies = {
         : locale === "ja"
           ? `${taskTitle} を開始しました。`
           : `${taskTitle} has started. Stay focused.`,
-      { dismissOnClick: false, id: 1 },
+      { dismissOnClick: false, id: 1, duration: durationInMinutes * 60 },
     );
   },
   taskEnded: (previousTaskTitle: string, locale: string) => {

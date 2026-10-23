@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useAppStore } from "../store/appStore";
+import { ExternalA } from "./ExternalA";
 
 interface TableHelpDialogProps {
   isOpen: boolean;
@@ -64,7 +65,7 @@ export function TableHelpDialog({
                   const cleanHref = href.replace("#btn", "");
 
                   return (
-                    <a
+                    <ExternalA
                       href={cleanHref}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -73,19 +74,19 @@ export function TableHelpDialog({
                       {...props}
                     >
                       🎥 {children}
-                    </a>
+                    </ExternalA>
                   );
                 }
 
                 // 一般的超連結樣式
                 return (
-                  <a
-                    href={href}
+                  <ExternalA
+                    href={href??""}
                     className="text-blue-600 hover:text-blue-800 underline"
                     {...props}
                   >
                     {children}
-                  </a>
+                  </ExternalA>
                 );
               },
               h1: ({ children }) => (

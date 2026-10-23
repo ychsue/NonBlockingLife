@@ -1,6 +1,7 @@
 import { stringify } from 'yaml'
 import { ADD_TARGET_TABLES, COMMAND_SPECS } from '../../macro/commandRegistry'
 import { useTWithMaps } from '../../i18n'
+import { ExternalA } from '../ExternalA';
 
 export function MacroHelp() {
   const tHere = useTWithMaps({
@@ -31,9 +32,9 @@ export function MacroHelp() {
           <div className="font-medium text-gray-800">{tHere("Allowed add targets")}</div>
           <div>{ADD_TARGET_TABLES.join(', ')}</div>
           {/* 讓<a>看起來像Button */}
-          <a href="https://youtube.com/shorts/fmzZwrnK8oo" className="inline-block rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600" target="_blank" rel="noopener noreferrer">
+          <ExternalA href="https://youtube.com/shorts/fmzZwrnK8oo" className="inline-block rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600" target="_blank" rel="noopener noreferrer">
             {tHere("YouTube Tutorial")}
-          </a>
+          </ExternalA>
         </div>
 
         {COMMAND_SPECS.map((spec) => (

@@ -128,11 +128,19 @@ export async function applyChange({
       // Otherwise, clear all previous changes and add the delete
       await db.change_log.bulkDelete(existingChanges.map((c) => c.id));
     }
-  } else if (op === "update") {
+  } else if (op === "update" || op === "add" || op === "put") {
     // If updating, merge with previous update patch
-    const previousUpdates = existingChanges.filter((c) => c.op === "update" || c.op === "add"); // 應該只有一個才對。
+    const previousUpdates = existingChanges.filter(
+      (c) => c.op === "update" || c.op === "add" || c.op === "put",
+    ); // 應該只有一個才對。
+    const previousDeleted = existingChanges.filter((c) => c.op === "delete"); // 應該最多只有一個才對。
     const isAdd = previousUpdates.some((c) => c.op === "add");
-    if (previousUpdates.length > 0) {
+    if (previousDeleted.length > 0) {
+      // If there is a previous delete, the net effect is that the record was deleted and then updated/added/put
+      // In this case, we should treat the operation as an add
+      op = "add";
+      await db.change_log.bulkDelete(previousDeleted.map((c) => c.id)); // Delete previous delete entries，照理講，這個 delete 的前面應該沒有其他 pending changes，因為如果有，應該在這個if 的第一個就已經被處理掉了。
+    } else if (previousUpdates.length > 0) {
       const lastUpdate = previousUpdates[previousUpdates.length - 1];
       // Merge patches: old patch + new patch
       const mergedPatch = { ...lastUpdate.patch, ...patch };
@@ -144,6 +152,9 @@ export async function applyChange({
       // Update patch to merged version
       patch = mergedPatch;
     }
+  } else {
+    //bulkdelete 還不曉得怎麼做
+    console.log("Unhandled operation:", op, patch);
   }
   // For 'add' operation, no special handling needed
 

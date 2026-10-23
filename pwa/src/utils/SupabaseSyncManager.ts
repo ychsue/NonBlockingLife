@@ -13,6 +13,44 @@ import { ChangeLogEntry } from "../db/schema";
 import { useAppStore } from "../store/appStore";
 
 const CLIENT_ID = "SupabaseSyncManager";
+const PULL_CURSOR_KEY = "supabase:pull-cursor";
+const PUSH_BATCH_SIZE = 100;
+
+interface PushGroup {
+  table: SyncTable;
+  recordId: string;
+  changes: ChangeLogEntry[];
+  operationId: string;
+  op: ChangeLogEntry["op"];
+  expectedVersion: number;
+  data: Record<string, unknown>;
+}
+
+interface PushRpcResult {
+  operationId: string;
+  status: "success" | "conflict" | "rejected";
+  serverVersion?: number;
+  serverData?: Record<string, unknown>;
+  deleted?: boolean;
+  syncedAt?: number;
+  error?: string;
+}
+
+interface PullRpcChange {
+  seq: number;
+  table: string;
+  recordId: string;
+  data: Record<string, unknown>;
+  deleted: boolean;
+  serverVersion: number;
+}
+
+interface PullRpcResult {
+  changes: PullRpcChange[];
+  nextCursor: number;
+  throughCursor: number;
+  hasMore: boolean;
+}
 
 export class SupabaseSyncManager extends SyncManagerBase {
   private supabase: SupabaseClient;
@@ -39,10 +77,23 @@ export class SupabaseSyncManager extends SyncManagerBase {
   }
 
   async testConnection(): Promise<boolean> {
+    // 測試與 Supabase 的連線是否正常，並且確定版本號是否為 2.0.0
     const { data, error } = await this.supabase
-      .from("log")
-      .select("*")
-      .limit(1);
+      .rpc("fetch_global_settings");
+    if (error) {
+      console.error("Failed to fetch global settings:", error);
+      alert("Failed to fetch global settings from Supabase. Please check your connection and try again.");
+      return false;
+    }
+    if (_.isArray(data)) {
+      const expectedVersion = "2.0.0";
+      const setting = data.find((item) => item.key === "supabase_schema_version");
+      if (!setting || setting.data.version !== expectedVersion) {
+        console.error("Invalid global settings or version mismatch:", data);
+        alert(`Version mismatch: expected ${expectedVersion}, got ${setting?.data.version}. You need to run new initialize.sql on your Supabase instance.`);
+        return false;
+      }
+    }
     return !error;
   }
 
@@ -59,132 +110,16 @@ export class SupabaseSyncManager extends SyncManagerBase {
 
       if (pendingChanges.length === 0) return { success: 0, failed: 0 };
 
-      // 1. 過濾出支援雲端同步的 Table
       const syncableChanges = pendingChanges.filter((c) =>
         this.isSyncTable(c.table),
       );
-      let successCount = 0;
-      const now = Date.now();
-      // 使用 lodash 將變更按 table 分組，然後再分成 delete 與其他操作，方便批次處理
-      const groupedByTable = _.groupBy(syncableChanges, "table");
-      const deleteChangesByTable: Record<string, ChangeLogEntry[]> = {};
-      const otherChangesByTable: Record<string, ChangeLogEntry[]> = {};
-
-      for (const [table, changes] of Object.entries(groupedByTable)) {
-        deleteChangesByTable[table] = changes.filter((c) => c.op === "delete");
-        otherChangesByTable[table] = changes.filter((c) => c.op !== "delete");
-      }
-      // delete 的部分使用 .delete().in([ids]) 來刪除
-      for (const [table, deleteChanges] of Object.entries(
-        deleteChangesByTable,
-      )) {
-        if (deleteChanges.length > 0) {
-          // 確保一個 primary key 對應的記錄唯一
-          const ids = deleteChanges
-            .map((c) => c.recordId)
-            .filter((v, i, a) => a.indexOf(v) === i);
-          const primaryKey = this.getPrimaryKeyName(table as SyncTable);
-          // const { error } = await this.supabase
-          //   .from(table)
-          //   .delete()
-          //   .in(primaryKey, ids);
-          // 應該改為將他們的 deleted 設為 true，而不是直接刪除
-          const { error } = await this.supabase
-            .from(table)
-            .update({ deleted: true, synced_at: now })
-            .in(primaryKey, ids);
-
-          if (!error) {
-            successCount += deleteChanges.length;
-            for (const c of deleteChanges) {
-              await db.change_log.update(c.id, {
-                status: "synced",
-                syncedAt: Date.now(),
-              });
-            }
-          } else {
-            console.error("Failed to delete records from table", table, error);
-            for (const c of deleteChanges) {
-              await db.change_log.update(c.id, {
-                retryCount: (c.retryCount ?? 0) + 1,
-              });
-            }
-          }
-        }
-      }
-      // 其他操作的部分使用 upsert 來處理
-      for (const [table, otherChanges] of Object.entries(otherChangesByTable)) {
-        if (otherChanges.length > 0) {
-          const primaryKey = this.getPrimaryKeyName(table as SyncTable);
-          const records = [];
-          // 得根據 primary key 來確保每個記錄唯一，若超過一個，就組合起來，後面有的值會覆蓋前面的值，如 {a: 1, b: 2} 與 {a: 3} 會合併成 {a: 3, b: 2}
-          const idGroups = _.groupBy(otherChanges, (c) => c.recordId);
-          for (const [recordId, changes] of Object.entries(idGroups)) {
-            const c = changes[changes.length - 1]; // 取最後一個，後面的值會覆蓋前面的值
-            c.patch = _.merge({}, ...changes.map((c) => c.patch)); // 合併多個變更，後面的值會覆蓋前面的值
-            const localRecord = await db
-              .table(table as SyncTable)
-              .get(c.recordId);
-            if (table === "log") {
-              if (localRecord) {
-                delete localRecord.updatedAt;
-                localRecord.task_id = localRecord.taskId;
-                delete localRecord.taskId;
-              } else {
-                if (c.patch) {
-                  c.patch.task_id = c.patch.taskId;
-                  delete c.patch.taskId;
-                }
-              }
-              records.push({
-                ...(localRecord ?? c.patch ?? {}),
-                [primaryKey]: c.recordId,
-                updated_at: c.createdAt,
-                device_id: this.deviceId,
-                operation_id: c.id,
-                synced_at: now,
-              });
-            } else {
-              records.push({
-                [primaryKey]: c.recordId,
-                data: localRecord ?? c.patch ?? {},
-                updated_at: c.createdAt,
-                device_id: this.deviceId,
-                operation_id: c.id,
-                synced_at: now,
-              });
-            }
-          }
-          const { error } = await this.supabase.from(table).upsert(records);
-          if (!error) {
-            successCount += otherChanges.length;
-            for (const c of otherChanges) {
-              await db.change_log.update(c.id, {
-                status: "synced",
-                syncedAt: Date.now(),
-              });
-            }
-          } else {
-            console.error("Failed to upsert records into table", table, error);
-            for (const c of otherChanges) {
-              await db.change_log.update(c.id, {
-                retryCount: (c.retryCount ?? 0) + 1,
-              });
-            }
-          }
-
-          // 更新 pendingChangeLogs
-          const pending = await db.change_log
-            .where({ status: "pending" })
-            .toArray();
-          useAppStore.getState().setPendingChangeLogs(pending);
-        }
-      }
-
-      return {
-        success: successCount,
-        failed: syncableChanges.length - successCount,
-      };
+      const groups = await this.createPushGroups(syncableChanges);
+      const result = await this.pushGroups(groups, true);
+      const pending = await db.change_log
+        .where({ status: "pending" })
+        .toArray();
+      useAppStore.getState().setPendingChangeLogs(pending);
+      return result;
     } catch (error) {
       console.error("Supabase Push 失敗:", error);
       return { success: 0, failed: -1, error: String(error) };
@@ -192,82 +127,391 @@ export class SupabaseSyncManager extends SyncManagerBase {
   }
 
   /**
-   * 從 Supabase 拉取最新變更
+   * 拉取 Supabase 變更，並在本機套用成功後保存伺服器游標。
    */
   async pull(): Promise<{ success: number; error?: string }> {
-    let currentType = null;
-    let currentRecord = null;
     try {
-      const lastSync = this.lastSyncTimestamp;
-      const tables: SyncTable[] = [
-        "task_pool",
-        "scheduled",
-        "micro_tasks",
-        "inbox",
-        "resource",
-        "macro",
-        "ics_events",
-        "ics_sources",
-        "projects",
-        "ics_export_configs",
-        "global_settings",
-      ]; // 注意：Log 保持單向推送，不從雲端 pull
-
+      let cursor = await this.getPullCursor();
+      let throughCursor: number | null = null;
       let mergedCount = 0;
-      const nowSyncTime = Date.now();
+      let hasMore = true;
 
-      for (const table of tables) {
-        // 利用 PostgreSQL 的 synced_at 進行增量拉取
-        const { data, error } = await this.supabase
-          .from(table)
-          .select("*")
-          .gt("synced_at", lastSync);
+      while (hasMore) {
+        const { data, error } = await this.supabase.rpc("pull_sync_changes", {
+          p_after_cursor: cursor,
+          p_through_cursor: throughCursor,
+          p_limit: 500,
+        });
+        if (error) throw error;
 
-        if (error) {
-          if (error.message.indexOf("Failed to fetch")) {
-            throw error;
-          }
-          continue;
+        const page = data as PullRpcResult;
+        if (
+          !page ||
+          !Array.isArray(page.changes) ||
+          !Number.isSafeInteger(page.nextCursor) ||
+          !Number.isSafeInteger(page.throughCursor) ||
+          page.nextCursor < cursor ||
+          page.nextCursor > page.throughCursor ||
+          typeof page.hasMore !== "boolean"
+        ) {
+          throw new Error("Invalid pull_sync_changes response");
         }
 
-        for (const row of data) {
-          const record =
-            table === "log"
-              ? row
-              : {
-                  ...row.data,
-                  taskId: row.data.taskId ?? row.data.task_id ?? row.task_id,
-                  updatedAt: row.updated_at,
-                };
-
-          const primaryKey = this.getPrimaryKeyName(table);
-          if (!record[primaryKey]) {
-            record[primaryKey] = row[primaryKey];
+        throughCursor = page.throughCursor;
+        for (const change of page.changes) {
+          if (!this.isSyncTable(change.table) || change.table === "log") {
+            throw new Error(
+              `Unsupported table in change feed: ${change.table}`,
+            );
           }
-
-          currentRecord = record; //DEBUG
-          if (row.deleted) {
-            currentType = "delete"; //DEBUG
-            await db.table(table).delete(row[primaryKey]);
-          } else {
-            currentType = "update"; // DEBUG
-            await db.table(table).put(record);
-          }
+          await this.applyPulledChange(change);
           mergedCount++;
         }
+
+        cursor = page.nextCursor;
+        await db.sync_state.put({ key: PULL_CURSOR_KEY, value: cursor });
+        hasMore = page.hasMore;
       }
 
-      this.saveLastSyncTimestamp(nowSyncTime);
+      this.saveLastSyncTimestamp(Date.now());
       return { success: mergedCount };
     } catch (error) {
       console.error("Supabase Pull 失敗:", error);
       return {
         success: 0,
-        error: `[${
-          currentType ?? "unknown"
-        }][${JSON.stringify(currentRecord) ?? "no record"}] ${(error as Error)?.message??JSON.stringify(error)}`,
+        error: String(error),
       };
     }
+  }
+
+  /**
+   * Supabase uses pull-before-push; GAS retains the legacy ordering in the base class.
+   */
+  async sync(): Promise<SyncResult> {
+    const locale = useAppStore.getState().locale;
+    const labels = {
+      "zh-TW": {
+        pullFailed: "拉取失敗",
+        pushFailed: "推送失敗",
+        completed: "同步完成",
+        conflict: "筆變更衝突或遭拒",
+      },
+      en: {
+        pullFailed: "Pull failed",
+        pushFailed: "Push failed",
+        completed: "Sync completed",
+        conflict: "change(s) conflicted or were rejected",
+      },
+      ja: {
+        pullFailed: "プル失敗",
+        pushFailed: "プッシュ失敗",
+        completed: "同期完了",
+        conflict: "件の変更が競合または拒否されました",
+      },
+    }[locale];
+    const startTime = Date.now();
+    const pullResult = await this.pull();
+    if (pullResult.error) {
+      return {
+        status: "error",
+        pushed: 0,
+        pulled: 0,
+        message: `${labels.pullFailed}: ${pullResult.error}`,
+        timestamp: Date.now(),
+      };
+    }
+
+    const pushResult = await this.push();
+    if (pushResult.error || pushResult.failed > 0) {
+      return {
+        status: "error",
+        pushed: pushResult.success,
+        pulled: pullResult.success,
+        message: `${labels.pushFailed}: ${pushResult.error ?? `${pushResult.failed} ${labels.conflict}`}`,
+        timestamp: Date.now(),
+      };
+    }
+
+    return {
+      status: "success",
+      pushed: pushResult.success,
+      pulled: pullResult.success,
+      message: `${labels.completed} (${Date.now() - startTime}ms)`,
+      timestamp: Date.now(),
+    };
+  }
+
+  private async createPushGroups(
+    changes: ChangeLogEntry[],
+  ): Promise<PushGroup[]> {
+    const grouped = _.groupBy(changes, (change) =>
+      JSON.stringify([change.table, change.recordId]),
+    );
+    const groups: PushGroup[] = [];
+
+    for (const entries of Object.values(grouped)) {
+      const ordered = entries.slice().sort((a, b) => a.createdAt - b.createdAt);
+      const latest = ordered[ordered.length - 1];
+      if (!this.isSyncTable(latest.table)) continue;
+
+      const localRecord = await db.table(latest.table).get(latest.recordId);
+      const patch = Object.assign(
+        {},
+        ...ordered.map((entry) => entry.patch ?? {}),
+      );
+      const record =
+        localRecord && typeof localRecord === "object"
+          ? { ...(localRecord as Record<string, unknown>) } // 因為先前就已經修改db上的資料，changelog是要sync的，所以要以localRecord為主，無須再套用 patch
+          : { ...patch }; // 如果 localRecord 不存在，則使用 patch 作為資料來源，因為代表有一個新增出現
+      const op =
+        !localRecord && latest.op === "bulkdelete"
+          ? "delete"
+          : this.normalizeOp(latest.op);
+
+      if (latest.table === "log") {
+        delete record.updatedAt;
+        if ("taskId" in record) {
+          record.task_id = record.taskId;
+          delete record.taskId;
+        }
+      }
+
+      groups.push({
+        table: latest.table,
+        recordId: latest.recordId,
+        changes: ordered,
+        operationId: latest.id,
+        op,
+        expectedVersion:
+          latest.table === "log"
+            ? 0
+            : await this.getServerVersion(latest.table, latest.recordId),
+        data: record,
+      });
+    }
+
+    return groups;
+  }
+
+  private async pushGroups(
+    groups: PushGroup[],
+    retryConflicts: boolean,
+  ): Promise<{ success: number; failed: number; error?: string }> {
+    let successCount = 0;
+    let failedCount = 0;
+    const retryGroups: PushGroup[] = [];
+
+    for (let offset = 0; offset < groups.length; offset += PUSH_BATCH_SIZE) {
+      const batch = groups.slice(offset, offset + PUSH_BATCH_SIZE);
+      const { data, error } = await this.supabase.rpc("push_sync_changes", {
+        p_changes: batch.map((group) => ({
+          table: group.table,
+          recordId: group.recordId,
+          operationId: group.operationId,
+          op: group.op,
+          expectedVersion: group.expectedVersion,
+          data: group.data,
+          deviceId: this.deviceId,
+        })),
+      });
+
+      if (error) {
+        for (const group of batch) {
+          await this.incrementRetryCount(group.changes);
+        }
+        return {
+          success: successCount,
+          failed:
+            failedCount +
+            batch.reduce((sum, group) => sum + group.changes.length, 0),
+          error: error.message,
+        };
+      }
+
+      const results = (data as { results?: PushRpcResult[] } | null)?.results;
+      if (!Array.isArray(results)) {
+        return {
+          success: successCount,
+          failed:
+            failedCount +
+            batch.reduce((sum, group) => sum + group.changes.length, 0),
+          error: "Invalid push_sync_changes response",
+        };
+      }
+
+      for (const group of batch) {
+        const result = results.find(
+          (item) => item.operationId === group.operationId,
+        );
+        if (result?.status === "success") {
+          if (group.table !== "log") {
+            if (
+              typeof result.serverVersion !== "number" ||
+              !Number.isSafeInteger(result.serverVersion)
+            ) {
+              throw new Error(
+                `Missing server version for ${group.operationId}`,
+              );
+            }
+            await this.saveServerVersion(
+              group.table,
+              group.recordId,
+              result.serverVersion,
+            );
+          }
+          await this.markChangesSynced(group.changes);
+          successCount += group.changes.length;
+        } else if (
+          result?.status === "conflict" &&
+          retryConflicts &&
+          Number.isSafeInteger(result.serverVersion)
+        ) {
+          await this.rebaseConflictedGroup(group, result);
+          retryGroups.push(group);
+        } else {
+          failedCount += group.changes.length;
+          await this.incrementRetryCount(group.changes);
+        }
+      }
+    }
+
+    if (retryGroups.length > 0) {
+      const retryResult = await this.pushGroups(retryGroups, false);
+      successCount += retryResult.success;
+      failedCount += retryResult.failed;
+      if (retryResult.error) {
+        return {
+          success: successCount,
+          failed: failedCount,
+          error: retryResult.error,
+        };
+      }
+    }
+
+    return { success: successCount, failed: failedCount };
+  }
+
+  private async rebaseConflictedGroup(
+    group: PushGroup,
+    result: PushRpcResult,
+  ): Promise<void> {
+    if (typeof result.serverVersion !== "number") {
+      throw new Error(
+        `Missing server version for conflict ${group.operationId}`,
+      );
+    }
+    const serverData = result.serverData ?? {};
+    const rebased = Object.assign(
+      {},
+      serverData,
+      ...group.changes.map((change) => change.patch ?? {}),
+    );
+
+    group.expectedVersion = result.serverVersion;
+    if (group.op !== "delete") {
+      group.data = rebased;
+      const primaryKey = this.getPrimaryKeyName(group.table, "local");
+      group.data[primaryKey] = group.recordId;
+      await db.table(group.table).put(group.data);
+    }
+    await this.saveServerVersion(
+      group.table,
+      group.recordId,
+      result.serverVersion,
+    );
+  }
+
+  private async applyPulledChange(change: PullRpcChange): Promise<void> {
+    const table = change.table as SyncTable;
+    const pending = await db.change_log
+      .where("table")
+      .equals(table)
+      .and(
+        (entry) =>
+          entry.recordId === change.recordId && entry.status === "pending",
+      )
+      .count();
+
+    if (pending > 0) {
+      // 如果 table 為 task_pool，該Id為 change.recordId，然後她的 lastRunDate < change 的，則應該處理
+      if (table === "task_pool" && change.data?.lastRunDate) {
+        const localRecord = await db.table("task_pool").get(change.recordId);
+        if (localRecord?.lastRunDate >= change.data.lastRunDate) {
+          return; // 本地的 lastRunDate 更新，不需要應用拉取的變更
+        }
+        // 如果 task_pool 的 lastRunDate 小於拉取的變更，則應該處理
+      } else return; // TODO 若有待同步的本地更改，是否應該跳過應用拉取的變更？
+    }
+    if (change.deleted) {
+      await db.table(table).delete(change.recordId);
+    } else {
+      const record = { ...change.data };
+      const primaryKey = this.getPrimaryKeyName(table, "local");
+      record[primaryKey] = change.recordId;
+      await db.table(table).put(record);
+    }
+
+    await this.saveServerVersion(table, change.recordId, change.serverVersion);
+  }
+
+  private async getPullCursor(): Promise<number> {
+    const entry = await db.sync_state.get(PULL_CURSOR_KEY);
+    const value = entry?.value;
+    return typeof value === "number" && Number.isSafeInteger(value) ? value : 0;
+  }
+
+  private getServerVersionKey(table: SyncTable, recordId: string): string {
+    return `supabase:version:${JSON.stringify([table, recordId])}`;
+  }
+
+  private async getServerVersion(
+    table: SyncTable,
+    recordId: string,
+  ): Promise<number> {
+    const entry = await db.sync_state.get(
+      this.getServerVersionKey(table, recordId),
+    );
+    return typeof entry?.value === "number" && Number.isSafeInteger(entry.value)
+      ? entry.value
+      : 0;
+  }
+
+  private async saveServerVersion(
+    table: SyncTable,
+    recordId: string,
+    version: number,
+  ): Promise<void> {
+    await db.sync_state.put({
+      key: this.getServerVersionKey(table, recordId),
+      value: version,
+    });
+  }
+
+  private async markChangesSynced(changes: ChangeLogEntry[]): Promise<void> {
+    const syncedAt = Date.now();
+    await Promise.all(
+      changes.map((change) =>
+        db.change_log.update(change.id, {
+          status: "synced",
+          syncedAt,
+        }),
+      ),
+    );
+  }
+
+  private async incrementRetryCount(changes: ChangeLogEntry[]): Promise<void> {
+    await Promise.all(
+      changes.map((change) =>
+        db.change_log.update(change.id, {
+          retryCount: (change.retryCount ?? 0) + 1,
+        }),
+      ),
+    );
+  }
+
+  public async getGlobalSettings(): Promise<any[]> {
+    const settings = await this.supabase.rpc("fetch_global_settings");
+    return settings.data ?? [];
   }
 
   async allTablesToSupabase(): Promise<{

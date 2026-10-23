@@ -7,7 +7,6 @@ import {
   isValidICloudShortcutUrl,
   setNblTimerInstallUrl,
 } from "../utils/shortcutUtils";
-import { useTwaRpc } from "../hooks/useTwaRpc";
 import { sleep } from "../utils/timeUtils";
 import { SupportedLocale, useTWithMaps } from "../i18n";
 import { GuidePageIntro } from "./GuideSubComponent/GuidePageIntro";
@@ -16,6 +15,8 @@ import { GuideHowToUse } from "./GuideSubComponent/GuideHowToUse";
 import { GuideDataImportAndExport } from "./GuideSubComponent/GuideDataImportAndExport";
 import { GuideSyncExplanation } from "./GuideSubComponent/GuideSyncExplanation";
 import { GuideProgress } from "./GuideSubComponent/GuideProgress";
+import { useNativeBridge } from "../native/useNativeBridge";
+import { ExternalA } from "./ExternalA";
 
 const SHORTCUTS = (locale: SupportedLocale) => [
   {
@@ -160,13 +161,13 @@ export function GuidePage() {
   const setStartupPreference = useAppStore(
     (state) => state.setStartupPreference,
   );
+  const bridge = useNativeBridge();
   const [timerUrlInput, setTimerUrlInput] = useState(getNblTimerInstallUrl());
   const [saved, setSaved] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [isIOS] = useState(getDeviceType() === "Shortcuts");
 
   const deviceType = useMemo(() => getDeviceType(), []);
-  const { sendRequest } = useTwaRpc();
   const [androidWebViewVersion, setAndroidWebViewVersion] = useState<
     string | null
   >(null);
@@ -175,49 +176,58 @@ export function GuidePage() {
 
   const tHere = useTWithMaps({
     "zh-TW": {
-      "說明頁": "說明頁",
-      "查看首次教學輪播": "查看首次教學輪播",
-      "可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。": "可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。",
+      說明頁: "說明頁",
+      查看首次教學輪播: "查看首次教學輪播",
+      "可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。":
+        "可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。",
       介紹影片與使用案例: "介紹影片與使用案例",
-      "先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。": "先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。",
+      "先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。":
+        "先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。",
       "前往 YouTube 頻道": "前往 YouTube 頻道",
-      "觀看影片": "觀看影片",
+      觀看影片: "觀看影片",
       "安裝 Shortcut": "安裝 Shortcut",
       "API 範例": "API 範例",
       "iOS Shortcuts 安裝": "iOS Shortcuts 安裝",
     },
     en: {
-      "說明頁": "Guide Page",
-      "查看首次教學輪播": "View the first tutorial carousel",
-      "可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。": "You can reopen the homepage tutorial at any time, and when adding animations page by page later, you will also enter from here.",
-      "介紹影片與使用案例": "Introduction Videos and Use Cases",
-      "先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。": "First watch the concept video to get started quickly, and various practical cases will continue to be added here later.",
+      說明頁: "Guide Page",
+      查看首次教學輪播: "View the first tutorial carousel",
+      "可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。":
+        "You can reopen the homepage tutorial at any time, and when adding animations page by page later, you will also enter from here.",
+      介紹影片與使用案例: "Introduction Videos and Use Cases",
+      "先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。":
+        "First watch the concept video to get started quickly, and various practical cases will continue to be added here later.",
       "前往 YouTube 頻道": "Go to YouTube Channel",
-      "觀看影片": "Watch Video",
+      觀看影片: "Watch Video",
       "安裝 Shortcut": "Install Shortcut",
       "API 範例": "API Examples",
       "iOS Shortcuts 安裝": "iOS Shortcuts Installation",
     },
     ja: {
-      "說明頁": "ガイドページ",
-      "查看首次教學輪播": "最初のチュートリアルカルーセルを見る",
-      "可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。": "ホームページのチュートリアルはいつでも再度開くことができ、後でページごとにアニメーションを追加する際にもここから入ります。",
-      "介紹影片與使用案例": "紹介動画と使用例",
-      "先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。": "まず概念動画を見て素早く始め、その後さまざまな実践例がここに追加され続けます。",
+      說明頁: "ガイドページ",
+      查看首次教學輪播: "最初のチュートリアルカルーセルを見る",
+      "可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。":
+        "ホームページのチュートリアルはいつでも再度開くことができ、後でページごとにアニメーションを追加する際にもここから入ります。",
+      介紹影片與使用案例: "紹介動画と使用例",
+      "先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。":
+        "まず概念動画を見て素早く始め、その後さまざまな実践例がここに追加され続けます。",
       "前往 YouTube 頻道": "YouTube チャンネルへ",
-      "觀看影片": "動画を見る",
+      觀看影片: "動画を見る",
       "安裝 Shortcut": "ショートカットをインストール",
       "API 範例": "API の例",
       "iOS Shortcuts 安裝": "iOS ショートカットのインストール",
-    }
+    },
   });
 
   useEffect(() => {
-    if (!import.meta.env.DEV && !["TWA", "AndroidWebView"].includes(deviceType))
+    if (
+      !["TWA", "AndroidWebView"].includes(deviceType) &&
+      bridge?.kind !== "desktop"
+    )
       return;
 
     sleep(20)
-      .then(() => sendRequest("nbl:version", {}))
+      .then(() => bridge.request("nbl:version", {}))
       .then((response: any) => {
         if (response?.type === "nbl:version-response") {
           console.log("Android WebView version response:", response);
@@ -225,8 +235,7 @@ export function GuidePage() {
         }
       });
     setRefreshAndroidWebViewInfo(false);
-  }, [deviceType, sendRequest, refreshAndroidWebViewInfo]);
-
+  }, [deviceType, bridge, refreshAndroidWebViewInfo]);
 
   const canInstallNblTimer = useMemo(
     () => isValidICloudShortcutUrl(timerUrlInput),
@@ -250,7 +259,6 @@ export function GuidePage() {
     },
     [setCurrentSheet],
   );
-
 
   function isVideoForCurrentLocale(
     video: (Record<string, any> & { language?: string })[number],
@@ -292,11 +300,14 @@ export function GuidePage() {
     <>
       <section className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
         <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <h2 className="text-xl font-bold text-gray-800 mb-2">📘 {tHere("說明頁")}</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">
+            📘 {tHere("說明頁")}
+          </h2>
           <div>version: {import.meta.env.__APP_VERSION__}</div>
-          {(import.meta.env.DEV || ["AndroidWebView"].includes(deviceType)) && (
+          {(["AndroidWebView"].includes(deviceType) ||
+            bridge?.kind === "desktop") && (
             <div className="text-gray-700 leading-relaxed">
-              [Android WebView] version: {androidWebViewVersion}
+              [{bridge?.kind} WebView] version: {androidWebViewVersion}
             </div>
           )}
           <GuidePageIntro locale={locale} />
@@ -309,13 +320,14 @@ export function GuidePage() {
               {tHere("查看首次教學輪播")}
             </button>
             <p className="text-sm text-gray-500">
-              {tHere("可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。")}
+              {tHere(
+                "可隨時重新打開首頁的新手教學，之後逐頁補上動畫時也會從這裡進入。",
+              )}
             </p>
           </div>
         </div>
 
-        <GuideNotification />
-
+        {bridge?.kind !== "desktop" && <GuideNotification />}
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <h3 className="text-lg font-semibold text-gray-800 mb-2">
             {locale === "ja"
@@ -369,51 +381,53 @@ export function GuidePage() {
                 🎬 {tHere("介紹影片與使用案例")}
               </h3>
               <p className="text-sm text-gray-600 mt-1">
-                {tHere("先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。")}
+                {tHere(
+                  "先看概念影片快速上手，後續會在這裡持續增加各種情境的實戰案例。",
+                )}
               </p>
             </div>
-            <a
+            <ExternalA
               href="https://www.youtube.com/@young-chunghsue4363"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center text-sm font-medium text-red-600 hover:underline"
             >
               {tHere("前往 YouTube 頻道")}
-            </a>
+            </ExternalA>
           </div>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {VIDEO_RESOURCES(locale).filter((video) =>
-              isVideoForCurrentLocale(video),
-            ).map((video) => (
-              <article
-                key={video.url}
-                className="rounded-lg border border-gray-200 bg-gray-50 p-4 flex h-full flex-col"
-              >
-                <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-                  <span className="rounded-full bg-blue-100 px-2 py-1 font-medium text-blue-700">
-                    {video.language}
-                  </span>
-                  <span className="rounded-full bg-emerald-100 px-2 py-1 font-medium text-emerald-700">
-                    {video.type}
-                  </span>
-                </div>
-                <h4 className="text-base font-semibold text-gray-900 leading-snug">
-                  {video.title}
-                </h4>
-                <p className="mt-2 text-sm text-gray-600 leading-relaxed flex-1">
-                  {video.description}
-                </p>
-                <a
-                  href={video.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
+            {VIDEO_RESOURCES(locale)
+              .filter((video) => isVideoForCurrentLocale(video))
+              .map((video) => (
+                <article
+                  key={video.url}
+                  className="rounded-lg border border-gray-200 bg-gray-50 p-4 flex h-full flex-col"
                 >
-                  {tHere("觀看影片")}
-                </a>
-              </article>
-            ))}
+                  <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
+                    <span className="rounded-full bg-blue-100 px-2 py-1 font-medium text-blue-700">
+                      {video.language}
+                    </span>
+                    <span className="rounded-full bg-emerald-100 px-2 py-1 font-medium text-emerald-700">
+                      {video.type}
+                    </span>
+                  </div>
+                  <h4 className="text-base font-semibold text-gray-900 leading-snug">
+                    {video.title}
+                  </h4>
+                  <p className="mt-2 text-sm text-gray-600 leading-relaxed flex-1">
+                    {video.description}
+                  </p>
+                  <ExternalA
+                    href={video.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                  >
+                    {tHere("觀看影片")}
+                  </ExternalA>
+                </article>
+              ))}
           </div>
 
           {/* <div className="mt-4 rounded-md border border-dashed border-gray-300 bg-white p-4 text-sm text-gray-700">
@@ -452,24 +466,24 @@ export function GuidePage() {
                     <p className="font-medium text-gray-800">{shortcut.name}</p>
                     <p className="text-sm text-gray-600">{shortcut.purpose}</p>
                     {shortcut.api && (
-                      <a
+                      <ExternalA
                         href={"/" + shortcut.api}
                         target="_blank"
                         rel="noreferrer"
                         className="text-blue-600 hover:underline text-sm"
                       >
                         {tHere("API 範例")}
-                      </a>
+                      </ExternalA>
                     )}
                   </div>
-                  <a
+                  <ExternalA
                     href={shortcut.url}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center justify-center px-3 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700"
                   >
                     {tHere("安裝 Shortcut")}
-                  </a>
+                  </ExternalA>
                 </div>
               ))}
             </div>
@@ -494,7 +508,7 @@ export function GuidePage() {
                 : "查看我們的隱私權政策和使用條款。"}
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
-            <a
+            <ExternalA
               href={
                 locale === "zh-TW"
                   ? "/NonBlockingLife/privacy-policy-zh-TW.html"
@@ -509,8 +523,8 @@ export function GuidePage() {
                 : locale === "en"
                   ? "Privacy Policy"
                   : "隱私權政策"}
-            </a>
-            <a
+            </ExternalA>
+            <ExternalA
               href={
                 locale === "zh-TW"
                   ? "/NonBlockingLife/terms-zh-TW.html"
@@ -525,8 +539,8 @@ export function GuidePage() {
                 : locale === "en"
                   ? "Terms of Service"
                   : "使用條款"}
-            </a>
-            <a
+            </ExternalA>
+            <ExternalA
               href="https://ychsue.github.io/superconductorlike_society/"
               target="_blank"
               rel="noopener noreferrer"
@@ -537,7 +551,7 @@ export function GuidePage() {
                 : locale === "en"
                   ? "Superconductor-like Society"
                   : "Superconductor-like Society"}
-            </a>
+            </ExternalA>
           </div>
         </div>
       </section>

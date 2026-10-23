@@ -25,6 +25,53 @@
       "args": ["run", "${relativeFile}", "--root", "${workspaceRoot}/pwa"],
       "smartStep": true,
       "console": "integratedTerminal"
+    },
+    {
+      "name": "NBL Desktop (dist) 得先跑 npx vite build",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-nbl-desktop",
+      "program": "${workspaceFolder}/desktop/src/Nbl.Desktop/bin/Debug/net10.0/Nbl.Desktop.dll",
+      "args": ["--source", "dist", "--dist-path", "${workspaceFolder}/pwa/dist", "--allow-multiple"],
+      "cwd": "${workspaceFolder}/desktop/src/Nbl.Desktop",
+      "env": { "NBL_TRACE_FILE": "${workspaceFolder}/desktop/trace.log" },
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "NBL Desktop (dev: localhost:5173) 需先啟動 npm run dev",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-nbl-desktop",
+      "program": "${workspaceFolder}/desktop/src/Nbl.Desktop/bin/Debug/net10.0/Nbl.Desktop.dll",
+      "args": ["--source", "dev",],
+      "cwd": "${workspaceFolder}/desktop/src/Nbl.Desktop",
+      "env": { "NBL_TRACE_FILE": "${workspaceFolder}/desktop/trace.log" },
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "NBL Desktop (online)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-nbl-desktop",
+      "program": "${workspaceFolder}/desktop/src/Nbl.Desktop/bin/Debug/net10.0/Nbl.Desktop.dll",
+      "args": ["--source", "online", "--allow-multiple"],
+      "cwd": "${workspaceFolder}/desktop/src/Nbl.Desktop",
+      "env": { "NBL_TRACE_FILE": "${workspaceFolder}/desktop/trace.log" },
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "附加上 Avalonia NativeWebView (React)",
+      "type": "msedge",
+      "request": "attach",
+      "port": 9222,
+      "webRoot": "${workspaceFolder}/pwa",
+      "url": "http://localhost:5173",
+      "pathMapping": {
+        "/": "${workspaceFolder}/pwa"
+      }
     }
   ]
 }

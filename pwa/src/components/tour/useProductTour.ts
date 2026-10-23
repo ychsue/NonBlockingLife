@@ -69,9 +69,15 @@ export function useProductTour(currentSheet?: string): UseProductTourResult {
   const forceStartRef = useRef(false);
   const [activeTourId, setActiveTourId] = useState<string | null>(null);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
-  const [completedTours, setCompletedTours] = useState<string[]>(() => readCompletedTours());
-  const {isMobile} = useResponsiveTable();
-  const toursList = useMemo(() => getToursList(locale, isMobile), [locale, isMobile]);
+  const [completedTours, setCompletedTours] = useState<string[]>(() =>
+    readCompletedTours(),
+  );
+  const { isMobile } = useResponsiveTable();
+  const capabilitiesAndKind = useAppStore((state) => state.capabilitiesAndKind);
+  const toursList = useMemo(
+    () => getToursList(locale, isMobile),
+    [locale, isMobile, capabilitiesAndKind],
+  );
 
   const activeTour = useMemo(() => {
     if (!activeTourId) return null;
@@ -82,7 +88,9 @@ export function useProductTour(currentSheet?: string): UseProductTourResult {
   const isRunning = Boolean(activeTour && activeStep);
 
   const completeTour = useCallback((tourId: string) => {
-    const nextCompletedTours = Array.from(new Set([...readCompletedTours(), tourId]));
+    const nextCompletedTours = Array.from(
+      new Set([...readCompletedTours(), tourId]),
+    );
     setCompletedTours(nextCompletedTours);
     writeCompletedTours(nextCompletedTours);
     writeLastTourTime(Date.now());
@@ -90,14 +98,18 @@ export function useProductTour(currentSheet?: string): UseProductTourResult {
     setActiveStepIndex(0);
   }, []);
 
-  const startTour = useCallback((tourId: string, options?: { force?: boolean }) => {
-    const tour = toursList.find((entry) => entry.id === tourId);
-    if (!tour) return;
-    if (!options?.force && isTourCompleted(tourId, readCompletedTours())) return;
-    forceStartRef.current = Boolean(options?.force);
-    setActiveTourId(tourId);
-    setActiveStepIndex(0);
-  }, [toursList]);
+  const startTour = useCallback(
+    (tourId: string, options?: { force?: boolean }) => {
+      const tour = toursList.find((entry) => entry.id === tourId);
+      if (!tour) return;
+      if (!options?.force && isTourCompleted(tourId, readCompletedTours()))
+        return;
+      forceStartRef.current = Boolean(options?.force);
+      setActiveTourId(tourId);
+      setActiveStepIndex(0);
+    },
+    [toursList],
+  );
 
   const stopTour = useCallback(() => {
     setActiveTourId(null);
@@ -195,7 +207,7 @@ function useStepTargetReady(selector: string) {
       if (!el) return null;
 
       const rect = el.getBoundingClientRect();
-      return (rect.width > 0 && rect.height > 0)? rect : null;
+      return rect.width > 0 && rect.height > 0 ? rect : null;
     };
 
     const id = setInterval(() => {

@@ -48,7 +48,11 @@ export function shouldPromptForTimerStart(
   const timerLaunchMode = useAppStore.getState().androidTimerLaunchMode;
 
   return (
-    (deviceType === "TWA" || deviceType === "AndroidWebView") &&
+    (deviceType === "TWA" ||
+      deviceType === "AndroidWebView" ||
+      ["windows", "linux"].includes(
+        useAppStore.getState().capabilitiesAndKind?.kind,
+      )) &&
     timerLaunchMode !== "none" &&
     plannedTimerMinutes > 0
   );
@@ -65,7 +69,7 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
         "要不要開始計時器？": "要不要開始計時器？",
         要不要開始計時器msg: "這段專注剛開始。要不要直接開啟計時器或時鐘介面？",
         "不用，謝謝": "不用，謝謝",
-        "開啟計時器": "開啟計時器"
+        開啟計時器: "開啟計時器",
       },
       en: {
         已有任務正在執行: "A task is already running",
@@ -75,7 +79,7 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
         要不要開始計時器msg:
           "This focus session has just started. Do you want to directly open the timer or clock interface?",
         "不用，謝謝": "No, thanks",
-        "開啟計時器": "Start Timer"
+        開啟計時器: "Start Timer",
       },
       ja: {
         已有任務正在執行: "既にタスクが実行中です",
@@ -86,7 +90,7 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
         要不要開始計時器msg:
           "この集中セッションはちょうど始まったばかりです。タイマーや時計のインターフェースを直接開きますか？",
         "不用，謝謝": "いいえ、結構です",
-        "開啟計時器": "タイマーを開始"
+        開啟計時器: "タイマーを開始",
       },
     };
     return translations[locale]?.[key] ?? key;
@@ -124,6 +128,7 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
       plannedTimerMinutes > 0
         ? now + plannedTimerMinutes * 60 * 1000
         : undefined,
+    focusTime: focusTime, // 任務的專注時長 (分鐘)
   };
 
   await applyChange({
@@ -338,7 +343,7 @@ export async function endTask(endNote: string, isInterrupt = false) {
         en: "No, thanks",
         ja: "いいえ、結構です",
       },
-      "開啟": {
+      開啟: {
         "zh-TW": "開啟",
         en: "Open",
         ja: "開く",
@@ -406,7 +411,11 @@ export async function endTask(endNote: string, isInterrupt = false) {
     const timerLaunchMode = useAppStore.getState().androidTimerLaunchMode;
 
     if (
-      (getDeviceType() === "TWA" || getDeviceType() === "AndroidWebView") &&
+      (getDeviceType() === "TWA" ||
+        getDeviceType() === "AndroidWebView" ||
+        ["windows", "linux"].includes(
+          useAppStore.getState().capabilitiesAndKind?.kind,
+        )) &&
       timerLaunchMode !== "none"
     ) {
       void useDialogStore
@@ -597,6 +606,7 @@ export async function interruptTask(
     notes: "",
     startAt: now,
     systemStatus: "DOING",
+    focusTime: 30, // 預設任務的專注時長 (分鐘)
   };
 
   await applyChange({

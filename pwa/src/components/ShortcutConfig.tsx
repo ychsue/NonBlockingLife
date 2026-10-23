@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { getShortcutConfig, setShortcutConfig, getDeviceType, generateShortcutUrl, type ShortcutConfig } from '../utils/shortcutUtils'
+import { ExternalA } from './ExternalA'
 
 export function ShortcutConfig() {
   const [startOrEnd, setStartOrEnd] = useState<'start' | 'end'>('start')
@@ -91,12 +92,12 @@ export function ShortcutConfig() {
             </button>
 
             {config.started && (
-              <a
+              <ExternalA
                 href={testShortcutUrl}
                 className="block w-full px-4 py-2 text-center bg-gray-500 text-white rounded hover:bg-gray-600"
               >
                 测试 Shortcut
-              </a>
+              </ExternalA>
             )}
           </div>
 

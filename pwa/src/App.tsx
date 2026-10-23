@@ -29,7 +29,6 @@ import { ProductTourProvider } from "./components/tour/ProductTourContext";
 import { ProductTourWrapper } from "./components/tour/ProductTourWrapper";
 import { useProductTour } from "./components/tour/useProductTour";
 import { canAutoStartTour } from "./components/tour/productTourUtils";
-import { mimicTwaMessageChannel, useTwaBridge } from "./hooks/useTwaBridge";
 import { sleep } from "./utils/timeUtils";
 import { useAlarmQueueWatcher } from "./hooks/useAlarmQueueWatcher";
 import {
@@ -38,10 +37,10 @@ import {
   getPlanFromTWAResults,
 } from "./utils/alarmQueue";
 import { AlarmQueueWatcherProvider } from "./components/tour/AlarmQueueWatcher";
-import { useTwaRpc } from "./hooks/useTwaRpc";
-import _, { last } from "lodash";
+import _ from "lodash";
 import { useTWithMaps } from "./i18n";
 import { strToJsx } from "./components/strToJsx";
+import { useNativeBridge } from "./native/useNativeBridge";
 
 type AllPages =
   | SheetName
@@ -70,6 +69,8 @@ export default function App() {
   const setPwaVersion = useAppStore((state) => state.setPwaVersion);
   const projects = useAppStore((state) => state.projects);
   const setProjects = useAppStore((state) => state.setProjects);
+
+  const lastRemoteSyncTime = useAppStore((state) => state.lastRemoteSyncTime);
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -105,7 +106,7 @@ export default function App() {
 
   const AQWatcher = useAlarmQueueWatcher(true);
   const { updateTableBasedOnScheduled, queueItems, applySyncPlan } = AQWatcher;
-  const { sendRequest } = useTwaRpc();
+  const bridge = useNativeBridge();
 
   const fontSizeScale = useAppStore((state) => state.fontSizeScale);
 
@@ -128,11 +129,15 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: This update enables the PWA to fetch ICS files from other calendars via Supabase (needs setting the `fetch-ics` Edge Function).",
+        "\n\r**Please note**: The building for Windows and Linux has been mostly completed, and will be released later." +
+        "\n\r**Please note**: The Supabase sync feature has been updated, please rerun `initialize.sql` on Supabase.",
       "openDialog.clockNotSelected.title": "Clock App Not Selected",
-      "openDialog.clockNotSelected.message": "Please select a clock app in the APP settings before setting an alarm.",
-      "openDialog.exactAlarmPermission.title": "Exact Alarm Permission Not Enabled",
-      "openDialog.exactAlarmPermission.message": "Please enable the exact alarm permission in your APP settings to ensure accurate notifications.",
+      "openDialog.clockNotSelected.message":
+        "Please select a clock app in the APP settings before setting an alarm.",
+      "openDialog.exactAlarmPermission.title":
+        "Exact Alarm Permission Not Enabled",
+      "openDialog.exactAlarmPermission.message":
+        "Please enable the exact alarm permission in your APP settings to ensure accurate notifications.",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -146,11 +151,14 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：讓PWA也可透過 Supabase 取得別的日曆的 ICS 文件。(須設定 `fetch-ics` Edge Function)。",
+        "\n\r**注意**：已經大致完成Windows 與 Linux 的建置，晚點發布。" +
+        "\n\r**注意**：Supabase 同步功能有更新，請在Supabase上重新跑 `initialize.sql`。",
       "openDialog.clockNotSelected.title": "未選擇時鐘應用",
-      "openDialog.clockNotSelected.message": "請先由APP設定選擇一個時鐘應用以設定鬧鐘。",
+      "openDialog.clockNotSelected.message":
+        "請先由APP設定選擇一個時鐘應用以設定鬧鐘。",
       "openDialog.exactAlarmPermission.title": "精確鬧鐘權限未啟用",
-      "openDialog.exactAlarmPermission.message": "請先由APP設定啟用精確鬧鐘權限，以確保通知的準確性。"
+      "openDialog.exactAlarmPermission.message":
+        "請先由APP設定啟用精確鬧鐘權限，以確保通知的準確性。",
     },
     ja: {
       "useTwaBridge.twaNotAvailable":
@@ -166,11 +174,15 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：この更新により、PWAはSupabaseを介して他のカレンダーからICSファイルを取得できるようになりました（`fetch-ics` Edge Functionの設定が必要です）。",
+        "\n\r**注意**：Windows および Linux のビルドはほぼ完了しており、後でリリースされます。" +
+        "\n\r**注意**：Supabase の同期機能が更新されました。Supabase 上で `initialize.sql` を再実行してください。",
       "openDialog.clockNotSelected.title": "時計アプリが選択されていません",
-      "openDialog.clockNotSelected.message": "アラームを設定する前に、APPの設定で時計アプリを選択してください。",
-      "openDialog.exactAlarmPermission.title": "正確なアラーム権限が有効になっていません",
-      "openDialog.exactAlarmPermission.message": "通知の正確性を確保するために、APPの設定で正確なアラーム権限を有効にしてください。",
+      "openDialog.clockNotSelected.message":
+        "アラームを設定する前に、APPの設定で時計アプリを選択してください。",
+      "openDialog.exactAlarmPermission.title":
+        "正確なアラーム権限が有効になっていません",
+      "openDialog.exactAlarmPermission.message":
+        "通知の正確性を確保するために、APPの設定で正確なアラーム権限を有効にしてください。",
     },
   });
 
@@ -211,7 +223,7 @@ export default function App() {
   }, [projects, setProjects]);
 
   useEffect(() => {
-    if ( pwaVersion !== import.meta.env.__APP_VERSION__) {
+    if (pwaVersion !== import.meta.env.__APP_VERSION__) {
       console.log("[App.tsx] AQ2TWA ref initialized:", AQ2TWA.current);
       openDialog({
         title: strToJsx(t("PWA Updated")),
@@ -233,20 +245,13 @@ export default function App() {
     void updateTableBasedOnScheduled(alarmSyncTargets);
   }, [alarmSyncTargets, updateTableBasedOnScheduled]);
 
-  // Listen for TWA messages
-  if (import.meta.env.DEV) {
-    useEffect(() => {
-      mimicTwaMessageChannel();
-    }, []);
-  }
-
   // 如果 alarmSyncTargets !=0 && isTwaAvailable === false，那就10秒後再嘗試一次，因為 TWA 可能還沒啟動，若還是沒有，那就告知使用者，請使用者滑掉這個APP，再重開，好修復這個channel斷掉的問題
   useEffect(() => {
     if (needToCheckTwaChannel) {
       const timer = setTimeout(() => {
         sleep(10)
           .then(() =>
-            sendRequest(
+            bridge.request(
               "nbl:ping",
               {},
               { timeoutMs: 2000, expectResponse: true },
@@ -270,7 +275,7 @@ export default function App() {
       }, 10000);
       return () => clearTimeout(timer);
     }
-  }, [needToCheckTwaChannel, alarmSyncTargets, sendRequest]);
+  }, [needToCheckTwaChannel, alarmSyncTargets, bridge]);
 
   useEffect(() => {
     document.documentElement.style.fontSize = `${fontSizeScale * 100}%`;
@@ -281,7 +286,7 @@ export default function App() {
       let res: unknown = null;
       // 1. 確認 TWA 連線狀態，若尚未連線則嘗試重新連線
       await sleep(10);
-      res = await sendRequest(
+      res = await bridge.request(
         "nbl:ping",
         {},
         { timeoutMs: 2000, expectResponse: true },
@@ -295,7 +300,7 @@ export default function App() {
       console.log("[App.tsx] 1. TWA is available");
 
       //2. 若 TWA 已連線，且尚未取得鬧鐘(clock & exact alarm)設定狀態，則嘗試查詢鬧鐘設定狀態
-      res = await sendRequest(
+      res = await bridge.request(
         "nbl:query-alarm-setup",
         {},
         { timeoutMs: 1000, expectResponse: true },
@@ -317,7 +322,7 @@ export default function App() {
         (alarmSyncTargets & ALARM_SYNC_TARGET_CLOCK) !== 0 &&
         !selectedClockApp?.packageName
       ) {
-        res = await sendRequest(
+        res = await bridge.request(
           "nbl:query-clock-apps",
           {},
           { timeoutMs: 1000, expectResponse: true },
@@ -334,8 +339,7 @@ export default function App() {
         // 4. 叫出 openDialog 讓使用者選擇 Clock App
         const clockAppResult = await openDialog({
           title: t("openDialog.clockNotSelected.title"),
-          message:
-            t("openDialog.clockNotSelected.message"),
+          message: t("openDialog.clockNotSelected.message"),
           actions: [{ id: "ok", label: "OK" }],
           selects: [
             {
@@ -372,7 +376,7 @@ export default function App() {
         (alarmSyncTargets & ALARM_SYNC_TARGET_CLOCK) !== 0 &&
         !exactAlarmAllowed
       ) {
-        res = await sendRequest(
+        res = await bridge.request(
           "nbl:request-exact-alarm-permission",
           {},
           { timeoutMs: 1000, expectResponse: false },
@@ -380,8 +384,7 @@ export default function App() {
         // 6. 由於他是默默地做，所以需要 openDialog 告知使用者若選用Notification提醒，就必須允許精確鬧鐘的權限
         openDialog({
           title: t("openDialog.exactAlarmPermission.title"),
-          message:
-            t("openDialog.exactAlarmPermission.message"),
+          message: t("openDialog.exactAlarmPermission.message"),
           actions: [{ id: "ok", label: "OK" }],
         });
       }
@@ -493,7 +496,7 @@ export default function App() {
         }
 
         AQ2TWA.current = { earliestClockItem, exactItems }; // 這很重要，必須在 confirm 之下，免得先被更新
-        res = await sendRequest(
+        res = await bridge.request(
           "nbl:set-alarms",
           { alarms: [earliestClockItem, ...exactItems].filter(Boolean) },
           { timeoutMs: 10000, expectResponse: true },
@@ -511,7 +514,7 @@ export default function App() {
     } catch (e) {
       console.error("Failed to sync TWA settings:", e);
     }
-  }, [queueItems, alarmSyncTargets, sendRequest, applySyncPlan, openDialog]);
+  }, [queueItems, alarmSyncTargets, bridge, applySyncPlan, openDialog]);
 
   useEffect(() => {
     void syncTwaSettings();
@@ -535,8 +538,16 @@ export default function App() {
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    //desktop 有可能一直開著，所以，需要setInterval 來定期 updateTable吧？
+    const intervalId = window.setInterval(
+      () => {
+        void updateTableBasedOnScheduled(alarmSyncTargets);
+      },
+      1000 * 60 * 60,
+    ); // 每 1 小時更新一次
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.clearInterval(intervalId);
     };
   }, [syncTwaSettings]);
 
@@ -552,7 +563,7 @@ export default function App() {
   useEffect(() => {
     // 初始加载时获取当前正在运行的任务
     loadRunningTask();
-  }, [loadRunningTask]);
+  }, [loadRunningTask, lastRemoteSyncTime]);
 
   useEffect(() => {
     defaultTitleRef.current = document.title || BASE_TITLE;
@@ -600,6 +611,7 @@ export default function App() {
 
   useEffect(() => {
     if (!runningTask) return;
+    if (bridge.caps?.includes("notify")) return; // 如果已經支援通知，則不需要再提示
     if (typeof Notification === "undefined") return;
     if (Notification.permission !== "default") return;
     if (sessionStorage.getItem(NOTIFICATION_NUDGE_SESSION_KEY) === "1") return;
@@ -697,7 +709,10 @@ export default function App() {
   );
 
   const handleUrlNavigate = useCallback(
-    (sheet: SheetName | "selection_cache", byAction?: 'share-to-inbox' | null) => {
+    (
+      sheet: SheetName | "selection_cache",
+      byAction?: "share-to-inbox" | null,
+    ) => {
       setCurrentSheet(sheet, byAction);
     },
     [setCurrentSheet],

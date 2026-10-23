@@ -53,6 +53,7 @@ import {
   UnifiedTypeName,
 } from "../../utils/icsAdapter";
 import { useMarkdown } from "../../hooks/useMarkdown";
+import { ExternalA } from "../ExternalA";
 
 const DEV_CLIENT_ID = "dev-selection-cache";
 const columnHelper = createColumnHelper<SelectionCacheItem>();
@@ -319,6 +320,7 @@ export function SelectionCacheTable() {
           source: c.source,
           status: c.status,
           totalMinsInPool: totalMinsPool,
+          focusTime: c.focusTime,
           url: c.url,
           deadline: c.deadline,
           usedTodayCount: c.usedTodayCount,
@@ -419,6 +421,7 @@ export function SelectionCacheTable() {
       notifies.taskStarted(
         selectedTask.title ?? selectedTask.taskId ?? "",
         locale,
+        selectedTask.focusTime ?? 30,
       );
       // 可選：自動刷新候選列表，或讓用戶手動刷新
       // await handleRefreshCandidates()
@@ -510,7 +513,7 @@ export function SelectionCacheTable() {
         task: runningTask?.title ?? runningTask?.taskId ?? "🧠 ",
       });
       const title = t("candidates.interrupt");
-      notifies.taskStarted(title, body);
+      notifies.taskStarted(title, body, runningTask?.focusTime ?? 30);
       if ("payload" in result && result.payload) {
         setRunningTask(result.payload as Dashboard);
       }
@@ -626,7 +629,7 @@ export function SelectionCacheTable() {
               {deadlineBadge}
               {usedTodayBadge}
               {hasUrl && (
-                <a
+                <ExternalA
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -635,7 +638,7 @@ export function SelectionCacheTable() {
                   title={url}
                 >
                   🔗
-                </a>
+                </ExternalA>
               )}
             </span>
           );

@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Nbl.Desktop": {
+      "commandName": "Project",
+      "commandLineArgs": "--source dev",
+      "environmentVariables": {
+        "NBL_TRACE_FILE": "trace.log"
+      }
+    }
+  }
+}

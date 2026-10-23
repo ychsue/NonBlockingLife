@@ -23,6 +23,7 @@ import { handleDialogTextFieldInteractionEnd } from "../../utils/dialogInteracti
 import { useProductTourContext } from "../tour/ProductTourContext";
 import _ from "lodash";
 import { useMarkdown } from "../../hooks/useMarkdown";
+import { ExternalA } from "../ExternalA";
 
 const DEV_CLIENT_ID = "dev-client";
 const columnHelper = createColumnHelper<InboxItem>();
@@ -130,7 +131,7 @@ export function InboxTable() {
     "inbox",
     locale,
   );
-  const pendingChangeLogs = useAppStore((state) => state.pendingChangeLogs);
+  const lastRemoteSyncTime = useAppStore((state) => state.lastRemoteSyncTime);
   const [rows, setRows] = useState<InboxItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
@@ -200,7 +201,7 @@ export function InboxTable() {
     return () => {
       active = false;
     };
-  }, [currentSheetByAction, pendingChangeLogs]);
+  }, [currentSheetByAction, lastRemoteSyncTime]);
 
   useEffect(() => {
     if (!pendingEditIntent || pendingEditIntent.sheet !== "inbox") return;
@@ -468,14 +469,14 @@ export function InboxTable() {
                 }
               />
               {hasValidUrl && (
-                <a
+                <ExternalA
                   href={value}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 whitespace-nowrap"
                 >
                   {text.open}
-                </a>
+                </ExternalA>
               )}
             </div>
           );

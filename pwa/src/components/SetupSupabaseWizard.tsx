@@ -4,12 +4,12 @@ import { useState } from "react";
 import supabaseCode from "../db/supabase/initialize.sql?raw";
 import { useT, useTWithMaps } from "../i18n";
 import { useAppStore } from "../store/appStore";
-import { satisfies } from "compare-versions";
 import {
   getUrlAndKey,
   SupabaseSyncManager,
 } from "../utils/SupabaseSyncManager";
 import { strToJsx } from "./strToJsx";
+import { ExternalA } from "./ExternalA";
 
 interface SetupWizardProps {
   isModal?: boolean;
@@ -35,7 +35,7 @@ export function SetupSupabaseWizard({
       "step1.header": "首次與更新同步設置",
       "step1.description":
         "4 步完成設置，您的數據將存儲在您自己的 Supabase 資料庫中",
-      "step1.switchToGAS": "改用 GAS 同步(較慢)",
+      "step1.switchToGAS": "改用 GAS 同步(較慢，不建議)",
       "step1.syncTutorialVideo.title": "Sync 設定影片",
       "step1.syncTutorialVideo.watchOnYouTube": "觀看 YouTube",
       "step1.1.createAccountAndDatabase":
@@ -85,7 +85,7 @@ export function SetupSupabaseWizard({
       "step1.header": "Initial and Update Sync Setup",
       "step1.description":
         "Complete the setup in 4 steps, and your data will be stored in your own Supabase database.",
-      "step1.switchToGAS": "Switch to GAS Sync (slower)",
+      "step1.switchToGAS": "Switch to GAS Sync (slower, not recommended)",
       "step1.syncTutorialVideo.title": "Sync Tutorial Video",
       "step1.syncTutorialVideo.watchOnYouTube": "Watch on YouTube",
       "step1.1.createAccountAndDatabase":
@@ -143,7 +143,7 @@ export function SetupSupabaseWizard({
       "step1.header": "初回および更新の同期設定",
       "step1.description":
         "4 ステップで設定を完了すると、データは自分の Supabase データベースに保存されます。",
-      "step1.switchToGAS": "GAS 同期に切り替える（遅い）",
+      "step1.switchToGAS": "GAS 同期に切り替える（遅い、推奨されません）",
       "step1.syncTutorialVideo.title": "Sync 設定影片",
       "step1.syncTutorialVideo.watchOnYouTube": "YouTube で視聴",
       "step1.1.createAccountAndDatabase":
@@ -265,41 +265,41 @@ export function SetupSupabaseWizard({
     locale == "zh-TW" ? (
       <p>
         請將此
-        <a
+        <ExternalA
           href="https://github.com/ychsue/NonBlockingLife/tree/main/pwa/src/db/supabase/icsExportCode.ts"
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 underline"
         >
           Edge Function 內容
-        </a>{" "}
+        </ExternalA>{" "}
         作為參考，命名為 <strong>export-ics</strong>，配置相應的權限。
       </p>
     ) : locale === "ja" ? (
       <p>
         こちらの
-        <a
+        <ExternalA
           href="https://github.com/ychsue/NonBlockingLife/tree/main/pwa/src/db/supabase/icsExportCode.ts"
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 underline"
         >
           Edge Function の内容
-        </a>{" "}
+        </ExternalA>{" "}
         を参考に、<strong>export-ics</strong>{" "}
         と命名し、適切な権限を設定してください。
       </p>
     ) : (
       <p>
         Please refer to this{" "}
-        <a
+        <ExternalA
           href="https://github.com/ychsue/NonBlockingLife/tree/main/pwa/src/db/supabase/icsExportCode.ts"
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 underline"
         >
           Edge Function content
-        </a>{" "}
+        </ExternalA>{" "}
         naming it <strong>export-ics</strong> and configure the appropriate
         permissions.
       </p>
@@ -309,27 +309,27 @@ export function SetupSupabaseWizard({
     locale == "zh-TW" ? (
       <p>
         在 Supabase 控制台中，導航到SQL 編輯器，執行相應的{" "}
-        <a
+        <ExternalA
           href="https://github.com/ychsue/NonBlockingLife/tree/main/pwa/src/db/supabase/cronTask.sql"
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 underline"
         >
           SQL 腳本
-        </a>
+        </ExternalA>
         來設定每小時自動生成 ics 檔案的排程。
       </p>
     ) : locale == "ja" ? (
       <p>
         Supabase コンソールで、SQL エディタに移動し、対応する{" "}
-        <a
+        <ExternalA
           href="https://github.com/ychsue/NonBlockingLife/tree/main/pwa/src/db/supabase/cronTask.sql"
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 underline"
         >
           SQL スクリプト
-        </a>
+        </ExternalA>
         を実行して、毎時自動的に ics
         ファイルを生成するスケジュールを設定します。
       </p>
@@ -337,14 +337,14 @@ export function SetupSupabaseWizard({
       <p>
         In the Supabase console, navigate to the SQL editor and execute the
         corresponding{" "}
-        <a
+        <ExternalA
           href="https://github.com/ychsue/NonBlockingLife/tree/main/pwa/src/db/supabase/cronTask.sql"
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 underline"
         >
           SQL script
-        </a>
+        </ExternalA>
         to set up a schedule for automatically generating ics files every hour.
       </p>
     );
@@ -354,14 +354,14 @@ export function SetupSupabaseWizard({
       <ol>
         <li>
           1. 請先複製{" "}
-          <a
+          <ExternalA
             href="https://github.com/ychsue/NonBlockingLife/tree/main/pwa/src/db/supabase/fetch-ics.ts"
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 underline"
           >
             GitHub fetch-ics.ts
-          </a>
+          </ExternalA>
           裡面的程式碼
         </li>
         <li>
@@ -381,14 +381,14 @@ export function SetupSupabaseWizard({
       <ol>
         <li>
           1. まず、{" "}
-          <a
+          <ExternalA
             href="https://github.com/ychsue/NonBlockingLife/tree/main/pwa/src/db/supabase/fetch-ics.ts"
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 underline"
           >
             GitHub fetch-ics.ts
-          </a>
+          </ExternalA>
         </li>
         <li>
           2. Supabase コンソールで、Edge Functions に移動し、コピーしたコードを{" "}
@@ -407,14 +407,14 @@ export function SetupSupabaseWizard({
       <ol>
         <li>
           1. Please copy the code from{" "}
-          <a
+          <ExternalA
             href="https://github.com/ychsue/NonBlockingLife/tree/main/pwa/src/db/supabase/fetch-ics.ts"
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 underline"
           >
             GitHub fetch-ics.ts
-          </a>
+          </ExternalA>
           .
         </li>
         <li>
@@ -454,7 +454,7 @@ export function SetupSupabaseWizard({
               🎬 {tHere("step1.syncTutorialVideo.title")}
             </h3>
             {true && (
-              <a
+              <ExternalA
                 href={syncTutorialVideo.url}
                 data-tour="supabase-youtube-tutorial"
                 target="_blank"
@@ -463,7 +463,7 @@ export function SetupSupabaseWizard({
               >
                 {tHere("step1.syncTutorialVideo.watchOnYouTube")}:{" "}
                 {syncTutorialVideo.title}
-              </a>
+              </ExternalA>
             )}
           </div>
 
@@ -474,13 +474,12 @@ export function SetupSupabaseWizard({
             <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700 ml-2">
               <li>
                 {tHere("打開")}{" "}
-                <a
-                  href="https://supabase.com"
-                  target="_blank"
+                <ExternalA
+                  href={"https://supabase.com"}
                   className="text-blue-600 hover:underline"
                 >
                   Supabase
-                </a>
+                </ExternalA>
               </li>
               <li>{tHere("step1.1.createAccountAndDatabase.instruction")}</li>
             </ol>

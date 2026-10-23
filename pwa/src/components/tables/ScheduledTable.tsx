@@ -23,6 +23,7 @@ import {
   parseFromDateTimeLocal,
 } from "../../utils/timeUtils";
 import { useResponsiveTable } from "../../hooks/useResponsiveTable";
+import { ExternalA } from "../ExternalA";
 import { useAppStore } from "../../store/appStore";
 import { useT, useTWithMaps } from "../../i18n";
 import { TableCard } from "../TableCard";
@@ -134,6 +135,8 @@ export function ScheduledTable() {
   const clearPendingEditIntent = useAppStore(
     (state) => state.clearPendingEditIntent,
   );
+  const capabilitiesAndKind = useAppStore((state) => state.capabilitiesAndKind);
+
   const runningTask = useAppStore((state) => state.runningTask);
   const loadRunningTask = useAppStore((state) => state.loadRunningTask);
   const AQWatcher = useAlarmQueueWatcherContext();
@@ -411,7 +414,11 @@ export function ScheduledTable() {
       );
       return;
     }
-    notifies.taskStarted(item.title ?? item.taskId ?? "", locale);
+    notifies.taskStarted(
+      item.title ?? item.taskId ?? "",
+      locale,
+      item.focusTime ?? 30,
+    );
     await loadRunningTask();
   };
 
@@ -935,14 +942,14 @@ export function ScheduledTable() {
                 }
               />
               {hasValidUrl && (
-                <a
+                <ExternalA
                   href={value}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 whitespace-nowrap"
                 >
                   {text.open}
-                </a>
+                </ExternalA>
               )}
             </div>
           );
@@ -1165,9 +1172,9 @@ export function ScheduledTable() {
                     </div>
                   </SettingsCard>
 
-                  {(import.meta.env.DEV ||
-                    getDeviceType() === "TWA" ||
-                    getDeviceType() === "AndroidWebView") && (
+                  {(getDeviceType() === "TWA" ||
+                    getDeviceType() === "AndroidWebView" ||
+                    capabilitiesAndKind.capabilities.includes("alarm")) && (
                     <SettingsCard
                       title={text.alarmSyncTargetsLabel}
                       description={null}
@@ -1683,6 +1690,7 @@ function AlarmSyncTargetsCheckList({
   openDialogClicked: () => void;
   resetItemsStates: (tempST: number) => Promise<void>;
 }) {
+  const capabilitiesAndKind = useAppStore((state) => state.capabilitiesAndKind);
   const [tempST, setTempST] = useState(alarmSyncTargets);
   const t = useTWithMaps({
     "zh-TW": {
@@ -1721,31 +1729,38 @@ function AlarmSyncTargetsCheckList({
       >
         {/* <h3>{t("設定排程鬧鐘")}</h3> */}
         <div className="flex flex-row gap-2 items-center">
-          <label className="flex items-center gap-2">
-            {/* 兩個checkboxes 為輸入源 和一個 ok 將結果透過onChange 送出 */}
-            <input
-              type="checkbox"
-              checked={(tempST & 1) !== 0}
-              className="w-4 h-4"
-              onChange={(e) =>
-                setTempST((prev) => (e.target.checked ? prev | 1 : prev & ~1))
-              }
-              data-tour="toggle-reminder-alarm-button"
-            />
-            ⏰
-          </label>
+          {!!!["windows", "linux"].includes(capabilitiesAndKind.kind) && (
+            <label className="flex items-center gap-2">
+              {/* 兩個checkboxes 為輸入源 和一個 ok 將結果透過onChange 送出 */}
+              <input
+                type="checkbox"
+                checked={(tempST & 1) !== 0}
+                className="w-4 h-4"
+                onChange={(e) =>
+                  setTempST((prev) => (e.target.checked ? prev | 1 : prev & ~1))
+                }
+                data-tour="toggle-reminder-alarm-button"
+              />
+              ⏰
+            </label>
+          )}
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
               checked={(tempST & 2) !== 0}
               className="w-4 h-4"
               onChange={(e) => {
-                if (!e.target.checked || confirm(t("確認exactAlarm"))) {
+                if (
+                  !e.target.checked ||
+                  ["windows", "linux"].includes(capabilitiesAndKind.kind) ||
+                  confirm(t("確認exactAlarm"))
+                ) {
                   setTempST((prev) =>
                     e.target.checked ? prev | 2 : prev & ~2,
                   );
                 }
               }}
+              data-tour="toggle-reminder-alarm-button"
             />
             🪧
           </label>
