@@ -129,7 +129,8 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: This update enables the PWA to fetch ICS files from other calendars via Supabase (needs setting the `fetch-ics` Edge Function).",
+        "\n\r**Please note**: The building for Windows and Linux has been mostly completed, and will be released later." +
+        "\n\r**Please note**: The Supabase sync feature has been updated, please rerun `initialize.sql` on Supabase.",
       "openDialog.clockNotSelected.title": "Clock App Not Selected",
       "openDialog.clockNotSelected.message":
         "Please select a clock app in the APP settings before setting an alarm.",
@@ -150,7 +151,8 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：讓PWA也可透過 Supabase 取得別的日曆的 ICS 文件。(須設定 `fetch-ics` Edge Function)。",
+        "\n\r**注意**：已經大致完成Windows 與 Linux 的建置，晚點發布。" +
+        "\n\r**注意**：Supabase 同步功能有更新，請在Supabase上重新跑 `initialize.sql`。",
       "openDialog.clockNotSelected.title": "未選擇時鐘應用",
       "openDialog.clockNotSelected.message":
         "請先由APP設定選擇一個時鐘應用以設定鬧鐘。",
@@ -172,7 +174,8 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：この更新により、PWAはSupabaseを介して他のカレンダーからICSファイルを取得できるようになりました（`fetch-ics` Edge Functionの設定が必要です）。",
+        "\n\r**注意**：Windows および Linux のビルドはほぼ完了しており、後でリリースされます。" +
+        "\n\r**注意**：Supabase の同期機能が更新されました。Supabase 上で `initialize.sql` を再実行してください。",
       "openDialog.clockNotSelected.title": "時計アプリが選択されていません",
       "openDialog.clockNotSelected.message":
         "アラームを設定する前に、APPの設定で時計アプリを選択してください。",

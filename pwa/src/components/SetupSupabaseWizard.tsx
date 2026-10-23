@@ -35,7 +35,7 @@ export function SetupSupabaseWizard({
       "step1.header": "首次與更新同步設置",
       "step1.description":
         "4 步完成設置，您的數據將存儲在您自己的 Supabase 資料庫中",
-      "step1.switchToGAS": "改用 GAS 同步(較慢)",
+      "step1.switchToGAS": "改用 GAS 同步(較慢，不建議)",
       "step1.syncTutorialVideo.title": "Sync 設定影片",
       "step1.syncTutorialVideo.watchOnYouTube": "觀看 YouTube",
       "step1.1.createAccountAndDatabase":
@@ -85,7 +85,7 @@ export function SetupSupabaseWizard({
       "step1.header": "Initial and Update Sync Setup",
       "step1.description":
         "Complete the setup in 4 steps, and your data will be stored in your own Supabase database.",
-      "step1.switchToGAS": "Switch to GAS Sync (slower)",
+      "step1.switchToGAS": "Switch to GAS Sync (slower, not recommended)",
       "step1.syncTutorialVideo.title": "Sync Tutorial Video",
       "step1.syncTutorialVideo.watchOnYouTube": "Watch on YouTube",
       "step1.1.createAccountAndDatabase":
@@ -143,7 +143,7 @@ export function SetupSupabaseWizard({
       "step1.header": "初回および更新の同期設定",
       "step1.description":
         "4 ステップで設定を完了すると、データは自分の Supabase データベースに保存されます。",
-      "step1.switchToGAS": "GAS 同期に切り替える（遅い）",
+      "step1.switchToGAS": "GAS 同期に切り替える（遅い、推奨されません）",
       "step1.syncTutorialVideo.title": "Sync 設定影片",
       "step1.syncTutorialVideo.watchOnYouTube": "YouTube で視聴",
       "step1.1.createAccountAndDatabase":
