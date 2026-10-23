@@ -3,6 +3,7 @@
         xmlns:wv="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.WebView"
         x:Class="Nbl.Desktop.MainWindow"
         Width="480" Height="860"
+        Icon="/Assets/icon.ico"
         Title="NonBlockingLife">
     <wv:NativeWebView x:Name="Web" />
 </Window>

@@ -215,3 +215,16 @@ v17/
 v18/
 DesignTimeBuild/
 ProjectEvaluation/
+
+# 排除簽署憑證 (PFX / CER)
+*.pfx
+*.pfx.pfx
+*.cer
+*.p7b
+
+# 排除 Windows 封裝與 Store 關聯的臨時/私密檔案
+*.Publish.xml
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+Package.appxmanifest

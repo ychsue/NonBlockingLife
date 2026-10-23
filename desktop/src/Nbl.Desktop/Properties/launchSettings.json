@@ -6,6 +6,9 @@
       "environmentVariables": {
         "NBL_TRACE_FILE": "trace.log"
       }
+    },
+    "模擬": {
+      "commandName": "Project"
     }
   }
 }

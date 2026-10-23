@@ -3,8 +3,8 @@
 # min_api: 26
 # common_typos_disable
 # {"id":"com.android.tools.r8.mapping","version":"2.2"}
-# pg_map_id: 717853132a215ae38e9664b522af75ab968d56ef04ff42a98d4da31a577f450d
-# pg_map_hash: SHA-256 717853132a215ae38e9664b522af75ab968d56ef04ff42a98d4da31a577f450d
+# pg_map_id: 6262b19aa01f07d7e63a3b7bba4e3e102b9926c70d99c027b8ed0db89953fa46
+# pg_map_hash: SHA-256 6262b19aa01f07d7e63a3b7bba4e3e102b9926c70d99c027b8ed0db89953fa46
 android.app.AppComponentFactory -> android.app.AppComponentFactory:
 # {"id":"com.android.tools.r8.synthesized"}
     void <clinit>() -> <clinit>
@@ -32077,7 +32077,7 @@ androidx.core.view.accessibility.AccessibilityNodeProviderCompat -> a0:
     22:48:void androidx.fragment.app.FragmentController.noteStateNotSaved():143 -> u
     1:4:int com.yescirculation.nonblockinglife.bridge.MockSession.postMessage(java.lang.String,android.os.Bundle):13:13 -> v
       # {"id":"com.android.tools.r8.residualsignature","signature":"(Ljava/lang/String;)V"}
-    5:15:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa(java.lang.String):56:56 -> v
+    5:15:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa(java.lang.String):57:57 -> v
     5:15:int com.yescirculation.nonblockinglife.bridge.MockSession.postMessage(java.lang.String,android.os.Bundle):13 -> v
 androidx.core.view.accessibility.AccessibilityRecordCompat -> R8$$REMOVED$$CLASS$$57:
 # {"id":"sourceFile","fileName":"AccessibilityRecordCompat.java"}
@@ -40476,12 +40476,12 @@ com.yescirculation.nonblockinglife.WebViewActivity$onCreate$5 -> nm:
     1:3:void onPageFinished(android.webkit.WebView,java.lang.String):158:158 -> onPageFinished
     4:10:com.yescirculation.nonblockinglife.bridge.AndroidBridge com.yescirculation.nonblockinglife.WebViewActivity.access$getBridge$p(com.yescirculation.nonblockinglife.WebViewActivity):32:32 -> onPageFinished
     4:10:void onPageFinished(android.webkit.WebView,java.lang.String):159 -> onPageFinished
-    11:12:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.injectAndroidPortMock():90:90 -> onPageFinished
+    11:12:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.injectAndroidPortMock():91:91 -> onPageFinished
     11:12:void onPageFinished(android.webkit.WebView,java.lang.String):159 -> onPageFinished
-    13:14:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.injectAndroidPortMock():92:92 -> onPageFinished
+    13:14:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.injectAndroidPortMock():93:93 -> onPageFinished
     13:14:void onPageFinished(android.webkit.WebView,java.lang.String):159 -> onPageFinished
       # {"id":"com.android.tools.r8.rewriteFrame","conditions":["throws(Ljava/lang/NullPointerException;)"],"actions":["removeInnerFrames(1)"]}
-    15:18:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.injectAndroidPortMock():92:92 -> onPageFinished
+    15:18:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.injectAndroidPortMock():93:93 -> onPageFinished
     15:18:void onPageFinished(android.webkit.WebView,java.lang.String):159 -> onPageFinished
     19:21:void com.yescirculation.nonblockinglife.WebViewActivity.access$setWebLoaded$p(com.yescirculation.nonblockinglife.WebViewActivity,boolean):32:32 -> onPageFinished
     19:21:void onPageFinished(android.webkit.WebView,java.lang.String):161 -> onPageFinished
@@ -40604,15 +40604,15 @@ com.yescirculation.nonblockinglife.bridge.AndroidBridge -> t1:
     com.yescirculation.nonblockinglife.bridge.MockSession mSession -> d
       # {"id":"com.android.tools.r8.residualsignature","signature":"La0;"}
     java.util.concurrent.ExecutorService executorService -> e
-    4:6:void <init>(android.content.Context,android.webkit.WebView):26:26 -> <init>
+    4:6:void <init>(android.content.Context,android.webkit.WebView):27:27 -> <init>
       # {"id":"com.android.tools.r8.residualsignature","signature":"(Lcom/yescirculation/nonblockinglife/WebViewActivity;Landroid/webkit/WebView;)V"}
-    7:8:void <init>(android.content.Context,android.webkit.WebView):27:27 -> <init>
-    9:10:void <init>(android.content.Context,android.webkit.WebView):28:28 -> <init>
-    11:21:void <init>(android.content.Context,android.webkit.WebView):30:30 -> <init>
-    22:30:void <init>(android.content.Context,android.webkit.WebView):31:31 -> <init>
-    31:40:void <init>(android.content.Context,android.webkit.WebView):32:32 -> <init>
-    4:14:void postMessage(java.lang.String):43:43 -> postMessage
-    15:25:void postMessage(java.lang.String):47:47 -> postMessage
+    7:8:void <init>(android.content.Context,android.webkit.WebView):28:28 -> <init>
+    9:10:void <init>(android.content.Context,android.webkit.WebView):29:29 -> <init>
+    11:21:void <init>(android.content.Context,android.webkit.WebView):31:31 -> <init>
+    22:30:void <init>(android.content.Context,android.webkit.WebView):32:32 -> <init>
+    31:40:void <init>(android.content.Context,android.webkit.WebView):33:33 -> <init>
+    4:14:void postMessage(java.lang.String):44:44 -> postMessage
+    15:25:void postMessage(java.lang.String):48:48 -> postMessage
 com.yescirculation.nonblockinglife.bridge.AndroidBridge$$ExternalSyntheticLambda0 -> r1:
 # {"id":"sourceFile","fileName":"R8$$SyntheticClass"}
 # {"id":"com.android.tools.r8.synthesized"}
@@ -40629,379 +40629,411 @@ com.yescirculation.nonblockinglife.bridge.AndroidBridge$$ExternalSyntheticLambda
     12:12:void AndroidBridge$$ExternalSyntheticLambda0.<init>(java.lang.String,AndroidBridge):0:0 -> <init>
       # {"id":"com.android.tools.r8.synthesized"}
       # {"id":"com.android.tools.r8.residualsignature","signature":"(Ljava/lang/String;Lt1;)V"}
-    17:20:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):58:58 -> run
+    16:19:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):59:59 -> run
       # {"id":"com.android.tools.r8.residualsignature","signature":"()V"}
-    21:39:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):61:61 -> run
-    40:44:java.util.Iterator kotlin.text.StringsKt__StringsKt$lineSequence$$inlined$Sequence$1.iterator():732:732 -> run
-    40:44:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):816 -> run
-    40:44:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
-    40:44:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
-    40:44:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    40:44:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    45:50:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):817:817 -> run
-    45:50:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
-    45:50:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
-    45:50:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    45:50:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    51:53:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494:1494 -> run
-    51:53:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
-    51:53:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    51:53:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    54:57:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):819:819 -> run
-    54:57:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
-    54:57:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
-    54:57:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    54:57:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    58:63:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):820:820 -> run
-    58:63:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
-    58:63:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
-    58:63:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    58:63:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    64:71:java.util.List kotlin.collections.CollectionsKt__CollectionsJVMKt.listOf(java.lang.Object):21:21 -> run
-    64:71:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):821 -> run
-    64:71:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
-    64:71:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
-    64:71:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    64:71:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    72:76:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):822:822 -> run
-    72:76:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
-    72:76:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
-    72:76:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    72:76:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    77:79:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):823:823 -> run
-    77:79:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
-    77:79:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
-    77:79:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    77:79:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    80:94:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):824:824 -> run
-    80:94:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
-    80:94:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
-    80:94:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    80:94:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    95:99:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):161:161 -> run
-    95:99:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    95:99:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    100:116:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):162:162 -> run
-    100:116:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    100:116:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    117:120:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):79:79 -> run
-    117:120:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    117:120:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    121:130:boolean kotlin.text.StringsKt__StringsKt.isBlank(java.lang.CharSequence):1712:1712 -> run
-    121:130:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):79 -> run
-    121:130:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    121:130:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    131:143:boolean kotlin.text.CharsKt__CharJVMKt.isWhitespace(char):103:103 -> run
-    131:143:boolean kotlin.text.StringsKt__StringsKt.isBlank(java.lang.CharSequence):310 -> run
-    131:143:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):79 -> run
-    131:143:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    131:143:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    144:150:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):162:162 -> run
-    144:150:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    144:150:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    151:152:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):164:164 -> run
-    151:152:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    151:152:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    153:156:int kotlin.collections.CollectionsKt__IterablesKt.collectionSizeOrDefault(java.lang.Iterable,int):39:39 -> run
-    153:156:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):164 -> run
-    153:156:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    153:156:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    157:159:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):164:164 -> run
-    157:159:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    157:159:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    160:172:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):165:165 -> run
-    160:172:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    160:172:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    173:174:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):166:166 -> run
-    173:174:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    173:174:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    175:182:int kotlin.text.StringsKt__IndentKt.indentWidth$StringsKt__IndentKt(java.lang.String):192:192 -> run
-    175:182:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):80 -> run
-    175:182:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    175:182:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    183:186:int kotlin.text.StringsKt__IndentKt.indentWidth$StringsKt__IndentKt(java.lang.String):193:193 -> run
-    183:186:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):80 -> run
-    183:186:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    183:186:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    187:204:boolean kotlin.text.CharsKt__CharJVMKt.isWhitespace(char):103:103 -> run
-    187:204:int kotlin.text.StringsKt__IndentKt.indentWidth$StringsKt__IndentKt(java.lang.String):107 -> run
-    187:204:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):80 -> run
-    187:204:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    187:204:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    205:208:int kotlin.text.StringsKt__IndentKt.indentWidth$StringsKt__IndentKt(java.lang.String):107:107 -> run
-    205:208:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):80 -> run
-    205:208:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    205:208:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    209:212:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):80:80 -> run
-    209:212:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    209:212:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    213:216:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):166:166 -> run
-    213:216:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    213:216:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    217:220:java.lang.Comparable kotlin.collections.CollectionsKt___CollectionsKt.minOrNull(java.lang.Iterable):2686:2686 -> run
-    217:220:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):81 -> run
-    217:220:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    217:220:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    221:228:java.lang.Comparable kotlin.collections.CollectionsKt___CollectionsKt.minOrNull(java.lang.Iterable):2687:2687 -> run
-    221:228:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):81 -> run
-    221:228:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    221:228:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    229:234:java.lang.Comparable kotlin.collections.CollectionsKt___CollectionsKt.minOrNull(java.lang.Iterable):2688:2688 -> run
-    229:234:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):81 -> run
-    229:234:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    229:234:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    235:240:java.lang.Comparable kotlin.collections.CollectionsKt___CollectionsKt.minOrNull(java.lang.Iterable):2689:2689 -> run
-    235:240:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):81 -> run
-    235:240:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    235:240:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    241:246:java.lang.Comparable kotlin.collections.CollectionsKt___CollectionsKt.minOrNull(java.lang.Iterable):2690:2690 -> run
-    241:246:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):81 -> run
-    241:246:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    241:246:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    247:254:java.lang.Comparable kotlin.collections.CollectionsKt___CollectionsKt.minOrNull(java.lang.Iterable):2691:2691 -> run
-    247:254:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):81 -> run
-    247:254:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    247:254:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    255:258:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):81:81 -> run
-    255:258:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    255:258:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    259:264:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):78:78 -> run
-    259:264:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    259:264:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    265:271:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):83:83 -> run
-    265:271:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    265:271:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    272:276:int kotlin.collections.CollectionsKt__CollectionsKt.getLastIndex(java.util.List):237:237 -> run
-    272:276:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):168 -> run
-    272:276:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    272:276:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    277:281:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):170:170 -> run
-    277:281:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    277:281:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    282:300:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):182:182 -> run
-    282:300:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    282:300:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    301:306:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):180:180 -> run
-    301:306:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    301:306:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    307:310:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):183:183 -> run
-    307:310:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    307:310:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    311:320:boolean kotlin.text.StringsKt__StringsKt.isBlank(java.lang.CharSequence):1712:1712 -> run
-    311:320:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):183 -> run
-    311:320:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    311:320:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    321:333:boolean kotlin.text.CharsKt__CharJVMKt.isWhitespace(char):103:103 -> run
-    321:333:boolean kotlin.text.StringsKt__StringsKt.isBlank(java.lang.CharSequence):310 -> run
-    321:333:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):183 -> run
-    321:333:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    321:333:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    334:338:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):83:83 -> run
-    334:338:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    334:338:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    339:351:java.lang.String kotlin.text.StringsKt___StringsKt.drop(java.lang.String,int):344:344 -> run
-    339:351:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):83 -> run
-    339:351:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    339:351:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    352:386:java.lang.String kotlin.text.StringsKt___StringsKt.drop(java.lang.String,int):343:343 -> run
-    352:386:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):83 -> run
-    352:386:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    352:386:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    387:391:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):180:180 -> run
-    387:391:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    387:391:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    392:399:void kotlin.collections.CollectionsKt__CollectionsKt.throwIndexOverflow():481:481 -> run
-    392:399:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):182 -> run
-    392:399:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    392:399:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    400:404:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):190:190 -> run
-    400:404:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    400:404:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    405:407:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1):3596:3596 -> run
-    405:407:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo$default(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1,int,java.lang.Object):3595 -> run
-    405:407:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):190 -> run
-    405:407:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    405:407:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    408:423:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1):3598:3598 -> run
-    408:423:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo$default(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1,int,java.lang.Object):3595 -> run
-    408:423:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):190 -> run
-    408:423:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    408:423:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
+    20:38:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):62:62 -> run
+    39:43:java.util.Iterator kotlin.text.StringsKt__StringsKt$lineSequence$$inlined$Sequence$1.iterator():732:732 -> run
+    39:43:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):816 -> run
+    39:43:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
+    39:43:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
+    39:43:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    39:43:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    44:49:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):817:817 -> run
+    44:49:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
+    44:49:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
+    44:49:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    44:49:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    50:52:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494:1494 -> run
+    50:52:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
+    50:52:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    50:52:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    53:56:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):819:819 -> run
+    53:56:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
+    53:56:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
+    53:56:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    53:56:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    57:62:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):820:820 -> run
+    57:62:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
+    57:62:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
+    57:62:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    57:62:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    63:70:java.util.List kotlin.collections.CollectionsKt__CollectionsJVMKt.listOf(java.lang.Object):21:21 -> run
+    63:70:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):821 -> run
+    63:70:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
+    63:70:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
+    63:70:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    63:70:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    71:75:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):822:822 -> run
+    71:75:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
+    71:75:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
+    71:75:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    71:75:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    76:78:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):823:823 -> run
+    76:78:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
+    76:78:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
+    76:78:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    76:78:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    79:93:java.util.List kotlin.sequences.SequencesKt___SequencesKt.toList(kotlin.sequences.Sequence):824:824 -> run
+    79:93:java.util.List kotlin.text.StringsKt__StringsKt.lines(java.lang.CharSequence):1494 -> run
+    79:93:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):76 -> run
+    79:93:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    79:93:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    94:98:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):161:161 -> run
+    94:98:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    94:98:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    99:115:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):162:162 -> run
+    99:115:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    99:115:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    116:119:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):79:79 -> run
+    116:119:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    116:119:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    120:129:boolean kotlin.text.StringsKt__StringsKt.isBlank(java.lang.CharSequence):1712:1712 -> run
+    120:129:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):79 -> run
+    120:129:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    120:129:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    130:142:boolean kotlin.text.CharsKt__CharJVMKt.isWhitespace(char):103:103 -> run
+    130:142:boolean kotlin.text.StringsKt__StringsKt.isBlank(java.lang.CharSequence):310 -> run
+    130:142:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):79 -> run
+    130:142:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    130:142:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    143:149:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):162:162 -> run
+    143:149:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    143:149:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    150:151:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):164:164 -> run
+    150:151:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    150:151:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    152:155:int kotlin.collections.CollectionsKt__IterablesKt.collectionSizeOrDefault(java.lang.Iterable,int):39:39 -> run
+    152:155:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):164 -> run
+    152:155:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    152:155:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    156:158:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):164:164 -> run
+    156:158:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    156:158:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    159:171:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):165:165 -> run
+    159:171:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    159:171:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    172:173:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):166:166 -> run
+    172:173:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    172:173:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    174:181:int kotlin.text.StringsKt__IndentKt.indentWidth$StringsKt__IndentKt(java.lang.String):192:192 -> run
+    174:181:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):80 -> run
+    174:181:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    174:181:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    182:185:int kotlin.text.StringsKt__IndentKt.indentWidth$StringsKt__IndentKt(java.lang.String):193:193 -> run
+    182:185:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):80 -> run
+    182:185:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    182:185:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    186:203:boolean kotlin.text.CharsKt__CharJVMKt.isWhitespace(char):103:103 -> run
+    186:203:int kotlin.text.StringsKt__IndentKt.indentWidth$StringsKt__IndentKt(java.lang.String):107 -> run
+    186:203:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):80 -> run
+    186:203:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    186:203:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    204:207:int kotlin.text.StringsKt__IndentKt.indentWidth$StringsKt__IndentKt(java.lang.String):107:107 -> run
+    204:207:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):80 -> run
+    204:207:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    204:207:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    208:211:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):80:80 -> run
+    208:211:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    208:211:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    212:215:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):166:166 -> run
+    212:215:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    212:215:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    216:219:java.lang.Comparable kotlin.collections.CollectionsKt___CollectionsKt.minOrNull(java.lang.Iterable):2686:2686 -> run
+    216:219:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):81 -> run
+    216:219:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    216:219:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    220:227:java.lang.Comparable kotlin.collections.CollectionsKt___CollectionsKt.minOrNull(java.lang.Iterable):2687:2687 -> run
+    220:227:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):81 -> run
+    220:227:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    220:227:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    228:233:java.lang.Comparable kotlin.collections.CollectionsKt___CollectionsKt.minOrNull(java.lang.Iterable):2688:2688 -> run
+    228:233:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):81 -> run
+    228:233:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    228:233:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    234:239:java.lang.Comparable kotlin.collections.CollectionsKt___CollectionsKt.minOrNull(java.lang.Iterable):2689:2689 -> run
+    234:239:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):81 -> run
+    234:239:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    234:239:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    240:245:java.lang.Comparable kotlin.collections.CollectionsKt___CollectionsKt.minOrNull(java.lang.Iterable):2690:2690 -> run
+    240:245:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):81 -> run
+    240:245:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    240:245:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    246:253:java.lang.Comparable kotlin.collections.CollectionsKt___CollectionsKt.minOrNull(java.lang.Iterable):2691:2691 -> run
+    246:253:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):81 -> run
+    246:253:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    246:253:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    254:257:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):81:81 -> run
+    254:257:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    254:257:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    258:263:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):78:78 -> run
+    258:263:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    258:263:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    264:270:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):83:83 -> run
+    264:270:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    264:270:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    271:275:int kotlin.collections.CollectionsKt__CollectionsKt.getLastIndex(java.util.List):237:237 -> run
+    271:275:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):168 -> run
+    271:275:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    271:275:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    276:280:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):170:170 -> run
+    276:280:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    276:280:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    281:299:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):182:182 -> run
+    281:299:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    281:299:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    300:305:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):180:180 -> run
+    300:305:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    300:305:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    306:309:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):183:183 -> run
+    306:309:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    306:309:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    310:319:boolean kotlin.text.StringsKt__StringsKt.isBlank(java.lang.CharSequence):1712:1712 -> run
+    310:319:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):183 -> run
+    310:319:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    310:319:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    320:332:boolean kotlin.text.CharsKt__CharJVMKt.isWhitespace(char):103:103 -> run
+    320:332:boolean kotlin.text.StringsKt__StringsKt.isBlank(java.lang.CharSequence):310 -> run
+    320:332:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):183 -> run
+    320:332:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    320:332:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    333:337:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):83:83 -> run
+    333:337:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    333:337:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    338:350:java.lang.String kotlin.text.StringsKt___StringsKt.drop(java.lang.String,int):344:344 -> run
+    338:350:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):83 -> run
+    338:350:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    338:350:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    351:385:java.lang.String kotlin.text.StringsKt___StringsKt.drop(java.lang.String,int):343:343 -> run
+    351:385:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):83 -> run
+    351:385:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    351:385:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    386:390:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):180:180 -> run
+    386:390:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    386:390:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    391:398:void kotlin.collections.CollectionsKt__CollectionsKt.throwIndexOverflow():481:481 -> run
+    391:398:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):182 -> run
+    391:398:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    391:398:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    399:403:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):190:190 -> run
+    399:403:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    399:403:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    404:406:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1):3596:3596 -> run
+    404:406:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo$default(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1,int,java.lang.Object):3595 -> run
+    404:406:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):190 -> run
+    404:406:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    404:406:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    407:423:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1):3598:3598 -> run
+    407:423:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo$default(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1,int,java.lang.Object):3595 -> run
+    407:423:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):190 -> run
+    407:423:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
+    407:423:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
     424:432:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1):3599:3599 -> run
     424:432:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo$default(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1,int,java.lang.Object):3595 -> run
     424:432:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):190 -> run
     424:432:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    424:432:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
+    424:432:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
     433:442:void kotlin.text.StringsKt__AppendableKt.appendElement(java.lang.Appendable,java.lang.Object,kotlin.jvm.functions.Function1):85:85 -> run
     433:442:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1):3601 -> run
     433:442:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo$default(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1,int,java.lang.Object):3595 -> run
     433:442:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):190 -> run
     433:442:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    433:442:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
+    433:442:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
     443:456:void kotlin.text.StringsKt__AppendableKt.appendElement(java.lang.Appendable,java.lang.Object,kotlin.jvm.functions.Function1):86:86 -> run
     443:456:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1):3601 -> run
     443:456:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo$default(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1,int,java.lang.Object):3595 -> run
     443:456:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):190 -> run
     443:456:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    443:456:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
+    443:456:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
     457:464:void kotlin.text.StringsKt__AppendableKt.appendElement(java.lang.Appendable,java.lang.Object,kotlin.jvm.functions.Function1):87:87 -> run
     457:464:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1):3601 -> run
     457:464:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo$default(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1,int,java.lang.Object):3595 -> run
     457:464:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):190 -> run
     457:464:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    457:464:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
+    457:464:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
     465:467:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1):3605:3605 -> run
     465:467:java.lang.Appendable kotlin.collections.CollectionsKt___CollectionsKt.joinTo$default(java.lang.Iterable,java.lang.Appendable,java.lang.CharSequence,java.lang.CharSequence,java.lang.CharSequence,int,java.lang.CharSequence,kotlin.jvm.functions.Function1,int,java.lang.Object):3595 -> run
     465:467:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):190 -> run
     465:467:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    465:467:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
+    465:467:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
     468:471:java.lang.String kotlin.text.StringsKt__IndentKt.replaceIndent(java.lang.String,java.lang.String):191:191 -> run
     468:471:java.lang.String kotlin.text.StringsKt__IndentKt.trimIndent(java.lang.String):70 -> run
-    468:471:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):65 -> run
-    472:477:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):67:67 -> run
-    478:489:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):0:0 -> run
-    478:489:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    490:494:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):97:97 -> run
-    490:494:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    495:500:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):98:98 -> run
-    495:500:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    501:506:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):99:99 -> run
-    501:506:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    507:508:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):100:100 -> run
-    507:508:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
+    468:471:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):66 -> run
+    472:477:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.sendToPwa$lambda$1(java.lang.String,com.yescirculation.nonblockinglife.bridge.AndroidBridge):68:68 -> run
+    478:493:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):0:0 -> run
+    478:493:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    494:498:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):98:98 -> run
+    494:498:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    499:502:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):99:99 -> run
+    499:502:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    503:506:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):100:100 -> run
+    503:506:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    507:508:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):101:101 -> run
+    507:508:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
     509:512:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
-    509:512:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):100 -> run
-    509:512:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    513:516:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):100:100 -> run
-    513:516:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    517:518:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):102:102 -> run
-    517:518:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    519:531:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):104:104 -> run
-    519:531:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    532:537:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):105:105 -> run
-    532:537:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    538:548:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):106:106 -> run
-    538:548:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    549:558:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):107:107 -> run
-    549:558:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    559:565:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):108:108 -> run
-    559:565:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    566:570:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):101:101 -> run
-    566:570:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    571:572:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):110:110 -> run
-    571:572:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    573:576:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
-    573:576:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):110 -> run
-    573:576:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    577:584:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):110:110 -> run
-    577:584:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    585:592:void com.yescirculation.nonblockinglife.notification.ValAndFunKt.replyNotificationPermissionStatus(java.lang.String,android.content.Context,com.yescirculation.nonblockinglife.bridge.MessageSender):56:56 -> run
-    585:592:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):111 -> run
-    585:592:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    593:617:void com.yescirculation.nonblockinglife.notification.ValAndFunKt.replyNotificationPermissionStatus(java.lang.String,android.content.Context,com.yescirculation.nonblockinglife.bridge.MessageSender):61:61 -> run
-    593:617:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):111 -> run
-    593:617:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    618:622:void com.yescirculation.nonblockinglife.notification.ValAndFunKt.replyNotificationPermissionStatus(java.lang.String,android.content.Context,com.yescirculation.nonblockinglife.bridge.MessageSender):60:60 -> run
-    618:622:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):111 -> run
-    618:622:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    623:624:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):112:112 -> run
-    623:624:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    625:630:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
-    625:630:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):112 -> run
-    625:630:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    631:635:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):113:113 -> run
-    631:635:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    636:637:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):114:114 -> run
-    636:637:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    638:643:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
-    638:643:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):114 -> run
-    638:643:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    644:648:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):115:115 -> run
-    644:648:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    649:650:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):116:116 -> run
-    649:650:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    651:656:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
-    651:656:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):116 -> run
-    651:656:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    657:661:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):117:117 -> run
-    657:661:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    662:663:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):118:118 -> run
-    662:663:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    664:669:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
-    664:669:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):118 -> run
-    664:669:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    670:674:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):119:119 -> run
-    670:674:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    675:676:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):120:120 -> run
-    675:676:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    677:682:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
-    677:682:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):120 -> run
-    677:682:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    683:690:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):22:22 -> run
-    683:690:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
-    683:690:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):121 -> run
-    683:690:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    691:692:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):25:25 -> run
-    691:692:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
-    691:692:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):121 -> run
-    691:692:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    693:694:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):26:26 -> run
-    693:694:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
-    693:694:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):121 -> run
-    693:694:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    695:712:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):27:27 -> run
-    695:712:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
-    695:712:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):121 -> run
-    695:712:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    713:719:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):33:33 -> run
-    713:719:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
-    713:719:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):121 -> run
-    713:719:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    720:724:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):25:25 -> run
-    720:724:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
-    720:724:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):121 -> run
-    720:724:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    725:727:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):29:29 -> run
-    725:727:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
-    725:727:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):121 -> run
-    725:727:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    728:732:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):30:30 -> run
-    728:732:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
-    728:732:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):121 -> run
-    728:732:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    733:734:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):122:122 -> run
-    733:734:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    735:740:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
-    735:740:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):122 -> run
-    735:740:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    741:755:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):124:124 -> run
-    741:755:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    756:759:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):123:123 -> run
-    756:759:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    760:761:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):127:127 -> run
-    760:761:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    762:770:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
-    762:770:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):127 -> run
-    762:770:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    771:797:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):129:129 -> run
-    771:797:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    798:801:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):128:128 -> run
-    798:801:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    802:803:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):132:132 -> run
-    802:803:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    804:807:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
-    804:807:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):132 -> run
-    804:807:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    808:811:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):132:132 -> run
-    808:811:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    812:815:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):133:133 -> run
-    812:815:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    816:830:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):134:134 -> run
-    816:830:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    831:841:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):135:135 -> run
-    831:841:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
-    842:858:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):139:139 -> run
-    842:858:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):48 -> run
+    509:512:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):101 -> run
+    509:512:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    513:516:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):101:101 -> run
+    513:516:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    517:518:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):103:103 -> run
+    517:518:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    519:531:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):105:105 -> run
+    519:531:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    532:537:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):106:106 -> run
+    532:537:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    538:548:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):107:107 -> run
+    538:548:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    549:560:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):108:108 -> run
+    549:560:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    561:567:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):109:109 -> run
+    561:567:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    568:574:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):102:102 -> run
+    568:574:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    575:576:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):111:111 -> run
+    575:576:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    577:580:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
+    577:580:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):111 -> run
+    577:580:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    581:588:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):111:111 -> run
+    581:588:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    589:597:void com.yescirculation.nonblockinglife.notification.ValAndFunKt.replyNotificationPermissionStatus(java.lang.String,android.content.Context,com.yescirculation.nonblockinglife.bridge.MessageSender):56:56 -> run
+    589:597:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):112 -> run
+    589:597:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    598:622:void com.yescirculation.nonblockinglife.notification.ValAndFunKt.replyNotificationPermissionStatus(java.lang.String,android.content.Context,com.yescirculation.nonblockinglife.bridge.MessageSender):61:61 -> run
+    598:622:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):112 -> run
+    598:622:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    623:627:void com.yescirculation.nonblockinglife.notification.ValAndFunKt.replyNotificationPermissionStatus(java.lang.String,android.content.Context,com.yescirculation.nonblockinglife.bridge.MessageSender):60:60 -> run
+    623:627:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):112 -> run
+    623:627:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    628:629:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):113:113 -> run
+    628:629:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    630:635:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
+    630:635:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):113 -> run
+    630:635:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    636:640:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):114:114 -> run
+    636:640:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    641:642:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):115:115 -> run
+    641:642:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    643:648:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
+    643:648:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):115 -> run
+    643:648:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    649:653:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):116:116 -> run
+    649:653:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    654:655:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):117:117 -> run
+    654:655:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    656:661:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
+    656:661:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):117 -> run
+    656:661:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    662:666:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):118:118 -> run
+    662:666:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    667:668:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):119:119 -> run
+    667:668:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    669:674:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
+    669:674:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):119 -> run
+    669:674:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    675:679:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):120:120 -> run
+    675:679:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    680:681:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):121:121 -> run
+    680:681:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    682:687:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
+    682:687:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):121 -> run
+    682:687:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    688:695:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):22:22 -> run
+    688:695:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
+    688:695:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):122 -> run
+    688:695:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    696:697:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):25:25 -> run
+    696:697:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
+    696:697:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):122 -> run
+    696:697:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    698:699:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):26:26 -> run
+    698:699:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
+    698:699:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):122 -> run
+    698:699:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    700:717:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):27:27 -> run
+    700:717:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
+    700:717:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):122 -> run
+    700:717:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    718:724:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):33:33 -> run
+    718:724:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
+    718:724:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):122 -> run
+    718:724:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    725:729:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):25:25 -> run
+    725:729:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
+    725:729:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):122 -> run
+    725:729:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    730:732:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):29:29 -> run
+    730:732:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
+    730:732:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):122 -> run
+    730:732:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    733:737:void com.yescirculation.nonblockinglife.alarm.ExactAlarmPermissionHelper.requestPermission(android.content.Context):30:30 -> run
+    733:737:void com.yescirculation.nonblockinglife.alarm.AlarmSetupMessageHandler.requestExactAlarmPermission(android.content.Context):93 -> run
+    733:737:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):122 -> run
+    733:737:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    738:739:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):123:123 -> run
+    738:739:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    740:745:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
+    740:745:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):123 -> run
+    740:745:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    746:760:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):125:125 -> run
+    746:760:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    761:765:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):124:124 -> run
+    761:765:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    766:767:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):128:128 -> run
+    766:767:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    768:776:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
+    768:776:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):128 -> run
+    768:776:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    777:781:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):129:129 -> run
+    777:781:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    782:787:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):130:130 -> run
+    782:787:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    788:791:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):131:131 -> run
+    788:791:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    792:799:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):132:132 -> run
+    792:799:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    800:809:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):133:133 -> run
+    800:809:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    810:816:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):134:134 -> run
+    810:816:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    817:830:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):135:135 -> run
+    817:830:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    831:834:java.util.List kotlin.collections.ArraysUtilJVM.asList(java.lang.Object[]):13:13 -> run
+    831:834:java.util.List kotlin.collections.ArraysKt___ArraysJvmKt.asList(java.lang.Object[]):133 -> run
+    831:834:java.util.List kotlin.collections.CollectionsKt__CollectionsKt.listOf(java.lang.Object[]):81 -> run
+    831:834:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):135 -> run
+    831:834:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    835:837:java.util.List kotlin.collections.ArraysKt___ArraysJvmKt.asList(java.lang.Object[]):133:133 -> run
+    835:837:java.util.List kotlin.collections.CollectionsKt__CollectionsKt.listOf(java.lang.Object[]):81 -> run
+    835:837:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):135 -> run
+    835:837:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    838:844:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):135:135 -> run
+    838:844:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    845:855:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):136:136 -> run
+    845:855:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    856:857:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):137:137 -> run
+    856:857:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    858:863:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
+    858:863:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):137 -> run
+    858:863:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    864:890:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):139:139 -> run
+    864:890:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    891:894:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):138:138 -> run
+    891:894:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    895:896:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):142:142 -> run
+    895:896:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    897:900:boolean kotlin.jvm.internal.Intrinsics.areEqual(java.lang.Object,java.lang.Object):169:169 -> run
+    897:900:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):142 -> run
+    897:900:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    901:904:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):142:142 -> run
+    901:904:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    905:908:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):143:143 -> run
+    905:908:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    909:923:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):144:144 -> run
+    909:923:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    924:935:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):145:145 -> run
+    924:935:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
+    936:952:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage(java.lang.String):149:149 -> run
+    936:952:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.postMessage$lambda$0(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String):49 -> run
 com.yescirculation.nonblockinglife.bridge.AndroidBridge$$ExternalSyntheticLambda1 -> s1:
 # {"id":"sourceFile","fileName":"R8$$SyntheticClass"}
 # {"id":"com.android.tools.r8.synthesized"}
@@ -41070,82 +41102,82 @@ com.yescirculation.nonblockinglife.bridge.AndroidBridge$$ExternalSyntheticLambda
     65:68:void androidx.emoji2.text.EmojiCompatInitializer$BackgroundDefaultLoader.lambda$load$0(androidx.emoji2.text.EmojiCompat$MetadataRepoLoaderCallback,java.util.concurrent.ThreadPoolExecutor):167 -> run
     65:68:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
     69:80:void AndroidBridge$$ExternalSyntheticLambda1.run():0:0 -> run
-    81:83:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136:136 -> run
+    81:83:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146:146 -> run
     81:83:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    84:88:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):149:149 -> run
-    84:88:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    84:88:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):159:159 -> run
+    84:88:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     84:88:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    89:93:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):151:151 -> run
-    89:93:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    89:93:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):161:161 -> run
+    89:93:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     89:93:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    94:99:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):152:152 -> run
-    94:99:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    94:99:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):162:162 -> run
+    94:99:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     94:99:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    100:109:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):153:153 -> run
-    100:109:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    100:109:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):163:163 -> run
+    100:109:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     100:109:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    110:112:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):154:154 -> run
-    110:112:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    110:112:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):164:164 -> run
+    110:112:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     110:112:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    113:115:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):155:155 -> run
-    113:115:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    113:115:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):165:165 -> run
+    113:115:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     113:115:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    116:123:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):156:156 -> run
-    116:123:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    116:123:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):166:166 -> run
+    116:123:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     116:123:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    124:138:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):158:158 -> run
-    124:138:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    124:138:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):168:168 -> run
+    124:138:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     124:138:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    139:153:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):184:184 -> run
-    139:153:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    139:153:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):194:194 -> run
+    139:153:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     139:153:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    154:157:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):162:162 -> run
-    154:157:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    154:157:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):172:172 -> run
+    154:157:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     154:157:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    158:167:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):163:163 -> run
-    158:167:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    158:167:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):173:173 -> run
+    158:167:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     158:167:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    168:172:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):164:164 -> run
-    168:172:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    168:172:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):174:174 -> run
+    168:172:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     168:172:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    173:178:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):166:166 -> run
-    173:178:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    173:178:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):176:176 -> run
+    173:178:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     173:178:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    179:187:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):167:167 -> run
-    179:187:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    179:187:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):177:177 -> run
+    179:187:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     179:187:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    188:190:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):169:169 -> run
-    188:190:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    188:190:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):179:179 -> run
+    188:190:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     188:190:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    191:194:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):170:170 -> run
-    191:194:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    191:194:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):180:180 -> run
+    191:194:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     191:194:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    195:199:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):174:174 -> run
-    195:199:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    195:199:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):184:184 -> run
+    195:199:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     195:199:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    200:206:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):175:175 -> run
-    200:206:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    200:206:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):185:185 -> run
+    200:206:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     200:206:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    207:211:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):176:176 -> run
-    207:211:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    207:211:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):186:186 -> run
+    207:211:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     207:211:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    212:216:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):177:177 -> run
-    212:216:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    212:216:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):187:187 -> run
+    212:216:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     212:216:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    217:235:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):178:178 -> run
-    217:235:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    217:235:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):188:188 -> run
+    217:235:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     217:235:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    236:242:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):182:182 -> run
-    236:242:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    236:242:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):192:192 -> run
+    236:242:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     236:242:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    243:246:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):184:184 -> run
-    243:246:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    243:246:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):194:194 -> run
+    243:246:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     243:246:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    247:257:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):180:180 -> run
-    247:257:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    247:257:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):190:190 -> run
+    247:257:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     247:257:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
-    258:262:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):184:184 -> run
-    258:262:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):136 -> run
+    258:262:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.fetchAndReplyIcs(java.lang.String,java.lang.String):194:194 -> run
+    258:262:void com.yescirculation.nonblockinglife.bridge.AndroidBridge.handleClientMessage$lambda$2(com.yescirculation.nonblockinglife.bridge.AndroidBridge,java.lang.String,java.lang.String):146 -> run
     258:262:void AndroidBridge$$ExternalSyntheticLambda1.run():0 -> run
 kotlin.LazyKt__LazyJVMKt -> R8$$REMOVED$$CLASS$$103:
 # {"id":"sourceFile","fileName":"LazyJVM.kt"}

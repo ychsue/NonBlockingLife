@@ -6,6 +6,9 @@
     <Version>3.2.1</Version>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets/icon.ico</ApplicationIcon>
+    <PackageIcon>128_logo.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,7 +30,22 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <None Include="..\..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Nbl.Bridge\Nbl.Bridge.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\128_logo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 </Project>
