@@ -2,6 +2,12 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
+    <!-- Windows 才需要 WinRT（StartupTask）；Linux/macOS 仍編為 net10.0 -->
+    <TargetFramework Condition="$([MSBuild]::IsOSPlatform('Windows'))">net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::IsOSPlatform('Windows'))">10.0.19041.0</SupportedOSPlatformVersion>
+    <!-- 隨 MSIX 附帶 .NET runtime，使用者不需另外安裝 -->
+    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('Windows'))">win-x64</RuntimeIdentifier>
+    <SelfContained Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</SelfContained>
     <Nullable>enable</Nullable>
     <Version>3.2.1</Version>
     <ImplicitUsings>enable</ImplicitUsings>

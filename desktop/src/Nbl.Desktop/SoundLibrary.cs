@@ -7,8 +7,7 @@ public static class SoundLibrary
 {
     private static readonly string[] Extensions = { ".mp3", ".wav", ".ogg", ".flac", ".m4a", ".wma" };
 
-    public static string Dir { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NonBlockingLife", "sounds");
+    public static string Dir { get; } = Path.Combine(DataPaths.Root, "sounds");
 
     public static IReadOnlyList<string> List()
     {

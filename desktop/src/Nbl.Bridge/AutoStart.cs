@@ -48,6 +48,7 @@ public static class AutoStart
 
     public static bool IsEnabled()
     {
+        if (PackageIdentity.IsPackaged) return false;
         if (OperatingSystem.IsWindows())
         {
             using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RunKey);
@@ -59,6 +60,7 @@ public static class AutoStart
 
     public static void SetEnabled(bool enabled)
     {
+        if (PackageIdentity.IsPackaged) return;
         var cmd = CurrentCommand();
         if (enabled && cmd.Count == 0) return;
 

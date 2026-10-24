@@ -27,8 +27,8 @@ public partial class App : Application
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
             var options = LaunchOptions.Parse(desktop.Args ?? Array.Empty<string>());
-            var dataDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NonBlockingLife");
+            if (StoreStartup.LaunchedByStartupTask()) options = options with { Background = true };
+            var dataDir = DataPaths.Root;
             var alarms = new AlarmScheduler(Path.Combine(dataDir, "alarms.json"));
             var timers = new TimerService(Path.Combine(dataDir, "timers.json"));
             _audio = new AlarmAudioManager(AudioPlayerFactory.Create());
@@ -95,19 +95,42 @@ public partial class App : Application
         var autoStart = new NativeMenuItem(L10n.Tray3Title)
         {
             ToggleType = MenuItemToggleType.CheckBox,
-            IsEnabled = AutoStart.IsSupported,
+            IsEnabled = StoreStartup.IsAvailable || AutoStart.IsSupported,
         };
-        try { autoStart.IsChecked = AutoStart.IsEnabled(); }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
-        autoStart.Click += (_, _) =>
+        if (StoreStartup.IsAvailable)
         {
-            try { AutoStart.SetEnabled(autoStart.IsChecked); }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            _ = Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                autoStart.IsChecked = !autoStart.IsChecked;
-                host.ShowNotification(new ToastOptions { Title = "NonBlockingLife", Body = L10n.CannotSetAutoStart, IsAlarm = false });
-            }
-        };
+                try { autoStart.IsChecked = await StoreStartup.IsEnabledAsync(); }
+                catch (Exception e) { System.Diagnostics.Trace.WriteLine($"[nbl] startup task query failed: {e.Message}"); }
+            });
+            autoStart.Click += async (_, _) =>
+            {
+                var want = autoStart.IsChecked;
+                try { autoStart.IsChecked = await StoreStartup.SetEnabledAsync(want); }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Trace.WriteLine($"[nbl] startup task failed: {e.Message}");
+                    autoStart.IsChecked = !want;
+                }
+                if (autoStart.IsChecked != want)
+                    host.ShowNotification(new ToastOptions { Title = "NonBlockingLife", Body = L10n.CannotSetAutoStart, IsAlarm = false });
+            };
+        }
+        else
+        {
+            try { autoStart.IsChecked = AutoStart.IsEnabled(); }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+            autoStart.Click += (_, _) =>
+            {
+                try { AutoStart.SetEnabled(autoStart.IsChecked); }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+                {
+                    autoStart.IsChecked = !autoStart.IsChecked;
+                    host.ShowNotification(new ToastOptions { Title = "NonBlockingLife", Body = L10n.CannotSetAutoStart, IsAlarm = false });
+                }
+            };
+        }
         var protocol = new NativeMenuItem(L10n.Tray4Title)
         {
             ToggleType = MenuItemToggleType.CheckBox,
@@ -148,11 +171,17 @@ public partial class App : Application
             desktop.Shutdown();
         };
 
+        var menu = new NativeMenu { open, clock, stopSounds, openSounds, autoStart };
+        // Store 版的協定由 manifest 宣告，不需要也不能由程式註冊
+        if (!PackageIdentity.IsPackaged) menu.Add(protocol);
+        menu.Add(new NativeMenuItemSeparator());
+        menu.Add(exit);
+
         var tray = new TrayIcon
         {
             Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://Nbl.Desktop/Assets/icon.png"))),
             ToolTipText = "NonBlockingLife",
-            Menu = new NativeMenu { open, clock, stopSounds, openSounds, autoStart, protocol, new NativeMenuItemSeparator(), exit },
+            Menu = menu,
         };
         tray.Clicked += (_, _) => host.ShowMainWindow();
         TrayIcon.SetIcons(this, new TrayIcons { tray });

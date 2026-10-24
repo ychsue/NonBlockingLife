@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-10-24] 讓 Startup 與 Protocol 改由 Package.appxmanifest 管理，先用 x64 來發布
+所以，需要先判斷是否是 msix，若是的話，就由 Package.appxmanifest 來管理 Startup 與 Protocol。
+
 ## [2026-10-23] 更新 TWA 版本號至 NBL-3.2.1，準備發布前測試
 [17:32] 已經關聯到 MS Store 了，但是，還有 Registry 的設定方式等需要修改。
 

@@ -228,3 +228,4 @@ AppPackages/
 BundleArtifacts/
 Package.StoreAssociation.xml
 Package.appxmanifest
+*.user

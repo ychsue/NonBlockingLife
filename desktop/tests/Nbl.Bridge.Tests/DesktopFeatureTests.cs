@@ -16,6 +16,8 @@ public class DesktopFeatureTests
         public void Share(string title, string text) => Shared.Add((title, text));
         public void ShowMainWindow() { }
         public void ShowClockWindow(int tabIndex = 0) { }
+
+        public Uri? BaseUri => null;
     }
 
     private static readonly DateTimeOffset Now = new(2026, 10, 12, 9, 0, 0, TimeZoneInfo.Local.GetUtcOffset(new DateTime(2026, 10, 12)));

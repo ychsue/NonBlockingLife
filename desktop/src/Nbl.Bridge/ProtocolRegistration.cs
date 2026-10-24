@@ -36,6 +36,7 @@ public static class ProtocolRegistration
 
     public static bool IsRegistered()
     {
+        if (PackageIdentity.IsPackaged) return true;
         var cmd = CurrentCommand();
         if (cmd.Count == 0) return false;
         if (OperatingSystem.IsWindows())
@@ -53,6 +54,7 @@ public static class ProtocolRegistration
 
     public static void SetRegistered(bool registered)
     {
+        if (PackageIdentity.IsPackaged) return;
         var cmd = CurrentCommand();
         if (registered && cmd.Count == 0) return;
 
