@@ -16,6 +16,7 @@ public sealed class AlarmAudioManager
     private readonly object _gate = new();
     private readonly HashSet<string> _ringing = new();
     private readonly IAudioPlayer _player;
+    private string? _sound;
 
     public AlarmAudioManager(IAudioPlayer player) => _player = player;
 
@@ -29,7 +30,17 @@ public sealed class AlarmAudioManager
         lock (_gate)
         {
             if (!_ringing.Add(key) || _ringing.Count > 1) return;
+            _sound = sound;
             Safe(() => _player.PlayLoop(sound));
+        }
+    }
+
+    public void Refresh()
+    {
+        lock (_gate)
+        {
+            if (_ringing.Count == 0) return;
+            Safe(() => _player.PlayLoop(_sound));
         }
     }
 
@@ -37,7 +48,11 @@ public sealed class AlarmAudioManager
     {
         lock (_gate)
         {
-            if (_ringing.Remove(key) && _ringing.Count == 0) Safe(_player.Stop);
+            if (_ringing.Remove(key) && _ringing.Count == 0)
+            {
+                _sound = null;
+                Safe(_player.Stop);
+            }
         }
     }
 
@@ -47,6 +62,7 @@ public sealed class AlarmAudioManager
         {
             if (_ringing.Count == 0) return;
             _ringing.Clear();
+            _sound = null;
             Safe(_player.Stop);
         }
     }

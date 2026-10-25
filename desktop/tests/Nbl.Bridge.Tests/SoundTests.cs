@@ -9,6 +9,24 @@ public class SoundTests
     private static readonly DateTimeOffset Now = new(2026, 10, 17, 10, 0, 0, TimeSpan.Zero);
 
     [Fact]
+    public void AlarmAudioManager_RefreshRestartsActiveSound()
+    {
+        var player = new RecordingAudioPlayer();
+        var manager = new AlarmAudioManager(player);
+
+        manager.Start("timer", "timer.mp3");
+        manager.Refresh();
+
+        Assert.Equal(new string?[] { "timer.mp3", "timer.mp3" }, player.PlayedSounds);
+        Assert.True(manager.IsRinging);
+
+        manager.StopAll();
+        manager.Refresh();
+        Assert.False(manager.IsRinging);
+        Assert.Equal(1, player.StopCount);
+    }
+
+    [Fact]
     public void Timer_SetSound_updates_entry_and_survives_reset()
     {
         var s = new TimerService();
@@ -42,5 +60,14 @@ public class SoundTests
         Assert.True(a.SetSound(e.Key, null));
         Assert.Null(a.Snapshot()[0].Sound);
         Assert.False(a.SetSound("missing", "x"));
+    }
+
+    private sealed class RecordingAudioPlayer : IAudioPlayer
+    {
+        public List<string?> PlayedSounds { get; } = new();
+        public int StopCount { get; private set; }
+
+        public void PlayLoop(string? sound) => PlayedSounds.Add(sound);
+        public void Stop() => StopCount++;
     }
 }

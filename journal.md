@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-10-25] 讓專注時避免睡眠
+- power ：[WindowsPowerManager.cs](desktop\src\Nbl.Desktop\WindowsPowerManager.cs)
+
 ## [2026-10-24] 讓 Startup 與 Protocol 改由 Package.appxmanifest 管理，先用 x64 來發布
 所以，需要先判斷是否是 msix，若是的話，就由 Package.appxmanifest 來管理 Startup 與 Protocol。
 

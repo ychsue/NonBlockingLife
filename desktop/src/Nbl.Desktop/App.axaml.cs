@@ -13,6 +13,7 @@ public partial class App : Application
     private DispatcherTimer? _alarmTimer;
     private ClockWindow? _clock;
     private AlarmAudioManager _audio = new(new NullAudioPlayer());
+    private WindowsPowerManager? _powerManager;
 
     public override void Initialize()
     {
@@ -55,6 +56,15 @@ public partial class App : Application
             }
             if (Program.Instance is { } single)
                 single.ShowRequested += payload => Dispatcher.UIThread.Post(() => HandleProtocol(payload, options, window, timers, host));
+
+            _powerManager = new WindowsPowerManager(
+                () => CheckAlarmsAndTimers(alarms, timers, host, afterResume: true));
+            desktop.Exit += (_, _) =>
+            {
+                _alarmTimer?.Stop();
+                _powerManager?.Dispose();
+                _powerManager = null;
+            };
 
             SetupTray(desktop, window, host);
             StartAlarmTimer(alarms, timers, host);
@@ -190,22 +200,37 @@ public partial class App : Application
     private void StartAlarmTimer(AlarmScheduler alarms, TimerService timers, DesktopHost host)
     {
         _alarmTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-        _alarmTimer.Tick += (_, _) =>
-        {
-            var now = DateTimeOffset.Now;
-            foreach (var due in alarms.TakeDue(now))
-            {
-                var key = "alarm:" + due.Key;
-                _audio.Start(key, SoundLibrary.Resolve(due.Sound));
-                host.ShowNotification(new ToastOptions { Title = "⏰ NonBlockingLife", Body = due.Label, IsAlarm = true, OnClosed = () => _audio.Stop(key) });
-            }
-            foreach (var t in timers.TakeFinished(now))
-            {
-                var key = "timer:" + t.Id;
-                _audio.Start(key, SoundLibrary.Resolve(t.Sound));
-                host.ShowNotification(new ToastOptions { Title = "⏳ " + L10n.TimerFinished, Body = t.Label, IsAlarm = true, OnClosed = () => _audio.Stop(key) });
-            }
-        };
+        _alarmTimer.Tick += (_, _) => CheckAlarmsAndTimers(alarms, timers, host);
         _alarmTimer.Start();
+        CheckAlarmsAndTimers(alarms, timers, host);
+    }
+
+    private void CheckAlarmsAndTimers(
+        AlarmScheduler alarms,
+        TimerService timers,
+        DesktopHost host,
+        bool afterResume = false)
+    {
+        var now = DateTimeOffset.Now;
+        foreach (var due in alarms.TakeDue(now))
+        {
+            var key = "alarm:" + due.Key;
+            _audio.Start(key, SoundLibrary.Resolve(due.Sound));
+            host.ShowNotification(new ToastOptions { Title = "⏰ NonBlockingLife", Body = due.Label, IsAlarm = true, OnClosed = () => _audio.Stop(key) });
+        }
+        foreach (var t in timers.TakeFinished(now))
+        {
+            var key = "timer:" + t.Id;
+            _audio.Start(key, SoundLibrary.Resolve(t.Sound));
+            host.ShowNotification(new ToastOptions { Title = "⏳ " + L10n.TimerFinished, Body = t.Label, IsAlarm = true, OnClosed = () => _audio.Stop(key) });
+        }
+
+        if (afterResume)
+            _audio.Refresh();
+
+        var keepSystemAwake = _audio.IsRinging
+            || timers.Snapshot().Any(t =>
+                t.State == TimerState.Running && t.EndAt is { } endAt && endAt > now);
+        _powerManager?.SetSystemRequired(keepSystemAwake, force: afterResume);
     }
 }
