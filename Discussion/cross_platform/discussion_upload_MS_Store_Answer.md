@@ -94,3 +94,29 @@ runFullTrust is required because the entire application is a full-trust desktop 
 - 這個問題**不能跳過**，需要照實回答，用上一則「整個 app 是桌面 exe」的版本即可。
 - 這類 .NET 桌面 app 申請 `runFullTrust` 很常見，通常會核准。
 - 可順手整理 manifest：startup 與 protocol 保留沒問題，不必為了這題移除。
+
+---
+
+## [2026-10-25] 加上 ARM64 支援
+
+可以，ARM64 也能發布。我已經改好專案，並用 MSBuild 命令列以 Release | ARM64 實際打包，成功產生 ARM64 的 `.msix`。測試產出已刪除。我沒有在真正的 ARM 裝置上執行過，所以執行行為要請你驗證。
+
+**為什麼可行**
+- Windows 的鈴聲播放走 NAudio，是純 .NET 程式，不受架構限制。
+- LibVLC 只用在 Linux 和 macOS。
+- Avalonia、Skia、HarfBuzz 都有 win-arm64 的原生檔。
+- 網頁部分用系統的 WebView2，ARM64 也有。
+
+**我改了什麼**
+- `Nbl.Desktop.csproj`：平台選 ARM64 時，`RuntimeIdentifier` 改成 `win-arm64`，其他情況維持 `win-x64`。
+- `Nbl.Bridge.csproj`：`RuntimeIdentifiers` 改成 `win-x64;win-arm64`。
+
+**你要做的**
+1. 在 Visual Studio 選 Release | ARM64，確認能建置。
+2. 在 Create App Packages 的架構欄同時勾選 x64 和 ARM64。
+3. 選 Microsoft Store 發布時，VS 會自動產生一個 `.msixbundle`，Store 依使用者裝置分發對應版本。
+4. 如果你有 ARM 裝置，請實際安裝測試。
+
+要注意兩點：
+- 你目前測試用 sideload 時，同一台機器只會裝符合自己架構的那個套件，這是正常的。
+- 如果打包後 ARM64 精靈又出現 `project.assets.json` 找不到的錯誤，做法和 x64 一樣：先還原 NuGet，或刪掉 `src\Nbl.Desktop` 的 `obj` 再試。

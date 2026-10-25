@@ -679,24 +679,29 @@ export function SyncStatus({
       ) : null}
       <button
         onClick={(e) => {
-          if (
-            isRunning &&
-            activeStep?.id === "show-sync-status" &&
-            (!!syncSupabaseInputRef.current?.value || syncType !== "supabase")
-          ) {
-            alert(tHere("教學之前警告"));
-            return;
-          } else {
-            const input = (e.target as HTMLElement)
-              .previousElementSibling as HTMLInputElement;
-            if (syncType === "supabase") {
-              handleSetSupabaseUrlKey(input.value);
-            } else if (syncType === "gas") {
-              handleSetGasUrl(input.value);
-            } else if (syncType === "none") {
-              // Do nothing for 'none' sync type
-              alert(tHere("請改選其他同步方式"));
+          let shouldRunNextStep = false;
+          if (isRunning && activeStep?.id === "show-sync-status") {
+            if (
+              !!syncSupabaseInputRef.current?.value ||
+              syncType !== "supabase"
+            ) {
+              alert(tHere("教學之前警告"));
+              return;
+            } else {
+              shouldRunNextStep = true;
             }
+          }
+          const input = (e.target as HTMLElement)
+            .previousElementSibling as HTMLInputElement;
+          if (syncType === "supabase") {
+            handleSetSupabaseUrlKey(input.value);
+          } else if (syncType === "gas") {
+            handleSetGasUrl(input.value);
+          } else if (syncType === "none") {
+            // Do nothing for 'none' sync type
+            alert(tHere("請改選其他同步方式"));
+          }
+          if (shouldRunNextStep) {
             nextStep();
           }
         }}

@@ -640,7 +640,7 @@ export function SetupSupabaseWizard({
   // 如果是 modal 模式
   if (isModal) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 w-dvw h-dvh">
         <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
           <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
             <h1 className="text-lg font-bold">{tHere("supabaseSetup")}</h1>

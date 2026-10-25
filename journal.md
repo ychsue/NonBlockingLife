@@ -1,5 +1,10 @@
 # Journal
 
+## [2026-10-25] 修正些小錯誤：
+1. 注意，出現 JoyRide 的小圓點，也會算 isRunning
+2. [SetupSupabaseWizard.tsx](pwa/src/components/SetupSupabaseWizard.tsx) 與 [SetupGASWizard.tsx](pwa/src/components/SetupGASWizard.tsx) 的 modal 視窗擴展到 100vh, 100vw，避免它的大小由他的父元件大小所限制。
+3. privacy policy 補強了 Supabase 與 Google Sheets 的同步管理的說明。
+
 ## [2026-10-25] 讓專注時避免睡眠
 - power ：[WindowsPowerManager.cs](desktop\src\Nbl.Desktop\WindowsPowerManager.cs)
 

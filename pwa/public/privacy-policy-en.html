@@ -68,13 +68,13 @@
 <body>
     <div class="container">
         <h1>Privacy Policy</h1>
-        <p class="last-updated">Last Updated: June 2026</p>
+        <p class="last-updated">Last Updated: October 2026</p>
 
         <h2>App Introduction</h2>
         <p><strong>NonBlockingLife</strong> is a task management application designed to help users focus on their life's main thread, embodying the principle of "Don't Block Your Life's Main Thread."</p>
 
         <h2>1. How We Handle Your Data</h2>
-        <p><strong>NonBlockingLife does not collect, store, or transmit any user personal data.</strong></p>
+        <p><strong>NonBlockingLife does not collect, store, or transmit your data to the developer or to any server operated by us.</strong> If you enable the optional synchronization features described in Section 3, your data is sent only to the services that you set up yourself.</p>
         <ul>
             <li>All your tasks, preferences, and application data are <span class="highlight">stored exclusively on your device</span> (local storage)</li>
             <li>The app supports <span class="highlight">offline mode</span> and works without internet connection</li>
@@ -90,7 +90,8 @@
         </ul>
         <p>This data <strong>never leaves your device</strong> unless you actively choose to export or synchronize it.</p>
 
-        <h2>3. Optional Google Sheets Synchronization</h2>
+        <h2>3. Optional Synchronization</h2>
+        <h3> Google Sheets Synchronization</h3>
         <p>If you choose to synchronize your data across multiple devices, we offer optional integration with Google Sheets. Importantly:</p>
         <ul>
             <li><span class="highlight">This feature is completely optional</span> - you can use the app without it</li>
@@ -100,7 +101,27 @@
             <li>All data exchanges occur directly between you and your Google Sheets - <strong>we cannot see any of it</strong></li>
             <li>You have complete control over the Google Apps Script and can disable or delete it at any time</li>
         </ul>
-
+        <h3> Supabase Synchronization</h3>
+        <p>If you choose to use Supabase for cross-device synchronization, please note:</p>
+        <ul>
+            <li><span class="highlight">This feature is completely optional</span> - you can use the app without it</li>
+            <li>You must <strong>set up your own Supabase project</strong> using <strong>your own account</strong></li>
+            <li>The NonBlockingLife app will <strong>never know, store, or collect your Supabase account information</strong></li>
+            <li>The app only connects to <strong>the Supabase project you provide</strong></li>
+            <li>All data exchanges occur directly between you and your Supabase project - <strong>we cannot see any of it</strong></li>
+            <li>You have complete control over the Supabase project and can disable or delete it at any time</li>
+            <li>The Supabase project URL and key you enter are <strong>kept only on your own device</strong> and are never sent to us</li>
+            <li>Data stored in your Supabase project is governed by Supabase's own privacy policy and terms. Please configure access rules (such as Row Level Security) for your project yourself</li>
+        </ul>
+        <h4>Calendar (ICS) Export</h4>
+        <p>If you enable the optional ICS export feature, a calendar file containing your project and schedule information is generated and stored in the Storage bucket of <strong>your own</strong> Supabase project. Please note:</p>
+        <ul>
+            <li><span class="highlight">The file may be accessible through a public URL.</span> Anyone who knows that URL can read the calendar content</li>
+            <li>Keep the URL private and share it only with people you trust</li>
+            <li>You can stop the export or delete the file or bucket in your Supabase project at any time</li>
+            <li>We cannot see this file or its URL</li>
+        </ul>
+        
         <h2>4. System Notifications</h2>
         <p>NonBlockingLife uses system notifications for the following reasons:</p>
         <ul>
@@ -177,7 +198,7 @@
         <hr style="margin-top: 40px; margin-bottom: 40px; border: none; border-top: 1px solid #ddd;">
         <p style="text-align: center; color: #666; font-size: 14px;">
             &copy; 2026 YesCirculation Solutions. All rights reserved.<br>
-            This privacy policy was last updated in June 2026
+            This privacy policy was last updated in October 2026
         </p>
     </div>
 </body>
