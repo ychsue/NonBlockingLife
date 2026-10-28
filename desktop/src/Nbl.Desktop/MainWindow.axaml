@@ -1,9 +1,24 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:wv="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.WebView"
-        x:Class="Nbl.Desktop.MainWindow"
-        Width="480" Height="860"
-        Icon="/Assets/icon.ico"
-        Title="NonBlockingLife">
-    <wv:NativeWebView x:Name="Web" />
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:wv="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.WebView"
+    x:Class="Nbl.Desktop.MainWindow"
+    Width="480" Height="860"
+    Icon="/Assets/icon.ico"
+    Title="NonBlockingLife">
+    <DockPanel LastChildFill="True">
+        <!-- 頂部選單列 -->
+        <Menu x:Name="TopMenuControl" DockPanel.Dock="Top">
+            <MenuItem x:Name="ClockMenu" Header="時鐘 (_C)">
+                <MenuItem x:Name="OpenClockMenuItem" Header="開啟鬧鐘與計時器" Click="OnOpenClockWindow" />
+                <Separator />
+                <MenuItem x:Name="StopSoundsMenuItem" Header="🔇 停止音效" Click="OnStopSounds" />
+                <MenuItem x:Name="OpenSoundsFolderMenuItem" Header="📁 開啟音效資料夾"
+                    Click="OnOpenSoundsFolder" />
+            </MenuItem>
+            <MenuItem x:Name="ExitMenuItem" Header="結束 (_X)" Click="OnExitApp" />
+        </Menu>
+        <!-- 原本的 WebView 內容 -->
+        <wv:NativeWebView
+            x:Name="Web" />
+    </DockPanel>
 </Window>

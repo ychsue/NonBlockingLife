@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=NonBlockingLife
+Exec=/usr/lib/nbl/Nbl.Desktop
+Icon=nbl
+Type=Application
+Categories=Utility;

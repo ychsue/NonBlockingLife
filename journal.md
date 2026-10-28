@@ -1,5 +1,25 @@
 # Journal
 
+## [2026-10-27] 試著使用 flatpak，但全沙箱失敗，Supabase的push常常失靈，第一次失靈，要等個幾分鐘才能，然而，這一切在deb的卻是正常的
+雖然已經 
+1. [yml](desktop/com.yescirculation.nonblockinglife.yml) 先關掉 --share=network
+2. [desktop](desktop/com.yescirculation.nonblockinglife.desktop)
+3. [build-flatpak.sh](desktop/build-flatpak.sh) 可以編譯自己使用的，但是，supabase 常常無法 push
+4. [WindowsPowerManager.cs](desktop/src/Nbl.Desktop/WindowsPowerManager.cs) 讓他在 linux 虛位化，好像還好
+5. [MainWindow.axaml.cs](desktop/src/Nbl.Desktop/MainWindow.axaml.cs) 將原本 tray 移到 這上面
+6. [App.axaml.cs](desktop/src/Nbl.Desktop/App.axaml.cs) 加入 `IsFlatpak` 來判斷是否使用 flatpak 打包
+7. [SyncStatus.tsx](pwa/src/components/SyncStatus.tsx) 因此Linux 的改為10次後才推到 Supabase
+8. [build-deb.sh](desktop/build-deb.sh) 可以生成 deb 檔案，倚賴 `desktop/nbl-desktop` 目錄，請自行生成。
+9. 使用 `sudo apt remove nbl-desktop` 來解除安裝
+
+a. 使用 `build-flatpak.sh` 雖然能build 成可以跑的，但是
+```bash
+flatpak run --command=flathub-build org.flatpak.Builder --install com.yescirculation.nonblockinglife.yml >& flatpak.log
+```
+卻得到錯誤訊息，感覺上 dotnet 抓取有誤，明明有看到他在編譯啊？
+b. supabase 常常無法 push
+
+
 ## [2026-10-25] 修正些小錯誤：
 1. 注意，出現 JoyRide 的小圓點，也會算 isRunning
 2. [SetupSupabaseWizard.tsx](pwa/src/components/SetupSupabaseWizard.tsx) 與 [SetupGASWizard.tsx](pwa/src/components/SetupGASWizard.tsx) 的 modal 視窗擴展到 100vh, 100vw，避免它的大小由他的父元件大小所限制。

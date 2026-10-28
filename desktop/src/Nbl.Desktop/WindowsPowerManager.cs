@@ -6,24 +6,30 @@ namespace Nbl.Desktop;
 
 internal sealed class WindowsPowerManager : IDisposable
 {
+#if WINDOWS
     private const uint EsSystemRequired = 0x00000001;
     private const uint EsContinuous = 0x80000000;
 
     private readonly bool _isWindows = OperatingSystem.IsWindows();
-    private readonly Action _onResume;
     private bool _systemRequired;
     private bool _failureReported;
+#endif
+
+    private readonly Action _onResume;
     private bool _disposed;
 
     public WindowsPowerManager(Action onResume)
     {
         _onResume = onResume;
+#if WINDOWS
         if (_isWindows)
             SystemEvents.PowerModeChanged += OnPowerModeChanged;
+#endif
     }
 
     public void SetSystemRequired(bool required, bool force = false)
     {
+#if WINDOWS
         if (!_isWindows || _disposed || (!force && required == _systemRequired)) return;
 
         var flags = EsContinuous | (required ? EsSystemRequired : 0);
@@ -40,17 +46,21 @@ internal sealed class WindowsPowerManager : IDisposable
 
         _systemRequired = required;
         _failureReported = false;
+#endif  
     }
 
     public void Dispose()
     {
         if (_disposed) return;
+#if WINDOWS
         if (_isWindows)
             SystemEvents.PowerModeChanged -= OnPowerModeChanged;
+#endif
         SetSystemRequired(false, force: true);
         _disposed = true;
     }
 
+#if WINDOWS
     private void OnPowerModeChanged(object? sender, PowerModeChangedEventArgs e)
     {
         if (e.Mode == PowerModes.Resume)
@@ -59,4 +69,5 @@ internal sealed class WindowsPowerManager : IDisposable
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern uint SetThreadExecutionState(uint esFlags);
+#endif
 }

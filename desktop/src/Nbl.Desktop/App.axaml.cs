@@ -15,6 +15,8 @@ public partial class App : Application
     private AlarmAudioManager _audio = new(new NullAudioPlayer());
     private WindowsPowerManager? _powerManager;
 
+    public static bool IsFlatpak => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FLATPAK_ID"));
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -36,7 +38,7 @@ public partial class App : Application
             _clock = new ClockWindow(alarms, timers, _audio);
             var host = new DesktopHost();
             host.BaseUri = options.BaseUri;
-            var window = new MainWindow(options, host, alarms, timers);
+            var window = new MainWindow(options, host, alarms, timers, _audio);
             host.Attach(window, _clock);
             desktop.MainWindow = window;
 
@@ -150,8 +152,9 @@ public partial class App : Application
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
         protocol.Click += (_, _) =>
         {
-            try { 
-                ProtocolRegistration.SetRegistered(!protocol.IsChecked); 
+            try
+            {
+                ProtocolRegistration.SetRegistered(!protocol.IsChecked);
                 protocol.IsChecked = !protocol.IsChecked;
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)

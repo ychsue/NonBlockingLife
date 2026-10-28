@@ -60,4 +60,16 @@ public sealed class DesktopHost : IDesktopHost
             await clipboard.SetTextAsync(string.IsNullOrEmpty(title) ? text : $"{title}\n{text}");
             ShowNotification(new ToastOptions { Title = "NonBlockingLife", Body = L10n.CopiedToClipboard, IsAlarm = false, OnClick = ShowMainWindow });
         });
+
+    public void OpenSoundsFolder()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_main is null) return;
+            var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "NonBlockingLife", "Sounds");
+            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+            Process.Start(new ProcessStartInfo(folder) { UseShellExecute = true });
+        });
+    }
+    
 }

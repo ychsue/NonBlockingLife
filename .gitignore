@@ -229,3 +229,5 @@ BundleArtifacts/
 Package.StoreAssociation.xml
 Package.appxmanifest
 *.user
+.flatpak-builder/
+flatpak-dotnet-generator.py

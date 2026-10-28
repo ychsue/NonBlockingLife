@@ -10,6 +10,10 @@ public static class L10n
         try
         {
             var name = CultureInfo.CurrentCulture.Name;
+            if (string.IsNullOrEmpty(name))
+            {
+                name = Environment.GetEnvironmentVariable("LANG") ?? "en";
+            }
 
             if (name.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
             {
@@ -200,7 +204,7 @@ public static class L10n
             "ja" => "現在タイマーはありません",
             _ => "No Timers"
         };
-    
+
     public static string Pause =>
         CurrentLanguage switch
         {
@@ -248,4 +252,44 @@ public static class L10n
             "ja" => "クリップボードにコピーされました",
             _ => "Copied to Clipboard"
         };
+
+    public static string ClockMenu =>
+        CurrentLanguage switch
+        {
+            "zh-TW" => "時鐘 (_C)",
+            "ja" => "時計 (_C)",
+            _ => "Clock (_C)"
+        };
+
+    public static string OpenClockMenuItem =>
+        CurrentLanguage switch
+        {
+            "zh-TW" => "開啟鬧鐘與計時器",
+            "ja" => "アラームとタイマーを開く",
+            _ => "Open Clock"
+        };
+
+    public static string StopSoundsMenuItem =>
+        CurrentLanguage switch
+        {
+            "zh-TW" => "🔇 停止音效",
+            "ja" => "🔇 サウンドを停止",
+            _ => "🔇 Stop Sounds"
+        };
+
+    public static string OpenSoundsFolderMenuItem =>
+        CurrentLanguage switch
+        {
+            "zh-TW" => "📁 開啟音效資料夾",
+            "ja" => "📁 サウンドフォルダを開く",
+            _ => "📁 Open Sounds Folder"
+        };
+
+    public static string ExitMenuItem =>
+        CurrentLanguage switch
+        {
+            "zh-TW" => "結束 (_X)",
+            "ja" => "終了 (_X)",
+            _ => "Exit (_X)"
+        };  
 }

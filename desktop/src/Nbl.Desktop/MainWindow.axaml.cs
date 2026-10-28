@@ -4,6 +4,8 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using Nbl.Bridge;
 using System.Reflection;
+using Avalonia.Interactivity;
+using System.Globalization;
 
 namespace Nbl.Desktop;
 
@@ -45,7 +47,10 @@ public partial class MainWindow : Window
     private readonly BridgeDispatcher _dispatcher;
     private readonly LocalStaticServer? _server;
 
-    public MainWindow() : this(LaunchOptions.Parse(Array.Empty<string>()), null, null, null) { }
+    public MainWindow() : this(LaunchOptions.Parse(Array.Empty<string>()), null, null, null, null) { }
+
+    private readonly IDesktopHost? _host;
+    private readonly AlarmAudioManager? _audio;
 
     public bool AllowClose { get; set; }
 
@@ -55,9 +60,18 @@ public partial class MainWindow : Window
         if (_origins.IsAllowed(uri)) Web.Source = uri;
     }
 
-    public MainWindow(LaunchOptions options, IDesktopHost? host, AlarmScheduler? alarms, TimerService? timers)
+    public MainWindow(LaunchOptions options, IDesktopHost? host, AlarmScheduler? alarms, TimerService? timers, AlarmAudioManager? audio)
     {
+        _host = host;
+        _audio = audio;
         InitializeComponent();
+        ClockMenu.Header = L10n.ClockMenu;
+        OpenClockMenuItem.Header = L10n.OpenClockMenuItem;
+        StopSoundsMenuItem.Header = L10n.StopSoundsMenuItem;
+        OpenSoundsFolderMenuItem.Header = L10n.OpenSoundsFolderMenuItem;
+        ExitMenuItem.Header = L10n.ExitMenuItem;
+        // TopMenuControl.IsVisible = App.IsFlatpak; //只有在 Flatpak 環境下才顯示頂部選單列
+
         String? version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3);
         Closing += (_, e) =>
         {
@@ -114,9 +128,9 @@ public partial class MainWindow : Window
                     // 核心設定：指定 WebKitGtk 將所有 Cookie、IndexedDB (Dexie) 存到固定位置
                     l.BaseDataDirectory = dataDir;
                     l.BaseCacheDirectory = cacheDir;
-            
+
                     // 確保沒有開啟不留痕跡（無痕）模式
-                    l.EphemeralDataManager = false; 
+                    l.EphemeralDataManager = false;
                     break;
             }
 
@@ -181,5 +195,46 @@ public partial class MainWindow : Window
             if (Directory.Exists(c)) return c;
         }
         throw new DirectoryNotFoundException("pwa/dist not found; use --dist-path");
+    }
+
+    private void OnOpenClockWindow(object? sender, RoutedEventArgs e)
+    {
+        _host?.ShowClockWindow(1);
+    }
+
+    private void OnStopSounds(object? sender, RoutedEventArgs e)
+    {
+        // 停止音效的邏輯
+        _audio?.StopAll();
+    }
+
+    private void OnOpenSoundsFolder(object? sender, RoutedEventArgs e)
+    {
+        try { SoundLibrary.OpenFolder(); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+        {
+            System.Diagnostics.Trace.WriteLine($"[nbl] open sounds folder failed: {ex.Message}");
+        }
+    }
+
+    private void OnExitApp(object? sender, RoutedEventArgs e)
+    {
+        // 允許關閉所有視窗並結束行程
+        AllowClose = true;
+
+        // 如果有其他視窗（例如 ClockWindow），也要一併允許關閉
+        // 或者直接強行關閉整個應用程式
+        foreach (var window in Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop ? desktop.Windows : Array.Empty<Window>())
+        {
+            if (window is MainWindow mw) mw.AllowClose = true;
+            if (window is ClockWindow cw) cw.AllowClose = true;
+            window.Close();
+        }
+
+        // 終止整個桌面行程
+        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime appLifetime)
+        {
+            appLifetime.Shutdown();
+        }
     }
 }

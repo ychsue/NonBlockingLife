@@ -1,0 +1,8 @@
+Package: NonBlockingLife-Ubuntu
+Version: 3.2.1
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: Young-Chung Hsue <ychsue1234@gmail.com>
+Description: NonBlockingLife Desktop for Linux
+ A cross-platform desktop application built with Avalonia and WebView2/Native WebView.

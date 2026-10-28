@@ -51,6 +51,7 @@ export function SyncStatus({
   const setPendingChangeLogs = useAppStore(
     (state) => state.setPendingChangeLogs,
   );
+  const capabilitiesAndKind = useAppStore((state) => state.capabilitiesAndKind);
   const [filteredPendingChangeLogs, setFilteredPendingChangeLogs] = useState<
     typeof pendingChangeLogs
   >([]);
@@ -376,7 +377,12 @@ export function SyncStatus({
   }, [pendingChangeLogs]);
 
   const syncPendingChangeLogs = () => {
-    const AUTO_SYNC_THRESHOLD = syncType === "gas" ? 20 : 3;
+    const AUTO_SYNC_THRESHOLD =
+      syncType === "gas"
+        ? 20
+        : ["linux"].includes(capabilitiesAndKind.kind)
+          ? 10
+          : 3;
     const IDLE_DELAY_MS = syncType === "gas" ? 3000 : 0;
     const filteredPendingChangeLogs_buf = pendingChangeLogs.filter((log) =>
       SYNC_TABLES.includes(log.table as SyncTable),
