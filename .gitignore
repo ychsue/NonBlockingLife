@@ -231,3 +231,4 @@ Package.appxmanifest
 *.user
 .flatpak-builder/
 flatpak-dotnet-generator.py
+desktop/repo/**

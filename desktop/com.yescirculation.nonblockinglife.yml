@@ -71,6 +71,7 @@ modules:
   - name: NonBlockingLife
     buildsystem: simple
     build-options:
+      # 💡 這一行最重要！它會把 dotnet10 的指令路徑加進環境變數
       append-path: /usr/lib/sdk/dotnet10/bin
       # 本機測試用：允許 build 期間連網 restore NuGet。上 Flathub 前需改為離線來源
       # (flatpak-dotnet-generator.py 產生 nuget-sources.json) 並移除此行。
@@ -80,10 +81,17 @@ modules:
         DOTNET_CLI_TELEMETRY_OPTOUT: '1'
         DOTNET_NOLOGO: '1'
     build-commands:
+      # # 1. 檢查目前目錄底下有哪些檔案（確認 nuget-sources.json 有沒有進來）
+      # - ls -la
+      # # 2. 檢查 flatpak-builder 有沒有把套件解開到預期的資料夾
+      # - find / -name "*.nupkg" 2>/dev/null || true      
       # 先進行離線還原，指定從本機目錄讀取套件
-      - dotnet restore src/Nbl.Desktop/Nbl.Desktop.csproj --packages /run/build/NonBlockingLife/nuget-packages
+      - dotnet restore src/Nbl.Desktop/Nbl.Desktop.csproj --packages /run/build/NonBlockingLife/nuget-packages -s nuget-sources -r linux-x64
+      # # 檢查 NuGet 套件來源是否存在
+      # - ls -la nuget-sources || true
+
       # 接著進行發布 
-      - dotnet publish src/Nbl.Desktop/Nbl.Desktop.csproj -c Release -r linux-x64 --self-contained true -p:PublishAot=false -p:RuntimeIdentifiers=linux-x64 --no-http-cache --source ./nuget-sources.json -o /app/lib/nonblockinglife
+      - dotnet publish src/Nbl.Desktop/Nbl.Desktop.csproj -c Release -r linux-x64 --self-contained true --no-restore -p:PublishAot=false -p:RuntimeIdentifiers=linux-x64 -o /app/lib/nonblockinglife
       - mkdir -p /app/bin
       - ln -s /app/lib/nonblockinglife/Nbl.Desktop /app/bin/NonBlockingLife
       - install -Dm644 com.yescirculation.nonblockinglife.desktop /app/share/applications/com.yescirculation.nonblockinglife.desktop
@@ -94,5 +102,4 @@ modules:
       - type: dir
         path: src
         dest: src
-      - type: file
-        path: nuget-sources.json
+      - ./nuget-sources.json

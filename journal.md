@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-10-28] 終於可以 flatpak 離線編輯了 
+- [discussion_flatpak.md](Discussion/cross_platform/discussion_flatpak.md) 在講遇到的困難與解決法。
+- [nuget-sources.json](desktop/nuget-sources.json) 少了最後兩個pkg，所以需要自己加入
+
 ## [2026-10-27] 試著使用 flatpak，但全沙箱失敗，Supabase的push常常失靈，第一次失靈，要等個幾分鐘才能，然而，這一切在deb的卻是正常的
 雖然已經 
 1. [yml](desktop/com.yescirculation.nonblockinglife.yml) 先關掉 --share=network
