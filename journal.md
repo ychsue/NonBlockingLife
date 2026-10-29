@@ -2,6 +2,7 @@
 
 ## [2026-10-29] 因為查不出為何 flatpak 裡面 supabase push 會出問題，因此，多加 log 機制到PWA，希望抓出原因
 請在實驗區打開顯示`除錯資訊`，並且勾選`除錯模式`。
+2. [11:59] 修改 [sw.ts](pwa/src/sw.ts) 讓它直接放行 supabase.io 的 `fetch`看看能否解救。
 
 ## [2026-10-28] 終於可以 flatpak 離線編輯了 
 - [discussion_flatpak.md](Discussion/cross_platform/discussion_flatpak.md) 在講遇到的困難與解決法。

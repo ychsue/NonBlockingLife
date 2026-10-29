@@ -175,3 +175,170 @@ flatpak run com.yescirculation.nonblockinglife
 - 加 `--system-talk-name=org.freedesktop.NetworkManager`
 - 其餘不動。
 
+--- 
+
+## [2026-10-28] ychsue 如何快速讓 flatpak 底下的網頁重抓？ Gemini 回答
+
+當你的 PWA（Progressive Web App）包在 Flatpak 的桌面殼（底層通常是 WebKitGTK）中運行時，由於 Service Worker（SW）的強大快取機制，再加上桌面 WebView 的持久化快取資料夾，常常會發生「明明網頁原始碼更新了，但 App 內還是死守舊版本、甚至因為 SW 攔截了 API 請求導致 Supabase push 失敗」的情況。
+
+要讓 Flatpak 安裝的程式**立刻重新抓取最新網頁、清除舊快取與 SW**，可以透過以下幾種最直接有效的方法來處理：
+
+---
+
+### 方法一：直接清除 Flatpak 的應用程式快取與資料目錄（最暴力、最徹底）
+
+Flatpak 會將該 App 的所有 WebView 快取、Cookie、LocalStorage 以及 Service Worker 狀態隔離並儲存在使用者的家目錄中。直接把快取砍掉，就能強迫它下次啟動時抓取全新的網頁。
+
+1. **完全關閉你的 NonBlockingLife 程式**。
+2. 開啟終端機，執行以下指令清除該 Flatpak App 的快取與資料：
+```bash
+rm -rf ~/.var/app/com.yescirculation.nonblockinglife/cache/*
+rm -rf ~/.var/app/com.yescirculation.nonblockinglife/data/*
+
+```
+
+
+3. 重新啟動程式：
+```bash
+flatpak run com.yescirculation.nonblockinglife
+
+```
+
+
+*這會讓 WebView 像是第一次安裝一樣乾淨，所有的 SW 和舊快取都會消失。*
+
+---
+
+### 方法二：在程式碼中加入「強制清除 SW 與快取」的除錯機制
+
+既然你為了抓蟲（log）在 PWA 裡加了東西，如果你希望下次使用者（或你自己測試時）能自動或手動把舊的 Service Worker 卸載，可以在前端 JavaScript（例如 `main.js` 或進入點）加入這段**緊急清除腳本**：
+
+```javascript
+// 強制註銷所有 Service Worker 並清空 Cache Storage
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+            registration.unregister().then(function(success) {
+                if (success) console.log('Service Worker 已成功強制卸載');
+            });
+        }
+    });
+}
+
+if ('caches' in window) {
+    caches.keys().then(function(names) {
+        for (let name of names) {
+            caches.delete(name).then(function(success) {
+                if (success) console.log('快取清理成功: ' + name);
+            });
+        }
+    });
+}
+
+```
+
+*你可以暫時把這段程式碼放進你的 PWA 進入點，跑過一次讓 Flatpak 內的 SW 徹底死掉並更新後，再把它拿掉。*
+
+---
+
+### 💡 為什麼 `localhost:5173` 正常，但 PWA 常常 Supabase push 失敗？
+
+這呼應了你前面提到的痛點，通常跟 **Service Worker 的 Fetch 攔截行為** 有關：
+
+1. **開發環境 (`localhost:5173`)**：通常沒有註冊 Service Worker，或者 Vite 開發伺服器沒有做強烈的離線快取，所有的 `fetch`（包含 Supabase 的 POST/PUT 請求）都直接走真實網路發送。
+2. **生產環境 PWA (配合 SW)**：
+* 如果你的 `sw.js`（Service Worker）寫法不夠嚴謹，把所有對外請求（甚至包含 `[https://xxx.supabase.co](https://xxx.supabase.co)` 的 API 呼叫）都進行了攔截、快取，或者在離線狀態下回傳了錯誤的 Response。
+* 當你在 Flatpak 內執行 Supabase **push（寫入/POST）** 時，Service Worker 可能誤判了網路狀態，或者把 POST 請求導向了錯誤的快取處理邏輯，導致請求送不出去或回傳失敗。
+
+
+
+**建議檢查方向**：檢查你的 PWA Service Worker 程式碼，確保在 `fetch` 事件監聽中，**絕對不要攔截或快取任何非同源（CORS）或 API 請求**（例如明確排除 `supabase.co` 的網址），讓 API 請求永遠直連網路，這樣就能徹底解決在 Flatpak 內 push 失敗的靈異現象！
+
+---
+
+## [2026-10-29] ychsue 測試後結果
+1. 刪掉 cache 與 data 後立即使用 `flatpak run com.yescirculation.nonblockinglife` 就沒問題 (在試完下面第二點再第二次測就不行了)
+2. 刪掉 cache 與 data 後立即使用 `Win key` ，選這個APP，問題就來了
+它跑出
+``` txt
+ERROR
+Supabase Push Batch 失敗:
+2026/10/29 上午10:33:11
+Fail
+{
+  "message": "TypeError: Load failed",
+  "details": "",
+  "hint": "",
+  "code": ""
+}
+```
+我在supabase->logs 只看到 pull沒看到push的API
+再次使用 `flatpak run ....` 也沒用。
+關聯的程式為 [SupabaseSyncManager.ts](/pwa/src/utils/SupabaseSyncManager.ts) 與 [initialize.sql](/pwa/src/db/supabase/initialize.sql)
+請問您覺得可能原因為何呢？
+
+## [2026-10-29] Gemini 的回覆
+
+是的，要把這段「總是放行 Supabase 請求」的 `fetch` 攔截程式碼加在你的 `sw.ts` 中，**最適合的位置就是在檔案的最上方，也就是在第一個 `addEventListener`（或 `precacheAndRoute`）之前**！
+
+因為 Service Worker 的事件監聽器通常是依據事件到達時的匹配順序執行的，將它放在最前面，可以確保所有對 Supabase 的請求在進入快取或 Workbox 路由之前就被優先攔截並直連網路。
+
+修改後的完整 `sw.ts` 範例結構如下：
+
+```typescript
+import type { PrecacheEntry } from "workbox-precaching";
+import { precacheAndRoute } from "workbox-precaching";
+
+declare const self: typeof globalThis & {
+  __WB_MANIFEST: PrecacheEntry[];
+  skipWaiting: () => Promise<void>;
+  clients: {
+    claim: () => Promise<void>;
+    matchAll: (options: { type: string; includeUncontrolled: boolean }) => Promise<unknown[]>;
+    openWindow: (url: string) => Promise<Window | null>;
+  };
+  location: Location;
+};
+
+const APP_URL = "/NonBlockingLife/";
+
+// 💡 1. 優先加入這段：強制放行 Supabase API 請求，絕對不給 Service Worker 攔截或快取
+self.addEventListener("fetch", ((event: Event & { request: Request; respondWith: (promise: Promise<Response>) => void }) => {
+  const url = new URL(event.request.url);
+  
+  // 檢查是否為 Supabase 網域或相關 API 路徑
+  if (url.hostname.includes("supabase.co") || url.pathname.includes("/rest/v1/") || url.pathname.includes("/rpc/")) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+}) as EventListener);
+
+self.__WB_MANIFEST;
+precacheAndRoute(self.__WB_MANIFEST);
+
+self.addEventListener("install", ((event: Event & { waitUntil: (promise: Promise<unknown>) => void }) => {
+  event.waitUntil(self.skipWaiting());
+}) as EventListener);
+
+self.addEventListener("activate", ((event: Event & { waitUntil: (promise: Promise<unknown>) => void }) => {
+  event.waitUntil(self.clients.claim());
+}) as EventListener);
+
+// ... 後續原本的 notificationclick 事件保持不變
+
+```
+
+透過這樣調整，Supabase 的任何網路通訊就能夠繞過 SW 快取機制，穩定地直接走網路傳輸，徹底解決在 Flatpak 或 PWA 內偶發的衝突與 `Load failed` 問題！
+
+Service Worker（SW）之所以要「全面接管」所有對外與內部的 `fetch` 事件，核心目的在於達成 PWA 的兩大靈魂功能：**離線優先（Offline-First）** 與 **極速載入**。
+
+以下為你整理 Service Worker 接管 `fetch` 的關鍵原因：
+
+* **離線快取與頁面殼渲染**：當使用者在網路不穩或完全離線的狀態下打開應用程式，SW 必須透過攔截 `fetch`，將預先快取的 HTML、CSS、JS（即 `__WB_MANIFEST`）直接塞給瀏覽器，讓 App 能夠秒開。
+* **統一的網路代理管理**：Service Worker 就像是一個夾在網頁前端與真實網路之間的「本地代理伺服器（Proxy）」。開發者可以透過它來決定哪些資源要走快取（Cache-First）、哪些要先看網路再更新（Stale-While-Revalidate）。
+
+### 為什麼平常沒事，但在桌面殼或特定環境下會變成絆腳石？
+
+正如我們前面討論過的，如果 SW 的 `fetch` 攔截範圍太寬泛，不小心把帶有複雜 Payload、認證 Header 的 **API 寫入請求（例如 Supabase 的 POST/PUT）** 也包進快取邏輯、或在背景換代（Update/Claim）時短暫打斷了連線，就會導致前端誤判並拋出 `TypeError: Load failed`。
+
+這也是為什麼對於 **即時性、動態的後端 API（如 Supabase）**，我們必須在 `sw.ts` 的 `fetch` 的最前端明確寫出「排外條款」，強制讓它繞過 SW、直連網路，才能兼顧 PWA 的離線快取優勢與 API 呼叫的穩定性！
