@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-10-29] 因為查不出為何 flatpak 裡面 supabase push 會出問題，因此，多加 log 機制到PWA，希望抓出原因
+請在實驗區打開顯示`除錯資訊`，並且勾選`除錯模式`。
+
 ## [2026-10-28] 終於可以 flatpak 離線編輯了 
 - [discussion_flatpak.md](Discussion/cross_platform/discussion_flatpak.md) 在講遇到的困難與解決法。
 - [nuget-sources.json](desktop/nuget-sources.json) 少了最後兩個pkg，所以需要自己加入

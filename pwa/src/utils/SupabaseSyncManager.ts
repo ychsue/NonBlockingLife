@@ -11,6 +11,7 @@ import { parseEnvString } from "./parseEnvString";
 import _ from "lodash";
 import { ChangeLogEntry } from "../db/schema";
 import { useAppStore } from "../store/appStore";
+import { logError, logInfo } from "./logger";
 
 const CLIENT_ID = "SupabaseSyncManager";
 const PULL_CURSOR_KEY = "supabase:pull-cursor";
@@ -69,31 +70,46 @@ export class SupabaseSyncManager extends SyncManagerBase {
   }
 
   async fetchIcs(url: string): Promise<{ icsContent: string }> {
-    const res = await this.supabase.functions.invoke("fetch-ics", {
-      body: { icsUrl: url },
-    });
-    const data = res.data;
-    return { icsContent: data };
+    try {
+      await logInfo("Supabase Fetch ICS Start:", "Start");
+      const res = await this.supabase.functions.invoke("fetch-ics", {
+        body: { icsUrl: url },
+      });
+      const data = res.data;
+      await logInfo("Supabase Fetch ICS finished:", "Done");
+      return { icsContent: data };
+    } catch (error) {
+      await logError("Supabase Fetch ICS 失敗:", "Fail", error as any);
+      throw error;
+    }
   }
 
   async testConnection(): Promise<boolean> {
     // 測試與 Supabase 的連線是否正常，並且確定版本號是否為 2.0.0
-    const { data, error } = await this.supabase
-      .rpc("fetch_global_settings");
+    await logInfo("Supabase Test Connection Start:", "Start");
+    const { data, error } = await this.supabase.rpc("fetch_global_settings");
     if (error) {
       console.error("Failed to fetch global settings:", error);
-      alert("Failed to fetch global settings from Supabase. Please check your connection and try again.");
+      alert(
+        "Failed to fetch global settings from Supabase. Please check your connection and try again.",
+      );
+      await logError("Supabase Test Connection 失敗:", "Fail", error as any);
       return false;
     }
     if (_.isArray(data)) {
       const expectedVersion = "2.0.0";
-      const setting = data.find((item) => item.key === "supabase_schema_version");
+      const setting = data.find(
+        (item) => item.key === "supabase_schema_version",
+      );
       if (!setting || setting.data.version !== expectedVersion) {
         console.error("Invalid global settings or version mismatch:", data);
-        alert(`Version mismatch: expected ${expectedVersion}, got ${setting?.data.version}. You need to run new initialize.sql on your Supabase instance.`);
+        alert(
+          `Version mismatch: expected ${expectedVersion}, got ${setting?.data.version}. You need to run new initialize.sql on your Supabase instance.`,
+        );
         return false;
       }
     }
+    await logInfo("Supabase Test Connection finished:", "Done");
     return !error;
   }
 
@@ -113,15 +129,18 @@ export class SupabaseSyncManager extends SyncManagerBase {
       const syncableChanges = pendingChanges.filter((c) =>
         this.isSyncTable(c.table),
       );
+      await logInfo("SupabaseSync Push Start:", `length: ${syncableChanges?.length}`);
       const groups = await this.createPushGroups(syncableChanges);
       const result = await this.pushGroups(groups, true);
       const pending = await db.change_log
         .where({ status: "pending" })
         .toArray();
       useAppStore.getState().setPendingChangeLogs(pending);
+      await logInfo("SupabaseSync Push finished:", "Done");
       return result;
     } catch (error) {
       console.error("Supabase Push 失敗:", error);
+      await logError("SupabaseSync Push 失敗:", "Fail", error as any);
       return { success: 0, failed: -1, error: String(error) };
     }
   }
@@ -131,6 +150,7 @@ export class SupabaseSyncManager extends SyncManagerBase {
    */
   async pull(): Promise<{ success: number; error?: string }> {
     try {
+      await logInfo("SupabaseSync Pull Start:", "Start");
       let cursor = await this.getPullCursor();
       let throughCursor: number | null = null;
       let mergedCount = 0;
@@ -174,9 +194,11 @@ export class SupabaseSyncManager extends SyncManagerBase {
       }
 
       this.saveLastSyncTimestamp(Date.now());
+      await logInfo("SupabaseSync Pull finished:", "Done");
       return { success: mergedCount };
     } catch (error) {
       console.error("Supabase Pull 失敗:", error);
+      await logError("SupabaseSync Pull 失敗:", "Fail", error as any);
       return {
         success: 0,
         error: String(error),
@@ -303,6 +325,7 @@ export class SupabaseSyncManager extends SyncManagerBase {
 
     for (let offset = 0; offset < groups.length; offset += PUSH_BATCH_SIZE) {
       const batch = groups.slice(offset, offset + PUSH_BATCH_SIZE);
+      await logInfo("Supabase Push Batch Start:", `length: ${batch.length}`);
       const { data, error } = await this.supabase.rpc("push_sync_changes", {
         p_changes: batch.map((group) => ({
           table: group.table,
@@ -316,6 +339,7 @@ export class SupabaseSyncManager extends SyncManagerBase {
       });
 
       if (error) {
+        await logError("Supabase Push Batch 失敗:", "Fail", error as any);
         for (const group of batch) {
           await this.incrementRetryCount(group.changes);
         }
@@ -327,6 +351,7 @@ export class SupabaseSyncManager extends SyncManagerBase {
           error: error.message,
         };
       }
+      await logInfo("Supabase Push Batch finished:", "Done");
 
       const results = (data as { results?: PushRpcResult[] } | null)?.results;
       if (!Array.isArray(results)) {
@@ -510,8 +535,15 @@ export class SupabaseSyncManager extends SyncManagerBase {
   }
 
   public async getGlobalSettings(): Promise<any[]> {
-    const settings = await this.supabase.rpc("fetch_global_settings");
-    return settings.data ?? [];
+    try {
+      await logInfo("Supabase Get Global Settings Start:", "Start");
+      const settings = await this.supabase.rpc("fetch_global_settings");
+      await logInfo("Supabase Get Global Settings finished:", "Done");
+      return settings.data ?? [];
+    } catch (error) {
+      await logError("Supabase Get Global Settings 失敗:", "Fail", error as any);
+      throw error;
+    }
   }
 
   async allTablesToSupabase(): Promise<{
