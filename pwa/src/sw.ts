@@ -17,26 +17,6 @@ declare const self: typeof globalThis & {
 
 const APP_URL = "/NonBlockingLife/";
 
-// 💡 1. 優先加入這段：強制放行 Supabase API 請求，絕對不給 Service Worker 攔截或快取
-self.addEventListener("fetch", ((
-  event: Event & {
-    request: Request;
-    respondWith: (promise: Promise<Response>) => void;
-  },
-) => {
-  const url = new URL(event.request.url);
-
-  // 檢查是否為 Supabase 網域或相關 API 路徑
-  if (
-    url.hostname.includes("supabase.co") ||
-    url.pathname.includes("/rest/v1/") ||
-    url.pathname.includes("/rpc/")
-  ) {
-    event.respondWith(fetch(event.request));
-    return;
-  }
-}) as EventListener);
-
 self.__WB_MANIFEST;
 precacheAndRoute(self.__WB_MANIFEST);
 

@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createClient, PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 import { buildChangeLogId, CHANGE_LOG_STATUS, db } from "../db/index";
 import {
   type SyncResult,
@@ -12,6 +12,7 @@ import _ from "lodash";
 import { ChangeLogEntry } from "../db/schema";
 import { useAppStore } from "../store/appStore";
 import { logError, logInfo } from "./logger";
+import { sleep } from "./timeUtils";
 
 const CLIENT_ID = "SupabaseSyncManager";
 const PULL_CURSOR_KEY = "supabase:pull-cursor";
@@ -326,17 +327,30 @@ export class SupabaseSyncManager extends SyncManagerBase {
     for (let offset = 0; offset < groups.length; offset += PUSH_BATCH_SIZE) {
       const batch = groups.slice(offset, offset + PUSH_BATCH_SIZE);
       await logInfo("Supabase Push Batch Start:", `length: ${batch.length}`);
-      const { data, error } = await this.supabase.rpc("push_sync_changes", {
-        p_changes: batch.map((group) => ({
-          table: group.table,
-          recordId: group.recordId,
-          operationId: group.operationId,
-          op: group.op,
-          expectedVersion: group.expectedVersion,
-          data: group.data,
-          deviceId: this.deviceId,
-        })),
-      });
+
+      // 試著嘗試最多3次push_sync_changes，中間隔個 500ms 看看能否使 flatpak 成功率提昇
+      let data: any = null;
+      let error: PostgrestError | null = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        logInfo(`Supabase Push Batch Attempt ${attempt + 1}`, "Start");
+        const res = await this.supabase.rpc("push_sync_changes", {
+          p_changes: batch.map((group) => ({
+            table: group.table,
+            recordId: group.recordId,
+            operationId: group.operationId,
+            op: group.op,
+            expectedVersion: group.expectedVersion,
+            data: group.data,
+            deviceId: this.deviceId,
+          })),
+        });
+        data = res.data;
+        error = res.error;
+        if (!error || attempt === 2) {
+          break;
+        }
+        await sleep(500);
+      }
 
       if (error) {
         await logError("Supabase Push Batch 失敗:", "Fail", error as any);
