@@ -4,7 +4,9 @@
 請在實驗區打開顯示`除錯資訊`，並且勾選`除錯模式`。
 1. [11:59] 修改 [sw.ts](pwa/src/sw.ts) 讓它直接放行 supabase.io 的 `fetch`看看能否解救。
 2. [14:24] 由於 sw.ts 的修改無效，所以，改讓 supabase 的 push多嘗試幾次看看有沒有效。
-3. [15:06] 改善一點點，看看在 pull -> push 間讓它睡一秒看看是否有幫助。
+3. x[15:06] 改善一點點，看看在 pull -> push 間讓它睡一秒看看是否有幫助。
+   - 這個更遭
+4. [15:47] 改走customFetch看看能否繞過 flatpak 的限制
 
 ## [2026-10-28] 終於可以 flatpak 離線編輯了 
 - [discussion_flatpak.md](Discussion/cross_platform/discussion_flatpak.md) 在講遇到的困難與解決法。

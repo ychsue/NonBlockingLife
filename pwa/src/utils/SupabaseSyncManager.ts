@@ -54,6 +54,69 @@ interface PullRpcResult {
   hasMore: boolean;
 }
 
+/**
+ * 只給 Flatpak 環境使用。試著使用舊的 XMLHttpRequest 來繞過 WebKitGTK fetch 的 Load failed 問題。
+ * @param input The request input.
+ * @param init The request initialization options.
+ * @returns A promise that resolves to the response.
+ */
+const customFetch: typeof fetch = async (input, init) => {
+  // 檢查是否為 Flatpak 環境（搭配你剛剛在 C# 注入的標記）
+  const isFlatpak = typeof window !== 'undefined' && (window as any).isFlatpak;
+
+  if (isFlatpak) {
+    // 針對 Flatpak 環境，使用 XMLHttpRequest 繞過 WebKitGTK fetch 的 Load failed 問題
+    return new Promise<Response>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      const method = init?.method || 'GET';
+
+      xhr.open(method, url, true);
+
+      // 設定 Headers
+      if (init?.headers) {
+        if (init.headers instanceof Headers) {
+          init.headers.forEach((value, key) => xhr.setRequestHeader(key, value));
+        } else if (Array.isArray(init.headers)) {
+          init.headers.forEach(([key, value]) => xhr.setRequestHeader(key, value));
+        } else {
+          Object.entries(init.headers).forEach(([key, value]) => xhr.setRequestHeader(key, value as string));
+        }
+      }
+
+      xhr.onload = () => {
+        // 將 XHR 的結果包裝成標準的 Fetch Response 物件
+        const responseHeaders = new Headers();
+        xhr.getAllResponseHeaders().trim().split(/[\r\n]+/).forEach(line => {
+          const parts = line.split(': ');
+          const key = parts.shift();
+          const val = parts.join(': ');
+          if (key) responseHeaders.append(key, val);
+        });
+
+        resolve(new Response(xhr.responseText, {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          headers: responseHeaders,
+        }));
+      };
+
+      xhr.onerror = () => reject(new TypeError('XHR Load failed in Flatpak'));
+      xhr.ontimeout = () => reject(new TypeError('XHR Timeout in Flatpak'));
+
+      // 發送 Request Body (如果是 POST / PUT)
+      if (init?.body) {
+        xhr.send(init.body as Document | XMLHttpRequestBodyInit | null);
+      } else {
+        xhr.send();
+      }
+    });
+  }
+
+  // 其他平台直接走原生 fetch
+  return fetch(input, init);
+};
+
 export class SupabaseSyncManager extends SyncManagerBase {
   private supabase: SupabaseClient;
 
@@ -61,7 +124,11 @@ export class SupabaseSyncManager extends SyncManagerBase {
     super();
     try {
       const { url, key } = getUrlAndKey(urlKeyPair);
-      this.supabase = createClient(url, key);
+      if ((window as any).isFlatpak) {
+        this.supabase = createClient(url, key, { global: {fetch: customFetch}});
+      } else {
+        this.supabase = createClient(url, key);
+      }
       this.deviceId = this.getOrCreateDeviceId();
       this.loadLastSyncTimestamp();
     } catch (error) {
@@ -243,8 +310,6 @@ export class SupabaseSyncManager extends SyncManagerBase {
         timestamp: Date.now(),
       };
     }
-
-    if ((window as any).isFlatpak) await sleep(1000); // 看看這個 delay 能否治好 flatpak 會掛掉的問題。
 
     const pushResult = await this.push();
     if (pushResult.error || pushResult.failed > 0) {
