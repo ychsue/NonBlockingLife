@@ -16,7 +16,7 @@ finish-args:
   - --talk-name=org.freedesktop.Notifications
   - --env=DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
   # 確保加上以下與語言/環境變數相關的權限：
-  # - --filesystem=host:ro  # 讓應用程式能讀取系統設定 (若需要)
+  - --filesystem=host:ro  # 讓應用程式能讀取系統設定 (若需要)
   - --system-talk-name=org.freedesktop.resolve1
   - --system-talk-name=org.freedesktop.NetworkManager
 modules:

@@ -244,6 +244,8 @@ export class SupabaseSyncManager extends SyncManagerBase {
       };
     }
 
+    if ((window as any).isFlatpak) await sleep(1000); // 看看這個 delay 能否治好 flatpak 會掛掉的問題。
+
     const pushResult = await this.push();
     if (pushResult.error || pushResult.failed > 0) {
       return {

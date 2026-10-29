@@ -169,7 +169,10 @@ public partial class MainWindow : Window
         Web.NavigationCompleted += async (_, _) =>
         {
             if (_origins.IsAllowed(Web.Source ?? new Uri("about:blank")))
+            {
+                if (App.IsFlatpak) await Web.InvokeScript("window.isFlatpak = true;");
                 await Web.InvokeScript(Shim);
+            }
         };
         Web.WebMessageReceived += OnWebMessage;
         Web.Source = options.StartUri;
