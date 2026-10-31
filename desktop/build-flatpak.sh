@@ -2,7 +2,7 @@
 # 用法: ./build-flatpak.sh [build|install|run|uninstall|clean]  (預設 install)
 set -euo pipefail
 cd "$(dirname "$0")"
-APP=com.yescirculation.nonblockinglife
+APP=io.github.ychsue.nonblockinglife
 YML=$APP.yml
 case "${1:-install}" in
   build)

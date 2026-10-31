@@ -1,6 +1,6 @@
-id: com.yescirculation.nonblockinglife
+id: io.github.ychsue.nonblockinglife
 runtime: org.gnome.Platform
-runtime-version: '49'
+runtime-version: '51'
 sdk: org.gnome.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.dotnet10
@@ -9,7 +9,7 @@ finish-args:
   - --share=ipc
   - --share=network
   - --socket=x11
-  - --socket=wayland
+  # - --socket=wayland
   - --socket=pulseaudio
   - --device=dri
   - --talk-name=org.kde.StatusNotifierWatcher
@@ -89,6 +89,7 @@ modules:
       # - find / -name "*.nupkg" 2>/dev/null || true      
       # 先進行離線還原，指定從本機目錄讀取套件
       - dotnet restore src/Nbl.Desktop/Nbl.Desktop.csproj --packages /run/build/NonBlockingLife/nuget-packages -s nuget-sources -r linux-x64
+      - dotnet restore src/Nbl.Bridge/Nbl.Bridge.csproj --packages /run/build/NonBlockingLife/nuget-packages -s nuget-sources -r linux-x64
       # # 檢查 NuGet 套件來源是否存在
       # - ls -la nuget-sources || true
 
@@ -96,8 +97,10 @@ modules:
       - dotnet publish src/Nbl.Desktop/Nbl.Desktop.csproj -c Release -r linux-x64 --self-contained true --no-restore -p:PublishAot=false -p:RuntimeIdentifiers=linux-x64 -o /app/lib/nonblockinglife
       - mkdir -p /app/bin
       - ln -s /app/lib/nonblockinglife/Nbl.Desktop /app/bin/NonBlockingLife
-      - install -Dm644 com.yescirculation.nonblockinglife.desktop /app/share/applications/com.yescirculation.nonblockinglife.desktop
-      - install -Dm644 com.yescirculation.nonblockinglife.png /app/share/icons/hicolor/256x256/apps/com.yescirculation.nonblockinglife.png
+      - install -Dm644 io.github.ychsue.nonblockinglife.desktop /app/share/applications/io.github.ychsue.nonblockinglife.desktop
+      - install -Dm644 io.github.ychsue.nonblockinglife.png /app/share/icons/hicolor/256x256/apps/io.github.ychsue.nonblockinglife.png
+    # 4. 🔥 關鍵：安裝 metainfo.xml 到 AppStream 標準目錄
+      - install -Dm644 io.github.ychsue.nonblockinglife.metainfo.xml /app/share/metainfo/io.github.ychsue.nonblockinglife.metainfo.xml
     sources:
       - type: dir
         path: .
