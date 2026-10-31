@@ -15,8 +15,6 @@ public partial class App : Application
     private AlarmAudioManager _audio = new(new NullAudioPlayer());
     private WindowsPowerManager? _powerManager;
 
-    public static bool IsFlatpak => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FLATPAK_ID"));
-
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);

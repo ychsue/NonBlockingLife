@@ -546,7 +546,7 @@ function ExperimentPanel() {
                 All Tables To Supabase
               </button>
               <button 
-                onClick={() => alert(`Is Flatpak? ${(window as any).isFlatpak}`)}
+                onClick={() => alert(`supabaseRpc? ${bridge?.caps?.includes("supabaseRpc")}`)}
                 className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
               >
                 Is Flatpak?

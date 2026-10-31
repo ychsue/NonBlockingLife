@@ -5,6 +5,7 @@ const KNOWN_CAPS = [
   "fetchIcs",
   "share",
   "openExternal",
+  "supabaseRpc",
 ] as const;
 export type NativeCapability = (typeof KNOWN_CAPS)[number];
 

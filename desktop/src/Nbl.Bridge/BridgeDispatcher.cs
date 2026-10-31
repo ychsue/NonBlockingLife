@@ -15,6 +15,8 @@ public interface IIcsFetcher
 /// </summary>
 public sealed class BridgeDispatcher
 {
+    public static bool IsFlatpak => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FLATPAK_ID"));
+
     public const int ProtocolVersion = 1;
 
     private readonly string _shell;
@@ -52,6 +54,7 @@ public sealed class BridgeDispatcher
             if (_host is not null) caps.AddRange(new[] { "notify", "openExternal", "share" });
             if (_host is not null && _alarms is not null) caps.Add("alarm");
             if (_host is not null && _timers is not null) caps.Add("timer");
+            if (IsFlatpak) caps.Add("supabaseRpc");
             return caps;
         }
     }
@@ -86,18 +89,19 @@ public sealed class BridgeDispatcher
                 });
 
             case "nbl:fetch-ics":
-                if (_ics is null) return null;
-                var url = req["url"]?.GetValue<string>() ?? "";
-                try
                 {
-                    var ics = await _ics.FetchAsync(url, ct);
-                    return Reply("nbl:fetch-ics-response", requestId, o => o["icsContent"] = ics);
+                    if (_ics is null) return null;
+                    var url = req["url"]?.GetValue<string>() ?? "";
+                    try
+                    {
+                        var ics = await _ics.FetchAsync(url, ct);
+                        return Reply("nbl:fetch-ics-response", requestId, o => o["icsContent"] = ics);
+                    }
+                    catch (Exception e) when (e is not OperationCanceledException)
+                    {
+                        return Reply("nbl:fetch-ics-response", requestId, o => o["error"] = e.Message);
+                    }
                 }
-                catch (Exception e) when (e is not OperationCanceledException)
-                {
-                    return Reply("nbl:fetch-ics-response", requestId, o => o["error"] = e.Message);
-                }
-
             case "nbl:notify":
                 if (_host is null) return null;
                 _host.ShowNotification(new ToastOptions
@@ -219,6 +223,15 @@ public sealed class BridgeDispatcher
                 _host.Share(title, text);
                 return Reply("nbl:share-response", requestId, o => o["ok"] = true);
 
+            case "nbl:supabase-rpc":
+                {
+                    var url = req["url"]?.GetValue<string>() ?? "";
+                    var key = req["key"]?.GetValue<string>() ?? "";
+                    var rpcName = req["rpcName"]?.GetValue<string>() ?? "";
+                    var payload = req["payload"]?.AsObject();
+                    var result = await SupabaseRpcProxy.CallRpcAsync(url, key, rpcName, payload);
+                    return Reply("nbl:supabase-rpc-response", requestId, o => o["data"] = result);
+                }
             default:
                 return null;
         }

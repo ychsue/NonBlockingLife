@@ -70,7 +70,7 @@ public partial class MainWindow : Window
         StopSoundsMenuItem.Header = L10n.StopSoundsMenuItem;
         OpenSoundsFolderMenuItem.Header = L10n.OpenSoundsFolderMenuItem;
         ExitMenuItem.Header = L10n.ExitMenuItem;
-        // TopMenuControl.IsVisible = App.IsFlatpak; //只有在 Flatpak 環境下才顯示頂部選單列
+        // TopMenuControl.IsVisible = BridgeDispatcher.IsFlatpak; //只有在 Flatpak 環境下才顯示頂部選單列
 
         String? version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3);
         Closing += (_, e) =>
@@ -170,7 +170,6 @@ public partial class MainWindow : Window
         {
             if (_origins.IsAllowed(Web.Source ?? new Uri("about:blank")))
             {
-                if (App.IsFlatpak) await Web.InvokeScript("window.isFlatpak = true;");
                 await Web.InvokeScript(Shim);
             }
         };

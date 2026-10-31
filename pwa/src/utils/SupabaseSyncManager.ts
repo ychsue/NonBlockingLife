@@ -1,4 +1,8 @@
-import { createClient, PostgrestError, SupabaseClient } from "@supabase/supabase-js";
+import {
+  createClient,
+  PostgrestError,
+  SupabaseClient,
+} from "@supabase/supabase-js";
 import { buildChangeLogId, CHANGE_LOG_STATUS, db } from "../db/index";
 import {
   type SyncResult,
@@ -13,6 +17,7 @@ import { ChangeLogEntry } from "../db/schema";
 import { useAppStore } from "../store/appStore";
 import { logError, logInfo } from "./logger";
 import { sleep } from "./timeUtils";
+import { NativeBridge } from "../native/NativeBridge";
 
 const CLIENT_ID = "SupabaseSyncManager";
 const PULL_CURSOR_KEY = "supabase:pull-cursor";
@@ -62,47 +67,64 @@ interface PullRpcResult {
  */
 const customFetch: typeof fetch = async (input, init) => {
   // 檢查是否為 Flatpak 環境（搭配你剛剛在 C# 注入的標記）
-  const isFlatpak = typeof window !== 'undefined' && (window as any).isFlatpak;
+  const capabilitiesAndKind = useAppStore.getState().capabilitiesAndKind;
 
-  if (isFlatpak) {
+  if (capabilitiesAndKind.capabilities.includes("supabaseRpc")) {
     // 針對 Flatpak 環境，使用 XMLHttpRequest 繞過 WebKitGTK fetch 的 Load failed 問題
     return new Promise<Response>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-      const method = init?.method || 'GET';
+      const url =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : input.url;
+      const method = init?.method || "GET";
 
       xhr.open(method, url, true);
 
       // 設定 Headers
       if (init?.headers) {
         if (init.headers instanceof Headers) {
-          init.headers.forEach((value, key) => xhr.setRequestHeader(key, value));
+          init.headers.forEach((value, key) =>
+            xhr.setRequestHeader(key, value),
+          );
         } else if (Array.isArray(init.headers)) {
-          init.headers.forEach(([key, value]) => xhr.setRequestHeader(key, value));
+          init.headers.forEach(([key, value]) =>
+            xhr.setRequestHeader(key, value),
+          );
         } else {
-          Object.entries(init.headers).forEach(([key, value]) => xhr.setRequestHeader(key, value as string));
+          Object.entries(init.headers).forEach(([key, value]) =>
+            xhr.setRequestHeader(key, value as string),
+          );
         }
       }
 
       xhr.onload = () => {
         // 將 XHR 的結果包裝成標準的 Fetch Response 物件
         const responseHeaders = new Headers();
-        xhr.getAllResponseHeaders().trim().split(/[\r\n]+/).forEach(line => {
-          const parts = line.split(': ');
-          const key = parts.shift();
-          const val = parts.join(': ');
-          if (key) responseHeaders.append(key, val);
-        });
+        xhr
+          .getAllResponseHeaders()
+          .trim()
+          .split(/[\r\n]+/)
+          .forEach((line) => {
+            const parts = line.split(": ");
+            const key = parts.shift();
+            const val = parts.join(": ");
+            if (key) responseHeaders.append(key, val);
+          });
 
-        resolve(new Response(xhr.responseText, {
-          status: xhr.status,
-          statusText: xhr.statusText,
-          headers: responseHeaders,
-        }));
+        resolve(
+          new Response(xhr.responseText, {
+            status: xhr.status,
+            statusText: xhr.statusText,
+            headers: responseHeaders,
+          }),
+        );
       };
 
-      xhr.onerror = () => reject(new TypeError('XHR Load failed in Flatpak'));
-      xhr.ontimeout = () => reject(new TypeError('XHR Timeout in Flatpak'));
+      xhr.onerror = () => reject(new TypeError("XHR Load failed in Flatpak"));
+      xhr.ontimeout = () => reject(new TypeError("XHR Timeout in Flatpak"));
 
       // 發送 Request Body (如果是 POST / PUT)
       if (init?.body) {
@@ -119,13 +141,22 @@ const customFetch: typeof fetch = async (input, init) => {
 
 export class SupabaseSyncManager extends SyncManagerBase {
   private supabase: SupabaseClient;
+  private bridge?: NativeBridge;
+  private supabaseUrl: string;
+  private supabaseKey: string;
 
-  constructor(urlKeyPair: string) {
+  constructor(urlKeyPair: string, bridge?: NativeBridge) {
     super();
+    this.bridge = bridge;
+    const capabilitiesAndKind = useAppStore.getState().capabilitiesAndKind;
     try {
       const { url, key } = getUrlAndKey(urlKeyPair);
-      if ((window as any).isFlatpak) {
-        this.supabase = createClient(url, key, { global: {fetch: customFetch}});
+      this.supabaseUrl = url;
+      this.supabaseKey = key;
+      if (capabilitiesAndKind?.capabilities?.includes("supabaseRpc")) {
+        this.supabase = createClient(url, key, {
+          global: { fetch: customFetch },
+        });
       } else {
         this.supabase = createClient(url, key);
       }
@@ -150,6 +181,21 @@ export class SupabaseSyncManager extends SyncManagerBase {
       await logError("Supabase Fetch ICS 失敗:", "Fail", error as any);
       throw error;
     }
+  }
+
+  async supabaseRpc(
+    rpcName: string,
+    url: string,
+    key: string,
+    payload?: Record<string, any>,
+  ): Promise<any> {
+    const res = await this.bridge?.request("nbl:supabase-rpc", {
+      rpcName,
+      url,
+      key,
+      payload,
+    });
+    return res;
   }
 
   async testConnection(): Promise<boolean> {
@@ -197,7 +243,10 @@ export class SupabaseSyncManager extends SyncManagerBase {
       const syncableChanges = pendingChanges.filter((c) =>
         this.isSyncTable(c.table),
       );
-      await logInfo("SupabaseSync Push Start:", `length: ${syncableChanges?.length}`);
+      await logInfo(
+        "SupabaseSync Push Start:",
+        `length: ${syncableChanges?.length}`,
+      );
       const groups = await this.createPushGroups(syncableChanges);
       const result = await this.pushGroups(groups, true);
       const pending = await db.change_log
@@ -387,6 +436,7 @@ export class SupabaseSyncManager extends SyncManagerBase {
     groups: PushGroup[],
     retryConflicts: boolean,
   ): Promise<{ success: number; failed: number; error?: string }> {
+    const capabilitiesAndKind = useAppStore.getState().capabilitiesAndKind;
     let successCount = 0;
     let failedCount = 0;
     const retryGroups: PushGroup[] = [];
@@ -400,19 +450,33 @@ export class SupabaseSyncManager extends SyncManagerBase {
       let error: PostgrestError | null = null;
       for (let attempt = 0; attempt < 3; attempt++) {
         logInfo(`Supabase Push Batch Attempt ${attempt + 1}`, "Start");
-        const res = await this.supabase.rpc("push_sync_changes", {
-          p_changes: batch.map((group) => ({
-            table: group.table,
-            recordId: group.recordId,
-            operationId: group.operationId,
-            op: group.op,
-            expectedVersion: group.expectedVersion,
-            data: group.data,
-            deviceId: this.deviceId,
-          })),
-        });
-        data = res.data;
-        error = res.error;
+        const p_changes = batch.map((group) => ({
+          table: group.table,
+          recordId: group.recordId,
+          operationId: group.operationId,
+          op: group.op,
+          expectedVersion: group.expectedVersion,
+          data: group.data,
+          deviceId: this.deviceId,
+        }));
+        if (capabilitiesAndKind.capabilities.includes("supabaseRpc")) {
+          const res = await this.supabaseRpc(
+            "push_sync_changes",
+            this.supabaseUrl,
+            this.supabaseKey,
+            {
+              p_changes,
+            },
+          );
+          data = res.data;
+          error = res.error;
+        } else {
+          const res = await this.supabase.rpc("push_sync_changes", {
+            p_changes,
+          });
+          data = res.data;
+          error = res.error;
+        }
         if (!error || attempt === 2) {
           break;
         }
@@ -622,7 +686,11 @@ export class SupabaseSyncManager extends SyncManagerBase {
       await logInfo("Supabase Get Global Settings finished:", "Done");
       return settings.data ?? [];
     } catch (error) {
-      await logError("Supabase Get Global Settings 失敗:", "Fail", error as any);
+      await logError(
+        "Supabase Get Global Settings 失敗:",
+        "Fail",
+        error as any,
+      );
       throw error;
     }
   }

@@ -27,6 +27,7 @@ import { useAppStore } from "../store/appStore";
 import { SetupSupabaseWizard } from "./SetupSupabaseWizard";
 import { useProductTourContext } from "./tour/ProductTourContext";
 import _ from "lodash";
+import { useNativeBridge } from "../native/useNativeBridge";
 
 interface SyncStatusProps {
   syncStatus?: "idle" | "syncing" | "error";
@@ -52,6 +53,9 @@ export function SyncStatus({
     (state) => state.setPendingChangeLogs,
   );
   const capabilitiesAndKind = useAppStore((state) => state.capabilitiesAndKind);
+
+  const bridge = useNativeBridge();
+
   const [filteredPendingChangeLogs, setFilteredPendingChangeLogs] = useState<
     typeof pendingChangeLogs
   >([]);
@@ -326,7 +330,7 @@ export function SyncStatus({
         syncType === "gas"
           ? new GASSyncManager(syncStr)
           : syncType === "supabase"
-            ? new SupabaseSyncManager(syncStr)
+            ? new SupabaseSyncManager(syncStr, bridge)
             : null;
       setManager(mgr);
       if (needToTestSync.current) {
@@ -356,7 +360,7 @@ export function SyncStatus({
       // 如果 syncStr 為空，顯示 URL 輸入框以便用戶輸入
       setShowUrlInput(true);
     }
-  }, [syncStr]);
+  }, [syncStr, bridge]);
 
   // 更新待同步計數，並在 >= 20 or >= 2 且 idle 3 秒後自動同步，只用在 GAS
   useEffect(() => {
