@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-10-31] 能夠使用 c# 模擬，現在發現 ClockWindow 的 TextBox 在 Linux (不只flatpak) 新酷音輸入都會亂掉
+[17:51] 準備試看看能否放到 flathub
+
 ## [2026-11-01] 優化 OnExitApp，免得因為 window collection 改變而丟出 exception
 2. 順便在[Toast.tsx](pwa\src\components\Toast.tsx) 右上角加個x 關閉他。
 

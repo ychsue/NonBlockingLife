@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>io.github.ychsue.nonblockinglife</id>
+
+    <name>NonBlockingLife</name>
+    <summary>During tasks, a countdown timer helps you stay focused. In a task? Keep focusing</summary>
+
+    <metadata_license>MIT</metadata_license>
+    <project_license>MIT</project_license>
+
+    <url type="homepage">https://github.com/ychsue/NonBlockingLife</url>
+
+    <description>
+        <p>
+            New ideas, waiting tasks, and interruptions can pull attention away from the work you intended to do. NonBlockingLife gives you a personal workflow to capture those items, schedule them for later, and record when you start, end, or interrupt a task—so you can review your options and choose what to do next.
+        </p>
+        <p>
+            Put tasks in the right place
+        </p>
+        <p>
+            <em> Capture new ideas and unplanned items in Inbox. Review and categorize them later. These categories include Task Pool, Micro Tasks, Scheduled, and Resources.
+            </em>
+            <em>
+                Organize projects and larger tasks in Task Pool. - Keep small tasks in Micro Tasks for
+                shorter breaks in your day.
+            </em>
+            <em>
+                Schedule future items and use timers or reminders where supported.
+            </em>
+            <em>
+                Place reference materials or external resources in Resources for later consultation.
+            </em>
+        </p>
+        <p>
+            Keep a record of your workflow
+        </p>
+        <p>
+            Use Start, End, and Interrupt to record task activity, then review your history in Log. NonBlockingLife helps you organize your choices; it does not decide your priorities or complete tasks for you. If these items are synced with Supabase, you can later analyze them with AI or other tools for management suggestions (this is not a built-in feature of the app and requires user implementation).
+</p>
+        <p>
+            Local-first, with optional cloud sync
+        </p>
+        <p>
+            Your workflow is designed for local use. If you want to sync across devices, you can connect your own Supabase project using the in-app setup guidance. Cloud sync is
+            optional.
+</p>
+        <p>
+            Inspired by the computer science concept of an event loop, NonBlockingLife helps you
+            capture incoming tasks, handle interruptions, and choose your next step.
+</p>
+    </description>
+
+    <launchable type="desktop-id">io.github.ychsue.nonblockinglife.desktop</launchable>
+    <screenshots>
+        <screenshot type="default">
+            <image>https://github.com/ychsue/NonBlockingLife/blob/main/desktop/images/with_timer.png</image>
+        </screenshot>
+        <screenshot>
+            <image>
+                https://github.com/ychsue/NonBlockingLife/blob/main/desktop/images/supabase_wizard.png</image>
+        </screenshot>
+        <screenshot>
+            <image>https://github.com/ychsue/NonBlockingLife/blob/main/desktop/images/inbox.png</image>
+        </screenshot>
+    </screenshots>
+    <releases>
+        <release version="3.2.1" date="2026-10-31">
+            <description>
+                <p>NonBlockingLife 的第一個正式版本發佈。</p>
+                <ul>
+                    <li>第一次放到 FlatHub</li>
+                    <li>已經有 PWA, Play 商店 與 MS Store (11/01公開）</li>
+                </ul>
+            </description>
+        </release>
+    </releases>
+    <content_rating type="oars-1.1" />
+    <developer id="io.github.ychsue">
+        <name>Young-Chung Hsue</name>
+    </developer>
+
+</component>

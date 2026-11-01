@@ -2,7 +2,7 @@
 Type=Application
 Name=NonBlockingLife
 Comment=Non-blocking task and time management
-Icon=com.yescirculation.nonblockinglife
+Icon=io.github.ychsue.nonblockinglife
 Exec=NonBlockingLife %u
 Categories=Office;Utility;
 Terminal=false
