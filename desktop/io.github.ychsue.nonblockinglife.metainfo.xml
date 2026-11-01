@@ -53,23 +53,26 @@
     <launchable type="desktop-id">io.github.ychsue.nonblockinglife.desktop</launchable>
     <screenshots>
         <screenshot type="default">
-            <image>https://github.com/ychsue/NonBlockingLife/blob/main/desktop/images/with_timer.png</image>
+            <image>https://raw.githubusercontent.com/ychsue/NonBlockingLife/main/desktop/images/with_timer.png</image>
+            <caption>The main window when the user is during a task. The timer and a notification are also shown.</caption>
         </screenshot>
         <screenshot>
             <image>
-                https://github.com/ychsue/NonBlockingLife/blob/main/desktop/images/supabase_wizard.png</image>
+                https://raw.githubusercontent.com/ychsue/NonBlockingLife/main/desktop/images/supabase_wizard.png</image>
+            <caption>Following this instruction you can set up your own Supabase database</caption>
         </screenshot>
         <screenshot>
-            <image>https://github.com/ychsue/NonBlockingLife/blob/main/desktop/images/inbox.png</image>
+            <image>https://raw.githubusercontent.com/ychsue/NonBlockingLife/main/desktop/images/inbox.png</image>
+            <caption>The inbox page in which you can create, modify, move and delete inbox items</caption>
         </screenshot>
     </screenshots>
     <releases>
         <release version="3.2.1" date="2026-10-31">
             <description>
-                <p>NonBlockingLife 的第一個正式版本發佈。</p>
+                <p>The first official Flathub release of NonBlockingLife</p>
                 <ul>
-                    <li>第一次放到 FlatHub</li>
-                    <li>已經有 PWA, Play 商店 與 MS Store (11/01公開）</li>
+                    <li>You can run this App on browser (PWA), Android and Windows</li>
+                    <li>You can reach them through Homepage → README.md → Platforms (平台們) section</li>
                 </ul>
             </description>
         </release>

@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-11-01] 準備上傳到 flathup
+
 ## [2026-10-31] 能夠使用 c# 模擬，現在發現 ClockWindow 的 TextBox 在 Linux (不只flatpak) 新酷音輸入都會亂掉
 [17:51] 準備試看看能否放到 flathub
 

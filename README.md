@@ -14,6 +14,12 @@ NonBlockingLife (NBL) 從電腦科學的 **Event Loop（事件循環）** 得到
 
 NBL 的目標不是替你決定人生優先順序，而是提供一個可靠的外部流程，讓你在被打斷後能重新整理眼前的選擇，繼續自己的主線。
 
+### 平台們 (Platforms)
+1. [Browser PWA](https://ychsue.github.io/NonBlockingLife/)
+2. [Android Play Store](https://play.google.com/store/apps/details?id=com.yescirculation.nonblockinglife)
+3. [Microsoft Store](https://apps.microsoft.com/detail/9p69cc1ttswc?ocid=webpdpshare)
+4. Apple 的部份，目前是打算透過 PWA + Shortcuts 來存取裝置原生功能如計時器與鬧鐘，然而，受限於無法傳 parameters，因此，這部份還在想。
+
 ## 功能
 
 - **Start / End / Interrupt**：記錄任務的開始、結束與中斷，若有計時器，可以倒數計時。
