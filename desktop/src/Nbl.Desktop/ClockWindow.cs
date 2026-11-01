@@ -8,7 +8,7 @@ using System.Text.Json.Nodes;
 namespace Nbl.Desktop;
 
 /// <summary>小型時鐘視窗：管理鬧鐘與計時器（開始／暫停／繼續／重置／+1:00／刪除）。資料與 PWA 共用同一份。</summary>
-public sealed class ClockWindow : Window
+public sealed class ClockWindow : Window, IHideableWindow
 {
     private readonly AlarmScheduler _alarms;
     private readonly TimerService _timers;

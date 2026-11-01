@@ -1,15 +1,15 @@
-using System.Diagnostics;
-using System.Text.Json;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Nbl.Bridge;
+using System.Diagnostics;
 using System.Reflection;
-using Avalonia.Interactivity;
-using System.Globalization;
+using System.Text.Json;
 
 namespace Nbl.Desktop;
 
-public partial class MainWindow : Window
+public partial class MainWindow : Window, IHideableWindow
 {
     // 在頁面載入後建立與 twa-pm-bridge.js 相容的 port（只需 postMessage / onmessage / start） 
     // 由於 window.__NBL_TWA_BRIDGE__ 可能尚未初始化，可能若它還沒出現，得設定 setTimeout 來延遲設置 port，以確保 bridge 能正確連接
@@ -221,22 +221,14 @@ public partial class MainWindow : Window
 
     private void OnExitApp(object? sender, RoutedEventArgs e)
     {
-        // 允許關閉所有視窗並結束行程
-        AllowClose = true;
+        if (Avalonia.Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop) return;
 
-        // 如果有其他視窗（例如 ClockWindow），也要一併允許關閉
-        // 或者直接強行關閉整個應用程式
-        foreach (var window in Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop ? desktop.Windows : Array.Empty<Window>())
+        foreach (var window in desktop.Windows ?? [])
         {
-            if (window is MainWindow mw) mw.AllowClose = true;
-            if (window is ClockWindow cw) cw.AllowClose = true;
-            window.Close();
+            if (window is IHideableWindow hideable) hideable.AllowClose = true;
         }
 
-        // 終止整個桌面行程
-        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime appLifetime)
-        {
-            appLifetime.Shutdown();
-        }
+        // 終止整個桌面行程，無須各別關閉
+        desktop.Shutdown();
     }
 }

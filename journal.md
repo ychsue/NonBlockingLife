@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-11-01] 優化 OnExitApp，免得因為 window collection 改變而丟出 exception
+2. 順便在[Toast.tsx](pwa\src\components\Toast.tsx) 右上角加個x 關閉他。
+
 ## [2026-10-31] 為了讓 flatpak 的 supabase push 正常運作，所以，讓他的 push 搬到 c# 來做處理看看
 1. [BridgeDispatcher.cs](desktop\src\Nbl.Bridge\BridgeDispatcher.cs) 多了 `nbl:supabase-rpc` 的處理。
 2. [SupabaseRpcProxy.cs](desktop\src\Nbl.Bridge\SupabaseRpcProxy.cs) 新增了對 supabase rpc 的代理處理。
