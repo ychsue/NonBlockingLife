@@ -471,18 +471,15 @@ function ExperimentPanel() {
             >
               <button
                 type="button"
-                onClick={() =>
-                  applyChange({
-                    table: "global_settings",
-                    recordId: "test", //key
-                    op: "add",
-                    patch: { key: "test", value: "This is a test" },
-                    clientId: "test",
-                  })
-                }
+                onClick={() => {
+                  const manager = new SupabaseSyncManager(
+                    getStoredSupabaseUrlKey(),
+                  );
+                  manager.setiOSCmdSync({ key: "iOS_cmd_sync", value: "This is a test 2" }, true);
+                }}
                 className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
               >
-                Test Global Settings
+                Set iOS Cmd
               </button>
               <button
                 type="button"

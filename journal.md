@@ -4,6 +4,8 @@
 1. [InboxTable.tsx](pwa/src/components/tables/InboxTable.tsx) 修正了在編輯對話框中移動任務時的邏輯錯誤。
 2. [EditDialog.tsx](pwa/src/components/EditDialog.tsx) 多加了 Flatpickr 給 Android 系統。另外，多了 onChangeAll 因為有時需要監聽他的值的變化。
 3. [styles.css](pwa/src/styles.css) 調整了 Flatpickr 時間選擇器的箭頭大小與對齊方式，使其在 Android 系統上顯示更為正確。
+4. [EditDialog.tsx](pwa/src/components/EditDialog.tsx) Android App 的 WebView 得靠 nbl:hello 判斷。
+5. [iOS_cmd_sync.sql](pwa\src\db\supabase\iOS_cmd_sync.sql) 新增了對 iOS 的 supabase 同步命令處理。因為 iOS 上呼叫 PWA 無法帶參數，似乎只能透過這個方式來處理同步。
 
 ## [2026-11-01] 準備上傳到 flathup
 

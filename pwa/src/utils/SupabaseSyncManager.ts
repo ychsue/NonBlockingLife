@@ -227,6 +227,21 @@ export class SupabaseSyncManager extends SyncManagerBase {
     return !error;
   }
 
+  async setiOSCmdSync(data: any, deleted = false): Promise<void> {
+    try {
+      await logInfo("Supabase Set iOS Cmd Sync Start:", "Start");
+      const res = await this.supabase.rpc("set_ios_cmd_sync", {
+        data: data,
+        deleted: deleted,
+      });
+      await logInfo("Supabase Set iOS Cmd Sync finished:", "Done");
+      return;
+    } catch (error) {
+      await logError("Supabase Set iOS Cmd Sync 失敗:", "Fail", error as any);
+      throw error;
+    }
+  }
+
   /**
    * 推送本地 change_log 到 Supabase
    */

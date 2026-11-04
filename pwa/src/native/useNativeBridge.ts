@@ -8,6 +8,7 @@ import {
   negotiateHello,
   NativeBridge,
   NativeShellKind,
+  HelloShellKind,
 } from "./NativeBridge";
 
 // 每個 port 只協商一次，避免多個元件各送一次 hello
@@ -50,7 +51,7 @@ export function useNativeBridge(): NativeBridge {
         setInfo(i);
         setCapabilitiesAndKind({
           capabilities: i.capabilities,
-          kind: i.shell as NativeShellKind,
+          kind: i.shell as HelloShellKind,
         }); // 更新整個AppStore的nbl:hello 的資訊
         console.log("[useNativeBridge] Updated capabilities and kind:", i);
       }

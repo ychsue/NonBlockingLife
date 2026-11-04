@@ -10,6 +10,7 @@ const KNOWN_CAPS = [
 export type NativeCapability = (typeof KNOWN_CAPS)[number];
 
 export type NativeShellKind = "web" | "twa" | "desktop";
+export type HelloShellKind = "android" | "windows" | "linux" | "web" | "unknown";
 
 export interface SendOptions {
   /** 是否等待回應，預設 true */
@@ -60,7 +61,7 @@ const TWA_DEFAULT_CAPS: NativeCapability[] = ["alarm", "notify", "fetchIcs"];
 
 /** 協商結果；舊版 shell 不認得 nbl:hello（只會忽略），逾時後退回預設能力 */
 export interface HelloInfo {
-  shell: string;
+  shell: HelloShellKind;
   shellVersion?: string;
   protocolVersion: number;
   capabilities: NativeCapability[];
@@ -78,7 +79,7 @@ export async function negotiateHello(
         )
       : TWA_DEFAULT_CAPS;
     return {
-      shell: String(res?.shell ?? "unknown"),
+      shell: String(res?.shell ?? "unknown") as HelloShellKind,
       shellVersion: res?.shellVersion,
       protocolVersion: Number(res?.protocolVersion ?? 1),
       capabilities: caps,

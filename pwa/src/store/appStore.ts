@@ -3,7 +3,7 @@ import type { SheetName } from "../hooks/useUrlAction";
 import { ChangeLogEntry, Dashboard, db, ProjectItem } from "../db/schema";
 import type { SupportedLocale } from "../i18n";
 import { debounce } from "lodash";
-import { NativeCapability, NativeShellKind } from "../native/NativeBridge";
+import { HelloShellKind, NativeCapability } from "../native/NativeBridge";
 import _ from "lodash";
 
 function getInitialLocale(): SupportedLocale {
@@ -276,14 +276,14 @@ interface AppState {
 
   capabilitiesAndKind: {
     capabilities: NativeCapability[];
-    kind: NativeShellKind;
+    kind: HelloShellKind;
   };
   setCapabilitiesAndKind: ({
     capabilities,
     kind,
   }: {
     capabilities: NativeCapability[];
-    kind: NativeShellKind;
+    kind: HelloShellKind;
   }) => void;
 }
 
@@ -421,7 +421,7 @@ export const useAppStore = create<AppState>((set) => ({
 
   capabilitiesAndKind: { capabilities: [], kind: "web" } as {
     capabilities: NativeCapability[];
-    kind: NativeShellKind;
+    kind: HelloShellKind;
   },
   setCapabilitiesAndKind: ({ capabilities, kind }) =>
     set({ capabilitiesAndKind: { capabilities, kind } }),

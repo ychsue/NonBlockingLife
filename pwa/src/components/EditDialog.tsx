@@ -19,6 +19,7 @@ import { useProductTourContext } from "./tour/ProductTourContext";
 import { getPreviewRuns } from "../utils/icsParser";
 import { ProjectTreeSelector } from "./ProjectTreeSelector";
 import { getDeviceType } from "../utils/shortcutUtils";
+import { useAppStore } from "../store/appStore";
 
 export type FieldType =
   | "text"
@@ -71,6 +72,7 @@ export function EditDialog<T>({
   const [openCronPreviewField, setOpenCronPreviewField] = useState<
     string | null
   >(null);
+  const capabilitiesAndKind = useAppStore((state) => state.capabilitiesAndKind);
   //為了避免同樣的item來亂
   const [lastItem, setLastItem] = useState<T | null>(null);
   const [lastFields, setLastFields] = useState<DialogField[]>([]);
@@ -425,12 +427,15 @@ export function EditDialog<T>({
                 renderRRuleField(field)
               ) : field.type === "datetime" ? (
                 // 若為 Android，改用 flatpickr，最右邊再一個清除時間按鈕
-                getDeviceType() === "Android" ? (
+                getDeviceType() === "Android" ||
+                capabilitiesAndKind.kind === "android" ? (
                   <div className="flex items-center">
                     <Flatpickr
                       id={field.name}
                       value={formData[field.name] ?? ""}
-                      onClose={(selectedDates) => //若使用 onChange 會一直跳回主頁
+                      onClose={(
+                        selectedDates, //若使用 onChange 會一直跳回主頁
+                      ) =>
                         handleChange(
                           field.name,
                           selectedDates[0]?.getTime() ?? "",
