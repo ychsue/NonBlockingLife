@@ -316,3 +316,61 @@ code {
     transform: rotate(360deg);
   }
 }
+
+/* 1. 讓時間選擇區的上下箭頭預設就顯示，不需 hover */
+.flatpickr-time .flatpickr-am-pm,
+.flatpickr-time .numInputWrapper span {
+  opacity: 1 !important; /* 強制不透明顯示 */
+}
+
+/* 2. 放大上下箭頭的尺寸與點擊區域，方便手機或滑鼠點擊 */
+.flatpickr-time .numInputWrapper span {
+  width: 27px !important;
+  height: 50% !important;
+}
+
+/* 3. 調整箭頭內部圖示的大小與粗細 */
+.flatpickr-time .numInputWrapper span.arrowUp,
+.flatpickr-time .numInputWrapper span.arrowDown {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flatpickr-time .numInputWrapper span.arrowUp:after {
+  border-bottom-width: 8px !important; /* 放大向上箭頭 */
+  border-left-width: 8px !important;
+  border-right-width: 8px !important;
+}
+
+.flatpickr-time .numInputWrapper span.arrowDown:after {
+  border-top-width: 8px !important; /* 放大向下箭頭 */
+  border-left-width: 8px !important;
+  border-right-width: 8px !important;
+}
+
+/* 1. 放大整個時間選擇區塊的高度與內距 */
+.flatpickr-time {
+  min-height: 54px !important;
+  height: 54px !important; /* 預設通常是 40px 左右，調高一點 */
+  line-height: 54px !important;
+  font-size: 16px !important; /* 放大整體字型 */
+}
+
+/* 2. 讓小時、分鐘的輸入框高度與高度對齊 */
+.flatpickr-time input {
+  height: 54px !important;
+  font-size: 18px !important; /* 讓數字顯得更大更清楚 */
+}
+
+/* 3. 如果是用 12 小時制，順便放大 AM/PM 切換按鈕的高度與字型 */
+.flatpickr-time .flatpickr-am-pm {
+  height: 54px !important;
+  font-size: 16px !important;
+  line-height: 54px !important;
+}
+
+/* 4. 配合調整右側上下箭頭的容器高度 */
+.flatpickr-time .numInputWrapper {
+  height: 54px !important;
+}

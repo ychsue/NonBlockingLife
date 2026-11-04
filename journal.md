@@ -1,5 +1,10 @@
 # Journal
 
+## [2026-11-04] (3.2.2) Bugs 修正: flatpickr 與 InboxTable 移動改良
+1. [InboxTable.tsx](pwa/src/components/tables/InboxTable.tsx) 修正了在編輯對話框中移動任務時的邏輯錯誤。
+2. [EditDialog.tsx](pwa/src/components/EditDialog.tsx) 多加了 Flatpickr 給 Android 系統。另外，多了 onChangeAll 因為有時需要監聽他的值的變化。
+3. [styles.css](pwa/src/styles.css) 調整了 Flatpickr 時間選擇器的箭頭大小與對齊方式，使其在 Android 系統上顯示更為正確。
+
 ## [2026-11-01] 準備上傳到 flathup
 
 ## [2026-10-31] 能夠使用 c# 模擬，現在發現 ClockWindow 的 TextBox 在 Linux (不只flatpak) 新酷音輸入都會亂掉

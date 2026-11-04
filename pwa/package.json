@@ -1,7 +1,7 @@
 {
   "name": "nonblockinglife-pwa",
   "private": true,
-  "version": "3.2.1",
+  "version": "3.2.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -22,6 +22,7 @@
     "lodash": "^4.18.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-flatpickr": "^4.0.11",
     "react-joyride": "^3.2.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",

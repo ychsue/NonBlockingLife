@@ -1,3 +1,5 @@
+import Flatpickr from "react-flatpickr";
+import "flatpickr/dist/themes/material_blue.css";
 import React, { useState, useEffect } from "react";
 import { formatToDateTimeLocal } from "../utils/timeUtils";
 import { useT } from "../i18n";
@@ -16,6 +18,7 @@ import _ from "lodash";
 import { useProductTourContext } from "./tour/ProductTourContext";
 import { getPreviewRuns } from "../utils/icsParser";
 import { ProjectTreeSelector } from "./ProjectTreeSelector";
+import { getDeviceType } from "../utils/shortcutUtils";
 
 export type FieldType =
   | "text"
@@ -48,6 +51,7 @@ interface EditDialogProps<T> {
   onSave: (data: Record<string, any>) => Promise<void>;
   onClose: (isSaved?: boolean) => void;
   footerLeft?: React.ReactNode;
+  onChangeAll?: (data: Record<string, any>) => void;
 }
 
 export function EditDialog<T>({
@@ -57,6 +61,7 @@ export function EditDialog<T>({
   fields,
   onSave,
   onClose,
+  onChangeAll,
   footerLeft,
 }: EditDialogProps<T>) {
   const t = useT();
@@ -120,6 +125,8 @@ export function EditDialog<T>({
     if (name === "projectIds") {
       setProjectIds(Array.isArray(value) ? value : []);
     }
+    // 將改變告知父元件或其他需要知道的地方，整個新的 formData 都會被傳過去
+    onChangeAll?.({ ...formData, [name]: value });
   };
 
   const handleSave = async () => {
@@ -417,19 +424,50 @@ export function EditDialog<T>({
               ) : field.type === "rrule" ? (
                 renderRRuleField(field)
               ) : field.type === "datetime" ? (
-                <input
-                  id={field.name}
-                  type="datetime-local"
-                  readOnly={field.readOnly ?? false}
-                  data-tour={dataTourForField(field)}
-                  value={
-                    typeof formData[field.name] === "number"
-                      ? formatToDateTimeLocal(formData[field.name])
-                      : (formData[field.name] ?? "")
-                  }
-                  onChange={(e) => handleChange(field.name, e.target.value)}
-                  className="w-full min-w-0 max-w-full box-border px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                // 若為 Android，改用 flatpickr，最右邊再一個清除時間按鈕
+                getDeviceType() === "Android" ? (
+                  <div className="flex items-center">
+                    <Flatpickr
+                      id={field.name}
+                      value={formData[field.name] ?? ""}
+                      onClose={(selectedDates) => //若使用 onChange 會一直跳回主頁
+                        handleChange(
+                          field.name,
+                          selectedDates[0]?.getTime() ?? "",
+                        )
+                      }
+                      options={{
+                        enableTime: true,
+                        dateFormat: "Y-m-d H:i",
+                        time_24hr: false,
+                        disableMobile: true,
+                        // allowInput: true,
+                      }}
+                      className="w-full min-w-0 max-w-full box-border px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleChange(field.name, "")}
+                      className="ml-2 px-2 py-1 text-xl text-blue-600 hover:underline"
+                    >
+                      {"🧹"}
+                    </button>
+                  </div>
+                ) : (
+                  <input
+                    id={field.name}
+                    type="datetime-local"
+                    readOnly={field.readOnly ?? false}
+                    data-tour={dataTourForField(field)}
+                    value={
+                      typeof formData[field.name] === "number"
+                        ? formatToDateTimeLocal(formData[field.name])
+                        : (formData[field.name] ?? "")
+                    }
+                    onChange={(e) => handleChange(field.name, e.target.value)}
+                    className="w-full min-w-0 max-w-full box-border px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                )
               ) : field.type === "number" ? (
                 <input
                   id={field.name}

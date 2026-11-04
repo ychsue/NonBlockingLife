@@ -212,7 +212,7 @@ export function InboxTable() {
     );
     if (!targetRow) return;
 
-    setEditingItem(targetRow);
+    setEditingItem((prev) => (_.isEqual(prev, targetRow) ? prev : targetRow));
     clearPendingEditIntent();
   }, [rows, pendingEditIntent, currentSheet, clearPendingEditIntent]);
 
@@ -246,7 +246,7 @@ export function InboxTable() {
 
     setCreatedNewRowId(newRow.taskId);
 
-    setEditingItem(newRow);
+    setEditingItem((prev) => (_.isEqual(prev, newRow) ? prev : newRow));
     // 如果有Joyride導覽，則執行nextStep，讓導覽可以繼續
     if (isRunning && activeStep?.target === "[data-tour='inbox-add-button']") {
       nextStep();
@@ -623,7 +623,9 @@ export function InboxTable() {
                   key={row.id}
                   onClick={(event) => {
                     if (!shouldOpenRowEdit(event.target)) return;
-                    setEditingItem(row.original);
+                    setEditingItem((prev) =>
+                      _.isEqual(prev, row.original) ? prev : row.original,
+                    );
                   }}
                   className="border-b hover:bg-gray-50 cursor-pointer touch-manipulation transition"
                 >
@@ -667,6 +669,15 @@ export function InboxTable() {
         ]}
         onSave={handleEditSave}
         onClose={handleCloseEditDialog}
+        onChangeAll={(data) =>
+          setEditingItem((prev) =>
+            prev?.title === data.title &&
+            prev?.receivedAt === data.receivedAt &&
+            prev?.url === data.url
+              ? prev
+              : ({ ...prev, ...data } as typeof editingItem),
+          )
+        }
         footerLeft={
           editingItem ? (
             <div className="flex items-center gap-2">

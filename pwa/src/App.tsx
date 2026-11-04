@@ -129,8 +129,7 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: The building for Windows and Linux has been mostly completed, and will be released later." +
-        "\n\r**Please note**: The Supabase sync feature has been updated, please rerun `initialize.sql` on Supabase.",
+        "\n\r**Please note**: Some improvements have been made, such as retaining original modifications when moving Inbox items after they have been edited or newly created.",
       "openDialog.clockNotSelected.title": "Clock App Not Selected",
       "openDialog.clockNotSelected.message":
         "Please select a clock app in the APP settings before setting an alarm.",
@@ -151,8 +150,7 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：已經大致完成Windows 與 Linux 的建置，晚點發布。" +
-        "\n\r**注意**：Supabase 同步功能有更新，請在Supabase上重新跑 `initialize.sql`。",
+        "\n\r**注意**：一些改良，比如如果使用者有先修改或創建新的Inbox項目後，直接move，會保留原本的修改。",
       "openDialog.clockNotSelected.title": "未選擇時鐘應用",
       "openDialog.clockNotSelected.message":
         "請先由APP設定選擇一個時鐘應用以設定鬧鐘。",
@@ -174,8 +172,7 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：Windows および Linux のビルドはほぼ完了しており、後でリリースされます。" +
-        "\n\r**注意**：Supabase の同期機能が更新されました。Supabase 上で `initialize.sql` を再実行してください。",
+        "\n\r**注意**：編集済みまたは新規作成されたInbox項目を移動する際に、元の変更が保持されるよう改善されました。",
       "openDialog.clockNotSelected.title": "時計アプリが選択されていません",
       "openDialog.clockNotSelected.message":
         "アラームを設定する前に、APPの設定で時計アプリを選択してください。",
