@@ -1,5 +1,16 @@
 # Journal
 
+## [2026-11-07] 為了 flatpak 能順利跑過，所作的努力（外加一個bug fix），謝謝 GPT Terra與 Copilot & Gemini：
+1. 關於顯示名稱:
+   * 在 [desktop/io.github.ychsue.nonblockinglife.yml](desktop/io.github.ychsue.nonblockinglife.yml) 中command 與 ln 要由 NonBlockingLife 改為 io.github.ychsue.nonblockinglife。
+   * 名稱要由 [.desktop](desktop/io.github.ychsue.nonblockinglife.desktop) 來定，不然他有可能不曉得執行誰
+2. [BassAudioPlayer.cs](desktop/src/Nbl.Desktop/BassAudioPlayer.cs) 由 VLC 改用 ManagedBass，有好處也有壞處
+   * 記得先執行 [add_libbass.sh](desktop/add_libbass.sh)，這樣才能Debug
+   * 好處是，省下很多 App Size，編譯變快 （因為呼叫 un4seen 的 libbass 與 libbassflac，而無須重編vlc）
+   * 壞處是，少支援一些音效格式，還有，我好像變得比較難編譯成功了。
+3. [App.axaml.cs](desktop/src/Nbl.Desktop/App.axaml.cs) 當使用 nonblockinglife://show-clock，現在讓它乾脆直接只顯示 ClockWindow，而等 desktop.StartUp 才將mainWindow 派給它，不然會出現透明 MainWindow
+4. 該轉去 [GitHub](https://github.com/ychsue/flathub) 測試看看了。
+
 ## [2026-11-04] (3.2.2) Bugs 修正: flatpickr 與 InboxTable 移動改良
 1. [InboxTable.tsx](pwa/src/components/tables/InboxTable.tsx) 修正了在編輯對話框中移動任務時的邏輯錯誤。
 2. [EditDialog.tsx](pwa/src/components/EditDialog.tsx) 多加了 Flatpickr 給 Android 系統。另外，多了 onChangeAll 因為有時需要監聽他的值的變化。

@@ -34,5 +34,9 @@ class Program
             .WithDeveloperTools()
 #endif
             .WithInterFont()
+            .With( new X11PlatformOptions
+            {
+                WmClass = "io.github.ychsue.nonblockinglife"
+            })
             .LogToTrace();
 }

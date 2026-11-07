@@ -36,6 +36,8 @@ NBL 的目標不是替你決定人生優先順序，而是提供一個可靠的�
 
 - **瀏覽器與 PWA**：提供核心任務功能；是否可使用系統提醒等功能，依瀏覽器與裝置支援而異。
 - **Windows 與 Linux 桌面版**：在核心功能外提供桌面整合，例如鬧鐘、計時器、自動啟動、通知與自訂 protocol；Windows 正在倒數的計時器或正在響鈴的提醒會暫時阻止閒置睡眠，但允許螢幕依系統設定關閉。實際支援依作業系統而異。
+    * Windows 使用的是 NAudio，謝謝。
+    * Linux 下面使用到 ManagedBass 與 Un4seen.Bass，需安裝對應的原生函式庫，謝謝他們。原本是使用VLC，雖然很穩，很全面，不過，好像有點大，所以才改的。不過，因此也犧牲掉一些音效格式。
 - **Android TWA**：以 WebView 封裝 PWA，並提供鬧鐘、計時器、通知與自訂 protocol 等原生整合。
 - **iPhone Shortcuts**：可作為 Start、End、Interrupt、Inbox、Scheduled 等流程的快速觸發方式。Apple 平台的鬧鐘與計時器需透過 Shortcuts 等方式配合使用。
 
@@ -87,6 +89,8 @@ npm run dev
 ```
 
 #### Windows 與 Linux 桌面版
+
+以 `nonblockinglife://show-clock` 冷啟動時只顯示時鐘視窗；以 `--background` 啟動時則不顯示視窗。這兩種情況下，主視窗的網頁會在首次開啟主視窗時才載入。按視窗的關閉按鈕會隱藏視窗；要結束程式，請使用主視窗或系統匣選單中的「結束」。
 
 1. 先在 `pwa` 目錄執行 `npm run dev`。
 2. 使用 Visual Studio 開啟 `desktop/src/Nbl.Desktop` 專案並啟動偵錯。
