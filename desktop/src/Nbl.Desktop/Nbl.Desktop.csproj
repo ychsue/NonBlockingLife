@@ -7,7 +7,8 @@
     <SupportedOSPlatformVersion Condition="$([MSBuild]::IsOSPlatform('Windows'))">10.0.19041.0</SupportedOSPlatformVersion>
     <!-- 隨 MSIX 附帶 .NET runtime，使用者不需另外安裝 -->
     <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('Windows'))">win-x64</RuntimeIdentifier>
-    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('Windows')) And '$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
+    <RuntimeIdentifier
+      Condition="$([MSBuild]::IsOSPlatform('Windows')) And '$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
     <SelfContained Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</SelfContained>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x64;ARM64</Platforms>
@@ -26,6 +27,7 @@
     <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.4" />
+    <PackageReference Include="ManagedBass" Version="4.0.2" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="LibVLCSharp" Version="3.10.2" />
     <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
@@ -55,6 +57,32 @@
     <None Update="Assets\128_logo.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(NblUseSystemBass)' != 'true'">
+    <!-- 當編譯目標是 x64 時，引入 x64 的 libbass.so 與 libbassflac.so -->
+    <None Include="..\..\runtimes\un4seen\libs\x86_64\libbass.so"
+      Condition="'$(RuntimeIdentifier)' == 'linux-x64' Or ($([MSBuild]::IsOSPlatform('Linux')) And '$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'X64')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>runtimes\linux-x64\native\libbass.so</Link>
+    </None>
+    <None Include="..\..\runtimes\un4seen\libs\x86_64\libbassflac.so"
+      Condition="'$(RuntimeIdentifier)' == 'linux-x64' Or ($([MSBuild]::IsOSPlatform('Linux')) And '$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'X64')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>runtimes\linux-x64\native\libbassflac.so</Link>
+    </None>
+
+    <!-- 當編譯目標是 arm64 (aarch64) 時，引入 arm64 的 libbass.so 與 libbassflac.so -->
+    <None Include="..\..\runtimes\un4seen\libs\aarch64\libbass.so"
+      Condition="'$(RuntimeIdentifier)' == 'linux-arm64' Or ($([MSBuild]::IsOSPlatform('Linux')) And '$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'Arm64')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>runtimes\linux-arm64\native\libbass.so</Link>
+    </None>
+    <None Include="..\..\runtimes\un4seen\libs\aarch64\libbassflac.so"
+      Condition="'$(RuntimeIdentifier)' == 'linux-arm64' Or ($([MSBuild]::IsOSPlatform('Linux')) And '$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'Arm64')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>runtimes\linux-arm64\native\libbassflac.so</Link>
     </None>
   </ItemGroup>
 </Project>

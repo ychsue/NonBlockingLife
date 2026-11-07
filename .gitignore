@@ -232,3 +232,5 @@ Package.appxmanifest
 .flatpak-builder/
 flatpak-dotnet-generator.py
 desktop/repo/**
+
+desktop/runtimes/*

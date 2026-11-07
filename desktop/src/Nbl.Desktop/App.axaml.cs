@@ -38,14 +38,17 @@ public partial class App : Application
             host.BaseUri = options.BaseUri;
             var window = new MainWindow(options, host, alarms, timers, _audio);
             host.Attach(window, _clock);
-            desktop.MainWindow = window;
 
             var startAction = options.StartAction;
             if (options.Background || startAction?.Kind == ProtocolActionKind.ShowClock)
             {
-                void HideOnce(object? s, EventArgs e) { window.Opened -= HideOnce; window.Hide(); }
-                window.Opened += HideOnce;
+                // The desktop lifetime shows MainWindow before starting the dispatcher loop.
+                // Register it afterward so a background launch never maps the window.
+                desktop.Startup += (_, _) => Dispatcher.UIThread.Post(() => desktop.MainWindow = window);
             }
+            else
+                desktop.MainWindow = window;
+
             if (startAction?.Kind == ProtocolActionKind.ShowClock)
             {
                 Dispatcher.UIThread.Post(() => _clock.ShowAndActivate(1));
