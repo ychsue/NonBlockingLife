@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-11-09] 改用 gst-launch-1.0 來播放 flatpak 音效，他是內建的，完全無須編譯，太棒了，但要試看看
+
 ## [2026-11-07] 為了 flatpak 能順利跑過，所作的努力（外加一個bug fix），謝謝 GPT Terra與 Copilot & Gemini：
 1. 關於顯示名稱:
    * 在 [desktop/io.github.ychsue.nonblockinglife.yml](desktop/io.github.ychsue.nonblockinglife.yml) 中command 與 ln 要由 NonBlockingLife 改為 io.github.ychsue.nonblockinglife。

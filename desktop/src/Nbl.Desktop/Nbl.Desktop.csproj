@@ -60,29 +60,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup Condition="'$(NblUseSystemBass)' != 'true'">
-    <!-- 當編譯目標是 x64 時，引入 x64 的 libbass.so 與 libbassflac.so -->
-    <None Include="..\..\runtimes\un4seen\libs\x86_64\libbass.so"
-      Condition="'$(RuntimeIdentifier)' == 'linux-x64' Or ($([MSBuild]::IsOSPlatform('Linux')) And '$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'X64')">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>runtimes\linux-x64\native\libbass.so</Link>
-    </None>
-    <None Include="..\..\runtimes\un4seen\libs\x86_64\libbassflac.so"
-      Condition="'$(RuntimeIdentifier)' == 'linux-x64' Or ($([MSBuild]::IsOSPlatform('Linux')) And '$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'X64')">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>runtimes\linux-x64\native\libbassflac.so</Link>
-    </None>
-
-    <!-- 當編譯目標是 arm64 (aarch64) 時，引入 arm64 的 libbass.so 與 libbassflac.so -->
-    <None Include="..\..\runtimes\un4seen\libs\aarch64\libbass.so"
-      Condition="'$(RuntimeIdentifier)' == 'linux-arm64' Or ($([MSBuild]::IsOSPlatform('Linux')) And '$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'Arm64')">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>runtimes\linux-arm64\native\libbass.so</Link>
-    </None>
-    <None Include="..\..\runtimes\un4seen\libs\aarch64\libbassflac.so"
-      Condition="'$(RuntimeIdentifier)' == 'linux-arm64' Or ($([MSBuild]::IsOSPlatform('Linux')) And '$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)' == 'Arm64')">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>runtimes\linux-arm64\native\libbassflac.so</Link>
-    </None>
-  </ItemGroup>
 </Project>

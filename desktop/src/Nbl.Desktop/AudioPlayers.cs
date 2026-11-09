@@ -11,7 +11,7 @@ public static class AudioPlayerFactory
     public static IAudioPlayer Create()
     {
         if (OperatingSystem.IsWindows()) return new NAudioPlayer();
-        if (OperatingSystem.IsLinux()) return new BassAudioPlayer();
+        if (OperatingSystem.IsLinux()) return new GStreamerPlayer();
         if (OperatingSystem.IsMacOS()) return new LibVlcPlayer();
         return new NullAudioPlayer();
     }
