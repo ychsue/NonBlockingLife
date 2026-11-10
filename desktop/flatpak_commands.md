@@ -18,3 +18,7 @@ flatpak run io.github.ychsue.nonblockinglife
 flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest io.github.ychsue.nonblockinglife.yml
 
 flatpak run --command=flatpak-builder-lint org.flatpak.Builder repo repo
+
+# For debugging
+flatpak run --command=sh --devel io.github.ychsue.nonblockinglife
+python3 ./flatpak-dotnet-generator.py -f 26.08 -d 10 nuget-sources.json NBL.sln

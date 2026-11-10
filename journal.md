@@ -1,4 +1,25 @@
 # Journal
+## [2026-11-10] 加了 Avalonia.Wayland 的支援，但 flatpak 還是會自己 fallback x11
+沒辦法同時呼叫
+``` yaml
+--socket=fallback-x11
+--socket=wayland
+```
+然而，呼叫
+``` yaml
+--socket=x11
+--socket=wayland
+```
+則 flatpak linter 會說
+``` json
+flatpak run --command=flatpak-builder-lint org.flatpak.Builder repo repo
+{
+    "warnings": [
+        "finish-args-contains-both-x11-and-wayland"
+    ],
+    "message": "See https://docs.flathub.org/linter for details and exceptions"
+}
+```
 
 ## [2026-11-09] 改用 gst-launch-1.0 來播放 flatpak 音效，他是內建的，完全無須編譯，太棒了，但要試看看
 

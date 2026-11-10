@@ -9,7 +9,7 @@ finish-args:
   - --share=ipc
   - --share=network
   - --socket=x11
-  # - --socket=wayland
+  - --socket=wayland
   - --socket=pulseaudio
   - --device=dri
   # - --talk-name=org.kde.StatusNotifierWatcher
@@ -31,6 +31,15 @@ modules:
       #   - --share=network
       env:
         DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+        # For Debugging
+        DOTNET_MODIFIABLE_ASSEMBLIES: 'debug'
+        ASPNETCORE_ENVIRONMENT: 'Development'
+        DOTNET_ENVIRONMENT: 'Development'
+        Logging__LogLevel__Default: 'Trace'
+        AVALONIA_LOG_LEVEL: 'Verbose'
+        G_MESSAGES_DEBUG: 'all'
+        
+        WEBKIT_FORCE_SANDBOX: '0'
         DOTNET_NOLOGO: '1'
     build-commands:
       # # 1. 檢查目前目錄底下有哪些檔案（確認 nuget-sources.json 有沒有進來）
@@ -39,16 +48,12 @@ modules:
       # - find / -name "*.nupkg" 2>/dev/null || true      
       # 先進行離線還原，指定從本機目錄讀取套件
       - dotnet restore src/Nbl.Desktop/Nbl.Desktop.csproj --packages /run/build/NonBlockingLife/nuget-packages -s /run/build/NonBlockingLife/nuget-sources -r linux-x64
-      - ls src/Nbl.Desktop/obj/project.assets.json
-      - grep -n "linux-x64" src/Nbl.Desktop/obj/project.assets.json || echo "找不到 linux-x64 目標！"
       - dotnet restore src/Nbl.Bridge/Nbl.Bridge.csproj --packages /run/build/NonBlockingLife/nuget-packages -s /run/build/NonBlockingLife/nuget-sources -r linux-x64
-      - ls src/Nbl.Bridge/obj/project.assets.json
-      - grep -n "linux-x64" src/Nbl.Bridge/obj/project.assets.json || echo "找不到 linux-x64 目標！"
       # # 檢查 NuGet 套件來源是否存在
       # - ls -la nuget-sources || true
 
       # 接著進行發布 
-      - dotnet publish src/Nbl.Desktop/Nbl.Desktop.csproj -c Release -r linux-x64 --self-contained true --no-restore -p:PublishAot=false -p:RuntimeIdentifiers=linux-x64 -p:RestorePackagesPath=/run/build/NonBlockingLife/nuget-packages -p:NblUseSystemBass=true -o /app/lib/nonblockinglife
+      - dotnet publish src/Nbl.Desktop/Nbl.Desktop.csproj -c Debug -r linux-x64 --self-contained true --no-restore -p:PublishAot=false -p:RuntimeIdentifiers=linux-x64 -p:RestorePackagesPath=/run/build/NonBlockingLife/nuget-packages -p:NblUseSystemBass=true -p:DebugType=embedded -o /app/lib/nonblockinglife
       - mkdir -p /app/bin
       - ln -s /app/lib/nonblockinglife/Nbl.Desktop /app/bin/io.github.ychsue.nonblockinglife
       - install -Dm644 io.github.ychsue.nonblockinglife.desktop /app/share/applications/io.github.ychsue.nonblockinglife.desktop

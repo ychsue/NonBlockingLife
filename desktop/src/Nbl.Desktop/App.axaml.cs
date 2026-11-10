@@ -69,7 +69,8 @@ public partial class App : Application
                 _powerManager = null;
             };
 
-            SetupTray(desktop, window, host);
+            if (!BridgeDispatcher.IsFlatpak)
+                SetupTray(desktop, window, host);
             StartAlarmTimer(alarms, timers, host);
         }
 
