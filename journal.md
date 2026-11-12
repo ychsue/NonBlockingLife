@@ -1,4 +1,11 @@
 # Journal
+
+## [2026-11-12] 試著升級 Android Gradle 等，順便將Splash Screen 變成動畫
+1. [nbl_logo_animated.xml](twa\app\src\main\res\drawable\nbl_logo_animated.xml) 這個在 [styles.xml](twa\app\src\main\res\values\styles.xml) 裡面被定義成 theme，好被拿來做 splash screen
+   * 搭配 [dot_scale.xml](twa\app\src\main\res\animator\dot_scale.xml) 來做動畫
+2. [styles.xml](twa\app\src\main\res\values\styles.xml) 定義了 splash screen 的 theme，並引用了 nbl_logo_animated.xml
+3. [nbl_logo.xml](twa\app\src\main\res\drawable\nbl_logo.xml) 是使用 Android Studio 使用 New -> Vector Asset 由 svg 檔產生，文字得使用 inkscape 轉換成路徑才行。
+
 ## [2026-11-10] 加了 Avalonia.Wayland 的支援，但 flatpak 還是會自己 fallback x11
 沒辦法同時呼叫
 ``` yaml

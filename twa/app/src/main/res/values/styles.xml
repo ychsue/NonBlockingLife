@@ -24,7 +24,7 @@
         <item name="windowSplashScreenBackground">#FFFFFF</item>
 
         <!-- 2. 中間顯示的 App Logo 圖示 (預設可放大至 108dp x 108dp) -->
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/nbl_logo_animated</item>
 
         <!-- 3. Splash Screen 結束後，自動切換回原本的 App 主題 -->
         <item name="postSplashScreenTheme">@style/Theme.AppCompat.NoActionBar</item>

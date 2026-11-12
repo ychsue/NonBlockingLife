@@ -1,8 +1,24 @@
 # NonBlockingLife (NBL)
 
+> **When interrupted, help yourself note the current moment, handle the inserted tasks, and more easily return to your main personal tasks and time management.**
 > **被打斷時，幫助自己記下當下、處理插入的事情，並更容易回到原本主線的個人任務與時間管理工具。**
 
+NonBlockingLife (NBL) is inspired by the event loop concept in computer science.
+Our attention can usually focus on only one thing at a time, but new ideas, pending tasks, and unexpected interruptions constantly arise in life. NBL provides an external task flow to help you capture tasks, schedule time, and record each start, end, or interruption, reducing the chance of forgetting what you originally intended to do when interrupted.
 NonBlockingLife (NBL) 從電腦科學的 **Event Loop（事件循環）** 得到靈感：人的注意力一次通常只能專注處理一件事，但生活中的新想法、等待事項和突發打斷會不斷出現。NBL 提供一套外部任務流程，讓你先收下事情、安排時間，並記錄每次開始、結束或中斷，減少因為被打斷而忘記原本要做什麼。
+
+## 為何使用 NBL (Why NonBlockingLife?)
+NonBlockingLife follows a local-first philosophy.
+NBL 依循本機優先的理念。
+
+Your data stays on your device by default.
+您的資料預設保存在裝置上。
+
+For users who want synchronization across multiple devices, the app can connect to a Supabase project owned and controlled by the user. No developer-operated cloud service is required.
+若希望跨裝置同步，應用程式可連接使用者自己擁有與控制的 Supabase 專案，無需開發者運營的雲端服務。
+
+This approach gives users flexibility: it works completely offline, supports self-managed synchronization, and allows users to retain full ownership of their data.
+這種方式提供使用者彈性：完全離線可用、支援自主管理的同步，並讓使用者保有資料的完整所有權。
 
 ## 開始使用
 
@@ -36,8 +52,6 @@ NBL 的目標不是替你決定人生優先順序，而是提供一個可靠的�
 
 - **瀏覽器與 PWA**：提供核心任務功能；是否可使用系統提醒等功能，依瀏覽器與裝置支援而異。
 - **Windows 與 Linux 桌面版**：在核心功能外提供桌面整合，例如鬧鐘、計時器、自動啟動、通知與自訂 protocol；Windows 正在倒數的計時器或正在響鈴的提醒會暫時阻止閒置睡眠，但允許螢幕依系統設定關閉。實際支援依作業系統而異。
-    * Windows 使用的是 NAudio，謝謝。
-    * Linux 下面使用到 ManagedBass 與 Un4seen.Bass，需安裝對應的原生函式庫，謝謝他們。原本是使用VLC，雖然很穩，很全面，不過，好像有點大，所以才改的。不過，因此也犧牲掉一些音效格式。
 - **Android TWA**：以 WebView 封裝 PWA，並提供鬧鐘、計時器、通知與自訂 protocol 等原生整合。
 - **iPhone Shortcuts**：可作為 Start、End、Interrupt、Inbox、Scheduled 等流程的快速觸發方式。Apple 平台的鬧鐘與計時器需透過 Shortcuts 等方式配合使用。
 
@@ -89,8 +103,6 @@ npm run dev
 ```
 
 #### Windows 與 Linux 桌面版
-
-以 `nonblockinglife://show-clock` 冷啟動時只顯示時鐘視窗；以 `--background` 啟動時則不顯示視窗。這兩種情況下，主視窗的網頁會在首次開啟主視窗時才載入。按視窗的關閉按鈕會隱藏視窗；要結束程式，請使用主視窗或系統匣選單中的「結束」。
 
 1. 先在 `pwa` 目錄執行 `npm run dev`。
 2. 使用 Visual Studio 開啟 `desktop/src/Nbl.Desktop` 專案並啟動偵錯。

@@ -11,8 +11,8 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 18,
-      "versionName": "NBL-3.2.1",
+      "versionCode": 19,
+      "versionName": "NBL-3.2.2",
       "outputFile": "app-release.apk"
     }
   ],
