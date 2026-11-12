@@ -433,6 +433,7 @@ export function EditDialog<T>({
                     <Flatpickr
                       id={field.name}
                       value={formData[field.name] ?? ""}
+                      data-tour={dataTourForField(field)}
                       onClose={(
                         selectedDates, //若使用 onChange 會一直跳回主頁
                       ) =>
