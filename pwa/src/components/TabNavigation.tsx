@@ -1,6 +1,7 @@
 import { useAppStore } from "../store/appStore";
 import { SheetName } from "../hooks/useUrlAction";
 import { useProductTourContext } from "./tour/ProductTourContext";
+import { useScrollendThenResize } from "../hooks/useScrollendThenResize";
 
 type AllPages = SheetName | "selection_cache" | "log" | "guide" | "macro";
 
@@ -27,13 +28,15 @@ export function TabNavigation() {
   );
   const { activeStep, isRunning, nextStep } = useProductTourContext();
 
+  useScrollendThenResize("#tab-navigation", isRunning);
+
   const handleTabSelect = (sheet: AllPages) => {
     setCurrentSheet(sheet);
     if (
       isRunning &&
       ((sheet === "selection_cache" &&
         activeStep?.id === "android-selection-cache") ||
-        (sheet === "scheduled" && activeStep?.id === "open-scheduled")||
+        (sheet === "scheduled" && activeStep?.id === "open-scheduled") ||
         (sheet === "guide" && activeStep?.id === "open-guide"))
     ) {
       nextStep();
@@ -42,7 +45,7 @@ export function TabNavigation() {
 
   return (
     <nav className="border-b border-gray-200 bg-white sticky top-0 z-10">
-      <div className="flex gap-1 px-4 py-2 overflow-x-auto">
+      <div className="flex gap-1 px-4 py-2 overflow-x-auto" id="tab-navigation">
         {TABS.filter(
           ({ sheet }) =>
             !EXPERIMENTAL_TABS.includes(sheet) || experimentalFeaturesEnabled,

@@ -1,6 +1,7 @@
 # Journal
 
 ## [2026-11-13] bug fix: 新的 Flatpickr 忘了給 data-tour
+2. 使用了 `useScrollendThenResize` 來在滾動結束時觸發 resize 事件，這樣，JoyRide 才能正確的抓到scrolled 的元件的位置，才會框對對象。
 
 ## [2026-11-12] 試著升級 Android Gradle 等，順便將Splash Screen 變成動畫
 1. [nbl_logo_animated.xml](twa\app\src\main\res\drawable\nbl_logo_animated.xml) 這個在 [styles.xml](twa\app\src\main\res\values\styles.xml) 裡面被定義成 theme，好被拿來做 splash screen
