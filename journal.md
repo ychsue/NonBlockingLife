@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-11-13] (3.2.2) 讓 Avalonia 上的 TimerRow 顯示 Running 狀態為黃色，並且讓Toast Window 可拖曳
+
 ## [2026-11-13] bug fix: 新的 Flatpickr 忘了給 data-tour
 2. 使用了 `useScrollendThenResize` 來在滾動結束時觸發 resize 事件，這樣，JoyRide 才能正確的抓到scrolled 的元件的位置，才會框對對象。
 

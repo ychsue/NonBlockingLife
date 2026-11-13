@@ -144,6 +144,15 @@ public sealed class ToastWindow : Window
             options.OnClosed?.Invoke();
         };
 
+        // 可透過滑鼠按住拖移位置
+        PointerPressed += (sender, e) =>
+        {
+            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            {
+                BeginMoveDrag(e);
+            }
+        };
+
         // 每秒更新計時器
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _timer.Tick += (_, _) =>

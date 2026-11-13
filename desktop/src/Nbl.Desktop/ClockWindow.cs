@@ -221,7 +221,12 @@ public sealed class ClockWindow : Window, IHideableWindow
             _remainingTexts.Clear();
             if (timers.Count == 0)
                 _timerList.Children.Add(new TextBlock { Text = L10n.CW_NoTimer, Opacity = 0.6 });
-            foreach (var t in timers) _timerList.Children.Add(BuildTimerRow(t));
+            else
+            {
+                // 將 t.status 為 Running 的 sort 到前面
+                timers = [.. timers.OrderByDescending(t => t.State == TimerState.Running)];
+                foreach (var t in timers) _timerList.Children.Add(BuildTimerRow(t));
+            }
         }
         foreach (var t in timers)
             if (_remainingTexts.TryGetValue(t.Id, out var tb)) tb.Text = Format(t.RemainingAt(now));
@@ -250,12 +255,15 @@ public sealed class ClockWindow : Window, IHideableWindow
 
         var pick = BuildSoundButton(t.Sound, s => { _timers.SetSound(id, s); Refresh(); });
 
+        // 如果 t.Status 為 Running，則顯示黃色
         return Row(
             new StackPanel
             {
                 Children = { remaining, new TextBlock { Text = $"{t.Label}（{Format(t.Duration)}）", Opacity = 0.7 }, SoundCaption(t.Sound) },
             },
-            new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { toggle, reset, plus, pick, del } });
+            new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { toggle, reset, plus, pick, del } },
+            t.State == TimerState.Running
+            );
     }
 
     private static TextBlock SoundCaption(string? sound) => new()
@@ -286,7 +294,7 @@ public sealed class ClockWindow : Window, IHideableWindow
         return button;
     }
 
-    private static Control Row(Control left, Control right)
+    private static Control Row(Control left, Control right, bool isRunning = false)
     {
         var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
         Grid.SetColumn(right, 1);
@@ -295,6 +303,7 @@ public sealed class ClockWindow : Window, IHideableWindow
         grid.Children.Add(right);
         return new Border
         {
+            Background = isRunning ? Avalonia.Media.Brushes.Yellow : Avalonia.Media.Brushes.Transparent,
             BorderBrush = Avalonia.Media.Brushes.Gray,
             BorderThickness = new Thickness(0, 0, 0, 1),
             Padding = new Thickness(0, 6),
