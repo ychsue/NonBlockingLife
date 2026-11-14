@@ -53,21 +53,21 @@
     <launchable type="desktop-id">io.github.ychsue.nonblockinglife.desktop</launchable>
     <screenshots>
         <screenshot type="default">
-            <image>https://raw.githubusercontent.com/ychsue/NonBlockingLife/main/desktop/images/with_timer.png</image>
+            <image>https://github.com/ychsue/NonBlockingLife/releases/download/v3.2.1/with_timer.png</image>
             <caption>The main window when the user is during a task. The timer and a notification are also shown.</caption>
         </screenshot>
         <screenshot>
             <image>
-                https://raw.githubusercontent.com/ychsue/NonBlockingLife/main/desktop/images/supabase_wizard.png</image>
+                https://github.com/ychsue/NonBlockingLife/releases/download/v3.2.1/supabase_wizard.png</image>
             <caption>Following this instruction you can set up your own Supabase database</caption>
         </screenshot>
         <screenshot>
-            <image>https://raw.githubusercontent.com/ychsue/NonBlockingLife/main/desktop/images/inbox.png</image>
+            <image>https://github.com/ychsue/NonBlockingLife/releases/download/v3.2.1/inbox.png</image>
             <caption>The inbox page in which you can create, modify, move and delete inbox items</caption>
         </screenshot>
     </screenshots>
     <releases>
-        <release version="3.2.1" date="2026-10-31">
+        <release version="3.2.2" date="2026-11-14">
             <description>
                 <p>The first official Flathub release of NonBlockingLife</p>
                 <ul>

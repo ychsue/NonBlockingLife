@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-11-14] (3.2.2) move io.github.ychsue.nonblockinglife.metainfo.xml from repo flathub back to this repo. 
+
 ## [2026-11-13] (3.2.2) 讓 Avalonia 上的 TimerRow 顯示 Running 狀態為黃色，並且讓Toast Window 可拖曳
 
 ## [2026-11-13] bug fix: 新的 Flatpickr 忘了給 data-tour
