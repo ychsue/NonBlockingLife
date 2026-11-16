@@ -11,6 +11,7 @@ import {
   triggerShortcutTimer,
   getShortcutConfig,
   getDeviceType,
+  openExternalHref,
 } from "./shortcutUtils";
 import { useDialogStore } from "../store/dialogStore";
 import { parseToMinutes } from "./candidateUtils";
@@ -150,6 +151,11 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
     },
     clientId: DEV_CLIENT_ID,
   });
+
+  // 如果candidate.title 含有 👉 和 url 有值，那就開啟 url
+  if (candidate.title?.includes("👉") && candidate.url) {
+    openExternalHref(candidate.url, true);
+  }
 
   // 如果是 Task_Pool 來源，累加今日使用次數
   if (source === "Task_Pool") {

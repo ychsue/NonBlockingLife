@@ -28,7 +28,8 @@
    1. The higher the item, the more attention it should receive.
    2. Red indicates it is overdue, green indicates it is roughly sufficient for today.
    3. If a task in the `Task Pool` has a `⛔`, it means you don't want to spend much time on it (e.g., social media). If used too much, it will turn gray with a strikethrough, indicating overuse.
-   4. Each item shows how much time is left, making it easier to decide whether to do it.
+   4. If any item contains 👉 and also provides a URL, it will open the link after starting the task. For example, you can use it to simultaneously open certain mobile apps, such as `https://line.me/R/nv/chat` to open Line on your phone.
+   5. Each item shows how much time is left, making it easier to decide whether to do it.
 4. Deadline:
    1. You can set a deadline for tasks in the Task Pool, Micro Tasks, and Scheduled sections.
    2. The closer the deadline, the higher the score, and the task will be ranked higher: a countdown badge will be displayed within 7 days, orange for 3 days, highlighted in orange on the day, and red for overdue.

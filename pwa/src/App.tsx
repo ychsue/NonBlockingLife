@@ -129,7 +129,7 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: Bug fixes: \n\r ** Interactive tutorial initially often fails to target the correct element \n\r ** Due to Android's date picker (`input`) switching to `flatpickr`, added data-tour to ensure it can be found by the interactive tutorial flow.",
+        "\n\r**Please note**: You can now use 👉 and a URL in tasks to simultaneously open related mobile apps, such as `https://line.me/R/nv/chat` to open Line on your phone.",
       "openDialog.clockNotSelected.title": "Clock App Not Selected",
       "openDialog.clockNotSelected.message":
         "Please select a clock app in the APP settings before setting an alarm.",
@@ -150,7 +150,7 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：Bug 修復： \n\r ** 互動式教學一開始常常對不到目標元素，若您還發現哪裡不對勁，歡迎告知  \n\r ** 由於Android 的 date picker (`input`) 改用 `flatpickr`，補上 data-tour 好使他也能被互動教學流程所找到。",
+        "\n\r**注意**：現在，可以透過在任務裡面加上 👉 和 URL 來同時開啟相關的行動 App，例如 `https://line.me/R/nv/chat` 可以在手機上開啟 Line。",
       "openDialog.clockNotSelected.title": "未選擇時鐘應用",
       "openDialog.clockNotSelected.message":
         "請先由APP設定選擇一個時鐘應用以設定鬧鐘。",
@@ -172,7 +172,7 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：バグ修正：\n\r ** インタラクティブチュートリアルが最初に正しい要素をターゲットにできないことがある \n\r ** Android の date picker (`input`) が `flatpickr` に切り替わったため、data-tour を追加してインタラクティブチュートリアルで見つけられるようにした。",
+        "\n\r**注意**：タスク内で 👉 と URL を使用することで、関連するモバイルアプリを同時に開くことができます。例えば、`https://line.me/R/nv/chat` はスマートフォンで Line を開くことができます。",
       "openDialog.clockNotSelected.title": "時計アプリが選択されていません",
       "openDialog.clockNotSelected.message":
         "アラームを設定する前に、APPの設定で時計アプリを選択してください。",

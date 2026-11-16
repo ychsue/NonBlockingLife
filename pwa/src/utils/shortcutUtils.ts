@@ -210,7 +210,12 @@ export function triggerAutomateFlow(
   }
 }
 
-export function openExternalHref(intentUrl: string): void {
+/**
+ * 打開外部連結，根據設備能力選擇合適的方式（TWA 或瀏覽器）
+ * @param intentUrl 要打開的外部連結 URL
+ * @param newTab 是否在新標籤頁中打開，默認為 false
+ */
+export function openExternalHref(intentUrl: string, newTab?: boolean): void {
   if (
     useAppStore
       .getState()
@@ -224,10 +229,18 @@ export function openExternalHref(intentUrl: string): void {
     if (twaPort) {
       twaPort.postMessage({ type: "nbl:open-external", url: intentUrl });
     } else {
-      window.location.href = intentUrl;
+      if (newTab) {
+        window.open(intentUrl, "_blank");
+      } else {
+        window.location.href = intentUrl;
+      }
     }
   } else {
-    window.location.href = intentUrl;
+    if (newTab) {
+      window.open(intentUrl, "_blank");
+    } else {
+      window.location.href = intentUrl;
+    }
   }
 }
 
