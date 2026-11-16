@@ -129,7 +129,7 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: You can now use 👉 and a URL in tasks to simultaneously open related mobile apps, such as `https://line.me/R/nv/chat` to open Line on your phone.",
+        "\n\r**Please note**: Sorry, the feature to simultaneously open web pages or apps will be gradually rolled out, as it seems it cannot be purely implemented by the PWA.",
       "openDialog.clockNotSelected.title": "Clock App Not Selected",
       "openDialog.clockNotSelected.message":
         "Please select a clock app in the APP settings before setting an alarm.",
@@ -150,7 +150,7 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：現在，可以透過在任務裡面加上 👉 和 URL 來同時開啟相關的行動 App，例如 `https://line.me/R/nv/chat` 可以在手機上開啟 Line。",
+        "\n\r**注意**：抱歉，同步開啟網頁或App的功能再緩緩推出，因為看來沒辦法純粹由PWA實現。",
       "openDialog.clockNotSelected.title": "未選擇時鐘應用",
       "openDialog.clockNotSelected.message":
         "請先由APP設定選擇一個時鐘應用以設定鬧鐘。",
@@ -172,7 +172,7 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：タスク内で 👉 と URL を使用することで、関連するモバイルアプリを同時に開くことができます。例えば、`https://line.me/R/nv/chat` はスマートフォンで Line を開くことができます。",
+        "\n\r**注意**：申し訳ありませんが、ウェブページやアプリを同時に開く機能は段階的に展開されます。PWAだけでは純粋に実現できないようです。",
       "openDialog.clockNotSelected.title": "時計アプリが選択されていません",
       "openDialog.clockNotSelected.message":
         "アラームを設定する前に、APPの設定で時計アプリを選択してください。",
