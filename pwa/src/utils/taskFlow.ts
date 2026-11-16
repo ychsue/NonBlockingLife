@@ -152,11 +152,6 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
     clientId: DEV_CLIENT_ID,
   });
 
-  // 如果candidate.title 含有 👉 和 url 有值，那就開啟 url
-  if (candidate.title?.includes("👉") && candidate.url) {
-    openExternalHref(candidate.url, true);
-  }
-
   // 如果是 Task_Pool 來源，累加今日使用次數
   if (source === "Task_Pool") {
     const poolTask = await db.task_pool.get(candidate.taskId);
@@ -226,6 +221,11 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
         shortcutConfig,
       );
     }
+  }
+
+  // 如果candidate.title 含有 👉 和 url 有值，那就開啟 url
+  if (candidate.title?.includes("👉") && candidate.url) {
+    openExternalHref(candidate.url, true);
   }
 
   return { status: "success", message: text("任務已成功開始") };
