@@ -206,6 +206,10 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
           ],
         })
         .then(({ actionId }) => {
+          // 如果candidate.title 含有 👉 和 url 有值，那就開啟 url
+          if (candidate.title?.includes("👉") && candidate.url) {
+            openExternalHref(candidate.url, true);
+          }
           if (actionId === "open") {
             triggerShortcutTimer(
               candidate.title ?? "",
@@ -223,8 +227,12 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
     }
   }
 
-  // 如果candidate.title 含有 👉 和 url 有值，那就開啟 url
-  if (candidate.title?.includes("👉") && candidate.url) {
+  // 如果candidate.title 含有 👉 和 url 有值，那就開啟 url，不過，要跳過 shouldPromptForTimerStart 的情形，因為得等他們按完之後才開啟。
+  if (
+    candidate.title?.includes("👉") &&
+    candidate.url &&
+    !shouldPromptForTimerStart(getDeviceType(), plannedTimerMinutes)
+  ) {
     openExternalHref(candidate.url, true);
   }
 
