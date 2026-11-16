@@ -2,6 +2,7 @@
 
 ## [2026-11-16] (3.2.4) 支援在任務中使用 👉 和 URL 同時開啟相關行動 App
 [17:45] 做了順序的改變，免得還沒按是否開啟計時器，就跳了開啟相關行動 App 的動作。
+[18:27] 採用 GitHub Copilot 的建議看看，讓他們 openExternalHref 有時間差，看看能否治療目前的問題 (不開啟 href)
 
 ## [2026-11-14] (3.2.2) move io.github.ychsue.nonblockinglife.metainfo.xml from repo flathub back to this repo. 
 

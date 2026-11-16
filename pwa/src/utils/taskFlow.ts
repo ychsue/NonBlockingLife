@@ -190,6 +190,9 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
     clientId: DEV_CLIENT_ID,
   });
 
+  const shouldOpenUrl =
+    candidate.title?.includes("👉") && candidate.url;
+
   if (plannedTimerMinutes > 0) {
     const shortcutConfig = getShortcutConfig("start");
     shortcutConfig.timerMinutes = plannedTimerMinutes;
@@ -206,16 +209,19 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
           ],
         })
         .then(({ actionId }) => {
-          // 如果candidate.title 含有 👉 和 url 有值，那就開啟 url
-          if (candidate.title?.includes("👉") && candidate.url) {
-            openExternalHref(candidate.url, true);
-          }
           if (actionId === "open") {
             triggerShortcutTimer(
               candidate.title ?? "",
               candidate.taskId,
               shortcutConfig,
             );
+          }
+          // 在對話框完成且計時器啟動後，延遲開啟 URL
+          // 避免兩個 openExternalHref 競爭導致一個失敗
+          if (shouldOpenUrl) {
+            setTimeout(() => {
+              openExternalHref(candidate.url!, true);
+            }, 500);
           }
         });
     } else {
@@ -224,16 +230,16 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
         candidate.taskId,
         shortcutConfig,
       );
+      // 計時器啟動後，延遲開啟 URL
+      if (shouldOpenUrl) {
+        setTimeout(() => {
+          openExternalHref(candidate.url!, true);
+        }, 300);
+      }
     }
-  }
-
-  // 如果candidate.title 含有 👉 和 url 有值，那就開啟 url，不過，要跳過 shouldPromptForTimerStart 的情形，因為得等他們按完之後才開啟。
-  if (
-    candidate.title?.includes("👉") &&
-    candidate.url &&
-    !shouldPromptForTimerStart(getDeviceType(), plannedTimerMinutes)
-  ) {
-    openExternalHref(candidate.url, true);
+  } else if (shouldOpenUrl) {
+    // 當沒有計時器時，直接開啟 URL
+    openExternalHref(candidate.url!, true);
   }
 
   return { status: "success", message: text("任務已成功開始") };
