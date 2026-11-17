@@ -303,7 +303,7 @@ export function GuidePage() {
           <h2 className="text-xl font-bold text-gray-800 mb-2">
             📘 {tHere("說明頁")}
           </h2>
-          <div>version: {import.meta.env.__APP_VERSION__} [2026-11-17 11:37] New feature testing</div>
+          <div>version: {import.meta.env.__APP_VERSION__} [2026-11-17 17:50] New feature testing 2</div>
           {(["AndroidWebView"].includes(deviceType) ||
             bridge?.kind === "desktop") && (
             <div className="text-gray-700 leading-relaxed">

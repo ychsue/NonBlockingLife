@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { useAppStore } from "../store/appStore";
 
 /**
@@ -64,16 +65,16 @@ export function getShortcutConfig(sType: "start" | "end"): ShortcutConfig {
     if (sType === "start") {
       return stored
         ? { ...DEFAULT_START_SHORTCUT_CONFIG, ...JSON.parse(stored) }
-        : DEFAULT_START_SHORTCUT_CONFIG;
+        : _.cloneDeep(DEFAULT_START_SHORTCUT_CONFIG);
     } else {
       return stored
         ? { ...DEFAULT_END_SHORTCUT_CONFIG, ...JSON.parse(stored) }
-        : DEFAULT_END_SHORTCUT_CONFIG;
+        : _.cloneDeep(DEFAULT_END_SHORTCUT_CONFIG);
     }
   } catch {
     return sType === "start"
-      ? DEFAULT_START_SHORTCUT_CONFIG
-      : DEFAULT_END_SHORTCUT_CONFIG;
+      ? _.cloneDeep(DEFAULT_START_SHORTCUT_CONFIG)
+      : _.cloneDeep(DEFAULT_END_SHORTCUT_CONFIG);
   }
 }
 

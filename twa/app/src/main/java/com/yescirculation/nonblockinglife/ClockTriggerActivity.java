@@ -71,6 +71,13 @@ public class ClockTriggerActivity extends Activity {
             Toast.makeText(this, "Cannot Start Timer", Toast.LENGTH_SHORT).show();
         }
 
+        // 睡個0.5 sec 看看，不然有可能出現重複呼叫的窘境
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        
         // 若有 url 參數，則嘗試打開該 URL
         String url = uri.getQueryParameter("url");
         if (url != null && !url.isEmpty()) {

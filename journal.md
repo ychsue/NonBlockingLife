@@ -4,6 +4,11 @@
 1. [shortcutUtils.ts](pwa\src\utils\shortcutUtils.ts) 中，讓他所送的參數中，含有 url 可以在計時器開始後，原生端可以接著打開相關的網頁。
 2. 在 Avalonia 端，[BridgeDispatcher.cs](desktop\src\Nbl.Bridge\BridgeDispatcher.cs) 讓他能讀入 url 這個 parameter ，然後再打開預設瀏覽器
 
+[17:50] 以下的修改是因為url 會被記憶而出問題與 Android 可能出現重複呼叫的窘境。
+3. [shortcutUtils.ts](pwa\src\utils\shortcutUtils.ts) 修改了預設的 shortcutConfig 取得方式，改為使用 _.cloneDeep，避免參數被記憶在全域變數裡面。
+4. [ClockTriggerActivity.java](twa\app\src\main\java\com\yescirculation\nonblockinglife\ClockTriggerActivity.java) 在跳去開啟相關行動 App 時，加入了延遲，避免重複呼叫的問題，因為若該 intent 或 url 失效，可能會導致重複嘗試開啟，然後就瘋狂的加計時器。
+5. [taskFlow.ts](pwa\src\utils\taskFlow.ts) 修改了判斷是否要開啟 URL 的邏輯，避免在 URL 為空白時誤判，並且強制使用 `!!` 使他變成布林值。
+
 ## [2026-11-16] (3.2.5a) 支援在任務中使用 👉 和 URL 同時開啟相關行動 App
 [17:45] 做了順序的改變，免得還沒按是否開啟計時器，就跳了開啟相關行動 App 的動作。
 [18:27] 採用 GitHub Copilot 的建議看看，讓他們 openExternalHref 有時間差，看看能否治療目前的問題 (不開啟 href)

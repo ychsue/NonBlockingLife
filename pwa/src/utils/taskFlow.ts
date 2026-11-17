@@ -191,7 +191,7 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
   });
 
   const shouldOpenUrl =
-    candidate.title?.includes("👉") && candidate.url;
+    candidate.title?.includes("👉") && !!candidate.url?.trim();
 
   if (plannedTimerMinutes > 0) {
     const shortcutConfig = getShortcutConfig("start");
