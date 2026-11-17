@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Web;
 
 namespace Nbl.Bridge;
 
@@ -182,14 +183,24 @@ public sealed class BridgeDispatcher
                 var resolved = ProtocolUri.Resolve(oeUrl, _host.BaseUri ?? new Uri("about:blank"));
                 if (resolved is not null)
                 {
+                    // 取得 resolved.Target 的 url 參數
+                    var url = HttpUtility.ParseQueryString(resolved.Target?.Query ?? "").Get("url");
                     if (resolved.Kind == ProtocolActionKind.ShowClock)
                     {
                         _host.ShowClockWindow(1);
+                        if (url is not null && _host is not null)
+                        {
+                            _host.OpenExternal(new Uri(url));
+                        }
                     }
                     else if (resolved.Kind == ProtocolActionKind.SetTimer)
                     {
                         // Handle set-timer action if needed
                         _timers?.AddFromUri(resolved.Target ?? new Uri("about:blank"), DateTime.Now, _host);
+                        if (url is not null && _host is not null)
+                        {
+                            _host.OpenExternal(new Uri(url));
+                        }
                     }
                     else
                     {

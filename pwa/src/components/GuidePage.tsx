@@ -134,10 +134,10 @@ const VIDEO_RESOURCES = (locale: SupportedLocale) => [
   {
     title:
       locale === "zh-TW"
-        ? "Android 版的展示(請幫忙封測)"
+        ? "Android 版"
         : locale === "ja"
-          ? "Android 版のデモ（ベータテストにご協力ください）"
-          : "Android Version Demo (Please Help Beta Test)",
+          ? "Android 版"
+          : "Android Version",
     type:
       locale === "zh-TW"
         ? "實際操作"
@@ -147,10 +147,10 @@ const VIDEO_RESOURCES = (locale: SupportedLocale) => [
     url: "https://youtube.com/shorts/2UUsPNVpdkE",
     description:
       locale === "zh-TW"
-        ? "展示 Android 版的操作流程，請幫忙封測，提供回饋，這樣才能夠在Play商店被公開安裝。"
+        ? "展示 Android 版的操作流程。"
         : locale === "ja"
-          ? "Android 版の操作手順を示し、ベータテストへの協力とフィードバックを求めます。これにより、Play ストアで公開インストールが可能になります。"
-          : "Demonstrates the operation process of the Android version, asks for help with beta testing and feedback, so that it can be publicly installed on the Play Store.",
+          ? "Android 版の操作手順を示します。"
+          : "Demonstrates the operation process of the Android version.",
   },
 ];
 
@@ -303,7 +303,7 @@ export function GuidePage() {
           <h2 className="text-xl font-bold text-gray-800 mb-2">
             📘 {tHere("說明頁")}
           </h2>
-          <div>version: {import.meta.env.__APP_VERSION__}</div>
+          <div>version: {import.meta.env.__APP_VERSION__} [2026-11-17 11:37] New feature testing</div>
           {(["AndroidWebView"].includes(deviceType) ||
             bridge?.kind === "desktop") && (
             <div className="text-gray-700 leading-relaxed">

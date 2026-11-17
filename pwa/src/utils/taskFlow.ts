@@ -196,6 +196,9 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
   if (plannedTimerMinutes > 0) {
     const shortcutConfig = getShortcutConfig("start");
     shortcutConfig.timerMinutes = plannedTimerMinutes;
+    if (shouldOpenUrl) {
+      shortcutConfig.url = candidate.url ?? "";
+    }
 
     if (shouldPromptForTimerStart(getDeviceType(), plannedTimerMinutes)) {
       void useDialogStore
@@ -215,13 +218,8 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
               candidate.taskId,
               shortcutConfig,
             );
-          }
-          // 在對話框完成且計時器啟動後，延遲開啟 URL
-          // 避免兩個 openExternalHref 競爭導致一個失敗
-          if (shouldOpenUrl) {
-            setTimeout(() => {
-              openExternalHref(candidate.url!, true);
-            }, 500);
+          } else if (shouldOpenUrl) {
+            openExternalHref(candidate.url!, true);
           }
         });
     } else {
@@ -230,12 +228,6 @@ export async function startTask(candidate: SelectionCacheItem, note: string) {
         candidate.taskId,
         shortcutConfig,
       );
-      // 計時器啟動後，延遲開啟 URL
-      if (shouldOpenUrl) {
-        setTimeout(() => {
-          openExternalHref(candidate.url!, true);
-        }, 300);
-      }
     }
   } else if (shouldOpenUrl) {
     // 當沒有計時器時，直接開啟 URL

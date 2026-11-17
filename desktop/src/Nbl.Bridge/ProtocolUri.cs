@@ -30,7 +30,7 @@ public static class ProtocolUri
 
         if (host.Equals("show-clock", StringComparison.OrdinalIgnoreCase))
         {
-            return new ProtocolAction(ProtocolActionKind.ShowClock);
+            return Uri.TryCreate(raw, UriKind.Absolute, out var target) ? new ProtocolAction(ProtocolActionKind.ShowClock, target) : new ProtocolAction(ProtocolActionKind.ShowClock);
         }
         else if (host.Equals("set-timer", StringComparison.OrdinalIgnoreCase))
         {

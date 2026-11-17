@@ -9,7 +9,7 @@ rm -rf builddir
 rm -rf repo
 rm -rf .flatpak-builder
 
-flatpak-builder --force-clean build-dir io.github.ychsue.nonblockinglife.yml
+flatpak run org.flatpak.Builder --force-clean build-dir io.github.ychsue.nonblockinglife.yml
 
 flatpak run --command=flathub-build org.flatpak.Builder --install io.github.ychsue.nonblockinglife.yml
 

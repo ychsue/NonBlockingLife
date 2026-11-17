@@ -22,7 +22,7 @@ public class ClockTriggerActivity extends Activity {
         if (uri != null) {
             String host = uri.getHost();
             if ("show-clock".equals(host)) {
-                launchShowTimers();
+                launchShowTimers(uri);
             } else if ("set-timer".equals(host)) {
                 launchSetTimer(uri);
             }
@@ -31,10 +31,16 @@ public class ClockTriggerActivity extends Activity {
         finish();
     }
 
-    private void launchShowTimers() {
+    private void launchShowTimers(Uri uri) {
         try {
             Intent clockIntent = new Intent(AlarmClock.ACTION_SHOW_TIMERS);
             startActivity(clockIntent);
+            // 若有 url 參數，則嘗試打開該 URL
+            String url = uri.getQueryParameter("url");
+            if (url != null && !url.isEmpty()) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(browserIntent);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Cannot Open Clock", Toast.LENGTH_SHORT).show();
@@ -63,6 +69,13 @@ public class ClockTriggerActivity extends Activity {
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Cannot Start Timer", Toast.LENGTH_SHORT).show();
+        }
+
+        // 若有 url 參數，則嘗試打開該 URL
+        String url = uri.getQueryParameter("url");
+        if (url != null && !url.isEmpty()) {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(browserIntent);
         }
     }
 

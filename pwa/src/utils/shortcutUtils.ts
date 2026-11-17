@@ -39,6 +39,7 @@ export function getDeviceType():
 export interface ShortcutConfig {
   started: boolean;
   taskTitle?: string;
+  url?: string;
   timerMinutes: number;
   shortcutName: string; // shortcut 的名称（在 iOS 中创建）
 }
@@ -261,6 +262,7 @@ export function buildTwaTimerUri(
   timerMinutes: number,
   mode?: AndroidTimerLaunchMode,
   intent?: "start" | "end",
+  url?: string,
 ): string {
   const resolvedMode = mode ?? useAppStore.getState().androidTimerLaunchMode;
   const normalizedTitle = (taskTitle ?? "").trim();
@@ -269,16 +271,16 @@ export function buildTwaTimerUri(
     if (resolvedMode === "none") {
       return "";
     }
-    return "nonblockinglife://show-clock";
+    return `nonblockinglife://show-clock${url ? `?url=${encodeURIComponent(url)}` : ""}`;
   }
 
   if (resolvedMode === "set_timer") {
     const durationSeconds = Math.max(0, Math.round(timerMinutes * 60));
-    return `nonblockinglife://set-timer?duration=${durationSeconds}&skipUi=true&title=${encodeURIComponent(normalizedTitle)}`;
+    return `nonblockinglife://set-timer?duration=${durationSeconds}&skipUi=true&title=${encodeURIComponent(normalizedTitle)}${url ? `&url=${encodeURIComponent(url)}` : ""}`;
   }
 
   if (resolvedMode === "show_clock") {
-    return "nonblockinglife://show-clock";
+    return `nonblockinglife://show-clock${url ? `?url=${encodeURIComponent(url)}` : ""}`;
   }
 
   return "";
@@ -342,6 +344,7 @@ export function triggerShortcutTimer(
       config.timerMinutes,
       undefined,
       intent,
+      config.url,
     );
 
     if (!timerUri) {

@@ -1,5 +1,9 @@
 # Journal
 
+## [2026-11-17] 已經測了 Windows，要再測 Linux 與 Android
+1. [shortcutUtils.ts](pwa\src\utils\shortcutUtils.ts) 中，讓他所送的參數中，含有 url 可以在計時器開始後，原生端可以接著打開相關的網頁。
+2. 在 Avalonia 端，[BridgeDispatcher.cs](desktop\src\Nbl.Bridge\BridgeDispatcher.cs) 讓他能讀入 url 這個 parameter ，然後再打開預設瀏覽器
+
 ## [2026-11-16] (3.2.5a) 支援在任務中使用 👉 和 URL 同時開啟相關行動 App
 [17:45] 做了順序的改變，免得還沒按是否開啟計時器，就跳了開啟相關行動 App 的動作。
 [18:27] 採用 GitHub Copilot 的建議看看，讓他們 openExternalHref 有時間差，看看能否治療目前的問題 (不開啟 href)
