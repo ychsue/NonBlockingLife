@@ -1,6 +1,8 @@
 using Avalonia.Platform;
 using LibVLCSharp.Shared;
+#if WINDOWS
 using NAudio.Wave;
+#endif
 using Nbl.Bridge;
 
 namespace Nbl.Desktop;
@@ -10,7 +12,9 @@ public static class AudioPlayerFactory
     // 以執行期的 OS 判斷平台，不需要在 csproj 做條件編譯
     public static IAudioPlayer Create()
     {
+#if WINDOWS
         if (OperatingSystem.IsWindows()) return new NAudioPlayer();
+#endif
         if (OperatingSystem.IsLinux()) return new GStreamerPlayer();
         if (OperatingSystem.IsMacOS()) return new LibVlcPlayer();
         return new NullAudioPlayer();
@@ -37,6 +41,7 @@ public sealed class NullAudioPlayer : IAudioPlayer
     public void Stop() { }
 }
 
+#if WINDOWS
 /// <summary>Windows：NAudio 循環播放。sound 為 null 時播放內建 DEFAULT.mp3，否則為檔案路徑。</summary>
 public sealed class NAudioPlayer : IAudioPlayer
 {
@@ -102,6 +107,7 @@ public sealed class NAudioPlayer : IAudioPlayer
         }
     }
 }
+#endif
 
 /// <summary>Linux／macOS：LibVLCSharp 循環播放。需要系統安裝 libvlc（例如 apt install libvlc-dev vlc）。</summary>
 public sealed class LibVlcPlayer : IAudioPlayer

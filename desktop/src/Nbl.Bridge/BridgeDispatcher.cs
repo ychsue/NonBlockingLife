@@ -230,9 +230,9 @@ public sealed class BridgeDispatcher(
             {
                 oeUrl = oeUrl.Substring(basePath.Length);
             }
-            if (oeUrl.StartsWith("/NonBlockingLife/"))
+            if (oeUrl.StartsWith("/NonBlockingLife/") && !(_host?.BaseUri.AbsolutePath.Contains("/NonBlockingLife/") ?? false))
             {
-                oeUrl = oeUrl["/NonBlockingLife/".Length..];
+                oeUrl = oeUrl["/NonBlockingLife/".Length..]; // 因為 ri(_host.BaseUri, oeUrl) 會將 BaseUri 的 path 丟掉後再組合 oeUrl，所以，正常情況下不可丟
             }
         }
         var absoluteUri = _host?.BaseUri is not null ? new Uri(_host.BaseUri, oeUrl) : null;

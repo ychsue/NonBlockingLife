@@ -5,14 +5,16 @@
     <!-- Windows 才需要 WinRT（StartupTask）；Linux/macOS 仍編為 net10.0 -->
     <TargetFramework Condition="$([MSBuild]::IsOSPlatform('Windows'))">net10.0-windows10.0.19041.0</TargetFramework>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::IsOSPlatform('Windows'))">10.0.19041.0</SupportedOSPlatformVersion>
-    <!-- 隨 MSIX 附帶 .NET runtime，使用者不需另外安裝 -->
+
+    <!-- 明確指定 RID，避免 SelfContained 推論失敗 -->
     <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('Windows'))">win-x64</RuntimeIdentifier>
     <RuntimeIdentifier
       Condition="$([MSBuild]::IsOSPlatform('Windows')) And '$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
     <SelfContained Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</SelfContained>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x64;ARM64</Platforms>
-    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <!-- 補齊 linux-x64;linux-arm64，避免跨平台 restore/publish 時 RID 沒列在 RuntimeIdentifiers -->
+    <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64</RuntimeIdentifiers>
     <Version>3.2.2</Version>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -21,6 +23,9 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.4" />
     <PackageReference Include="Avalonia.Controls.WebView" Version="12.1.1" />
@@ -28,8 +33,6 @@
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.4" />
     <PackageReference Include="Avalonia.Wayland" Version="12.1.4" />
-    <PackageReference Include="ManagedBass" Version="4.0.2" />
-    <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="LibVLCSharp" Version="3.10.2" />
     <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
@@ -37,11 +40,9 @@
     </PackageReference>
   </ItemGroup>
 
-
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
-
 
   <ItemGroup>
     <None Include="..\..\..\README.md">
@@ -60,5 +61,4 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
-
 </Project>

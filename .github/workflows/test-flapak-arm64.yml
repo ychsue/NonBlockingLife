@@ -1,0 +1,51 @@
+name: Test Flapak aarch64
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to test'
+        required: true
+        default: 'main'
+
+jobs:
+  build-and-test-arm64:
+    runs-on: ubuntu-24.04-arm64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Install flatpak and flatpak-builder
+        run: |
+          sudo apt update
+          sudo apt install -y flatpak xvfb dbus-x11
+          flatpak --version
+
+      - name: Change workdirectory to desktop
+        run: |
+          cd desktop
+          pwd
+
+      - name: Add Flathub remote and install aarch64 runtime/sdk
+        run: |
+          flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak --user install -y flathub org.gnome.Platform//51 org.gnome.Sdk//51 org.freedesktop.Sdk.Extension.dotnet10//26.08 org.flatpak.Builder//latest
+
+      - name: Build and install Flatpak (aarch64)
+        run: |
+          flatpak run --command=flathub-build org.flatpak.Builder --user --install --force-clean --ccache build-dir io.github.ychsue.nonblockinglife.yml
+
+      - name: Smoke test GUI startup with Xvfb
+        run: |
+          # 用 xvfb-run 啟動幾秒觀察是否能正常起跑不閃退
+          timeout 15s xvfb-run -a flatpak run io.github.ychsue.nonblockinglife || EXIT_CODE=$?
+          # timeout 逾時結束會回傳 124，這代表程式撐過了 15 秒沒有立刻 crash
+          if [ "${EXIT_CODE:-0}" -eq 124 ] || [ "${EXIT_CODE:-0}" -eq 0 ]; then
+            echo "GUI launched without immediate crash!"
+            exit 0
+          else
+            echo "App exited with code: $EXIT_CODE"
+            exit "$EXIT_CODE"
+          fi

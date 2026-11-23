@@ -42,18 +42,24 @@ modules:
         WEBKIT_FORCE_SANDBOX: '0'
         DOTNET_NOLOGO: '1'
     build-commands:
-      # # 1. 檢查目前目錄底下有哪些檔案（確認 nuget-sources.json 有沒有進來）
-      # - ls -la
-      # # 2. 檢查 flatpak-builder 有沒有把套件解開到預期的資料夾
-      # - find / -name "*.nupkg" 2>/dev/null || true      
-      # 先進行離線還原，指定從本機目錄讀取套件
-      - dotnet restore src/Nbl.Desktop/Nbl.Desktop.csproj --packages /run/build/NonBlockingLife/nuget-packages -s /run/build/NonBlockingLife/nuget-sources -r linux-x64
-      - dotnet restore src/Nbl.Bridge/Nbl.Bridge.csproj --packages /run/build/NonBlockingLife/nuget-packages -s /run/build/NonBlockingLife/nuget-sources -r linux-x64
-      # # 檢查 NuGet 套件來源是否存在
-      # - ls -la nuget-sources || true
-
-      # 接著進行發布 
-      - dotnet publish src/Nbl.Desktop/Nbl.Desktop.csproj -c Debug -r linux-x64 --self-contained true --no-restore -p:PublishAot=false -p:RuntimeIdentifiers=linux-x64 -p:RestorePackagesPath=/run/build/NonBlockingLife/nuget-packages -p:NblUseSystemBass=true -p:DebugType=embedded -o /app/lib/nonblockinglife
+      # 根據 $FLATPAK_ARCH 決定使用的 Runtime Identifier
+      - |
+        set -e
+        if [ "$FLATPAK_ARCH" = "x86_64" ]; then
+          DOTNET_RID="linux-x64"
+          echo "Building for runtime: $DOTNET_RID"
+        elif [ "$FLATPAK_ARCH" = "aarch64" ]; then
+          DOTNET_RID="linux-arm64"
+          echo "Building for runtime: $DOTNET_RID"
+        else
+          echo "Unsupported FLATPAK_ARCH: $FLATPAK_ARCH"
+          exit 1
+        fi
+        export DOTNET_RID
+        echo "DOTNET_RID set to $DOTNET_RID"
+        dotnet restore src/Nbl.Desktop/Nbl.Desktop.csproj --packages /run/build/NonBlockingLife/nuget-packages -s /run/build/NonBlockingLife/nuget-sources -r $DOTNET_RID
+        dotnet restore src/Nbl.Bridge/Nbl.Bridge.csproj --packages /run/build/NonBlockingLife/nuget-packages -s /run/build/NonBlockingLife/nuget-sources -r $DOTNET_RID
+        dotnet publish src/Nbl.Desktop/Nbl.Desktop.csproj -c Debug -r $DOTNET_RID --self-contained true --no-restore -p:PublishAot=false -p:RuntimeIdentifiers=$DOTNET_RID -p:RestorePackagesPath=/run/build/NonBlockingLife/nuget-packages -p:NblUseSystemBass=true -p:DebugType=embedded -o /app/lib/nonblockinglife
       - mkdir -p /app/bin
       - ln -s /app/lib/nonblockinglife/Nbl.Desktop /app/bin/io.github.ychsue.nonblockinglife
       - install -Dm644 io.github.ychsue.nonblockinglife.desktop /app/share/applications/io.github.ychsue.nonblockinglife.desktop
@@ -67,3 +73,5 @@ modules:
         path: src
         dest: src
       - ./nuget-sources.json
+      - ./nuget-sources-x86_64.json
+      - ./nuget-sources-aarch64.json

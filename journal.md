@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-11-23] 為了 flatpak 做了一些調整看看有沒有效
+
 ## [2026-11-23] linux 上修改 OpenExternal 後測試正常
 - [DesktopHost.cs](desktop/src/Nbl.Desktop/DesktopHost.cs) 裡面修改了 OpenExternal 的實作，讓它在 Linux 上也能正常使用。（flatpak 測過也正常）
 
