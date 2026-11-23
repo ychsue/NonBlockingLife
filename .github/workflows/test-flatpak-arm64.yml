@@ -1,4 +1,4 @@
-name: Test Flapak aarch64
+name: Test Flatpak aarch64
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
       branch:
         description: 'Branch to test'
         required: true
-        default: 'main'
+        default: 'feature/flatpak'
 
 jobs:
   build-and-test-arm64:
@@ -30,15 +30,18 @@ jobs:
 
       - name: Add Flathub remote and install aarch64 runtime/sdk
         run: |
+          cd desktop
           flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
           flatpak --user install -y flathub org.gnome.Platform//51 org.gnome.Sdk//51 org.freedesktop.Sdk.Extension.dotnet10//26.08 org.flatpak.Builder//latest
 
       - name: Build and install Flatpak (aarch64)
         run: |
+          cd desktop
           flatpak run --command=flathub-build org.flatpak.Builder --user --install --force-clean --ccache build-dir io.github.ychsue.nonblockinglife.yml
 
       - name: Smoke test GUI startup with Xvfb
         run: |
+          cd desktop
           # 用 xvfb-run 啟動幾秒觀察是否能正常起跑不閃退
           timeout 15s xvfb-run -a flatpak run io.github.ychsue.nonblockinglife || EXIT_CODE=$?
           # timeout 逾時結束會回傳 124，這代表程式撐過了 15 秒沒有立刻 crash

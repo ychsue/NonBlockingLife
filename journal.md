@@ -1,6 +1,7 @@
 # Journal
 
 ## [2026-11-23] 為了 flatpak 做了一些調整看看有沒有效
+將 test-flatpak-arm64.yml 在 branch feature/flatpak 上測試，確認 flatpak 在 aarch64 架構下能正常建置與執行
 
 ## [2026-11-23] linux 上修改 OpenExternal 後測試正常
 - [DesktopHost.cs](desktop/src/Nbl.Desktop/DesktopHost.cs) 裡面修改了 OpenExternal 的實作，讓它在 Linux 上也能正常使用。（flatpak 測過也正常）
