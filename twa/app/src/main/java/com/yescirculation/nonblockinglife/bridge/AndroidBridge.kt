@@ -1,7 +1,11 @@
 package com.yescirculation.nonblockinglife.bridge
 
+import ClockActions.parseDurationSeconds
+import android.content.ActivityNotFoundException
 import com.yescirculation.nonblockinglife.R
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -23,6 +27,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import com.yescirculation.nonblockinglife.utils.toSafeAbsoluteUri
+import java.lang.Boolean.parseBoolean
 
 class AndroidBridge (
     private val context: Context,
@@ -79,7 +85,7 @@ class AndroidBridge (
                 if (!window.AndroidPort) {
                     window.AndroidPort = {
                         onmessage: null,
-                        postMessage: (msg) => window.AndroidBridge.postMessage(msg)
+                        postMessage: (msg) => window.AndroidBridge.postMessage(typeof msg === 'string' ? msg : JSON.stringify(msg))
                     }
                     console.log('[Native Inject] window.AndroidPort initialized.');
                 }
@@ -132,7 +138,7 @@ class AndroidBridge (
                     .put("shell", "android")
                     .put("shellVersion", context.getString(R.string.versionName))
                     .put("protocolVersion", 1)
-                    .put("capabilities", JSONArray(listOf("alarm", "notify", "fetchIcs")))
+                    .put("capabilities", JSONArray(listOf("alarm", "notify", "fetchIcs", "openUrlByHost", "openExternal", "clockThroughPM"))) // openExternal 未來要拿掉
                 mSession.postMessage(hello.toString(), null)
             } else if ("nbl:version" == type) {
                 mSession.postMessage(
@@ -145,6 +151,33 @@ class AndroidBridge (
                 executorService.execute({
                     fetchAndReplyIcs(requestId, targetUrl)
                 })
+            } else if ("nbl:open-url" == type || "nbl:open-external" == type) {
+                val url = json.optString("url", "")
+                openUrlByHost(url, "host_")
+            } else if ("nbl:show-clock" == type) {
+                val url = json.optString("url", "")
+                ClockActions.showTimers(
+                    context, 
+                    url = url, 
+                    onOpenUrl = {
+                        openUrlByHost(it, requestId)
+                    }
+                )
+            } else if ("nbl:set-timer" == type) {
+                val duration = parseDurationSeconds(json.optString("duration", ""))
+                val skipUi = parseBoolean(json.optString("skipUi", "false"))
+                val title = json.optString("title", "")
+                val url = json.optString("url", "")
+                ClockActions.setTimer(
+                    context, 
+                    durationSeconds = duration,
+                    skipUi = skipUi,
+                    title = title, 
+                    url = url, 
+                    onOpenUrl = {
+                        openUrlByHost(it, requestId)
+                    }
+                )            
             } else {
                 Log.w(TAG, "Unknown message type: $type")
             }
@@ -153,6 +186,73 @@ class AndroidBridge (
         }
     }
 
+    // 這個函數得根據 url 決定是要打開外部瀏覽器、webView.loadUrl 或者送nbl:url-action 消息給前端
+    // 目前僅考慮三種情況：1. 以 `?` 開頭的 URL、2.相對路徑 URL、3.完整的 URL(包含 scheme://)
+    fun openUrlByHost(url: String, requestId: String, type: String? = "nbl:url-action") {
+        val launchUrl = context.getString(R.string.launchUrl)
+        val uri = url.toSafeAbsoluteUri(
+            launchUrl,
+            context.getString(R.string.protocolName)
+        )
+        if (uri == null) return
+        // 1. 如果是 show-clock 與 set-timer，把她先跳掉
+        if (uri.host =="show-clock") {
+            ClockActions.showTimers(
+                context, 
+                url = uri.getQueryParameter("url"), 
+                onOpenUrl = {
+                    openUrlByHost(it, requestId)
+                }
+            )
+            return
+        } else if (uri.host == "set-timer") {
+            ClockActions.setTimer(
+                context, 
+                durationSeconds = parseDurationSeconds(uri.getQueryParameter("duration")),
+                skipUi = parseBoolean(uri.getQueryParameter("skipUi")),
+                title = uri.getQueryParameter("title"), 
+                url = uri.getQueryParameter("url"), 
+                onOpenUrl = {
+                    openUrlByHost(it, requestId)
+                }
+            )
+            return
+        }
+        // 1. 如果是 uri 開頭為 launchUrl，就要特殊處理，其餘的
+        if (uri.toString().startsWith(launchUrl)) {
+            // 特殊處理 launchUrl 開頭的情況
+            if (webView.url == null) {
+                webView.loadUrl(uri.toString())
+                return
+            }
+            // 2. 若 query 裡面有 open_external=true，就用外部瀏覽器開啟
+            if (uri.query?.contains("open_external=true") == true) {
+                openByExternalBrowser(uri)
+            } else {
+                // 3. 其餘的，都用 postMessage
+                val message = JSONObject()
+                    .put("type", type)
+                    .put("requestId", requestId)
+                    .put("url", uri.toString())
+                mSession.postMessage(message.toString(), null)
+            }
+        } else {
+            openByExternalBrowser(uri)
+        }
+    }
+    
+    private fun openByExternalBrowser(uri: Uri) {
+        try {
+            val browserIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+                setPackage("com.android.chrome") // 指定使用 Chrome 瀏覽器打開
+            }
+            context.startActivity(browserIntent)
+        } catch (e: ActivityNotFoundException) {
+            Log.e(TAG, "Chrome not found, falling back to default browser", e)
+            context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+        }
+    }
+    
     private fun fetchAndReplyIcs(requestId: String?, targetUrl: String) {
         // Implement the logic to fetch the ICS file from the target URL and reply to the session.
         // This is a placeholder implementation.

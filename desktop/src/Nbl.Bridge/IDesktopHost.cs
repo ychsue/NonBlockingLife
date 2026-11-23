@@ -11,6 +11,8 @@ public interface IDesktopHost
     /// <summary>桌面沒有統一的分享面板，目前實作為複製到剪貼簿並通知。</summary>
     void Share(string title, string text);
 
+    Task<string?> ExecuteJS(string script);
+
     /// <summary>
     /// 顯示主視窗。
     /// </summary>

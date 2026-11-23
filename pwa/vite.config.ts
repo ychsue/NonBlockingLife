@@ -39,6 +39,20 @@ export default defineConfig(({ command }) => ({
             url: "/NonBlockingLife/?%s",
           },
         ],
+        // 改用 Android & Windows Store 安裝
+        prefer_related_applications: true,
+        related_applications: [
+          {
+            platform: "play",
+            id: "com.yescirculation.nonblockinglife",
+            url: "https://play.google.com/store/apps/details?id=com.yescirculation.nonblockinglife"
+          },
+          {
+            platform: "windows",
+            id: "NonBlockingLife",
+            url: "https://www.microsoft.com/store/apps/9P69CC1TTSWC"
+          },
+        ],
         share_target: {
           action: "/NonBlockingLife/?action=share-to-inbox",
           method: "GET",

@@ -680,19 +680,19 @@ function ExperimentPanel() {
                 type="button"
                 onClick={() => {
                   bridge
-                    ?.request("nbl:open-external", {
+                    ?.request("nbl:open-url", {
                       url: "https://tw.yahoo.com",
                     })
                     .then((res) => {
-                      console.log("nbl:open-external response:", res);
+                      console.log("nbl:open-url response:", res);
                     })
                     .catch((err) => {
-                      console.error("nbl:open-external error:", err);
+                      console.error("nbl:open-url error:", err);
                     });
                 }}
                 className="mx-3 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
               >
-                nbl:open-external
+                nbl:open-url
               </button>
               <button
                 type="button"

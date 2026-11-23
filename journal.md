@@ -1,5 +1,22 @@
 # Journal
 
+## [2026-11-22] 重構 BridgeDispatcher 與相關模組
+1. 根據 MS Copilot 的建議，重構 BridgeDispatcher，將解析來源格式與執行業務邏輯分離，並引入 Parser、Request 與 Executor 模組。
+2. BridgeDispatcher 現在只負責將請求分派給對應的 Executor，解析請求的工作則交給各個 Parser 模組處理。[與MS Copilot討論後結論](Discussion\cross_platform\discussion_refine_cs_dispatcher.md)
+3. 多了 `ExecuteJS` 的功能，用來透過 `_host` 在 BridgeDispatcher 中執行 JavaScript 代碼。
+4. 讓 [vite.config.ts](pwa\vite.config.ts) 在問安裝PWA時，會變成連到 Play 商店或 MS Store。
+5. Kotlin 的部分，得等這批上線才能測
+
+
+## [2026-11-18] 讓url 也可以是此 APP 的 API 參數，多 `?open_external=true` 就能強迫他一定使用外部瀏覽器
+1. [DesktopHost.cs](desktop\src\Nbl.Desktop\DesktopHost.cs) 多加了 `ExecuteJS` 的宣告，由 [MainWindow.axaml.cs](desktop\src\Nbl.Desktop\MainWindow.axaml.cs) 實作。
+   * 測試結果是，[BridgeDispatcher.cs](desktop\src\Nbl.Bridge\BridgeDispatcher.cs) 加了 `NavigateTo` ，然後利用 ExecuteJS 來送出 `postMessage`。
+2. [GuidePage.tsx](pwa\src\components\GuidePage.tsx) 中，將所有指向外部網頁的連結都加上 `?open_external=true`，以確保在 PWA 中一定使用外部瀏覽器開啟。
+3. [ExternalA.tsx](pwa\src\components\ExternalA.tsx) 中，對於加了 `?open_external=true` 的連結，會強制使用外部瀏覽器開啟。
+4. [useTwaRpc.ts](pwa\src\hooks\useTwaRpc.ts) 中，新增了接收來自host 的訊息的功能，目前只有 `nbl:url-action`。
+5. [useUrlAction.ts](pwa\src\hooks\useUrlAction.ts) 中，修改了 `handleInterruptAction`，讓它可以接收 `onSuccess` 與 `onError` 回呼，並在適當的時候呼叫。並且在 `executeUrlActionFromUrl` 中傳入這些回呼。
+6. [NativeBridge.ts](pwa\src\native\NativeBridge.ts) 中，將 `negotiateHello` 的預設時間拉長成15000，因為測試 1500在測試時會壞掉。
+
 ## [2026-11-17] 已經測了 Windows，要再測 Linux 與 Android
 1. [shortcutUtils.ts](pwa\src\utils\shortcutUtils.ts) 中，讓他所送的參數中，含有 url 可以在計時器開始後，原生端可以接著打開相關的網頁。
 2. 在 Avalonia 端，[BridgeDispatcher.cs](desktop\src\Nbl.Bridge\BridgeDispatcher.cs) 讓他能讀入 url 這個 parameter ，然後再打開預設瀏覽器

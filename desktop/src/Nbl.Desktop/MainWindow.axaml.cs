@@ -60,6 +60,11 @@ public partial class MainWindow : Window, IHideableWindow
         if (_origins.IsAllowed(uri)) Web.Source = uri;
     }
 
+    public async Task<string?> ExecuteJS(string script)
+    {
+        return await Dispatcher.UIThread.InvokeAsync(() => Web.InvokeScript(script));
+    }
+
     public MainWindow(LaunchOptions options, IDesktopHost? host, AlarmScheduler? alarms, TimerService? timers, AlarmAudioManager? audio)
     {
         _host = host;

@@ -3,6 +3,7 @@ import { applyChange } from "../db/index";
 import { useAppStore } from "../store/appStore";
 import Utils from "../../../gas/src/Utils";
 import { interruptTask } from "../utils/taskFlow";
+import _ from "lodash";
 
 export type SheetName =
   | "inbox"
@@ -12,8 +13,11 @@ export type SheetName =
   | "macro"
   | "resource";
 
-interface UseUrlActionOptions {
-  onNavigate: (sheet: SheetName | "selection_cache", byAction?: 'share-to-inbox' | null) => void;
+interface UrlActionContext {
+  onNavigate: (
+    sheet: SheetName | "selection_cache",
+    byAction?: "share-to-inbox" | null,
+  ) => void;
   onSuccess?: (message: string) => void;
   onError?: (message: string) => void;
   clientId?: string;
@@ -33,178 +37,134 @@ export function resolveShareTargetParams(pathname: string, search: string) {
 }
 
 /**
- * 監聽 URL Query 參數，自動將 iPhone Shortcut 的新增請求寫入 Dexie
- *
- * 使用範例：
- * useUrlAction({
- *   onNavigate: setCurrentSheet,
- *   onSuccess: setToast,
- *   clientId: 'iphone-shortcut'
- * })
- *
- * URL 格式：
- * ?sheet=inbox&action=add&title=Buy%20milk
- * ?sheet=scheduled&action=add&title=Morning%20Run&cronExpr=0%209%20*%20*%20*
- * ?sheet=micro_tasks&action=add&title=Read&url=https%3A%2F%2Fexample.com
+ * 用來讓 useUrlAction 的 useEffect 呼叫，也要讓 `nbl:url-action` 能呼叫此函數
+ * @param url 要處理的完整 URL 字串
+ * @param ctx UrlActionContext，包含回調函數和 clientId
  */
-export function useUrlAction(options: UseUrlActionOptions) {
-  const setPendingEditIntent = useAppStore(
-    (state) => state.setPendingEditIntent,
+export async function executeUrlActionFromUrl(
+  url: string,
+  ctx: UrlActionContext,
+) {
+  const setPendingEditIntent = useAppStore.getState().setPendingEditIntent;
+  const { onNavigate, onSuccess, onError } = ctx;
+  const base =
+    typeof window !== "undefined" && window.location?.href
+      ? window.location.href
+      : "http://localhost:5173/";
+  const uri = new URL(url, base);
+  const clientId = ctx.clientId ?? "executeUrlActionFromUrl";
+
+  const rawQuery = uri.search;
+  const protocolPrefix = encodeURIComponent("web+nbl://");
+  let queryString = rawQuery;
+  if (rawQuery.includes(protocolPrefix)) {
+    // 兼容 protocol handler 的 URL 格式：web+nbl://?sheet=inbox&action=add&title=Buy%20milk
+    queryString = rawQuery
+      .replace("?", "")
+      .replace(protocolPrefix, "")
+      .replace(/%3D/g, "=")
+      .replace(/%26/g, "&");
+    if (queryString.endsWith(encodeURIComponent("/"))) {
+      queryString = queryString.slice(0, -encodeURIComponent("/").length);
+    }
+  }
+  const { params, shouldHandleShare } = resolveShareTargetParams(
+    uri.pathname,
+    queryString,
   );
-  const {
-    onNavigate,
-    onSuccess,
-    onError,
-    clientId = "iphone-shortcut",
-  } = options;
-  const isHandlingRef = useRef(false);
+  const sheet = params.get("sheet") as SheetName | null;
+  const action = params.get("action");
 
-  useEffect(() => {
-    if (isHandlingRef.current) return;
+  if (shouldHandleShare && action === "share-to-inbox") {
+    const { onNavigate, onSuccess, onError } = ctx;
+    // Web Share Target 僅支援 title/text/url，非 URL 欄位合併成 title。
+    const shareTitle = (params.get("title") || "").trim();
+    const shareText = (params.get("text") || "").trim();
+    const shareUrl = (params.get("url") || "").trim();
+    const mergedTitle = [shareTitle, shareText].filter(Boolean).join("\n");
 
-    const clearActionUrl = () => {
-      const currentPath = window.location.pathname;
-      const sharePathPattern = /\/share-to-inbox\/?$/;
-
-      if (sharePathPattern.test(currentPath)) {
-        const basePath = currentPath.replace(sharePathPattern, "") || "/";
-        const targetPath = basePath === "/" ? "/" : `${basePath.replace(/\/+$/, "")}/`;
-        window.history.replaceState({}, document.title, targetPath);
-        return;
-      }
-
-      const targetPath = currentPath.replace(/\?.*/, "");
-      window.history.replaceState({state: targetPath}, document.title, targetPath);
+    const patch: Record<string, unknown> = {
+      title: mergedTitle || shareUrl || "Shared item",
+      receivedAt: Date.now(),
     };
 
-    const rawQuery = window.location.search;
-    const protocolPrefix = encodeURIComponent("web+nbl://");
-    let queryString = rawQuery;
-    if (rawQuery.includes(protocolPrefix)) {
-      // 兼容 protocol handler 的 URL 格式：web+nbl://?sheet=inbox&action=add&title=Buy%20milk
-      queryString = rawQuery
-        .replace("?", "")
-        .replace(protocolPrefix, "")
-        .replace(/%3D/g, "=")
-        .replace(/%26/g, "&");
-      if (queryString.endsWith(encodeURIComponent("/"))) {
-        queryString = queryString.slice(0, -encodeURIComponent("/").length);
-      }
+    if (shareUrl) {
+      patch.url = shareUrl;
     }
-    const { params, shouldHandleShare } = resolveShareTargetParams(
-      window.location.pathname,
-      queryString,
-    );
-    const sheet = params.get("sheet") as SheetName | null;
-    const action = params.get("action");
 
-    if (shouldHandleShare && action === "share-to-inbox") {
-      // Web Share Target 僅支援 title/text/url，非 URL 欄位合併成 title。
-      const shareTitle = (params.get("title") || "").trim();
-      const shareText = (params.get("text") || "").trim();
-      const shareUrl = (params.get("url") || "").trim();
-      const mergedTitle = [shareTitle, shareText].filter(Boolean).join("\n");
-
-      const patch: Record<string, unknown> = {
-        title: mergedTitle || shareUrl || "Shared item",
-        receivedAt: Date.now(),
-      };
-
-      if (shareUrl) {
-        patch.url = shareUrl;
-      }
-
-      const recordId = generateRecordId("inbox", patch);
-      isHandlingRef.current = true;
-
-      applyChange({
+    const recordId = generateRecordId("inbox", patch);
+    try {
+      await applyChange({
         table: "inbox",
         recordId,
         op: "add",
         patch,
         clientId,
-      })
-        .then(() => {
-          onNavigate("inbox", "share-to-inbox");
-          if (!!!patch.title) {
-            setPendingEditIntent({
-              sheet: "inbox",
-              taskId: recordId,
-            });
-          }
-          onSuccess?.(`✅ 已分享到 Inbox: ${patch.title || recordId}`);
-        })
-        .catch((err) => {
-          const errorMsg = err instanceof Error ? err.message : String(err);
-          console.error("Failed to add from share target:", err);
-          onError?.(`❌ 分享失敗：${errorMsg}`);
-        })
-        .finally(() => {
-          clearActionUrl();
-          isHandlingRef.current = false;
-        });
-      return;
-    }
-
-    // 處理中斷動作
-    if (action === "interrupt") {
-      isHandlingRef.current = true;
-      void handleInterruptAction(params).finally(() => {
-        isHandlingRef.current = false;
-        clearActionUrl();
       });
-      return;
-    }
-
-    if (action === "query") {
-      onNavigate("selection_cache"); // 自動切到 Selection Cache 頁籤
-      // 清除 URL（避免重複新增）
-      clearActionUrl();
-      return;
-    }
-
-    if (action === "navigate") {
-      const targetSheet = params.get("sheet") as SheetName | null;
-      if (targetSheet) {
-        onNavigate(targetSheet);
-        clearActionUrl();
+      onNavigate("inbox", "share-to-inbox");
+      if (!!!patch.title) {
+        setPendingEditIntent({
+          sheet: "inbox",
+          taskId: recordId,
+        });
       }
-      return;
+      onSuccess?.(`✅ 已分享到 Inbox: ${patch.title || recordId}`);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      console.error("Failed to add from share target:", err);
+      onError?.(`❌ 分享失敗：${errorMsg}`);
     }
+    return;
+  }
 
-    // 處理 task 搜尋動作：?action=search&query=xxx
-    if (action === "search") {
-      const searchQuery = params.get("query") || "";
-      onNavigate("selection_cache");
-      queueMicrotask(() => {
-        useAppStore.setState({
-          taskSearchInitQuery: searchQuery,
-          showTaskSearchDialog: true,
-        });
+  // 處理中斷動作
+  if (action === "interrupt") {
+    await handleInterruptAction(params, onSuccess, onError);
+    return;
+  }
+
+  if (action === "query") {
+    onNavigate("selection_cache"); // 自動切到 Selection Cache 頁籤
+    return;
+  }
+
+  if (action === "navigate") {
+    const targetSheet = params.get("sheet") as SheetName | null;
+    if (targetSheet) {
+      onNavigate(targetSheet);
+    }
+    return;
+  }
+
+  // 處理 task 搜尋動作：?action=search&query=xxx
+  if (action === "search") {
+    const searchQuery = params.get("query") || "";
+    onNavigate("selection_cache");
+    queueMicrotask(() => {
+      useAppStore.setState({
+        taskSearchInitQuery: searchQuery,
+        showTaskSearchDialog: true,
       });
-      clearActionUrl();
-      return;
-    }
+    });
+    return;
+  }
 
-    // 若沒有參數或 action 不是 'add'，不處理
-    if (!sheet || action !== "add") return;
+  // 若沒有參數或 action 不是 'add'，不處理
+  if (!sheet || action !== "add") return;
 
-    // 允許的 sheet
-    const validSheets: SheetName[] = [
-      "inbox",
-      "scheduled",
-      "task_pool",
-      "micro_tasks",
-    ];
-    if (!validSheets.includes(sheet)) {
-      console.warn(`Invalid sheet: ${sheet}`);
-      return;
-    }
+  // 允許的 sheet
+  const validSheets: SheetName[] = [
+    "inbox",
+    "scheduled",
+    "task_pool",
+    "micro_tasks",
+  ];
+  if (!validSheets.includes(sheet)) {
+    console.warn(`Invalid sheet: ${sheet}`);
+    return;
+  }
 
-    // 先清除 URL，避免 StrictMode/重渲染導致同一 action 被重複觸發
-    clearActionUrl();
-    isHandlingRef.current = true;
-
+  if (!!sheet && action === "add") {
     // 提取所有參數為 record patch（排除 sheet 和 action）
     const patch: Record<string, unknown> = {};
     params.forEach((value, key) => {
@@ -241,43 +201,97 @@ export function useUrlAction(options: UseUrlActionOptions) {
     const recordId = generateRecordId(sheet, patch);
 
     // 寫入 Dexie
-    applyChange({
-      table: sheet,
-      recordId,
-      op: "add",
-      patch,
-      clientId,
-    })
-      .then(() => {
-        // 導航到該頁籤
-        onNavigate(sheet);
-          if (!!!patch.title) {
-            setPendingEditIntent({
-              sheet: sheet,
-              taskId: recordId,
-            });
-          }
+    try {
+      await applyChange({
+        table: sheet,
+        recordId,
+        op: "add",
+        patch,
+        clientId,
+      });
+      // 導航到該頁籤
+      onNavigate(sheet);
+      if (!!!patch.title) {
+        setPendingEditIntent({
+          sheet: sheet,
+          taskId: recordId,
+        });
+      }
 
-        // 顯示成功提示
-        const sheetLabel: Record<SheetName, string> = {
-          inbox: "Inbox",
-          scheduled: "Scheduled",
-          task_pool: "Task Pool",
-          micro_tasks: "Micro Tasks",
-          resource: "Resource",
-          macro: "Macro",
-        };
-        onSuccess?.(
-          `✅ 已新增到 ${sheetLabel[sheet]}: ${patch.title || recordId}`,
-        );
-      })
+      // 顯示成功提示
+      const sheetLabel: Record<SheetName, string> = {
+        inbox: "Inbox",
+        scheduled: "Scheduled",
+        task_pool: "Task Pool",
+        micro_tasks: "Micro Tasks",
+        resource: "Resource",
+        macro: "Macro",
+      };
+      onSuccess?.(
+        `✅ 已新增到 ${sheetLabel[sheet]}: ${patch.title || recordId}`,
+      );
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      console.error("Failed to add from URL action:", err);
+      onError?.(`❌ 新增失敗：${errorMsg}`);
+    }
+  }
+}
+
+/**
+ * 監聽 URL Query 參數，自動將 iPhone Shortcut 的新增請求寫入 Dexie
+ *
+ * 使用範例：
+ * useUrlAction({
+ *   onNavigate: setCurrentSheet,
+ *   onSuccess: setToast,
+ *   clientId: 'iphone-shortcut'
+ * })
+ *
+ * URL 格式：
+ * ?sheet=inbox&action=add&title=Buy%20milk
+ * ?sheet=scheduled&action=add&title=Morning%20Run&cronExpr=0%209%20*%20*%20*
+ * ?sheet=micro_tasks&action=add&title=Read&url=https%3A%2F%2Fexample.com
+ */
+export function useUrlAction(options: UrlActionContext) {
+  const { onNavigate, onSuccess, onError, clientId = "useUrlAction" } = options;
+  const isHandlingRef = useRef(false);
+
+  useEffect(() => {
+    if (isHandlingRef.current) return;
+    isHandlingRef.current = true;
+
+    const clearActionUrl = () => {
+      const currentPath = window.location.pathname;
+      const sharePathPattern = /\/share-to-inbox\/?$/;
+
+      if (sharePathPattern.test(currentPath)) {
+        const basePath = currentPath.replace(sharePathPattern, "") || "/";
+        const targetPath =
+          basePath === "/" ? "/" : `${basePath.replace(/\/+$/, "")}/`;
+        window.history.replaceState({}, document.title, targetPath);
+        return;
+      }
+
+      const targetPath = currentPath.replace(/\?.*/, "");
+      window.history.replaceState(
+        { state: targetPath },
+        document.title,
+        targetPath,
+      );
+    };
+    const url = _.clone(window.location.href);
+    clearActionUrl();
+    executeUrlActionFromUrl(url, { onNavigate, onSuccess, onError, clientId })
+      .then(() => {})
       .catch((err) => {
         const errorMsg = err instanceof Error ? err.message : String(err);
-        console.error("Failed to add from URL action:", err);
-        onError?.(`❌ 新增失敗：${errorMsg}`);
+        console.error("Failed to execute URL action:", err);
+        onError?.(`❌ URL action 失敗：${errorMsg}`);
       })
       .finally(() => {
         isHandlingRef.current = false;
+        clearActionUrl();
       });
   }, [onNavigate, onSuccess, onError, clientId]);
 }
@@ -285,33 +299,35 @@ export function useUrlAction(options: UseUrlActionOptions) {
 /**
  * 處理中斷動作（使用 Zustand store，可在 .ts 文件中直接調用）
  */
-function handleInterruptAction(params: URLSearchParams) {
+async function handleInterruptAction(params: URLSearchParams, onSuccess?: (msg: string) => void, onError?: (msg: string) => void) {
   const note = params.get("note") || "";
 
-  return interruptTask(note)
-    .then((result) => {
-      if (result.status === "success") {
-        // ⏱️ 使用 queueMicrotask 確保 DOM 已更新後再設置狀態
-        queueMicrotask(() => {
-          useAppStore.setState({
-            showEndDialog: true,
-            isInterruptMode: true,
-            currentSheet: "selection_cache", // 自動切到 Selection Cache 頁籤
-          });
-          console.log("✅ 已進入中斷模式，showEndDialog 設為 true");
+  try {
+    const result = await interruptTask(note);
+    if (result.status === "success") {
+      // ⏱️ 使用 queueMicrotask 確保 DOM 已更新後再設置狀態
+      queueMicrotask(() => {
+        useAppStore.setState({
+          showEndDialog: true,
+          isInterruptMode: true,
+          currentSheet: "selection_cache", // 自動切到 Selection Cache 頁籤
         });
-      } else {
-        console.error("❌ 中斷失敗：", result.message);
-      }
+        console.log("✅ 已進入中斷模式，showEndDialog 設為 true");
+        onSuccess?.("✅ 已進入中斷模式");
+      });
+    } else {
+      console.error("❌ 中斷失敗：", result.message);
+      onError?.(`❌ 中斷失敗：${result.message}`);
+    }
 
-      // 清除 URL（避免重複執行）
-      window.history.replaceState({}, document.title, window.location.pathname);
-    })
-    .catch((err) => {
-      const errorMsg = err instanceof Error ? err.message : String(err);
-      console.error("Failed to interrupt:", err);
-      console.error("❌ 中斷失敗：", errorMsg);
-    });
+    // 清除 URL（避免重複執行）
+    window.history.replaceState({}, document.title, window.location.pathname);
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    console.error("Failed to interrupt:", err);
+    console.error("❌ 中斷失敗：", errorMsg);
+    onError?.(`❌ 中斷失敗：${errorMsg}`);
+  }
 }
 
 /**

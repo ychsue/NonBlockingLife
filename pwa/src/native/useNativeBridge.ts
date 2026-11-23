@@ -10,15 +10,19 @@ import {
   NativeShellKind,
   HelloShellKind,
 } from "./NativeBridge";
+import _ from "lodash";
 
 // 每個 port 只協商一次，避免多個元件各送一次 hello
 const helloCache = new WeakMap<object, Promise<HelloInfo>>();
 
-function cachedHello(sendRequest: Parameters<typeof negotiateHello>[0]) {
+function cachedHello(
+  sendRequest: Parameters<typeof negotiateHello>[0],
+  shouldReget = false,
+) {
   const port = (window as any).__NBL_TWA_BRIDGE__?.port as object | undefined;
   if (!port) return negotiateHello(sendRequest);
   let p = helloCache.get(port);
-  if (!p) {
+  if (!p || shouldReget) {
     p = negotiateHello(sendRequest);
     helloCache.set(port, p);
   }
@@ -32,7 +36,10 @@ export function useNativeBridge(): NativeBridge {
     typeof window !== "undefined" && !!(window as any).__NBL_TWA_BRIDGE__?.port;
   const [hasShell, setHasShell] = useState(readPort);
   const [info, setInfo] = useState<HelloInfo | undefined>();
-  const setCapabilitiesAndKind = useAppStore((state) => state.setCapabilitiesAndKind);
+  const setCapabilitiesAndKind = useAppStore(
+    (state) => state.setCapabilitiesAndKind,
+  );
+  const capabilitiesAndKind = useAppStore((state) => state.capabilitiesAndKind);
 
   // 桌面殼會在頁面載入後才注入 port，所以要監聽 twa-pm-bridge.js 發出的事件
   useEffect(() => {
@@ -46,12 +53,22 @@ export function useNativeBridge(): NativeBridge {
   useEffect(() => {
     if (!hasShell) return;
     let cancelled = false;
-    cachedHello(sendRequest).then((i) => {
+    const shouldReget = capabilitiesAndKind.protocolVersion === 0;
+    cachedHello(sendRequest, shouldReget).then((i) => {
       if (!cancelled) {
         setInfo(i);
+        if (
+          _.isEqual(capabilitiesAndKind, {
+            capabilities: i.capabilities,
+            kind: i.shell as HelloShellKind,
+            protocolVersion: i.protocolVersion,
+          })
+        )
+          return;
         setCapabilitiesAndKind({
           capabilities: i.capabilities,
           kind: i.shell as HelloShellKind,
+          protocolVersion: i.protocolVersion,
         }); // 更新整個AppStore的nbl:hello 的資訊
         console.log("[useNativeBridge] Updated capabilities and kind:", i);
       }

@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Web;
+using Nbl.Bridge.Actions;
+using Nbl.Bridge.Parsers;
 
 namespace Nbl.Bridge;
 
@@ -14,37 +16,28 @@ public interface IIcsFetcher
 /// 處理來自 PWA 的 nbl:* 訊息（協定見 protocol/messages.md）。
 /// 輸入/輸出皆為 JSON 字串；回傳 null 表示不需回應。
 /// </summary>
-public sealed class BridgeDispatcher
+public sealed class BridgeDispatcher(
+    string shell,
+    string shellVersion,
+    IIcsFetcher? icsFetcher = null,
+    IDesktopHost? host = null,
+    AlarmScheduler? alarms = null,
+    TimerService? timers = null,
+    Func<DateTimeOffset>? now = null)
 {
     public static bool IsFlatpak => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("FLATPAK_ID"));
 
     public const int ProtocolVersion = 1;
 
-    private readonly string _shell;
-    private readonly string _shellVersion;
-    private readonly IIcsFetcher? _ics;
-    private readonly IDesktopHost? _host;
-    private readonly AlarmScheduler? _alarms;
-    private readonly TimerService? _timers;
-    private readonly Func<DateTimeOffset> _now;
+    private readonly string _shell = shell;
+    private readonly string _shellVersion = shellVersion;
+    private readonly IIcsFetcher? _ics = icsFetcher;
+    private readonly IDesktopHost? _host = host;
+    private readonly AlarmScheduler? _alarms = alarms;
+    private readonly TimerService? _timers = timers;
+    private readonly Func<DateTimeOffset> _now = now ?? (() => DateTimeOffset.Now);
 
-    public BridgeDispatcher(
-        string shell,
-        string shellVersion,
-        IIcsFetcher? icsFetcher = null,
-        IDesktopHost? host = null,
-        AlarmScheduler? alarms = null,
-        TimerService? timers = null,
-        Func<DateTimeOffset>? now = null)
-    {
-        _shell = shell;
-        _shellVersion = shellVersion;
-        _ics = icsFetcher;
-        _host = host;
-        _alarms = alarms;
-        _timers = timers;
-        _now = now ?? (() => DateTimeOffset.Now);
-    }
+    private readonly NblActionExecutor _executor = new(host, timers);
 
     public IReadOnlyList<string> Capabilities
     {
@@ -52,9 +45,10 @@ public sealed class BridgeDispatcher
         {
             var caps = new List<string>();
             if (_ics is not null) caps.Add("fetchIcs");
-            if (_host is not null) caps.AddRange(new[] { "notify", "openExternal", "share" });
+            if (_host is not null) caps.AddRange(new[] { "notify", "openUrlByHost", "openExternal", "share" }); // openExternal 未來要拿掉
             if (_host is not null && _alarms is not null) caps.Add("alarm");
             if (_host is not null && _timers is not null) caps.Add("timer");
+            if (_host is not null && _timers is not null) caps.Add("clockThroughPM");
             if (IsFlatpak) caps.Add("supabaseRpc");
             return caps;
         }
@@ -73,14 +67,14 @@ public sealed class BridgeDispatcher
         switch (type)
         {
             case "nbl:ping":
-                return Reply("nbl:pong", requestId, _ => { });
+                return NblActionExecutor.MsgReplyToPWA("nbl:pong", requestId, _ => { });
 
             case "nbl:version":
-                return Reply("nbl:version-response", requestId,
+                return NblActionExecutor.MsgReplyToPWA("nbl:version-response", requestId,
                     o => o["version"] = _shellVersion);
 
             case "nbl:hello":
-                return Reply("nbl:hello-response", requestId, o =>
+                return NblActionExecutor.MsgReplyToPWA("nbl:hello-response", requestId, o =>
                 {
                     o["shell"] = _shell;
                     o["shellVersion"] = _shellVersion;
@@ -96,11 +90,11 @@ public sealed class BridgeDispatcher
                     try
                     {
                         var ics = await _ics.FetchAsync(url, ct);
-                        return Reply("nbl:fetch-ics-response", requestId, o => o["icsContent"] = ics);
+                        return NblActionExecutor.MsgReplyToPWA("nbl:fetch-ics-response", requestId, o => o["icsContent"] = ics);
                     }
                     catch (Exception e) when (e is not OperationCanceledException)
                     {
-                        return Reply("nbl:fetch-ics-response", requestId, o => o["error"] = e.Message);
+                        return NblActionExecutor.MsgReplyToPWA("nbl:fetch-ics-response", requestId, o => o["error"] = e.Message);
                     }
                 }
             case "nbl:notify":
@@ -116,15 +110,15 @@ public sealed class BridgeDispatcher
                 });
                 return requestId is null
                     ? null
-                    : Reply("nbl:notification-shown", requestId, o => o["notificationId"] = req["id"]?.DeepClone());
+                    : NblActionExecutor.MsgReplyToPWA("nbl:notification-shown", requestId, o => o["notificationId"] = req["id"]?.DeepClone());
 
             case "nbl:query-notification-permission":
                 if (_host is null) return null;
-                return Reply("nbl:notification-permission-status", requestId, o => o["granted"] = true);
+                return NblActionExecutor.MsgReplyToPWA("nbl:notification-permission-status", requestId, o => o["granted"] = true);
 
             case "nbl:query-alarm-setup":
                 if (_alarms is null) return null;
-                return Reply("nbl:alarm-setup", requestId, o =>
+                return NblActionExecutor.MsgReplyToPWA("nbl:alarm-setup", requestId, o =>
                 {
                     o["selectedClockApp"] = ClockApp();
                     o["exactAlarmAllowed"] = true;
@@ -132,7 +126,7 @@ public sealed class BridgeDispatcher
 
             case "nbl:query-clock-apps":
                 if (_alarms is null) return null;
-                return Reply("nbl:clock-apps", requestId, o =>
+                return NblActionExecutor.MsgReplyToPWA("nbl:clock-apps", requestId, o =>
                 {
                     o["apps"] = new JsonArray(ClockApp());
                     o["selectedPackageName"] = DesktopClockPackage;
@@ -140,7 +134,7 @@ public sealed class BridgeDispatcher
 
             case "nbl:select-clock-app":
                 if (_alarms is null) return null;
-                return Reply("nbl:select-clock-app-result", requestId, o => o["selectedClockApp"] = ClockApp());
+                return NblActionExecutor.MsgReplyToPWA("nbl:select-clock-app-result", requestId, o => o["selectedClockApp"] = ClockApp());
 
             case "nbl:request-exact-alarm-permission":
                 return null;
@@ -148,7 +142,7 @@ public sealed class BridgeDispatcher
             case "nbl:set-alarms":
                 if (_alarms is null) return null;
                 var results = _alarms.Set(req["alarms"] as JsonArray ?? new JsonArray(), _now());
-                return Reply("nbl:set-alarms-result", requestId, o =>
+                return NblActionExecutor.MsgReplyToPWA("nbl:set-alarms-result", requestId, o =>
                     o["results"] = new JsonArray(results.Select(r =>
                     {
                         var item = new JsonObject { ["id"] = r.Id, ["mode"] = r.Mode, ["ok"] = r.Ok };
@@ -158,7 +152,7 @@ public sealed class BridgeDispatcher
 
             case "nbl:get-alarms":
                 if (_alarms is null) return null;
-                return Reply("nbl:alarms", requestId, o =>
+                return NblActionExecutor.MsgReplyToPWA("nbl:alarms", requestId, o =>
                     o["alarms"] = new JsonArray(_alarms.Snapshot().Select(a => (JsonNode)new JsonObject
                     {
                         ["id"] = a.Id,
@@ -173,67 +167,26 @@ public sealed class BridgeDispatcher
                     .Select(n => n is JsonValue v && v.TryGetValue<int>(out var i) ? (int?)i : null)
                     .OfType<int>().ToList();
                 var removed = _alarms.RemoveByIds(cancelIds);
-                return Reply("nbl:cancel-alarms-result", requestId, o => o["removed"] = removed);
+                return NblActionExecutor.MsgReplyToPWA("nbl:cancel-alarms-result", requestId, o => o["removed"] = removed);
 
-            case "nbl:open-external":
+            case "nbl:open-url":
+            case "nbl:open-external": // TODO 未來要拿掉
                 if (_host is null) return null;
                 var ok = false;
                 var oeUrl = req["url"]?.GetValue<string>();
                 // 1. 先確定是否是 nonblockinglife:// 連結
-                var resolved = ProtocolUri.Resolve(oeUrl, _host.BaseUri ?? new Uri("about:blank"));
-                if (resolved is not null)
-                {
-                    // 取得 resolved.Target 的 url 參數
-                    var url = HttpUtility.ParseQueryString(resolved.Target?.Query ?? "").Get("url");
-                    if (resolved.Kind == ProtocolActionKind.ShowClock)
-                    {
-                        _host.ShowClockWindow(1);
-                        if (url is not null && _host is not null)
-                        {
-                            _host.OpenExternal(new Uri(url));
-                        }
-                    }
-                    else if (resolved.Kind == ProtocolActionKind.SetTimer)
-                    {
-                        // Handle set-timer action if needed
-                        _timers?.AddFromUri(resolved.Target ?? new Uri("about:blank"), DateTime.Now, _host);
-                        if (url is not null && _host is not null)
-                        {
-                            _host.OpenExternal(new Uri(url));
-                        }
-                    }
-                    else
-                    {
-                        //在 外部瀏覽器 打開此連結，因為這個是 open-external 的情境
-                        if (_host is not null && resolved.Target is not null)
-                        {
-                            _host.OpenExternal(resolved.Target);
-                        }
-                    }
-                }
-                else
-                {
-                    // 如果不是 nonblockinglife:// 連結，則嘗試作為 http 或 https 連結打開
-                    // 若是 `/NonBlockingLife/` 開頭的相對路徑，則嘗試將它改為以_host.BaseUri 為基礎的完整的 http 或 https 連結
-                    if (oeUrl is not null && oeUrl.StartsWith("/NonBlockingLife/") && _host.BaseUri is not null)
-                    {
-                        oeUrl = _host.BaseUri.ToString() + oeUrl["/NonBlockingLife/".Length..];
-                    }
-
-                    ok = Uri.TryCreate(oeUrl, UriKind.Absolute, out var target)
-                             && target.Scheme is "http" or "https";
-                    if (ok) _host.OpenExternal(target!);
-                }
-                return Reply("nbl:open-external-response", requestId, o => o["ok"] = ok);
+                ok = await OpenExternalOrNavigate(oeUrl);
+                return NblActionExecutor.MsgReplyToPWA("nbl:open-url-response", requestId, o => o["ok"] = ok);
 
             case "nbl:share":
-                if (_host is null) return null;
-                var title = req["title"]?.GetValue<string>() ?? "";
-                var text = string.Join("\n", new[] { req["text"]?.GetValue<string>(), req["url"]?.GetValue<string>() }
-                    .Where(s => !string.IsNullOrWhiteSpace(s)));
-                _host.Share(title, text);
-                return Reply("nbl:share-response", requestId, o => o["ok"] = true);
-
+                {
+                    if (_host is null) return null;
+                    var title = req["title"]?.GetValue<string>() ?? "";
+                    var text = string.Join("\n", new[] { req["text"]?.GetValue<string>(), req["url"]?.GetValue<string>() }
+                        .Where(s => !string.IsNullOrWhiteSpace(s)));
+                    _host.Share(title, text);
+                    return NblActionExecutor.MsgReplyToPWA("nbl:share-response", requestId, o => o["ok"] = true);
+                }
             case "nbl:supabase-rpc":
                 {
                     var url = req["url"]?.GetValue<string>() ?? "";
@@ -241,10 +194,89 @@ public sealed class BridgeDispatcher
                     var rpcName = req["rpcName"]?.GetValue<string>() ?? "";
                     var payload = req["payload"]?.AsObject();
                     var result = await SupabaseRpcProxy.CallRpcAsync(url, key, rpcName, payload);
-                    return Reply("nbl:supabase-rpc-response", requestId, o => o["data"] = result);
+                    return NblActionExecutor.MsgReplyToPWA("nbl:supabase-rpc-response", requestId, o => o["data"] = result);
+                }
+            case "nbl:show-clock":
+                {
+                    var showClockRequest = ShowClockRequestParser.FromJson(req);
+                    if (showClockRequest is null)
+                        return NblActionExecutor.MsgReplyToPWA("nbl:show-clock-response", requestId, o => o["ok"] = false);
+                    ok = await _executor.ShowClockAsync(showClockRequest, OpenExternalOrNavigate);
+                    return NblActionExecutor.MsgReplyToPWA("nbl:show-clock-response", requestId, o => o["ok"] = ok);
+                }
+            case "nbl:set-timer":
+                {
+                    var timerRequest = TimerRequestParser.FromJson(req);
+                    if (timerRequest is not null)
+                    {
+                        ok = await _executor.SetTimerAsync(timerRequest, OpenExternalOrNavigate);
+                        return NblActionExecutor.MsgReplyToPWA("nbl:set-timer-response", requestId, o => o["ok"] = ok);
+                    }
+                    return NblActionExecutor.MsgReplyToPWA("nbl:set-timer-response", requestId, o => o["ok"] = false);
                 }
             default:
                 return null;
+        }
+    }
+
+    private Uri? GetAbsoluteUri(string oeUrl)
+    {
+        // 如果 BaseUri 的 path 與 oeUrl 的最前面重疊，只要一個 path 即可，
+        // 去掉 oeUrl 前面與 BaseUri 重疊的部分，順便去掉oeUrl 前面 /NonBlockingLife/ (如果有的話)
+        if (_host?.BaseUri is not null)
+        {
+            var basePath = _host.BaseUri.AbsolutePath.TrimEnd('/');
+            if (oeUrl.StartsWith(basePath))
+            {
+                oeUrl = oeUrl.Substring(basePath.Length);
+            }
+            if (oeUrl.StartsWith("/NonBlockingLife/"))
+            {
+                oeUrl = oeUrl["/NonBlockingLife/".Length..];
+            }
+        }
+        var absoluteUri = _host?.BaseUri is not null ? new Uri(_host.BaseUri, oeUrl) : null;
+        // 測試這個 absoluteUri 是否正確
+        Uri.TryCreate(absoluteUri?.ToString(), UriKind.Absolute, out var testUri);
+        return testUri;
+    }
+
+    private async Task<bool> OpenExternalOrNavigate(String? oeUrl)
+    {
+        if (_host is null) return false;
+        if (oeUrl is null) return false;
+        // 如果 oeUrl 含有 ?open_external=true 或者 &open_external=true，則應該使用 OpenExternal，而不是 PWAUrlAction
+        var isOpenExternal = oeUrl.Contains("?open_external=true") || oeUrl.Contains("&open_external=true");
+        oeUrl = oeUrl.Replace("?open_external=true", "").Replace("&open_external=true", "");
+        // 取得 oeUrl 的絕對uri ，根據 _host.BaseUri 來處理
+        var absoluteUri = GetAbsoluteUri(oeUrl);
+        if (absoluteUri is null) return false;
+        if (isOpenExternal)
+        {
+            return _executor.OpenExternal(absoluteUri.ToString());
+        }
+        // 1. 如果 Host 是 show-clock 或 set-timer，使用內建
+        if (absoluteUri.Host == "show-clock")
+        {
+            var showClockRequest = ShowClockRequestParser.FromUri(absoluteUri);
+            if (showClockRequest is null) return false;
+            return await _executor.ShowClockAsync(showClockRequest, OpenExternalOrNavigate);
+        }
+        else if (absoluteUri.Host == "set-timer")
+        {
+            var timerRequest = TimerRequestParser.FromUri(absoluteUri);
+            if (timerRequest is null) return false;
+            return await _executor.SetTimerAsync(timerRequest, OpenExternalOrNavigate);
+        }
+        // 以下情形要使用 PWAUrlAction (就是開頭為 BaseUrl， 的)，其餘使用 OpenExternal，
+        if (absoluteUri.Host == _host.BaseUri?.Host || absoluteUri.Scheme == "nonblockinglife")
+        {
+            await _executor.PWAUrlAction(absoluteUri.ToString());
+            return true;
+        }
+        else
+        {
+            return _executor.OpenExternal(absoluteUri.ToString());
         }
     }
 
@@ -253,10 +285,4 @@ public sealed class BridgeDispatcher
     private static JsonObject ClockApp() =>
         new() { ["packageName"] = DesktopClockPackage, ["label"] = "NBL Desktop" };
 
-    private static string Reply(string type, string? requestId, Action<JsonObject> fill)
-    {
-        var o = new JsonObject { ["type"] = type, ["requestId"] = requestId };
-        fill(o);
-        return o.ToJsonString();
-    }
 }

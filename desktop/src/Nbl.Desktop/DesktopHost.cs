@@ -8,12 +8,12 @@ namespace Nbl.Desktop;
 
 public sealed class DesktopHost : IDesktopHost
 {
-    private Window? _main;
+    private MainWindow? _main;
     private ClockWindow? _clock;
 
     public Uri? BaseUri { get; set; }
 
-    public void Attach(Window main, ClockWindow clock) => (_main, _clock) = (main, clock);
+    public void Attach(MainWindow main, ClockWindow clock) => (_main, _clock) = (main, clock);
 
 
 
@@ -71,5 +71,11 @@ public sealed class DesktopHost : IDesktopHost
             Process.Start(new ProcessStartInfo(folder) { UseShellExecute = true });
         });
     }
-    
+
+    public async Task<string?> ExecuteJS(string script)
+    {
+        if (_main is null) return null;
+        return await _main.ExecuteJS(script);
+    }
+
 }

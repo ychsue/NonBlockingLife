@@ -46,5 +46,6 @@
     <string name="back_again"><![CDATA[Click \'<\' again]]></string>
     <string name="launchUrl">https://ychsue.github.io/NonBlockingLife/</string>
     <string name="hostName">ychsue.github.io</string>
+    <string name="protocolName">nonblockinglife</string>
     <string name="webManifestUrl">https://ychsue.github.io/NonBlockingLife/manifest.webmanifest</string>
   </resources>

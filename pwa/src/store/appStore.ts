@@ -277,13 +277,16 @@ interface AppState {
   capabilitiesAndKind: {
     capabilities: NativeCapability[];
     kind: HelloShellKind;
+    protocolVersion: number;
   };
   setCapabilitiesAndKind: ({
     capabilities,
     kind,
+    protocolVersion,
   }: {
     capabilities: NativeCapability[];
     kind: HelloShellKind;
+    protocolVersion: number;
   }) => void;
 }
 
@@ -419,10 +422,15 @@ export const useAppStore = create<AppState>((set) => ({
   pendingChangeLogs: [],
   setPendingChangeLogs: (logs) => set({ pendingChangeLogs: logs }),
 
-  capabilitiesAndKind: { capabilities: [], kind: "web" } as {
+  capabilitiesAndKind: {
+    capabilities: [],
+    kind: "web",
+    protocolVersion: 0,
+  } as {
     capabilities: NativeCapability[];
     kind: HelloShellKind;
+    protocolVersion: number;
   },
-  setCapabilitiesAndKind: ({ capabilities, kind }) =>
-    set({ capabilitiesAndKind: { capabilities, kind } }),
+  setCapabilitiesAndKind: ({ capabilities, kind, protocolVersion }) =>
+    set({ capabilitiesAndKind: { capabilities, kind, protocolVersion } }),
 }));

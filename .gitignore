@@ -234,3 +234,5 @@ flatpak-dotnet-generator.py
 desktop/repo/**
 
 desktop/runtimes/*
+
+.vs/CopilotSnapshots/

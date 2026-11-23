@@ -26,14 +26,15 @@ export function ExternalA({
 }: ExternalAProps) {
   const capabilitiesAndKind = useAppStore((state) => state.capabilitiesAndKind);
   const canOpenExternal =
-    capabilitiesAndKind.capabilities.includes("openExternal");
+    capabilitiesAndKind.capabilities.includes("openUrlByHost") || capabilitiesAndKind.capabilities.includes("openExternal"); // openExternal 未來要拿掉
 
   return (
     <a
       href={canOpenExternal ? undefined : href}
       onClick={(event) => {
         if (canOpenExternal) {
-          openExternalHref(href);
+          const shouldOpenNewTab = href.includes("?open_external=true") || href.includes("&open_external=true");
+          openExternalHref(href, shouldOpenNewTab);
           return false;
         }
         event.stopPropagation();

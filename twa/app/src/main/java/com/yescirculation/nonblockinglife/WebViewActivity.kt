@@ -1,12 +1,14 @@
 package com.yescirculation.nonblockinglife
 
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.webkit.RenderProcessGoneDetail
@@ -28,12 +30,15 @@ import com.yescirculation.nonblockinglife.bridge.AndroidBridge
 import com.yescirculation.nonblockinglife.notification.createNotificationChannel
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.graphics.toColorInt
+import org.json.JSONException
+import org.json.JSONObject
 
 class WebViewActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
     private lateinit var bridge: AndroidBridge
     private var isWebLoaded = false
+    private val TAG = "WebViewActivity"
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
@@ -164,7 +169,7 @@ class WebViewActivity : AppCompatActivity() {
                 val url = request?.url?.toString() ?: return false
 
                 // 攔截自訂 Scheme
-                if (url.startsWith("nonblockinglife://")) {
+                if (url.startsWith(context.getString(R.string.protocolName) + "://")) {
                     try {
                         val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                         // 確保在 WebViewActivity context 外啟動時正常運作
@@ -265,9 +270,8 @@ class WebViewActivity : AppCompatActivity() {
         }
 
         // 2. 處理一般的 Deep Link (例如點擊連結開啟 App)
-        if (intent != null && intent.data != null) {
-            webView.loadUrl(intent.data.toString())
-            return intent.data
+        if (intent?.data != null) {
+            bridge.openUrlByHost(intent.data.toString(),"host_")
         }
 
         // 3. 預設行為

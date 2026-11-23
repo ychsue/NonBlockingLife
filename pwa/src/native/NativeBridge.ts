@@ -1,10 +1,12 @@
 const KNOWN_CAPS = [
   "alarm",
   "timer",
+  "clockThroughPM",
   "notify",
   "fetchIcs",
   "share",
-  "openExternal",
+  "openUrlByHost",
+  "openExternal", // TODO 未來要拿掉
   "supabaseRpc",
 ] as const;
 export type NativeCapability = (typeof KNOWN_CAPS)[number];
@@ -69,7 +71,7 @@ export interface HelloInfo {
 
 export async function negotiateHello(
   send: RpcSend,
-  timeoutMs = 1500,
+  timeoutMs = 15000,
 ): Promise<HelloInfo> {
   try {
     const res = await send("nbl:hello", { protocolVersion: 1 }, { timeoutMs });
@@ -84,7 +86,8 @@ export async function negotiateHello(
       protocolVersion: Number(res?.protocolVersion ?? 1),
       capabilities: caps,
     };
-  } catch {
+  } catch (e) {
+    console.error("Failed to negotiate hello", e);
     return {
       shell: "android",
       protocolVersion: 0,

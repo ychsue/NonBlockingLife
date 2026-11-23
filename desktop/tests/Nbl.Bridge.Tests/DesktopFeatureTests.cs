@@ -17,10 +17,12 @@ public class DesktopFeatureTests
         public void ShowMainWindow() { }
         public void ShowClockWindow(int tabIndex = 0) { }
 
+        public Task<string?> ExecuteJS(string code) => Task.FromResult<string?>(null);
         public Uri? BaseUri => null;
     }
 
     private static readonly DateTimeOffset Now = new(2026, 10, 12, 9, 0, 0, TimeZoneInfo.Local.GetUtcOffset(new DateTime(2026, 10, 12)));
+    private static readonly string[] expected = new[] { "notify", "openUrlByHost", "openExternal", "share", "alarm" };
 
     private static JsonObject Parse(string? s) => (JsonObject)JsonNode.Parse(s!)!;
 
@@ -28,9 +30,9 @@ public class DesktopFeatureTests
     public async Task Hello_ListsCapabilities_WhenHostAndAlarmsPresent()
     {
         var d = new BridgeDispatcher("windows", "1", null, new FakeHost(), new AlarmScheduler());
-        var caps = Parse(await d.HandleAsync("""{"type":"nbl:hello","requestId":"1"}"""))["capabilities"]!
+        var caps = Parse(await d.HandleAsync("""{"type":"nbl:hello","requestId":"1"}""", TestContext.Current.CancellationToken))["capabilities"]!
             .AsArray().Select(n => (string)n!).ToArray();
-        Assert.Equal(new[] { "notify", "openExternal", "share", "alarm" }, caps);
+        Assert.Equal(expected, caps);
     }
 
     [Fact]
@@ -38,8 +40,8 @@ public class DesktopFeatureTests
     {
         var host = new FakeHost();
         var d = new BridgeDispatcher("windows", "1", null, host);
-        Assert.Null(await d.HandleAsync("""{"type":"nbl:notify","title":"t","body":"b","id":1}"""));
-        var r = Parse(await d.HandleAsync("""{"type":"nbl:notify","title":"t2","body":"b2","id":5,"requestId":"q"}"""));
+        Assert.Null(await d.HandleAsync("""{"type":"nbl:notify","title":"t","body":"b","id":1}""", TestContext.Current.CancellationToken));
+        var r = Parse(await d.HandleAsync("""{"type":"nbl:notify","title":"t2","body":"b2","id":5,"requestId":"q"}""", TestContext.Current.CancellationToken));
         Assert.Equal("nbl:notification-shown", (string?)r["type"]);
         Assert.Equal(5, (int?)r["notificationId"]);
         Assert.Equal(2, host.Notes.Count);
@@ -50,7 +52,7 @@ public class DesktopFeatureTests
     public async Task AlarmSetup_NeedsNoUserDialogs()
     {
         var d = new BridgeDispatcher("windows", "1", null, new FakeHost(), new AlarmScheduler());
-        var r = Parse(await d.HandleAsync("""{"type":"nbl:query-alarm-setup","requestId":"1"}"""));
+        var r = Parse(await d.HandleAsync("""{"type":"nbl:query-alarm-setup","requestId":"1"}""", TestContext.Current.CancellationToken));
         Assert.Equal("nbl:alarm-setup", (string?)r["type"]);
         Assert.True((bool)r["exactAlarmAllowed"]!);
         Assert.NotNull(r["selectedClockApp"]?["packageName"]);
@@ -66,7 +68,7 @@ public class DesktopFeatureTests
               {"id":2,"mode":"exact","time":[2026,10,12,8,0],"label":"past"},
               {"id":3,"mode":"exact","time":[2026,10,12,11,0],"label":"b"}]}
             """;
-        var res = Parse(await d.HandleAsync(msg))["results"]!.AsArray();
+        var res = Parse(await d.HandleAsync(msg, TestContext.Current.CancellationToken))["results"]!.AsArray();
         Assert.True((bool)res[0]!["ok"]!);
         Assert.False((bool)res[1]!["ok"]!);
         Assert.Equal("past_time", (string?)res[1]!["reason"]);
@@ -81,14 +83,14 @@ public class DesktopFeatureTests
             {"type":"nbl:set-alarms","requestId":"s","alarms":[
               {"id":1,"mode":"clock","time":[10,30],"label":"a"},
               {"id":2,"mode":"exact","time":[2026,10,12,11,0],"label":"b"}]}
-            """);
-        var list = Parse(await d.HandleAsync("""{"type":"nbl:get-alarms","requestId":"g"}"""))["alarms"]!.AsArray();
+            """, TestContext.Current.CancellationToken);
+        var list = Parse(await d.HandleAsync("""{"type":"nbl:get-alarms","requestId":"g"}""", TestContext.Current.CancellationToken))["alarms"]!.AsArray();
         Assert.Equal(2, list.Count);
 
-        var res = Parse(await d.HandleAsync("""{"type":"nbl:cancel-alarms","requestId":"c","ids":[1,99]}"""));
+        var res = Parse(await d.HandleAsync("""{"type":"nbl:cancel-alarms","requestId":"c","ids":[1,99]}""", TestContext.Current.CancellationToken));
         Assert.Equal("nbl:cancel-alarms-result", (string?)res["type"]);
         Assert.Equal(1, (int)res["removed"]!);
-        list = Parse(await d.HandleAsync("""{"type":"nbl:get-alarms","requestId":"g2"}"""))["alarms"]!.AsArray();
+        list = Parse(await d.HandleAsync("""{"type":"nbl:get-alarms","requestId":"g2"}""", TestContext.Current.CancellationToken))["alarms"]!.AsArray();
         Assert.Single(list);
     }
 
@@ -97,8 +99,8 @@ public class DesktopFeatureTests
     {
         var host = new FakeHost();
         var d = new BridgeDispatcher("windows", "1", null, host);
-        Assert.True((bool)Parse(await d.HandleAsync("""{"type":"nbl:open-external","requestId":"1","url":"https://example.com/"}"""))["ok"]!);
-        Assert.False((bool)Parse(await d.HandleAsync("""{"type":"nbl:open-external","requestId":"2","url":"file:///C:/Windows/notepad.exe"}"""))["ok"]!);
+        Assert.True((bool)Parse(await d.HandleAsync("""{"type":"nbl:open-url","requestId":"1","url":"https://example.com/"}""", TestContext.Current.CancellationToken))["ok"]!);
+        Assert.False((bool)Parse(await d.HandleAsync("""{"type":"nbl:open-url","requestId":"2","url":"file:///C:/Windows/notepad.exe"}""", TestContext.Current.CancellationToken))["ok"]!);
         Assert.Single(host.Opened);
     }
 
@@ -107,7 +109,7 @@ public class DesktopFeatureTests
     {
         var host = new FakeHost();
         var d = new BridgeDispatcher("windows", "1", null, host);
-        await d.HandleAsync("""{"type":"nbl:share","requestId":"1","title":"T","text":"hello","url":"https://x/"}""");
+        await d.HandleAsync("""{"type":"nbl:share","requestId":"1","title":"T","text":"hello","url":"https://x/"}""", TestContext.Current.CancellationToken);
         Assert.Equal(("T", "hello\nhttps://x/"), host.Shared[0]);
     }
 }

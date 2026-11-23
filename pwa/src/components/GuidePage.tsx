@@ -511,8 +511,8 @@ export function GuidePage() {
             <ExternalA
               href={
                 locale === "zh-TW"
-                  ? "/NonBlockingLife/privacy-policy-zh-TW.html"
-                  : "/NonBlockingLife/privacy-policy-en.html"
+                  ? "/NonBlockingLife/privacy-policy-zh-TW.html?open_external=true"
+                  : "/NonBlockingLife/privacy-policy-en.html?open_external=true"
               }
               target="_blank"
               rel="noopener noreferrer"
@@ -527,8 +527,8 @@ export function GuidePage() {
             <ExternalA
               href={
                 locale === "zh-TW"
-                  ? "/NonBlockingLife/terms-zh-TW.html"
-                  : "/NonBlockingLife/terms-en.html"
+                  ? "/NonBlockingLife/terms-zh-TW.html?open_external=true"
+                  : "/NonBlockingLife/terms-en.html?open_external=true"
               }
               target="_blank"
               rel="noopener noreferrer"

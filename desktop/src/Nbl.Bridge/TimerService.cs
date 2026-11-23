@@ -167,9 +167,14 @@ public sealed class TimerService
         if (!int.TryParse(query["duration"], out var seconds)) return false;
         var skipUi = bool.TryParse(query["skipUi"], out var result) && result;
         var title = query["title"] ?? "";
-        UpdateOrCreateByLabel(title, TimeSpan.FromSeconds(seconds), now);
+        Add(seconds, skipUi, title, now, host);
+        return true;
+    }
+
+    public void Add(int durationSeconds, bool skipUi, string title, DateTimeOffset now, IDesktopHost? host)
+    {
+        UpdateOrCreateByLabel(title, TimeSpan.FromSeconds(durationSeconds), now);
         if (!skipUi && host is not null)
             host.ShowClockWindow(1);
-        return true;
     }
 }

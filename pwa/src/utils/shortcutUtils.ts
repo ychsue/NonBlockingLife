@@ -218,10 +218,10 @@ export function triggerAutomateFlow(
  * @param newTab 是否在新標籤頁中打開，默認為 false
  */
 export function openExternalHref(intentUrl: string, newTab?: boolean): void {
+  const capabilities = useAppStore.getState().capabilitiesAndKind.capabilities;
   if (
-    useAppStore
-      .getState()
-      .capabilitiesAndKind.capabilities.includes("openExternal")
+    capabilities.includes("openUrlByHost") ||
+    capabilities.includes("openExternal") // openExternal 未來要拿掉
   ) {
     const twaPort = (
       window as unknown as {
@@ -229,7 +229,14 @@ export function openExternalHref(intentUrl: string, newTab?: boolean): void {
       }
     ).__NBL_TWA_BRIDGE__?.port;
     if (twaPort) {
-      twaPort.postMessage({ type: "nbl:open-external", url: intentUrl });
+      // twaPort.postMessage(
+      //   JSON.stringify({ type: "nbl:open-url", url: intentUrl }),
+      // );
+
+      twaPort.postMessage(
+        // TODO 未來要換上面的
+        JSON.stringify({ type: "nbl:open-external", url: intentUrl }),
+      );
     } else {
       if (newTab) {
         window.open(intentUrl, "_blank");
@@ -258,33 +265,52 @@ export function openExternalHref(intentUrl: string, newTab?: boolean): void {
  * @param automateConfig Automate 配置（Android 用），若不傳則從 localStorage 讀取
  * @returns 是否成功触发
  */
-export function buildTwaTimerUri(
+export function triggerTimer(
   taskTitle: string,
   timerMinutes: number,
   mode?: AndroidTimerLaunchMode,
   intent?: "start" | "end",
   url?: string,
-): string {
+  throughPostMessage?: boolean,
+): boolean {
   const resolvedMode = mode ?? useAppStore.getState().androidTimerLaunchMode;
-  const normalizedTitle = (taskTitle ?? "").trim();
-
-  if (intent === "end") {
-    if (resolvedMode === "none") {
-      return "";
+  const twaPort = (
+    window as unknown as {
+      __NBL_TWA_BRIDGE__?: { port: MessagePort | null };
     }
-    return `nonblockinglife://show-clock${url ? `?url=${encodeURIComponent(url)}` : ""}`;
-  }
+  ).__NBL_TWA_BRIDGE__?.port;
 
-  if (resolvedMode === "set_timer") {
-    const durationSeconds = Math.max(0, Math.round(timerMinutes * 60));
-    return `nonblockinglife://set-timer?duration=${durationSeconds}&skipUi=true&title=${encodeURIComponent(normalizedTitle)}${url ? `&url=${encodeURIComponent(url)}` : ""}`;
+  const normalizedTitle = (taskTitle ?? "").trim();
+  let timerUri = "";
+  if (intent === "end" || resolvedMode === "show_clock") {
+    if (throughPostMessage && twaPort) {
+      twaPort.postMessage(JSON.stringify({ type: "nbl:show-clock", url: url }));
+    } else {
+      timerUri = `nonblockinglife://show-clock${url ? `?url=${encodeURIComponent(url)}` : ""}`;
+      openExternalHref(timerUri);
+    }
+    return true;
+  } else if (resolvedMode === "set_timer") {
+    if (throughPostMessage && twaPort) {
+      twaPort.postMessage(
+        JSON.stringify({
+          type: "nbl:set-timer",
+          url: url,
+          duration: Math.max(0, Math.round(timerMinutes * 60)),
+          skipUi: true,
+          title: normalizedTitle,
+        }),
+      );
+    } else {
+      const durationSeconds = Math.max(0, Math.round(timerMinutes * 60));
+      timerUri = `nonblockinglife://set-timer?duration=${durationSeconds}&skipUi=true&title=${encodeURIComponent(normalizedTitle)}${url ? `&url=${encodeURIComponent(url)}` : ""}`;
+      openExternalHref(timerUri);
+    }
+    return true;
+  } else {
+    console.info("Android timer launch is disabled by current mode.");
+    return false;
   }
-
-  if (resolvedMode === "show_clock") {
-    return `nonblockinglife://show-clock${url ? `?url=${encodeURIComponent(url)}` : ""}`;
-  }
-
-  return "";
 }
 
 /**
@@ -338,23 +364,17 @@ export function triggerShortcutTimer(
   } else if (
     deviceType === "TWA" ||
     deviceType === "AndroidWebView" ||
-    capabilitiesAndKind?.capabilities.includes("timer")
+    capabilitiesAndKind?.capabilities.includes("timer") ||
+    capabilitiesAndKind?.capabilities.includes("clockThroughPM")
   ) {
-    const timerUri = buildTwaTimerUri(
+    return triggerTimer(
       taskTitle,
       config.timerMinutes,
       undefined,
       intent,
       config.url,
+      capabilitiesAndKind?.capabilities.includes("clockThroughPM"),
     );
-
-    if (!timerUri) {
-      console.info("Android timer launch is disabled by current mode.");
-      return false;
-    }
-
-    openExternalHref(timerUri);
-    return true;
     // const aConfig = automateConfig ?? getAutomateConfig(config.started ? "start" : "end");
     // return triggerAutomateFlow(taskTitle, { ...aConfig, taskTitle });
   } else if (deviceType === "Windows") {
