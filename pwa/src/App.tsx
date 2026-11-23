@@ -129,8 +129,7 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: Sorry, the feature to simultaneously open web pages or apps will be gradually rolled out, as it seems it cannot be purely implemented by the PWA.",
-      "openDialog.clockNotSelected.title": "Clock App Not Selected",
+        "\n\r**Please note**: Sorry, the automatic URL opening feature requires changes on both the PWA and host sides, so it may not work correctly with the old host version. I'll fix it soon.",
       "openDialog.clockNotSelected.message":
         "Please select a clock app in the APP settings before setting an alarm.",
       "openDialog.exactAlarmPermission.title":
@@ -150,7 +149,7 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：抱歉，同步開啟網頁或App的功能再緩緩推出，因為看來沒辦法純粹由PWA實現。",
+        "\n\r**注意**：抱歉，由於自動開啟Url功能必須全端一起改，現在我先放上PWA的部份，有可能導致舊的Host端接收異常，請忍耐一下。我會盡快修復。",
       "openDialog.clockNotSelected.title": "未選擇時鐘應用",
       "openDialog.clockNotSelected.message":
         "請先由APP設定選擇一個時鐘應用以設定鬧鐘。",
@@ -172,7 +171,7 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：申し訳ありませんが、ウェブページやアプリを同時に開く機能は段階的に展開されます。PWAだけでは純粋に実現できないようです。",
+        "\n\r**注意**：申し訳ありませんが、自動でURLを開く機能はPWAとホストの両方で変更が必要なため、古いホストバージョンでは正しく動作しない可能性があります。すぐに修正します。",
       "openDialog.clockNotSelected.title": "時計アプリが選択されていません",
       "openDialog.clockNotSelected.message":
         "アラームを設定する前に、APPの設定で時計アプリを選択してください。",

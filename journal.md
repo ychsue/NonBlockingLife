@@ -1,5 +1,8 @@
 # Journal
 
+## [2026-11-23] linux 上修改 OpenExternal 後測試正常
+- [DesktopHost.cs](desktop/src/Nbl.Desktop/DesktopHost.cs) 裡面修改了 OpenExternal 的實作，讓它在 Linux 上也能正常使用。（flatpak 測過也正常）
+
 ## [2026-11-22] 重構 BridgeDispatcher 與相關模組
 1. 根據 MS Copilot 的建議，重構 BridgeDispatcher，將解析來源格式與執行業務邏輯分離，並引入 Parser、Request 與 Executor 模組。
 2. BridgeDispatcher 現在只負責將請求分派給對應的 Executor，解析請求的工作則交給各個 Parser 模組處理。[與MS Copilot討論後結論](Discussion\cross_platform\discussion_refine_cs_dispatcher.md)

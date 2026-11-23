@@ -49,8 +49,31 @@ public sealed class DesktopHost : IDesktopHost
         ToastWindow.Show(options);
     }
 
-    public void OpenExternal(Uri url) =>
-        Process.Start(new ProcessStartInfo(url.ToString()) { UseShellExecute = true });
+    public void OpenExternal(Uri uri)
+    {
+        var url = uri.ToString();
+        // 分成 windows, linux & OSX
+        if (OperatingSystem.IsWindows())
+        {
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            var psi = new ProcessStartInfo("xdg-open")
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            psi.ArgumentList.Add(url);
+            Process.Start(psi);
+        }
+        else if (OperatingSystem.IsMacOS())
+        {
+            Process.Start("open", url);
+        }
+    }
+        
+        
 
     public void Share(string title, string text) =>
         Dispatcher.UIThread.Post(async () =>

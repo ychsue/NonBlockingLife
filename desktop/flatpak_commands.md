@@ -13,7 +13,8 @@ flatpak run org.flatpak.Builder --force-clean build-dir io.github.ychsue.nonbloc
 
 flatpak run --command=flathub-build org.flatpak.Builder --install io.github.ychsue.nonblockinglife.yml
 
-flatpak run io.github.ychsue.nonblockinglife
+## Please `cd pwa; npm run dev` at first so that you can run the app with the development server
+flatpak run io.github.ychsue.nonblockinglife --source dev
 
 flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest io.github.ychsue.nonblockinglife.yml
 
