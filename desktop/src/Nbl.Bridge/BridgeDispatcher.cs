@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Web;
+using System.Text.RegularExpressions;
 using Nbl.Bridge.Actions;
 using Nbl.Bridge.Parsers;
 
@@ -222,17 +222,15 @@ public sealed class BridgeDispatcher(
     private Uri? GetAbsoluteUri(string oeUrl)
     {
         // 如果 BaseUri 的 path 與 oeUrl 的最前面重疊，只要一個 path 即可，
+        // 如果 oeUrl 是以英文字母，數字，- 與 _ 開頭，然後接 ://，則視為絕對網址，不加上 BaseUri 的 path
         // 去掉 oeUrl 前面與 BaseUri 重疊的部分，順便去掉oeUrl 前面 /NonBlockingLife/ (如果有的話)
-        if (_host?.BaseUri is not null)
+        if (_host?.BaseUri is not null && !Validators.IsAbsoluteUrl(oeUrl))
         {
             var basePath = _host.BaseUri.AbsolutePath.TrimEnd('/');
-            if (oeUrl.StartsWith(basePath))
+            // 因為 new Uri(_host.BaseUri, oeUrl) 會將 BaseUri 的 path 丟掉後再組合 oeUrl，所以，必須取下他的 basePath，視情況組合回 oeUrl
+            if (!oeUrl.StartsWith(basePath))
             {
-                oeUrl = oeUrl.Substring(basePath.Length);
-            }
-            if (oeUrl.StartsWith("/NonBlockingLife/") && !(_host?.BaseUri.AbsolutePath.Contains("/NonBlockingLife/") ?? false))
-            {
-                oeUrl = oeUrl["/NonBlockingLife/".Length..]; // 因為 ri(_host.BaseUri, oeUrl) 會將 BaseUri 的 path 丟掉後再組合 oeUrl，所以，正常情況下不可丟
+                oeUrl = basePath + (oeUrl[0] == '/' ? oeUrl : ("/" + oeUrl));
             }
         }
         var absoluteUri = _host?.BaseUri is not null ? new Uri(_host.BaseUri, oeUrl) : null;
@@ -285,4 +283,12 @@ public sealed class BridgeDispatcher(
     private static JsonObject ClockApp() =>
         new() { ["packageName"] = DesktopClockPackage, ["label"] = "NBL Desktop" };
 
+}
+
+public static partial class Validators
+{
+        [GeneratedRegex(@"^[A-Za-z0-9\-_]+://")]
+        public static partial Regex AbsoluteUrlPrefix();
+
+        public static bool IsAbsoluteUrl(string url) => AbsoluteUrlPrefix().IsMatch(url);
 }

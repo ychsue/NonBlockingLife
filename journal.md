@@ -1,5 +1,10 @@
 # Journal
 
+## [2026-11-24] 能在 RPi 3B 上跑與 bug fix
+1. [BridgeDispatcher.cs](desktop/src/Nbl.Bridge/BridgeDispatcher.cs) 的 `GetAbsoluteUri` 有錯，已經修正。
+2. 順便改進 iPhone Shortcut `NBL_Timer`，讓它也能連動。
+3. 準備把測試 aarch64 的程式碼放在 `feature/flatpak` 分支上，方便 petershh 幫忙測試。
+
 ## [2026-11-23] 為了 flatpak 做了一些調整看看有沒有效
 將 test-flatpak-arm64.yml 在 branch feature/flatpak 上測試，確認 flatpak 在 aarch64 架構下能正常建置與執行
 

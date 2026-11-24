@@ -32,7 +32,7 @@ const SHORTCUTS = (locale: SupportedLocale) => [
   },
   {
     name: "NBL_Timer",
-    url: "https://www.icloud.com/shortcuts/cec8d6853e6149f5aff82d8ff0235f36",
+    url: "https://www.icloud.com/shortcuts/d86c039632034cba9f75d97449851a23",
     purpose:
       locale === "zh-TW"
         ? "iPhone 裡面接收來自NBL提出的顯示模式與計時器切換的要求。"
