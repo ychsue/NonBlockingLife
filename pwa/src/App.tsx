@@ -41,6 +41,7 @@ import _ from "lodash";
 import { useTWithMaps } from "./i18n";
 import { strToJsx } from "./components/strToJsx";
 import { useNativeBridge } from "./native/useNativeBridge";
+import { RuntimeBadge } from "./components/Runtime/RuntimeBadge";
 
 type AllPages =
   | SheetName
@@ -129,13 +130,14 @@ export default function App() {
       "PWA Updated": "PWA Updated",
       "To New Version":
         `The update is version ${import.meta.env.__APP_VERSION__}` +
-        "\n\r**Please note**: Sorry, the automatic URL opening feature requires changes on both the PWA and host sides, so it may not work correctly with the old host version. I'll fix it soon.",
+        "\n\r**Please note**: Please upgrade the host to version 3.3.1 after 11/28.",
       "openDialog.clockNotSelected.message":
         "Please select a clock app in the APP settings before setting an alarm.",
       "openDialog.exactAlarmPermission.title":
         "Exact Alarm Permission Not Enabled",
       "openDialog.exactAlarmPermission.message":
         "Please enable the exact alarm permission in your APP settings to ensure accurate notifications.",
+      "openDialog.clockNotSelected.title": "Clock App Not Selected",
     },
     "zh-TW": {
       "useTwaBridge.twaNotAvailable":
@@ -149,7 +151,7 @@ export default function App() {
       "PWA Updated": "PWA 已更新",
       "To New Version":
         `此次更新為${import.meta.env.__APP_VERSION__}` +
-        "\n\r**注意**：抱歉，由於自動開啟Url功能必須全端一起改，現在我先放上PWA的部份，有可能導致舊的Host端接收異常，請忍耐一下。我會盡快修復。",
+        "\n\r**注意**：先將前端升級到此版本，請您 11/28 後將原生端也升級到 3.3.1。",
       "openDialog.clockNotSelected.title": "未選擇時鐘應用",
       "openDialog.clockNotSelected.message":
         "請先由APP設定選擇一個時鐘應用以設定鬧鐘。",
@@ -171,7 +173,7 @@ export default function App() {
       "PWA Updated": "PWA が更新されました",
       "To New Version":
         `今回の更新はバージョン ${import.meta.env.__APP_VERSION__} です` +
-        "\n\r**注意**：申し訳ありませんが、自動でURLを開く機能はPWAとホストの両方で変更が必要なため、古いホストバージョンでは正しく動作しない可能性があります。すぐに修正します。",
+        "\n\r**注意**：先にフロントエンドをこのバージョンにアップグレードし、11/28 後にネイティブ側も 3.3.1 にアップグレードしてください。",
       "openDialog.clockNotSelected.title": "時計アプリが選択されていません",
       "openDialog.clockNotSelected.message":
         "アラームを設定する前に、APPの設定で時計アプリを選択してください。",
@@ -819,6 +821,7 @@ export default function App() {
                     {!isMobile && (
                       <div className="flex flex-row flex-wrap space-between gap-1">
                         <SyncStatus />
+                        <RuntimeBadge className="px-3 py-2 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100 shrink" />
                         <button
                           onClick={() => {
                             setCurrentSheet("debug");
@@ -909,6 +912,7 @@ export default function App() {
             {isMobile && showMobileMenu && (
               <div className="bg-white w-full border-t border-gray-100 px-4 py-3 shadow-md flex flex-wrap flex-row gap-1">
                 <SyncStatus className="grow" />
+                <RuntimeBadge className="px-3 py-2 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100 shrink" />
                 <button
                   onClick={() => {
                     setCurrentSheet("debug");

@@ -78,9 +78,12 @@ class AndroidBridge (
     /**
      * 前端如果不改，那麼，就需要在Native端載入時，直接 Inject 假的 window.AndroidPort
      */
-    fun injectAndroidPortMock() {
+    fun injectAndroidPortMock(onReady: (Boolean) -> Unit = {}) {
         val mockJs = """
             (function(){
+                if (!window.__NBL_TWA_BRIDGE__) {
+                    return false;
+                }
                 // 1. 插入 window.AndroidPort
                 if (!window.AndroidPort) {
                     window.AndroidPort = {
@@ -93,10 +96,13 @@ class AndroidBridge (
                 //  window.dispatchEvent(new MessageEvent('message', {data:{ports: [window.AndroidPort]}}));
                 window.__NBL_TWA_BRIDGE__.setPort(window.AndroidPort);
                 console.log('[Native Inject] window.AndroidPort injected as a port.');
+                return true;
             })();
         """.trimIndent()
 
-        webView.evaluateJavascript(mockJs, null)
+        webView.evaluateJavascript(mockJs) { result ->
+            onReady(result == "true")
+        }
     }
 
     fun handleClientMessage(jsonMessage: String) {
@@ -153,7 +159,10 @@ class AndroidBridge (
                 })
             } else if ("nbl:open-url" == type || "nbl:open-external" == type) {
                 val url = json.optString("url", "")
-                openUrlByHost(url, "host_")
+                openUrlByHost(
+                    url,
+                    "host_open_url_${System.currentTimeMillis()}_${System.nanoTime()}"
+                )
             } else if ("nbl:show-clock" == type) {
                 val url = json.optString("url", "")
                 ClockActions.showTimers(
@@ -196,7 +205,7 @@ class AndroidBridge (
         )
         if (uri == null) return
         // 1. 如果是 show-clock 與 set-timer，把她先跳掉
-        if (uri.host =="show-clock") {
+        if (uri.host?.startsWith("show-clock") == true) {
             ClockActions.showTimers(
                 context, 
                 url = uri.getQueryParameter("url"), 
@@ -205,7 +214,7 @@ class AndroidBridge (
                 }
             )
             return
-        } else if (uri.host == "set-timer") {
+        } else if (uri.host?.startsWith("set-timer") == true) {
             ClockActions.setTimer(
                 context, 
                 durationSeconds = parseDurationSeconds(uri.getQueryParameter("duration")),
@@ -226,16 +235,20 @@ class AndroidBridge (
                 return
             }
             // 2. 若 query 裡面有 open_external=true，就用外部瀏覽器開啟
-            if (uri.query?.contains("open_external=true") == true) {
-                openByExternalBrowser(uri)
-            } else {
+            if (uri.query?.contains("open_external=true") == true || uri.query.isNullOrEmpty() )
+                openByExternalBrowser(uri) else
                 // 3. 其餘的，都用 postMessage
-                val message = JSONObject()
-                    .put("type", type)
-                    .put("requestId", requestId)
-                    .put("url", uri.toString())
-                mSession.postMessage(message.toString(), null)
-            }
+                if (type == "nbl:url-action") {
+                    var rid = requestId
+                    if (!rid.startsWith("host_") ) {
+                        rid = "host_$requestId"
+                    }
+                    val message = JSONObject()
+                        .put("type", type)
+                        .put("requestId", rid)
+                        .put("url", uri.toString())
+                    mSession.postMessage(message.toString(), null)
+                }
         } else {
             openByExternalBrowser(uri)
         }
@@ -243,10 +256,12 @@ class AndroidBridge (
     
     private fun openByExternalBrowser(uri: Uri) {
         try {
-            val browserIntent = Intent(Intent.ACTION_VIEW, uri).apply {
-                setPackage("com.android.chrome") // 指定使用 Chrome 瀏覽器打開
-            }
-            context.startActivity(browserIntent)
+            // val browserIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+            //     setPackage("com.android.chrome") // 指定使用 Chrome 瀏覽器打開，缺點：Line, YouTube 都得打開Chrome
+            // }
+            // 使用 window.open 也不行
+            // context.startActivity(browserIntent)
+            webView.evaluateJavascript("window.location.href='${uri.toString()}'", null)
         } catch (e: ActivityNotFoundException) {
             Log.e(TAG, "Chrome not found, falling back to default browser", e)
             context.startActivity(Intent(Intent.ACTION_VIEW, uri))

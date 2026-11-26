@@ -54,6 +54,11 @@ export function useT() {
   }, [map])
 }
 
+/**
+ * Returns a translation function that uses the provided maps instead of the default translations.
+ * @param maps A record of translations for each supported locale. `{ <locale>: { <key>: <translation> } }`
+ * @returns A translation function bound to the current locale.
+ */
 export function useTWithMaps<T extends string>(maps: Record<SupportedLocale, Record<T, string>>) {
   const locale = useAppStore((s) => s.locale)
   return useCallback((key: T, vars?: Record<string, string | number>): string => {
@@ -66,6 +71,25 @@ export function useTWithMaps<T extends string>(maps: Record<SupportedLocale, Rec
     return str
   }, [locale])
 }
+
+/**
+ * Returns a translation function that uses the provided maps instead of the default translations.
+ * @param maps A record of translations for each supported locale. `{ <key>: { <locale>: <translation> } }`
+ * @returns A translation function bound to the current locale.
+ */
+export function useTWithKeyLocaleMaps<T extends string>(maps: Record<T, Record<SupportedLocale, string>>) {
+  const locale = useAppStore((s) => s.locale)
+  return useCallback((key: T, vars?: Record<string, string | number>): string => {
+    let str: string = maps[key]?.[locale] ?? String(key)
+    if (vars) {
+      for (const [k, v] of Object.entries(vars)) {
+        str = str.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v))
+      }
+    }
+    return str
+  }, [locale])
+}
+
 
 /**
  * Non-hook translation function for use outside React components.

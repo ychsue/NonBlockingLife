@@ -12,7 +12,7 @@ const KNOWN_CAPS = [
 export type NativeCapability = (typeof KNOWN_CAPS)[number];
 
 export type NativeShellKind = "web" | "twa" | "desktop";
-export type HelloShellKind = "android" | "windows" | "linux" | "web" | "unknown";
+export type HelloShellKind = "android" | "windows" | "linux" | "web" | "pwa" | "unknown";
 
 export interface SendOptions {
   /** 是否等待回應，預設 true */

@@ -243,12 +243,20 @@ public sealed class BridgeDispatcher(
     {
         if (_host is null) return false;
         if (oeUrl is null) return false;
-        // 如果 oeUrl 含有 ?open_external=true 或者 &open_external=true，則應該使用 OpenExternal，而不是 PWAUrlAction
+        // 如果 oeUrl 含有 ?open_external=true 或者 &open_external=true，
+        // 則應該使用 OpenExternal，而不是 PWAUrlAction
         var isOpenExternal = oeUrl.Contains("?open_external=true") || oeUrl.Contains("&open_external=true");
         oeUrl = oeUrl.Replace("?open_external=true", "").Replace("&open_external=true", "");
         // 取得 oeUrl 的絕對uri ，根據 _host.BaseUri 來處理
         var absoluteUri = GetAbsoluteUri(oeUrl);
         if (absoluteUri is null) return false;
+        // 外加如果剛好是 _host.BaseUri 的 host，且完全沒有query，那這種頁面也要 open_external
+        if (_host?.BaseUri is not null &&
+            absoluteUri.Host == _host?.BaseUri.Host && string.IsNullOrEmpty(absoluteUri.Query))
+        {
+            isOpenExternal = true;
+        }
+
         if (isOpenExternal)
         {
             return _executor.OpenExternal(absoluteUri.ToString());
@@ -267,7 +275,7 @@ public sealed class BridgeDispatcher(
             return await _executor.SetTimerAsync(timerRequest, OpenExternalOrNavigate);
         }
         // 以下情形要使用 PWAUrlAction (就是開頭為 BaseUrl， 的)，其餘使用 OpenExternal，
-        if (absoluteUri.Host == _host.BaseUri?.Host || absoluteUri.Scheme == "nonblockinglife")
+        if (absoluteUri.Host == _host?.BaseUri?.Host || absoluteUri.Scheme == "nonblockinglife")
         {
             await _executor.PWAUrlAction(absoluteUri.ToString());
             return true;
@@ -287,8 +295,8 @@ public sealed class BridgeDispatcher(
 
 public static partial class Validators
 {
-        [GeneratedRegex(@"^[A-Za-z0-9\-_]+://")]
-        public static partial Regex AbsoluteUrlPrefix();
+    [GeneratedRegex(@"^[A-Za-z0-9\-_]+://")]
+    public static partial Regex AbsoluteUrlPrefix();
 
-        public static bool IsAbsoluteUrl(string url) => AbsoluteUrlPrefix().IsMatch(url);
+    public static bool IsAbsoluteUrl(string url) => AbsoluteUrlPrefix().IsMatch(url);
 }

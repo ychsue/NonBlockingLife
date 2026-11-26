@@ -1,5 +1,14 @@
 # Journal
 
+## [2026-11-26] 更新版本至 NBL-3.3.1
+1. [index.ts](pwa\src\i18n\index.ts) 多了 `useTWithKeyLocaleMaps`，這個是以 key 為索引，對應不同語系的翻譯映射。這樣比較不會漏掉語言。
+2. [BridgeDispatcher.cs](desktop\src\Nbl.Bridge\BridgeDispatcher.cs) 當傳進來的 url 剛好是 baseUrl開頭，若該url沒有 query時，應該改用外部瀏覽器，不然會導致WebView無法退回主頁的窘境。
+3. [WebViewActivity.kt](twa\app\src\main\java\com\yescirculation\nonblockinglife\WebViewActivity.kt) 與 [AndroidBridge.kt](twa\app\src\main\java\com\yescirculation\nonblockinglife\bridge\AndroidBridge.kt) 謝謝 MAI Code 2 的協助，總算能同時解決如果此App尚未打開就 share 會失敗與一旦翻轉手機就會一直執行share的action的問題，請看 [discussion_multi_share_problem.md](Discussion\cross_platform\discussion_multi_share_problem.md) MAI Code 2 的分析與解決法，謝謝。
+4. 在 Android 上，發現 `window.open` 不打開， `com.android.chrome` 則會讓 YouTube, Line 等都會先在 Chrome 開啟，所以，最後還是改成使用 `window.location.href` 來開啟連結。
+
+## [2026-11-24] 加上顯示現在所在Runtime與建議安裝 Native 的頁面
+1. [RuntimeBadge.tsx](pwa\src\components\Runtime\RuntimeBadge.tsx) 用來顯示目前所在的 Runtime 與建議安裝 Native 的頁面。
+
 ## [2026-11-24] 能在 RPi 3B 上跑與 bug fix
 1. [BridgeDispatcher.cs](desktop/src/Nbl.Bridge/BridgeDispatcher.cs) 的 `GetAbsoluteUri` 有錯，已經修正。
 2. 順便改進 iPhone Shortcut `NBL_Timer`，讓它也能連動。

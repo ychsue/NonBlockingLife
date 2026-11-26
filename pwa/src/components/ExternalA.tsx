@@ -14,6 +14,7 @@ interface ExternalAProps {
   onTouchEnd?: (event: React.TouchEvent<HTMLAnchorElement>) => void;
   onTouchMove?: (event: React.TouchEvent<HTMLAnchorElement>) => void;
   onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+  disabled?: boolean;
 }
 
 export function ExternalA({
@@ -26,16 +27,23 @@ export function ExternalA({
 }: ExternalAProps) {
   const capabilitiesAndKind = useAppStore((state) => state.capabilitiesAndKind);
   const canOpenExternal =
-    capabilitiesAndKind.capabilities.includes("openUrlByHost") || capabilitiesAndKind.capabilities.includes("openExternal"); // openExternal 未來要拿掉
+    capabilitiesAndKind.capabilities.includes("openUrlByHost") ||
+    capabilitiesAndKind.capabilities.includes("openExternal"); // openExternal 未來要拿掉
 
   return (
     <a
       href={canOpenExternal ? undefined : href}
       onClick={(event) => {
         if (canOpenExternal) {
-          const shouldOpenNewTab = href.includes("?open_external=true") || href.includes("&open_external=true");
+          const shouldOpenNewTab =
+            href.includes("?open_external=true") ||
+            href.includes("&open_external=true");
           openExternalHref(href, shouldOpenNewTab);
           return false;
+        }
+        if (rest.disabled) {
+          event.preventDefault();
+          return;
         }
         event.stopPropagation();
         onClick?.(event);
@@ -43,6 +51,7 @@ export function ExternalA({
       target={target ?? "_blank"}
       rel={rel ?? "noopener noreferrer"}
       {...rest}
+      aria-disabled={rest.disabled}
     >
       {children}
     </a>

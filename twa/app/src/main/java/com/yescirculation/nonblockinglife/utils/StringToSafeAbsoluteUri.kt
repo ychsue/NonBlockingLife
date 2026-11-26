@@ -13,7 +13,7 @@ fun String.toSafeAbsoluteUri(baseUrl: String, stProtocol: String): Uri? {
 
     val resultUri = when {
         // 1.1 如果 uri.host 是 stProtocol，把它改成 baseUrl
-        uri.host == "show-clock" || uri.host == "set-timer" -> uri
+        uri.host?.startsWith("show-clock") == true || uri.host?.startsWith("set-timer") == true  -> uri
         uri.scheme == stProtocol -> uri.buildUpon().scheme(baseUrl).build()
 
         // 2. 如果 uri 是絕對 URI，直接返回

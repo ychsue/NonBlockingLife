@@ -8,6 +8,8 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.View
@@ -32,12 +34,21 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.graphics.toColorInt
 import org.json.JSONException
 import org.json.JSONObject
+import java.net.URLEncoder
 
 class WebViewActivity : AppCompatActivity() {
+
+    companion object {
+        private const val PENDING_HOST_URL_KEY = "pending_host_url"
+        private const val PENDING_HOST_REQUEST_ID_KEY = "pending_host_request_id"
+    }
 
     private lateinit var webView: WebView
     private lateinit var bridge: AndroidBridge
     private var isWebLoaded = false
+    private var isBridgeReady = false
+    private var pendingHostUrl: String? = null
+    private var pendingHostRequestId: String? = null
     private val TAG = "WebViewActivity"
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -161,7 +172,15 @@ class WebViewActivity : AppCompatActivity() {
             }
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                bridge.injectAndroidPortMock()
+                isBridgeReady = false
+                bridge.injectAndroidPortMock { ready ->
+                    isBridgeReady = ready
+                    if (ready) {
+                        flushPendingHostUrl()
+                    } else {
+                        Log.e(TAG, "PWA bridge was not ready after page finished")
+                    }
+                }
                 // 當網頁載入完成，就將旗標設為true，Splash Screen 就會優雅地淡出關閉！
                 isWebLoaded = true
             }
@@ -197,7 +216,13 @@ class WebViewActivity : AppCompatActivity() {
             }
         }
 
-        webView.loadUrl(this.getString(R.string.launchUrl)) // 換成您的網址
+        pendingHostUrl = savedInstanceState?.getString(PENDING_HOST_URL_KEY)
+        pendingHostRequestId =
+            savedInstanceState?.getString(PENDING_HOST_REQUEST_ID_KEY)
+
+        if (savedInstanceState == null || webView.restoreState(savedInstanceState) == null) {
+            webView.loadUrl(this.getString(R.string.launchUrl)) // 換成您的網址
+        }
 
         // 處理 Back 鍵
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -215,7 +240,9 @@ class WebViewActivity : AppCompatActivity() {
         }
 
         // 處理啟動時的 Intent
-        handleIntent(intent, webView)
+        if (savedInstanceState == null && handleIntent(intent)) {
+            clearHandledIntent()
+        }
     }
 
     override fun onResume() {
@@ -229,9 +256,21 @@ class WebViewActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         setIntent(intent)
-        intent?.let { handleIntent(intent, webView) }
+        if (handleIntent(intent)) {
+            clearHandledIntent()
+        }
     }
-    private fun handleIntent(intent: Intent?, webView: WebView): Uri? {
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        webView.saveState(outState)
+        pendingHostUrl?.let { outState.putString(PENDING_HOST_URL_KEY, it) }
+        pendingHostRequestId?.let {
+            outState.putString(PENDING_HOST_REQUEST_ID_KEY, it)
+        }
+        super.onSaveInstanceState(outState)
+    }
+
+    private fun handleIntent(intent: Intent?): Boolean {
         // 1. 處理分享 (Web Share Target 手動實現)
         if (intent != null && Intent.ACTION_SEND == intent.action && intent.type != null) {
             if ("text/plain" == intent.type) {
@@ -242,40 +281,59 @@ class WebViewActivity : AppCompatActivity() {
                 // 所以，title -> text的上半部 + 原title ，而 text -> 原text 下半部，也就是 url 的部分
                 if (text != null && !text.startsWith("http")) {
                     val indexUrl = text.indexOf("http")
-                    val url = text.substring(indexUrl)
-                    val titleUpper = text.substring(0, indexUrl - 1)
-                    title = titleUpper + (if (title != null && title.length > 10) "" else title)
-                    text = url
+                    if (indexUrl >= 0) {
+                        val url = text.substring(indexUrl)
+                        val titleUpper = text.substring(0, indexUrl).trim()
+                        title = titleUpper + (if (title != null && title.length > 10) "" else title)
+                        text = url
+                    }
                 }
 
-                // 手動構建目標 URL，確保路徑正確
-                // 使用根路徑 + query 參數，避免 GitHub Pages 的子路徑 404
-                val builder =
-                    "https://ychsue.github.io/NonBlockingLife/?action=share-to-inbox".toUri()
-                        .buildUpon()
-
-                if (text != null) {
-                    //builder.appendQueryParameter("text", text);
-                    // 很多 Android App 會把 URL 放在 text 裡面傳過來
-                    builder.appendQueryParameter("url", text)
+                var urlShare = "?action=add&sheet=inbox"
+                if (!text.isNullOrEmpty()) {
+                    urlShare += "&url=${URLEncoder.encode(text, "UTF-8")}"
                 }
-                if (title != null) {
-                    builder.appendQueryParameter("title", title)
+                if (!title.isNullOrEmpty()) {
+                    urlShare += "&title=${URLEncoder.encode(title, "UTF-8")}"
                 }
-
-                val url = builder.build()
-                webView.loadUrl(url.toString())
-                return url
+                enqueueHostUrl(
+                    urlShare,
+                    "host_share_${System.currentTimeMillis()}_${System.nanoTime()}"
+                )
+                return true
             }
         }
 
         // 2. 處理一般的 Deep Link (例如點擊連結開啟 App)
         if (intent?.data != null) {
-            bridge.openUrlByHost(intent.data.toString(),"host_")
+            enqueueHostUrl(
+                intent.data.toString(),
+                "host_intent_${System.currentTimeMillis()}_${System.nanoTime()}"
+            )
+            return true
         }
 
-        // 3. 預設行為
-        return this.getString(R.string.launchUrl).toUri()
+        return false
+    }
+
+    private fun enqueueHostUrl(url: String, requestId: String) {
+        pendingHostUrl = url
+        pendingHostRequestId = requestId
+        flushPendingHostUrl()
+    }
+
+    private fun flushPendingHostUrl() {
+        if (!isBridgeReady) return
+
+        val url = pendingHostUrl ?: return
+        val requestId = pendingHostRequestId ?: return
+        pendingHostUrl = null
+        pendingHostRequestId = null
+        bridge.openUrlByHost(url, requestId)
+    }
+
+    private fun clearHandledIntent() {
+        setIntent(Intent(this, WebViewActivity::class.java))
     }
 }
 
