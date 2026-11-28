@@ -1,5 +1,7 @@
 # Journal
 
+## [2026-11-28] 準備在 Azure 上測aarch64 flatpak 的部分
+
 ## [2026-11-26] 更新版本至 NBL-3.3.1
 1. [index.ts](pwa\src\i18n\index.ts) 多了 `useTWithKeyLocaleMaps`，這個是以 key 為索引，對應不同語系的翻譯映射。這樣比較不會漏掉語言。
 2. [BridgeDispatcher.cs](desktop\src\Nbl.Bridge\BridgeDispatcher.cs) 當傳進來的 url 剛好是 baseUrl開頭，若該url沒有 query時，應該改用外部瀏覽器，不然會導致WebView無法退回主頁的窘境。
